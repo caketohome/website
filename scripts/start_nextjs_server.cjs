@@ -5,7 +5,7 @@ const frontendDir = path.resolve(__dirname, '../frontend');
 const nextBin = path.join(frontendDir, 'node_modules', 'next', 'dist', 'bin', 'next');
 console.log(`Starting Next.js dev server from: ${frontendDir}`);
 
-const child = spawn(process.execPath, ['--max-old-space-size=4096', nextBin, 'dev', '-p', '3000'], {
+const child = spawn(process.execPath, ['--max-old-space-size=4096', nextBin, 'dev', '-H', '0.0.0.0', '-p', '3000'], {
   cwd: frontendDir,
   env: {
     ...process.env,

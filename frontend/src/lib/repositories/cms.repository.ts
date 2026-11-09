@@ -561,22 +561,26 @@ export class CmsRepository {
    * Find CMS Navigation from PostgreSQL cms_navigation table
    */
   static async findNavigation(location: string): Promise<any | null> {
-    const res = await dbQuery(
-      `SELECT * FROM "cms_navigation" WHERE location = $1 AND is_active = true AND deleted_at IS NULL LIMIT 1`,
-      [location]
-    );
-    if (res.rows && res.rows.length > 0) {
-      const row = res.rows[0];
-      let items: any[] = [];
-      try { items = typeof row.items === "string" ? JSON.parse(row.items) : row.items; } catch {}
-      return {
-        id: row.id,
-        name: row.name,
-        location: row.location,
-        items,
-      };
+    try {
+      const res = await dbQuery(
+        `SELECT * FROM "cms_navigation" WHERE location = $1 AND is_active = true AND deleted_at IS NULL LIMIT 1`,
+        [location]
+      );
+      if (res.rows && res.rows.length > 0) {
+        const row = res.rows[0];
+        let items: any[] = [];
+        try { items = typeof row.items === "string" ? JSON.parse(row.items) : row.items; } catch {}
+        return {
+          id: row.id,
+          name: row.name,
+          location: row.location,
+          items,
+        };
+      }
+      return null;
+    } catch {
+      return null;
     }
-    return null;
   }
 
   /**

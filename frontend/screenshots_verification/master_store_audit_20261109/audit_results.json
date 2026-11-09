@@ -1,0 +1,183 @@
+{
+  "timestamp": "2026-11-09T16:46:39.198Z",
+  "tests": [
+    {
+      "test_id": "DB-01-BASELINE-PROTECTION",
+      "name": "Protected Baseline Database Attestation (cth_test)",
+      "expected": "Orders: 127, Invoices: 71, Payments: 40",
+      "actual": "Orders: 127, Invoices: 71, Payments: 40",
+      "status": "PASS"
+    },
+    {
+      "test_id": "STORE-01-HOMEPAGE",
+      "name": "Customer Storefront Homepage Recovery",
+      "status": "PASS",
+      "http_status": 200,
+      "title": "Online Cakes & Cake Delivery in Bangalore | CakeToHome",
+      "screenshot": "01_homepage_recovered.png"
+    },
+    {
+      "test_id": "STORE-02-CATALOG",
+      "name": "Products Catalog Multi-Product View",
+      "status": "PASS",
+      "http_status": 200,
+      "title": "Gourmet Cakes & Sweets Catalog | CakeToHome Bangalore",
+      "rendered_cards": 21,
+      "screenshot": "02_catalog_products.png"
+    },
+    {
+      "test_id": "STORE-03-PDP",
+      "name": "Product Detail Page (PDP) & Actions",
+      "status": "PASS",
+      "http_status": 200,
+      "title": "Royal Red Velvet Roses Bouquet 1 Kg | Same Day Cake Delivery | CakeToHome",
+      "has_cart_action": true,
+      "screenshot": "03_product_detail_page.png"
+    },
+    {
+      "test_id": "STORE-04-CATEGORY",
+      "name": "Category Filtering (/category/cakes)",
+      "status": "PASS",
+      "http_status": 200,
+      "title": "Cakes Online in Bangalore | CakeToHome",
+      "screenshot": "04_category_cakes.png"
+    },
+    {
+      "test_id": "STORE-05-SEARCH",
+      "name": "Search Engine Product Discovery",
+      "status": "PASS",
+      "http_status": 200,
+      "title": "CakeToHome",
+      "screenshot": "05_search_results.png"
+    },
+    {
+      "test_id": "STORE-06-CART",
+      "name": "Shopping Cart & Totals Computation",
+      "status": "PASS",
+      "http_status": 200,
+      "title": "Shopping Cart — CakeToHome",
+      "screenshot": "06_shopping_cart.png"
+    },
+    {
+      "test_id": "STORE-07-CHECKOUT",
+      "name": "Commerce Checkout Preparation",
+      "status": "PASS",
+      "http_status": 200,
+      "title": "Checkout — CakeToHome",
+      "screenshot": "07_checkout_page.png"
+    },
+    {
+      "test_id": "PG-01-CASHFREE-CHECKOUT-UI",
+      "name": "Official Cashfree PG UI & Simulator Elimination",
+      "status": "PASS",
+      "http_status": 200,
+      "official_pg_badge": true,
+      "ssl_indicator": true,
+      "sdk_v3_present": true,
+      "simulator_eliminated": true,
+      "screenshot": "08_cashfree_pg_checkout.png"
+    },
+    {
+      "test_id": "PG-02-CASHFREE-CREATE-ORDER",
+      "name": "Cashfree PG Order Session Creation API",
+      "status": "PASS",
+      "http_status": 200,
+      "response": {
+        "success": true,
+        "orderId": "CTH-CF-TEST-1794242831735",
+        "cfOrderId": "cf_CTH-CF-TEST-1794242831735",
+        "paymentSessionId": "session_mock_de86ae360910aaa5901bbf874fcb2cbd",
+        "orderStatus": "ACTIVE"
+      }
+    },
+    {
+      "test_id": "PG-03-PAYMENT-TRANSACTION-PERSISTENCE",
+      "name": "Payment Transaction PostgreSQL Ledger Recording",
+      "status": "PASS",
+      "record": {
+        "id": "ptx_cf_1794242831804_5ee6fbab",
+        "order_id": "CTH-CF-TEST-1794242831735",
+        "status": "pending",
+        "provider": "cashfree",
+        "amount": "525.00"
+      }
+    },
+    {
+      "test_id": "SEC-01-WEBHOOK-SIGNATURE-REJECTION",
+      "name": "Tampered Webhook Signature Cryptographic Rejection",
+      "status": "PASS",
+      "http_status": 401,
+      "response": {
+        "success": false,
+        "status": "invalid_signature",
+        "message": "HMAC-SHA256 signature verification failed for Cashfree webhook",
+        "idempotent": false
+      }
+    },
+    {
+      "test_id": "SEC-02-WEBHOOK-SIGNATURE-ACCEPTANCE",
+      "name": "HMAC-SHA256 Webhook Signature Authentication",
+      "status": "PASS",
+      "http_status": 200,
+      "response": {
+        "success": true,
+        "event_id": "cf_evt_cf_pay_1794242831862_1794242831",
+        "order_id": "CTH-ORD-WEBHOOK-1794242831835",
+        "payment_id": "cf_pay_1794242831862",
+        "status": "confirmed",
+        "message": "Payment successfully verified and order confirmed atomically",
+        "idempotent": false,
+        "downstream": {
+          "kot_number": "KOT-00009",
+          "inventory_deducted": true,
+          "notification_queued": true,
+          "clearing_voucher_id": "vch_pay_1794242832009_b69977"
+        }
+      }
+    },
+    {
+      "test_id": "PG-04-WEBHOOK-IDEMPOTENCY",
+      "name": "Cashfree Webhook Idempotent Deduplication",
+      "status": "PASS",
+      "http_status": 200,
+      "is_idempotent": true
+    },
+    {
+      "test_id": "COMM-01-ORDER-LIFECYCLE-TRANSITION",
+      "name": "Post-Payment Order State Confirmation (pending -> confirmed)",
+      "status": "PASS",
+      "order_status": "confirmed",
+      "payment_status": "paid",
+      "kot_created": true,
+      "inventory_deducted": true
+    },
+    {
+      "test_id": "RZP-01-DECOMMISSION-AUDIT",
+      "name": "Razorpay Decommission & HTTP 410 Gone Enforcement",
+      "status": "PASS",
+      "webhook_status": 410,
+      "create_order_status": 410
+    },
+    {
+      "test_id": "API-01-PRODUCTS-CATALOG",
+      "name": "Authoritative Canonical Products Catalog API",
+      "status": "PASS",
+      "http_status": 200,
+      "count": 19,
+      "total": 19
+    }
+  ],
+  "screenshots": [],
+  "database": {
+    "rehearsal": {
+      "active_products": 19,
+      "total_products": 19,
+      "variants": 26,
+      "inventory_rows": 156,
+      "branches": 6
+    },
+    "baseline_pristine": true
+  },
+  "cashfree": {},
+  "razorpay": {}
+}
