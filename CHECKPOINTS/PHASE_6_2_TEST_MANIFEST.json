@@ -1,0 +1,70 @@
+{
+  "phase": "6.2",
+  "workstream": "Workstream K: Complete CMS & No-Code Website Builder",
+  "timestamp": "2026-11-10T08:32:57.258Z",
+  "test_suites": {
+    "api_lifecycle": {
+      "script": "scratch/test_phase6_2_cms_lifecycle.cjs",
+      "total_tests": 36,
+      "passed": 36,
+      "failed": 0,
+      "pass_rate_percentage": 100,
+      "tests": [
+        "GET /api/v1/cms/pages returns 200",
+        "Returns at least 20 canonical pages",
+        "Includes canonical about-us page",
+        "GET /api/v1/cms/pages/about-us returns 200",
+        "about-us is published",
+        "about-us has blocks/sections",
+        "POST /api/v1/cms/pages creates draft with 200",
+        "Created page status is draft",
+        "Created page has matching slug",
+        "PUT /api/v1/cms/pages/:id updates page with 200",
+        "Updated title persisted",
+        "Updated sections count is 3",
+        "POST /api/v1/cms/pages/:id/publish returns 200",
+        "Published status is published",
+        "published_at timestamp is set",
+        "POST /api/v1/cms/pages/:id/duplicate returns 200",
+        "Duplicated page has copy title",
+        "Duplicated page status is draft",
+        "Duplicated page has unique slug",
+        "POST /api/v1/cms/pages/:id/rollback returns 200",
+        "Rolled back page returned",
+        "POST /api/v1/cms/jobs/publish-scheduled returns 200",
+        "Scheduled worker reports success",
+        "GET /api/v1/admin/cms/blocks returns 200",
+        "Returns at least 3 global reusable blocks",
+        "Includes blk_usp_banner",
+        "Storefront catalog API /api/v1/accessories is functional",
+        "Razorpay remains decommissioned (returns 404)",
+        "Cashfree payment gateway endpoint active (returns 400/401/422 on empty payload)",
+        "Deleted test created page",
+        "Deleted test duplicated page",
+        "Financial baseline orders = 127",
+        "Financial baseline invoices = 71",
+        "Financial baseline payments = 40",
+        "Canonical CMS pages preserved in DB >= 20",
+        "CMS revision snapshots preserved in DB >= 19"
+      ]
+    },
+    "browser_playwright": {
+      "script": "scratch/test_cms_playwright_e2e.cjs",
+      "total_assertions": 7,
+      "passed": 7,
+      "failed": 0,
+      "screenshots_captured": 8,
+      "screenshots": [
+        "01_cms_admin_page_configurator_desktop_1920.png",
+        "02_cms_visual_block_editor.png",
+        "03_cms_storefront_about_us_desktop_1920.png",
+        "04_cms_storefront_about_us_tablet_768.png",
+        "05_cms_storefront_about_us_mobile_390.png",
+        "06_cms_storefront_terms_and_conditions.png",
+        "07_cms_content_blocks_and_media_library.png",
+        "08_cms_checkout_and_pg_protection.png"
+      ]
+    }
+  },
+  "overall_verdict": "VERIFIED_PASS"
+}

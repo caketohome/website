@@ -1,0 +1,52 @@
+{
+  "timestamp": "2026-11-10T08:28:04.629Z",
+  "viewports": [],
+  "screenshots": [
+    "01_cms_admin_page_configurator_desktop_1920.png",
+    "02_cms_visual_block_editor.png",
+    "03_cms_storefront_about_us_desktop_1920.png",
+    "04_cms_storefront_about_us_tablet_768.png",
+    "05_cms_storefront_about_us_mobile_390.png",
+    "06_cms_storefront_terms_and_conditions.png",
+    "07_cms_content_blocks_and_media_library.png",
+    "08_cms_checkout_and_pg_protection.png"
+  ],
+  "assertions": [
+    {
+      "name": "CMS Page Configurator UI mounted",
+      "pass": true,
+      "extra": "Header check"
+    },
+    {
+      "name": "Storefront /about-us returns HTTP 200",
+      "pass": true,
+      "extra": "status=200"
+    },
+    {
+      "name": "Desktop 1920px has 0 horizontal overflow",
+      "pass": true,
+      "extra": "overflow=false"
+    },
+    {
+      "name": "Tablet 768px has 0 horizontal overflow",
+      "pass": true,
+      "extra": "overflow=false"
+    },
+    {
+      "name": "Mobile 390px has 0 horizontal overflow",
+      "pass": true,
+      "extra": "overflow=false"
+    },
+    {
+      "name": "Storefront /terms-and-conditions returns HTTP 200",
+      "pass": true,
+      "extra": "status=200"
+    },
+    {
+      "name": "Checkout funnel is not intercepted by CMS (returns 200)",
+      "pass": true,
+      "extra": "status=200"
+    }
+  ],
+  "passed": true
+}

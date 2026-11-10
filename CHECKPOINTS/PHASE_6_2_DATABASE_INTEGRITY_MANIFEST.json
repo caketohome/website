@@ -1,0 +1,84 @@
+{
+  "phase": "6.2",
+  "audit_timestamp": "2026-11-10T08:32:57.283Z",
+  "target_databases": [
+    "cth_test",
+    "cth_rehearsal_phase5"
+  ],
+  "engine": "PostgreSQL 16 on port 5433",
+  "baseline_invariants": {
+    "orders": {
+      "expected": 127,
+      "actual": 127,
+      "status": "MATCH_PRESERVED"
+    },
+    "invoices": {
+      "expected": 71,
+      "actual": 71,
+      "status": "MATCH_PRESERVED"
+    },
+    "payment_transactions": {
+      "expected": 40,
+      "actual": 40,
+      "status": "MATCH_PRESERVED"
+    }
+  },
+  "cms_schema_objects": {
+    "cms_page": {
+      "row_count": 20,
+      "seeded_canonical_pages": 20,
+      "status": "HEALTHY"
+    },
+    "cms_revision": {
+      "row_count": 19,
+      "status": "HEALTHY"
+    },
+    "cms_homepage_section": {
+      "row_count": 7,
+      "status": "HEALTHY"
+    },
+    "cms_navigation": {
+      "row_count": 4,
+      "menus": [
+        "header_primary",
+        "footer_col1",
+        "footer_col2",
+        "footer_col3"
+      ],
+      "status": "HEALTHY"
+    },
+    "cms_block": {
+      "row_count": 3,
+      "blocks": [
+        "blk_usp_banner",
+        "blk_announcement",
+        "blk_freshness_guarantee"
+      ],
+      "status": "HEALTHY"
+    },
+    "media": {
+      "row_count": 4,
+      "status": "HEALTHY"
+    },
+    "cms_redirect": {
+      "row_count": 6,
+      "status": "HEALTHY"
+    },
+    "cms_page_template": {
+      "row_count": 4,
+      "templates": [
+        "home",
+        "landing",
+        "legal",
+        "faq"
+      ],
+      "status": "HEALTHY"
+    },
+    "cms_theme_setting": {
+      "row_count": 1,
+      "active_theme": "CakeToHome Blue",
+      "status": "HEALTHY"
+    }
+  },
+  "integrity_verdict": "100% INTACT & SYNCHRONIZED"
+}

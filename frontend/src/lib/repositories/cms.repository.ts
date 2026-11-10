@@ -615,4 +615,30 @@ export class CmsRepository {
   static async deletePage(id: string): Promise<void> {
     await dbQuery(`DELETE FROM "cms_page" WHERE id = $1`, [id]);
   }
+
+  /**
+   * Automatically publish scheduled CMS pages whose scheduled_at <= NOW()
+   */
+  static async publishScheduledPages(): Promise<{ processed: number; published: string[] }> {
+    try {
+      const duePages = await dbQuery(
+        `SELECT id, slug, title FROM "cms_page"
+         WHERE status = 'scheduled'
+           AND scheduled_at IS NOT NULL
+           AND scheduled_at <= NOW()
+           AND deleted_at IS NULL`
+      );
+      const published: string[] = [];
+      if (duePages.rows && duePages.rows.length > 0) {
+        for (const row of duePages.rows) {
+          await CmsRepository.publishPage(row.id);
+          published.push(row.slug);
+        }
+      }
+      return { processed: published.length, published };
+    } catch (err: any) {
+      console.error("[CmsRepository.publishScheduledPages Error]:", err?.message || err);
+      return { processed: 0, published: [] };
+    }
+  }
 }

@@ -1,0 +1,146 @@
+{
+  "phase": "6.2",
+  "manifest_timestamp": "2026-11-10T08:32:57.284Z",
+  "files": {
+    "CMS_EXISTING_STATE_AUDIT.md": {
+      "bytes": 5092,
+      "sha256": "e8faccb72fec0debf773b535a51ab9d6358a8880ee4c069aadcfd8d1837c79ed"
+    },
+    "CMS_FEATURE_GAP_MATRIX.md": {
+      "bytes": 3369,
+      "sha256": "fc5cc0472a600b197a01f556b683b453c5e011db0fbe5f31cdc14778f7b7c848"
+    },
+    "CMS_DATABASE_ARCHITECTURE_AUDIT.md": {
+      "bytes": 5422,
+      "sha256": "21f4c0ee15cf06123e852d85fbe10ec04054b7b70fc2446461fe73fe7626cbe1"
+    },
+    "CMS_API_INTEGRATION_AUDIT.md": {
+      "bytes": 2972,
+      "sha256": "bccd650136014d71f3604a12177fed715090595d6ea20d6aaa47c4a287ce1af3"
+    },
+    "CMS_SECURITY_AUDIT.md": {
+      "bytes": 2828,
+      "sha256": "6924228fadad31c07032f93089e3f3eca437c2db739ec07e7afbd40cfba5ade7"
+    },
+    "CMS_UI_UX_AUDIT.md": {
+      "bytes": 2367,
+      "sha256": "ec44950f51590376419150aada4f49e32f8400bd6087f40c36abd6e275998a4e"
+    },
+    "CMS_IMPLEMENTATION_ROADMAP.md": {
+      "bytes": 3397,
+      "sha256": "2e3c6c8645595c7d09a09e51297a2b541348992f9b740ef503b3769de06594ca"
+    },
+    "CMS_ACCEPTANCE_TEST_MATRIX.md": {
+      "bytes": 3934,
+      "sha256": "66c8ddeef4ddbb29c4137892f8a6a0c9262d16e69c3268240c33ff1902b9acd0"
+    },
+    "PHASE_6_2_EXECUTIVE_REPORT.md": {
+      "bytes": 2635,
+      "sha256": "47e121393e8021a1b246290dfe84e16f9aa1f366d50fd4de65b799ffa3f73e6c"
+    },
+    "PHASE_6_2_EXISTING_CMS_AUDIT.md": {
+      "bytes": 1077,
+      "sha256": "7d8663a2005da0b4d3ca1153fc6e2d825dc344755428eb8074e536cddf4c0ab2"
+    },
+    "PHASE_6_2_GAP_ANALYSIS.md": {
+      "bytes": 1044,
+      "sha256": "d0a2480b676a73254f3cb859212f136b91d7df2044b4890a62a76c21a700c1ca"
+    },
+    "PHASE_6_2_ARCHITECTURE.md": {
+      "bytes": 1413,
+      "sha256": "bc46c4db5fe7d574bd4af5c5bcef17cf7f1148e25823d4c5bd6ecdbf18abdab7"
+    },
+    "PHASE_6_2_DATABASE_DESIGN.md": {
+      "bytes": 1031,
+      "sha256": "e74c4b02a9dbb40ad090a80e27f21d2bede6c1997b04c9986e10cdc99c9717fb"
+    },
+    "PHASE_6_2_API_CONTRACTS.md": {
+      "bytes": 1198,
+      "sha256": "f9f00d164b66028aa228d4fcb2106828404188640aef340a98994023ea1d088f"
+    },
+    "PHASE_6_2_PAGE_TYPES_AND_TEMPLATES.md": {
+      "bytes": 1330,
+      "sha256": "46ec3505e78a2606aaddf85ac52cedffd5bea1057e5285e33f33d82a3a407ca7"
+    },
+    "PHASE_6_2_VISUAL_BUILDER_REPORT.md": {
+      "bytes": 1167,
+      "sha256": "346c3b7ccbc830f8637b650ae7a4882a3379cee2e0d29c88188bf82d1beaaa0b"
+    },
+    "PHASE_6_2_BLOCK_COMPONENT_REGISTER.md": {
+      "bytes": 1578,
+      "sha256": "786f0f0726231336da1f0f9b6d6c6d3f2416bde01067b16f92b2b154aebaff08"
+    },
+    "PHASE_6_2_PRODUCT_INTEGRATION_REPORT.md": {
+      "bytes": 827,
+      "sha256": "98842aa6f24e5892c26b00cb1ed3dabe746cb93f6650ac342d61d2d756be5425"
+    },
+    "PHASE_6_2_MEDIA_LIBRARY_REPORT.md": {
+      "bytes": 654,
+      "sha256": "9c1f6bd38d35ccc847a590a1262ae74d9494f38a87f2fdca7c4da231632abfac"
+    },
+    "PHASE_6_2_THEME_AND_NAVIGATION_REPORT.md": {
+      "bytes": 914,
+      "sha256": "d3263bdac0c91e6102005c9435f57aa6bb1ab444e2213037ee6a9339520adb73"
+    },
+    "PHASE_6_2_SEO_REPORT.md": {
+      "bytes": 680,
+      "sha256": "f76c91d32a098c207ccfeef1a3a2e4a19db58d77567f151d73ca2291b83470cf"
+    },
+    "PHASE_6_2_PUBLISHING_WORKFLOW_REPORT.md": {
+      "bytes": 750,
+      "sha256": "74a226f27002609c53f1dc80a32a8ac85756f4331df5aca961ecd36459f7f5ef"
+    },
+    "PHASE_6_2_REVISION_AND_ROLLBACK_REPORT.md": {
+      "bytes": 770,
+      "sha256": "7316cff2d5bda3664d52776c035270f3160737c9ba490d082895c49db1fd1c60"
+    },
+    "PHASE_6_2_SECURITY_AUDIT.md": {
+      "bytes": 681,
+      "sha256": "6ac5b6b2460f52db29a20196c09c33cbb817e06cffbc045c16a4586d247f72fd"
+    },
+    "PHASE_6_2_PERFORMANCE_REPORT.md": {
+      "bytes": 521,
+      "sha256": "d4ae6861df6bd70db2c13997e5748a8ad57853299f32cc104838c818430e97c6"
+    },
+    "PHASE_6_2_ACCESSIBILITY_REPORT.md": {
+      "bytes": 666,
+      "sha256": "a18a7f1908296a9c68594c63f9e511ff6280903a4b29008e244fc44a50df568b"
+    },
+    "PHASE_6_2_E2E_TEST_REPORT.md": {
+      "bytes": 1112,
+      "sha256": "fe549575658ed38363c6188191f2ba76e27879f770ab841a7f93d9b541308324"
+    },
+    "PHASE_6_2_REGRESSION_REPORT.md": {
+      "bytes": 937,
+      "sha256": "9dffb7dedad7cc605604c75640be239dd32b5ef6d5e745dd3e4fdfebf27ab449"
+    },
+    "PHASE_6_2_DEPLOYMENT_RUNBOOK.md": {
+      "bytes": 715,
+      "sha256": "70ca4a1a485e0d0202d8c758b02aff6fa0701f67871a3bd7773713a8e57f8fe3"
+    },
+    "PHASE_6_2_KNOWN_GAPS_AND_BLOCKERS.md": {
+      "bytes": 582,
+      "sha256": "54606d67276acbb3c89f771025e3089fabcd2b98299209c768c4be22ca98318b"
+    },
+    "PHASE_6_2_FINAL_RELEASE_GATE.md": {
+      "bytes": 1579,
+      "sha256": "5930c833ae403f6e7c5c92e6727bf43db87ba4c11c17f688c476dfe5ef164311"
+    },
+    "PHASE_6_2_SKILL_USAGE_MATRIX.md": {
+      "bytes": 2054,
+      "sha256": "8bccfeef1b825ab41c4aa9fdc6c6551e89219791d778a2d459c2a76629a9e70d"
+    },
+    "PHASE_6_2_TEST_MANIFEST.json": {
+      "bytes": 2787,
+      "sha256": "f6d9980c75828569643770da28cc028a83bfe978fab1fe2865e58dbb764c315c"
+    },
+    "PHASE_6_2_DATABASE_INTEGRITY_MANIFEST.json": {
+      "bytes": 1721,
+      "sha256": "aa917f922fb662c7db826aed2498ab0bbab015d1a20b09591a930b76bcdf9cf5"
+    },
+    "migration/20261110_phase6_2_cms_architecture.sql": {
+      "bytes": 6011,
+      "sha256": "4f857fd5a9b1b36195180625f52d2444d23138d5cdcb0d923eb65a213c490c01"
+    }
+  }
+}

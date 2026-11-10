@@ -10985,6 +10985,11 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource({ page, success: true }, "postgres");
     }
 
+    if (path === "cms/jobs/publish-scheduled" || path === "admin/cms/jobs/publish-scheduled") {
+      const result = await CmsRepository.publishScheduledPages();
+      return jsonWithDataSource({ success: true, ...result }, "postgres");
+    }
+
     // ── Search & Merchandising Engine Endpoints (POST) ──
     if (path === "search/tags") {
       return jsonWithDataSource({ success: true, tag: ApiEngine.saveSearchTag(body) }, "postgres");
