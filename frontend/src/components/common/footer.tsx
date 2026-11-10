@@ -80,7 +80,7 @@ export default function Footer() {
             <div className="text-xs text-slate-300 flex flex-col gap-1.5">
               <p>Email: <a href="mailto:support@caketohome.com" className="text-blue-300 hover:underline">support@caketohome.com</a></p>
               <p>Hours: 9:00 AM – 11:00 PM IST</p>
-              <p className="text-[11px] text-slate-400 mt-1">Cashfree Verified 256-bit Encrypted Checkout</p>
+              <p className="text-[11px] text-slate-400 mt-1">Razorpay 256-bit SSL Encrypted Standard Checkout</p>
             </div>
           </div>
         </div>
@@ -89,6 +89,27 @@ export default function Footer() {
         <Suspense fallback={null}>
           <FooterNavigation />
         </Suspense>
+
+        {/* Statutory Legal Policies Grid (12 Mandatory Policies) */}
+        <div className="py-6 border-t border-blue-900/40">
+          <h5 className="text-[11px] font-bold uppercase tracking-wider text-blue-300/80 mb-3 text-center sm:text-left">
+            Statutory Legal Policies & Disclosures
+          </h5>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 text-[11px] text-slate-300">
+            <Link href="/privacy-policy" className="hover:text-blue-300 transition-colors">Privacy Policy</Link>
+            <Link href="/terms-and-conditions" className="hover:text-blue-300 transition-colors">Terms & Conditions</Link>
+            <Link href="/refund-policy" className="hover:text-blue-300 transition-colors">Refund Policy</Link>
+            <Link href="/cancellation-policy" className="hover:text-blue-300 transition-colors">Cancellation Policy</Link>
+            <Link href="/shipping-and-delivery-policy" className="hover:text-blue-300 transition-colors">Shipping & Delivery</Link>
+            <Link href="/return-replacement-policy" className="hover:text-blue-300 transition-colors">Return / Replacement</Link>
+            <Link href="/cookie-policy" className="hover:text-blue-300 transition-colors">Cookie Policy</Link>
+            <Link href="/allergen-food-safety-disclaimer" className="hover:text-blue-300 transition-colors">Allergen & Food Safety</Link>
+            <Link href="/grievance-redressal" className="hover:text-blue-300 transition-colors">Grievance Redressal</Link>
+            <Link href="/intellectual-property" className="hover:text-blue-300 transition-colors">Intellectual Property</Link>
+            <Link href="/general-disclaimers" className="hover:text-blue-300 transition-colors">General Disclaimers</Link>
+            <Link href="/contact-information" className="hover:text-blue-300 transition-colors">Contact Information</Link>
+          </div>
+        </div>
 
         {/* Bottom Bar */}
         <div className="pt-6 border-t border-blue-900/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">

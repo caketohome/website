@@ -1,223 +1,475 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Container, Heading, Text, Button, Input, Label, Badge } from "@medusajs/ui";
-import { CreditCard, Save, CheckCircle2, DollarSign, Lock, ShieldCheck, AlertTriangle } from "lucide-react";
-import { apiClient } from "@frontend/lib/api-client";
+import { 
+  CreditCard, Save, CheckCircle2, AlertTriangle, ShieldCheck, 
+  Activity, Key, Lock, Eye, EyeOff, RefreshCw, Zap, Archive
+} from "lucide-react";
 
 export function PaymentConfigTab({
   paymentSettings,
   onUpdated,
 }: {
-  paymentSettings: any;
-  onUpdated: (updated: any) => void;
+  paymentSettings?: any;
+  onUpdated?: (updated: any) => void;
 }) {
-  const [formData, setFormData] = useState({
-    supported_methods: paymentSettings?.supported_methods?.filter((m: string) => m !== "razorpay") || [
-      "cod",
-      "cashfree",
-      "wallet",
-      "test_mode",
-    ],
-    cashfree_app_id: paymentSettings?.cashfree_app_id || process.env.NEXT_PUBLIC_CASHFREE_APP_ID || "TEST_CF_APP_ID",
-    cashfree_environment: paymentSettings?.cashfree_environment || "SANDBOX",
-    cod_max_limit: paymentSettings?.cod_max_limit ?? 5000,
-    cod_surcharge: paymentSettings?.cod_surcharge ?? 0,
-    default_currency: paymentSettings?.default_currency || "INR",
-  });
+  // State for Razorpay Gateway Config
+  const [environment, setEnvironment] = useState<"TEST" | "LIVE">("TEST");
+  const [keyId, setKeyId] = useState("");
+  const [keySecret, setKeySecret] = useState("");
+  const [webhookSecret, setWebhookSecret] = useState("");
+  const [isActive, setIsActive] = useState(true);
+  const [hasKeySecret, setHasKeySecret] = useState(false);
+  const [hasWebhookSecret, setHasWebhookSecret] = useState(false);
+  const [isReplacingSecret, setIsReplacingSecret] = useState(false);
+  const [isReplacingWebhookSecret, setIsReplacingWebhookSecret] = useState(false);
+  const [showSecret, setShowSecret] = useState(false);
 
+  // Status & Diagnostics
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [lastTestedAt, setLastTestedAt] = useState<string | null>(null);
+  const [diagnosticResult, setDiagnosticResult] = useState<any>(null);
+
+  // Actions Loading States
+  const [loadingConfig, setLoadingConfig] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [testingConnection, setTestingConnection] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const toggleMethod = (method: "cod" | "cashfree" | "wallet" | "test_mode") => {
-    setFormData((prev) => {
-      const exists = prev.supported_methods.includes(method);
-      return {
-        ...prev,
-        supported_methods: exists
-          ? prev.supported_methods.filter((m: string) => m !== method)
-          : [...prev.supported_methods, method],
-      };
-    });
+  // Fetch active Razorpay configuration on mount
+  useEffect(() => {
+    fetchRazorpayConfig();
+  }, []);
+
+  const fetchRazorpayConfig = async () => {
+    setLoadingConfig(true);
+    try {
+      const res = await fetch("/api/v1/admin/payments/razorpay/config");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.config) {
+          setEnvironment(data.config.environment || "TEST");
+          setKeyId(data.config.key_id || "");
+          setIsActive(data.config.is_active ?? true);
+          setHasKeySecret(Boolean(data.config.has_key_secret));
+          setHasWebhookSecret(Boolean(data.config.has_webhook_secret));
+          setLastUpdated(data.config.updated_at || data.config.created_at || null);
+          setLastTestedAt(data.config.last_tested_at || null);
+          setDiagnosticResult(data.config.last_test_result || null);
+        }
+      }
+    } catch (err: any) {
+      console.error("[PaymentConfigTab] Failed to fetch Razorpay config:", err);
+    } finally {
+      setLoadingConfig(false);
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    setSuccessMsg(null);
+  const handleTestConnection = async () => {
+    setTestingConnection(true);
+    setErrorMsg(null);
     try {
-      const res: any = await apiClient.updatePaymentSettings(formData);
-      const updated = res?.payments || res?.data || formData;
-      onUpdated(updated);
-      setSuccessMsg("Payment Configuration updated successfully! Cashfree active.");
-      setTimeout(() => setSuccessMsg(null), 4000);
+      const payload: any = { environment, key_id: keyId };
+      if (isReplacingSecret && keySecret) {
+        payload.key_secret = keySecret;
+      }
+      const res = await fetch("/api/v1/admin/payments/razorpay/test-connection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      setDiagnosticResult(result);
+      setLastTestedAt(result.tested_at || new Date().toISOString());
+      if (result.success) {
+        setSuccessMsg(`Diagnostic connection succeeded! (${result.message})`);
+        setTimeout(() => setSuccessMsg(null), 5000);
+      } else {
+        setErrorMsg(`Diagnostic probe returned: ${result.category} - ${result.message}`);
+      }
     } catch (err: any) {
-      alert("Failed to save payment settings: " + (err.message || "Unknown error"));
+      setErrorMsg("Failed to execute connection test: " + err.message);
+    } finally {
+      setTestingConnection(false);
+    }
+  };
+
+  const handleSaveConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!keyId.trim()) {
+      setErrorMsg("Razorpay Key ID is required.");
+      return;
+    }
+    if (!hasKeySecret && !keySecret.trim()) {
+      setErrorMsg("Razorpay Key Secret is required.");
+      return;
+    }
+
+    setSaving(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    try {
+      const payload: any = {
+        provider: "razorpay",
+        environment,
+        key_id: keyId.trim(),
+        is_active: isActive
+      };
+      if (keySecret.trim()) {
+        payload.key_secret = keySecret.trim();
+      }
+      if (webhookSecret.trim()) {
+        payload.webhook_secret = webhookSecret.trim();
+      }
+
+      const res = await fetch("/api/v1/admin/payments/razorpay/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setSuccessMsg("Razorpay credentials saved securely with AES-256-GCM authenticated encryption envelope.");
+        setIsReplacingSecret(false);
+        setIsReplacingWebhookSecret(false);
+        setKeySecret("");
+        setWebhookSecret("");
+        setHasKeySecret(true);
+        if (webhookSecret.trim()) setHasWebhookSecret(true);
+        setLastUpdated(new Date().toISOString());
+        setTimeout(() => setSuccessMsg(null), 5000);
+        if (onUpdated) onUpdated({ provider: "razorpay", is_active: isActive, environment });
+      } else {
+        setErrorMsg(data.message || "Failed to save gateway configuration.");
+      }
+    } catch (err: any) {
+      setErrorMsg("Failed to save configuration: " + err.message);
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
+      {/* Notifications */}
       {successMsg && (
-        <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-sm rounded-xl flex items-center gap-2">
+        <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-sm rounded-xl flex items-center gap-2 animate-in fade-in">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
+      {errorMsg && (
+        <div className="p-3.5 bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-sm rounded-xl flex items-center gap-2 animate-in fade-in">
+          <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
 
-      {/* Header Bar */}
+      {/* Primary Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-amber-600" />
-            <Heading level="h3" className="text-base font-bold">Payment Methods & Gateway Settings</Heading>
-            <Badge color="green" size="small" className="gap-1">
-              <ShieldCheck className="w-3 h-3" /> Cashfree Exclusive
+            <CreditCard className="w-5 h-5 text-blue-600" />
+            <Heading level="h3" className="text-base font-bold">Settings &rarr; Payment Gateway &rarr; Razorpay</Heading>
+            <Badge color={isActive ? "green" : "grey"} size="small" className="gap-1">
+              <ShieldCheck className="w-3 h-3" /> {isActive ? `ACTIVE (${environment} MODE)` : "INACTIVE"}
             </Badge>
           </div>
           <Text className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Configure checkout payment channels, COD order thresholds, and Cashfree PG API v2023-08-01 credentials.
+            Configure genuine Razorpay Standard Web Checkout credentials, AES-256-GCM encryption envelope, and non-mutating diagnostics.
           </Text>
         </div>
-        <Button
-          type="submit"
-          isLoading={saving}
-          className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1.5 shrink-0"
-        >
-          <Save className="w-4 h-4" /> Save Payment Config
-        </Button>
-      </div>
-
-      {/* Razorpay Decommission Notice */}
-      <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/80 rounded-2xl flex items-start gap-3">
-        <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-        <div className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
-          <span className="font-bold">Gateway Policy Notice:</span> Razorpay has been permanently decommissioned for active checkout transactions. Cashfree PG API v2023-08-01 is established as the sole active payment gateway. Historical Razorpay accounting records remain intact in ledger archives for statutory auditing.
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={handleTestConnection}
+            isLoading={testingConnection}
+            className="flex items-center gap-1.5 text-xs font-semibold"
+          >
+            <Zap className="w-3.5 h-3.5 text-blue-600" /> Test Connection
+          </Button>
+          <Button
+            type="button"
+            onClick={handleSaveConfig}
+            isLoading={saving}
+            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1.5 text-xs font-semibold"
+          >
+            <Save className="w-3.5 h-3.5" /> Save Settings
+          </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Supported Payment Channels */}
-        <Container className="p-5 flex flex-col gap-4">
-          <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-            Enabled Payment Methods
-          </Text>
+      {/* Decommissioning Notice */}
+      <div className="p-4 bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 rounded-2xl flex items-start gap-3">
+        <ShieldCheck className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+        <div className="text-xs text-blue-950 dark:text-blue-200 leading-relaxed">
+          <span className="font-bold">Phase 9 Payment Architecture Mandate:</span> Razorpay Standard Web Checkout is the sole authoritative payment gateway for CakeToHome. Cashfree has been completely decommissioned from customer-facing checkout. Historical Cashfree accounting vouchers and audit logs are preserved immutable for statutory financial compliance.
+        </div>
+      </div>
 
-          <div className="flex flex-col gap-3">
-            <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50/50 cursor-pointer">
-              <div>
-                <span className="text-sm font-bold text-slate-900 dark:text-white">Cash on Delivery (COD)</span>
-                <p className="text-xs text-slate-500">Pay cash or UPI upon doorstep delivery</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={formData.supported_methods.includes("cod")}
-                onChange={() => toggleMethod("cod")}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
-              />
-            </label>
-
-            <label className="flex items-center justify-between p-3 rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/30 dark:bg-emerald-950/20 hover:bg-emerald-50/60 cursor-pointer">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-emerald-900 dark:text-emerald-300">Cashfree Online Gateway</span>
-                  <span className="px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900 text-[10px] font-bold text-emerald-800 dark:text-emerald-200 rounded">Sole Active Gateway</span>
-                </div>
-                <p className="text-xs text-slate-500">UPI, Cards, Netbanking & Cashfree Drop Checkout</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={formData.supported_methods.includes("cashfree")}
-                onChange={() => toggleMethod("cashfree")}
-                className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
-              />
-            </label>
-
-            <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50/50 cursor-pointer">
-              <div>
-                <span className="text-sm font-bold text-slate-900 dark:text-white">CakeToHome Customer Wallet</span>
-                <p className="text-xs text-slate-500">Instant checkout using stored wallet balance</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={formData.supported_methods.includes("wallet")}
-                onChange={() => toggleMethod("wallet")}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
-              />
-            </label>
-
-            <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50/50 cursor-pointer">
-              <div>
-                <span className="text-sm font-bold text-slate-900 dark:text-white">Direct Sandbox / Test Mode</span>
-                <p className="text-xs text-slate-500">Simulate instant payments for automated testing</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={formData.supported_methods.includes("test_mode")}
-                onChange={() => toggleMethod("test_mode")}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
-              />
-            </label>
+      {/* Main Configuration Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Credentials Form (2 cols) */}
+        <Container className="lg:col-span-2 p-6 flex flex-col gap-5">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div>
+              <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                Razorpay API Credentials
+              </Text>
+              <Text className="text-[11px] text-slate-400">
+                Secrets are encrypted at rest with versioned AES-256-GCM (v1$iv$authTag$cipher).
+              </Text>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-600 dark:text-slate-400">Gateway Status:</span>
+              <button
+                type="button"
+                onClick={() => setIsActive(!isActive)}
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  isActive ? "bg-emerald-600" : "bg-slate-300 dark:bg-slate-700"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                    isActive ? "translate-x-4" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
           </div>
-        </Container>
 
-        {/* COD Limits & Cashfree Credentials */}
-        <Container className="p-5 flex flex-col gap-4">
-          <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-            Rules & Cashfree PG Credentials
-          </Text>
+          {/* Environment Selector */}
+          <div>
+            <Label className="text-xs font-semibold">Configuration Environment</Label>
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              <button
+                type="button"
+                onClick={() => setEnvironment("TEST")}
+                className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all ${
+                  environment === "TEST"
+                    ? "border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 text-blue-900 dark:text-blue-200"
+                    : "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="env_choice"
+                  checked={environment === "TEST"}
+                  onChange={() => setEnvironment("TEST")}
+                  className="mt-0.5 text-blue-600"
+                />
+                <div>
+                  <span className="text-xs font-bold block">Test Mode (Sandbox Simulation)</span>
+                  <span className="text-[11px] text-slate-500">rzp_test_* credentials for safe verification</span>
+                </div>
+              </button>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="cod_limit" className="text-xs font-semibold">Maximum COD Order Limit (₹)</Label>
-              <Input
-                id="cod_limit"
-                type="number"
-                value={String(formData.cod_max_limit)}
-                onChange={(e) => setFormData({ ...formData, cod_max_limit: Number(e.target.value) || 0 })}
-                className="mt-1"
-              />
-              <p className="text-[11px] text-slate-400 mt-1">Orders above this value require online payment.</p>
+              <button
+                type="button"
+                onClick={() => setEnvironment("LIVE")}
+                className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all ${
+                  environment === "LIVE"
+                    ? "border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-200"
+                    : "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="env_choice"
+                  checked={environment === "LIVE"}
+                  onChange={() => setEnvironment("LIVE")}
+                  className="mt-0.5 text-emerald-600"
+                />
+                <div>
+                  <span className="text-xs font-bold block">Live Mode (Production Traffic)</span>
+                  <span className="text-[11px] text-slate-500">rzp_live_* credentials for real customer banking</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Key ID */}
+          <div>
+            <Label htmlFor="key_id" className="text-xs font-semibold flex items-center gap-1.5">
+              <Key className="w-3.5 h-3.5 text-slate-500" /> Razorpay Key ID
+            </Label>
+            <Input
+              id="key_id"
+              placeholder={environment === "TEST" ? "rzp_test_..." : "rzp_live_..."}
+              value={keyId}
+              onChange={(e) => setKeyId(e.target.value)}
+              className="mt-1 font-mono text-xs"
+            />
+            <p className="text-[11px] text-slate-400 mt-1">
+              Public Key identifier used by checkout.js modal on storefront.
+            </p>
+          </div>
+
+          {/* Key Secret */}
+          <div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="key_secret" className="text-xs font-semibold flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-slate-500" /> Razorpay Key Secret
+              </Label>
+              {hasKeySecret && (
+                <button
+                  type="button"
+                  onClick={() => setIsReplacingSecret(!isReplacingSecret)}
+                  className="text-[11px] text-blue-600 hover:underline font-semibold"
+                >
+                  {isReplacingSecret ? "Keep Existing Secret" : "Replace Secret"}
+                </button>
+              )}
             </div>
 
-            <div>
-              <Label htmlFor="cod_fee" className="text-xs font-semibold">COD Handling Fee / Surcharge (₹)</Label>
-              <Input
-                id="cod_fee"
-                type="number"
-                value={String(formData.cod_surcharge)}
-                onChange={(e) => setFormData({ ...formData, cod_surcharge: Number(e.target.value) || 0 })}
-                className="mt-1"
-              />
-              <p className="text-[11px] text-slate-400 mt-1">Extra fee charged when customer selects COD.</p>
+            {hasKeySecret && !isReplacingSecret ? (
+              <div className="mt-1 flex items-center justify-between p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 font-mono text-xs text-slate-600 dark:text-slate-300">
+                <span className="tracking-widest">••••••••••••••••••••••••••••••••</span>
+                <Badge color="green" size="small">Encrypted (v1)</Badge>
+              </div>
+            ) : (
+              <div className="relative mt-1">
+                <Input
+                  id="key_secret"
+                  type={showSecret ? "text" : "password"}
+                  placeholder="Enter Razorpay Key Secret..."
+                  value={keySecret}
+                  onChange={(e) => setKeySecret(e.target.value)}
+                  className="font-mono text-xs pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSecret(!showSecret)}
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                >
+                  {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            )}
+            <p className="text-[11px] text-slate-400 mt-1">
+              Secret used exclusively on backend for server-side HMAC-SHA256 signature verification.
+            </p>
+          </div>
+
+          {/* Webhook Secret */}
+          <div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="webhook_secret" className="text-xs font-semibold flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-slate-500" /> Razorpay Webhook Secret (Optional)
+              </Label>
+              {hasWebhookSecret && (
+                <button
+                  type="button"
+                  onClick={() => setIsReplacingWebhookSecret(!isReplacingWebhookSecret)}
+                  className="text-[11px] text-blue-600 hover:underline font-semibold"
+                >
+                  {isReplacingWebhookSecret ? "Keep Existing" : "Replace Webhook Secret"}
+                </button>
+              )}
             </div>
 
-            <div className="sm:col-span-2">
-              <Label htmlFor="cf_app_id" className="text-xs font-semibold">Cashfree Client App ID</Label>
+            {hasWebhookSecret && !isReplacingWebhookSecret ? (
+              <div className="mt-1 flex items-center justify-between p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 font-mono text-xs text-slate-600 dark:text-slate-300">
+                <span className="tracking-widest">••••••••••••••••••••••••</span>
+                <Badge color="green" size="small">Encrypted (v1)</Badge>
+              </div>
+            ) : (
               <Input
-                id="cf_app_id"
-                value={formData.cashfree_app_id}
-                onChange={(e) => setFormData({ ...formData, cashfree_app_id: e.target.value })}
+                id="webhook_secret"
+                type="password"
+                placeholder="Enter Webhook Secret (if configured in Razorpay Dashboard)..."
+                value={webhookSecret}
+                onChange={(e) => setWebhookSecret(e.target.value)}
                 className="mt-1 font-mono text-xs"
               />
-              <p className="text-[11px] text-slate-400 mt-1">Cashfree Secret Key is securely stored in environment variables.</p>
-            </div>
-
-            <div className="sm:col-span-2">
-              <Label htmlFor="cf_env" className="text-xs font-semibold">Cashfree PG Environment</Label>
-              <Input
-                id="cf_env"
-                readOnly
-                value={`${formData.cashfree_environment} (v2023-08-01 API)`}
-                className="mt-1 font-mono text-xs bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
-              />
-              <p className="text-[11px] text-slate-400 mt-1">Automated webhooks routed to /api/v1/payments/cashfree/webhook.</p>
-            </div>
+            )}
+            <p className="text-[11px] text-slate-400 mt-1">
+              Authorizes incoming payment.captured and payment.failed events at /api/v1/payments/razorpay/webhook.
+            </p>
           </div>
         </Container>
+
+        {/* Diagnostics & Historical Audit (1 col) */}
+        <div className="flex flex-col gap-6">
+          {/* Diagnostic Probe Card */}
+          <Container className="p-5 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5 text-blue-600" /> Diagnostic Probe Status
+              </Text>
+              {diagnosticResult && (
+                <Badge color={diagnosticResult.success ? "green" : "red"} size="small">
+                  {diagnosticResult.category || (diagnosticResult.success ? "SUCCESS" : "FAILED")}
+                </Badge>
+              )}
+            </div>
+
+            <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl text-xs flex flex-col gap-2">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Destination:</span>
+                <span className="font-mono text-[11px]">api.razorpay.com</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Timeout Guard:</span>
+                <span className="font-mono text-[11px]">5000ms strict</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">SSRF Protection:</span>
+                <span className="text-emerald-600 font-bold text-[11px]">Hardcoded (No Redirects)</span>
+              </div>
+              {lastTestedAt && (
+                <div className="flex justify-between border-t border-slate-200 dark:border-slate-700 pt-1.5">
+                  <span className="text-slate-500">Last Probed:</span>
+                  <span className="text-[11px]">{new Date(lastTestedAt).toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+
+            {diagnosticResult && (
+              <div className={`p-3 rounded-xl text-xs border ${
+                diagnosticResult.success
+                  ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 text-emerald-800 dark:text-emerald-300"
+                  : "bg-rose-50 dark:bg-rose-950/40 border-rose-200 text-rose-800 dark:text-rose-300"
+              }`}>
+                <span className="font-bold block mb-0.5">{diagnosticResult.category}:</span>
+                <span className="text-[11px] leading-relaxed">{diagnosticResult.message}</span>
+              </div>
+            )}
+
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleTestConnection}
+              isLoading={testingConnection}
+              className="w-full mt-1 text-xs font-semibold"
+            >
+              Run Diagnostic Probe
+            </Button>
+          </Container>
+
+          {/* Cashfree Archival Status */}
+          <Container className="p-5 flex flex-col gap-3 bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800">
+            <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+              <Archive className="w-3.5 h-3.5 text-slate-400" /> Decommissioned Gateways
+            </Text>
+
+            <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold">Cashfree Payments</span>
+                <Badge color="grey" size="small">DECOMMISSIONED</Badge>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Customer checkout disabled. 35 historical transactions preserved in double-entry ledger for statutory tax audit.
+              </p>
+            </div>
+          </Container>
+        </div>
       </div>
-    </form>
+    </div>
   );
 }

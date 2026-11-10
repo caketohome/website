@@ -62,7 +62,7 @@ export default async function YourOrderPage({
           order.delivery_date = order.delivery_date || "Today (Immediate Dispatch)";
           order.delivery_slot = order.delivery_slot || "Express 60-min Fresh Delivery";
           order.delivery_otp = order.delivery_otp || "4829";
-          order.payment_method = "Cashfree Online PG";
+          order.payment_method = "Razorpay Standard Checkout";
           order.payment_status = order.payment_status || "paid";
           order.status = order.status || "confirmed";
           if (!order.items || order.items.length === 0) {
@@ -215,7 +215,7 @@ export default async function YourOrderPage({
  <div>
  <span className="text-slate-500 font-medium">Payment Mode</span>
  <p className="font-bold text-slate-900 mt-0.5">
- {order.payment_method || "Cashfree Online PG"}
+ {order.payment_method || "Razorpay Standard Checkout"}
  </p>
  <div className="flex flex-col gap-1 mt-1">
  <span className="inline-block px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold w-fit">

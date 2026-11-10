@@ -175,7 +175,7 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
                 </span>
               </div>
               <p className="text-slate-600 dark:text-slate-400 mt-1">
-                Payment Gateway: <strong>Cashfree Payments India</strong>
+                Payment Gateway: <strong>{invoice.payment_provider ? (invoice.payment_provider.toLowerCase() === "cashfree" ? "Cashfree Payments India (Historical)" : "Razorpay Standard Checkout") : "Razorpay Standard Checkout"}</strong>
               </p>
               <p className="text-slate-600 dark:text-slate-400">
                 Fulfillment Kitchen: <strong>{invoice.branch_name || "Indiranagar Kitchen Hub"}</strong>

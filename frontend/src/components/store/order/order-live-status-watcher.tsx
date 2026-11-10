@@ -99,7 +99,7 @@ export function OrderLiveStatusWatcher({
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
             </span>
             <span className="font-semibold text-amber-100">
-              Verifying payment confirmation with Cashfree gateway...
+              Verifying payment confirmation with Razorpay gateway...
             </span>
           </div>
           <span className="text-[11px] text-amber-300/80 hidden sm:inline">

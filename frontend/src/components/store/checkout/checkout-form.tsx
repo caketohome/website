@@ -55,8 +55,8 @@ function Submit({ disabled, paymentMethod }: { disabled?: boolean; paymentMethod
   disabled={disabled}
   aria-label="Confirm and place your cake order"
   >
-  {paymentMethod === "cashfree"
-    ? "Proceed to Cashfree Payment 💳"
+  {paymentMethod === "razorpay" || (paymentMethod === "razorpay" || paymentMethod === "cashfree")
+    ? "Proceed to Razorpay Payment 💳"
     : paymentMethod === "cod"
     ? "Confirm Cash on Delivery 💵"
     : "Place Order Now 🎂"}
@@ -147,7 +147,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  const [couponDiscount, setCouponDiscount] = useState<number>(0);
  const [couponError, setCouponError] = useState<string>("");
  const [couponSuccess, setCouponSuccess] = useState<string>("");
- const [paymentMethod, setPaymentMethod] = useState<"cod" | "cashfree" | "test_mode">("cashfree");
+ const [paymentMethod, setPaymentMethod] = useState<"cod" | "razorpay" | "cashfree" | "test_mode">("razorpay");
 
  // Availability, Dates, Slots & Real-time Pricing State
  const [availability, setAvailability] = useState<{
@@ -1613,9 +1613,9 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
  <button
  type="button"
- onClick={() => setPaymentMethod("cashfree")}
+ onClick={() => setPaymentMethod("razorpay")}
  className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all ${
- paymentMethod === "cashfree"
+ (paymentMethod === "razorpay" || paymentMethod === "cashfree")
  ? "border-[#2563EB] bg-blue-50/60 ring-2 ring-blue-500/20"
  : "border-slate-200 hover:border-blue-300"
  }`}
@@ -1623,13 +1623,13 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <div className="flex justify-between items-center">
  <span className="text-2xl">💳</span>
  <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
- paymentMethod === "cashfree" ? "border-[#2563EB] bg-[#2563EB] text-[#2563EB] text-[10px]" : "border-stone/70"
+ (paymentMethod === "razorpay" || paymentMethod === "cashfree") ? "border-[#2563EB] bg-[#2563EB] text-[#2563EB] text-[10px]" : "border-stone/70"
  }`}>
- {paymentMethod === "cashfree" && "✓"}
+ {(paymentMethod === "razorpay" || paymentMethod === "cashfree") && "✓"}
  </span>
  </div>
  <div>
- <h4 className="font-bold text-xs md:text-sm text-slate-900 ">Online UPI / Card</h4>
+ <h4 className="font-bold text-xs md:text-sm text-slate-900 ">Online Payment (Razorpay)</h4>
  <p className="text-[11px] text-slate-500 mt-0.5">Google Pay, PhonePe, Cards, NetBanking</p>
  </div>
  </button>

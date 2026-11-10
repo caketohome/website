@@ -97,7 +97,7 @@ export async function confirmCheckoutAction(payload: {
   delivery_type?: string;
   branch_id?: string;
   coupon_code?: string;
-  payment_method: "cod" | "cashfree" | "test_mode" | "wallet";
+  payment_method: "cod" | "razorpay" | "cashfree" | "test_mode" | "wallet";
   payment_details?: any;
   occasion?: string;
   ordered_for_self?: boolean;
@@ -164,7 +164,8 @@ export async function placeOrder(prevState: any, data: FormData) {
 
   const deliveryDate = data.get("delivery-date")?.toString() || data.get("delivery_date")?.toString() || new Date().toISOString().slice(0, 10);
   const deliverySlotId = data.get("delivery-slot")?.toString() || data.get("delivery_slot_id")?.toString() || "slot_morning";
-  const paymentMethod = (data.get("payment-method")?.toString() || "cashfree") as "cod" | "cashfree" | "test_mode";
+  let paymentMethod = (data.get("payment-method")?.toString() || "razorpay") as "cod" | "razorpay" | "cashfree" | "test_mode";
+  if (paymentMethod === "cashfree") paymentMethod = "razorpay";
 
   const occasion = data.get("occasion")?.toString() || "Celebration";
   const orderedForSelf = data.get("ordered-for-self")?.toString() !== "false" && data.get("ordered_for_self")?.toString() !== "false";

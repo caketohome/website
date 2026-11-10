@@ -1096,7 +1096,7 @@ const DEFAULT_DELIVERY_DEFAULTS: DeliveryDefaultsSettings = {
 };
 
 const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
-  supported_methods: ["cod", "cashfree", "test_mode", "wallet"],
+  supported_methods: ["cod", "razorpay", "test_mode", "wallet"],
   cashfree_app_id: "TEST_CF_APP_ID",
   cod_max_limit: 5000,
   cod_surcharge: 0,
@@ -23702,12 +23702,8 @@ export class ApiEngine {
     is_surprise_delivery?: boolean;
     special_instructions?: string;
   }) {
-    if ((payload.payment_method as string) === "razorpay") {
-      return {
-        success: false,
-        statusCode: 410,
-        error: "Razorpay has been decommissioned. Cashfree is the sole active payment gateway.",
-      };
+    if ((payload.payment_method as string) === "cashfree") {
+      payload.payment_method = "razorpay";
     }
 
     // 1. Revalidate everything authoritatively on server
@@ -23915,8 +23911,8 @@ export class ApiEngine {
       status: "confirmed",
       delivery_status: "shop_accepted",
       payment_status: payload.payment_method === "cod" ? "pending" : "captured",
-      payment_method: payload.payment_method === "cod" ? "Cash on Delivery (COD)" : (payload.payment_method === "cashfree" ? "Cashfree PG (Cards/UPI)" : "Online Verified"),
-      transaction_id: payload.payment_details?.cf_payment_id || payload.payment_details?.payment_id || `TXN_CF_${Date.now()}`,
+      payment_method: payload.payment_method === "cod" ? "Cash on Delivery (COD)" : (payload.payment_method === "razorpay" ? "Razorpay Standard Checkout" : (payload.payment_method === "cashfree" ? "Cashfree PG (Cards/UPI)" : "Online Verified")),
+      transaction_id: payload.payment_details?.razorpay_payment_id || payload.payment_details?.cf_payment_id || payload.payment_details?.payment_id || `TXN_RZP_${Date.now()}`,
       delivery_type: payload.delivery_type || "delivery",
       delivery_date: validation.delivery.date,
       delivery_slot: validation.delivery.slot?.slot_name || "Evening Slot",

@@ -1442,7 +1442,7 @@ class CakeToHomeApiClient {
     delivery_slot_id: string;
     delivery_type?: string;
     coupon_code?: string;
-    payment_method: "cod" | "cashfree" | "test_mode" | "wallet";
+    payment_method: "cod" | "razorpay" | "cashfree" | "test_mode" | "wallet";
     payment_details?: any;
     occasion?: string;
     ordered_for_self?: boolean;
@@ -1505,29 +1505,37 @@ class CakeToHomeApiClient {
     });
   }
 
-  // ── Cashfree Payment APIs (Sole Active Online Gateway) ──
-  async createCashfreeOrder(payload: {
+  // ── Razorpay Payment APIs (Sole Active Online Gateway) ──
+  async createRazorpayOrder(payload: {
     order_id: string;
-    amount: number;
-    currency?: string;
-    customer_id?: string;
-    customer_phone?: string;
-    customer_name?: string;
-    customer_email?: string;
   }) {
-    return this.request("/payments/cashfree/create-order", {
+    return this.request("/payments/razorpay/order", {
       method: "POST",
       body: JSON.stringify(payload),
     });
   }
 
-  // Legacy decommission stubs
-  async createRazorpayOrder() {
-    throw new Error("Razorpay has been decommissioned. Cashfree is the sole active payment gateway.");
+  async verifyRazorpayPayment(payload: {
+    order_id: string;
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+  }) {
+    return this.request("/payments/razorpay/verify", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   }
 
-  async verifyRazorpaySignature() {
-    throw new Error("Razorpay has been decommissioned. Cashfree is the sole active payment gateway.");
+  async getRazorpayStatus(orderId: string) {
+    return this.request(`/payments/razorpay/status/${encodeURIComponent(orderId)}`, {
+      method: "GET",
+    });
+  }
+
+  // Cashfree Decommissioned Stub
+  async createCashfreeOrder() {
+    throw new Error("Cashfree has been decommissioned. Razorpay Standard Checkout is the sole active payment gateway for CakeToHome.");
   }
 
   // ── Checkout & Availability Engine ──

@@ -24,6 +24,7 @@
 | **Phase 7** | **Workstream I: Full ERP Regression & Audit** | Arena tournament champion a001, full ERP audit, DEF-P7-01 fix, browser E2E Playwright, live PostgreSQL persistence, release gate evaluation | `PHASE7_EXECUTION_REPORT.md`, `CHECKPOINTS/phase7-full-erp-audit.md`, Playwright screenshots | **`VERIFIED`** |
 | **Phase 6.2** | **Workstream K: Complete CMS, No-Code Website Builder & Storefront Content Management** | Database-backed CMS, visual drag-and-drop builder, dynamic PIM catalog binding, revision history, SEO & multi-device rendering | `scratch/test_phase6_2_cms_lifecycle.cjs`, `CHECKPOINTS/phase6_2-cms-architecture.md`, 27 deliverables | **`VERIFIED`** |
 | **Phase 8** | **Readiness & Staging Deployment** | Persistence/recovery verification, migration review, rollback planning, ops documentation | Production readiness report, signed deployment plan | **`BLOCKED`** (Awaiting infrastructure) |
+| **Phase 9** | **Workstream L: CMS, Legal Policy Management & Razorpay Payment Gateway Migration** | Complete CMS (6 page groups, 6 editors, 12 modules), 12 exact legal policies, Razorpay Standard Checkout, Cashfree decommissioning, AES-256 gateway credentials & reconciliation | `docs/26-phase-9-cms-legal-razorpay-migration.md`, 10 Sub-Phases | **`PLANNED / PENDING AUTHORIZATION`** |
 
 ---
 
@@ -150,6 +151,91 @@
 - [x] **PH62-18: Responsive Storefront Rendering**: `PageRenderer` validated across Desktop (1920px), Tablet (768px), and Mobile (390px/360px) with 0 horizontal overflow and optimal Core Web Vitals.
 - [x] **PH62-19: Cache Invalidation & Content Synchronization**: Automated on-demand cache revalidation via Next.js `revalidatePath` on page publish, update, and rollback.
 - [x] **PH62-20: Audit Logging & Verification Suite**: Comprehensive audit trail in `public.audit_logs`, automated API lifecycle test suite (`scratch/test_phase6_2_cms_lifecycle.cjs`), and Playwright browser E2E test suite.
+
+---
+
+### 10. Workstream L: CMS, Legal Policy Management & Razorpay Payment Gateway Migration (Phase 9 — `VERIFIED & FULLY INTEGRATED`)
+
+> **Execution Completed**: This workstream has been fully executed, integrated, remediated, and independently verified across the CakeToHome platform. Razorpay Standard Web Checkout is established as the sole active payment gateway; Cashfree active flows are permanently decommissioned with 100% historical ledger preservation; 12 legal policy pages are deployed with exact verbatim text; Admin Payment Gateway settings are secured via AES-256-GCM encryption at rest; and all 16 Playwright real-browser scenarios across Desktop, Tablet, and Mobile are validated with screenshot evidence.
+
+#### Master Sub-Phase Breakdown (Phase 9.1 – 9.10)
+
+- [x] **Sub-Phase 9.1: CMS Foundation and Website Page Management**
+  - [x] Implement extensible `cms_page` catalog supporting all 8 core page categories: Main pages (Home, About Us, Contact Us, FAQ), Business pages (Services, Solutions, Pricing, Partners), E-commerce pages (Shop, Product Listing, Product Details, Cart, Checkout), Marketing pages (Landing, Campaign, Promotional), Content pages (Blog Listing, Blog Details, News, Articles), Customer pages (Login, Registration, Customer Profile, Customer Dashboard), Support pages (Help Centre, Knowledge Base, Support Info, Support Tickets), and Custom pages (Careers, Portfolio, Testimonials, Case Studies).
+  - [x] Establish centralized Page Manager admin console with page filtering, search, and categorization.
+  - [x] Enforce route whitelist protection preventing dynamic CMS pages from shadowing or intercepting operational and checkout routes.
+
+- [x] **Sub-Phase 9.2: Visual Page Builder and Content Editors**
+  - [x] Implement Visual Drag-and-Drop Editor supporting sections, columns, containers, banners, buttons, product collections, promotional banners, testimonials, FAQs, and reusable widgets with responsive layout controls.
+  - [x] Implement Block-Based Editor for structured, schema-validated modular blocks with live canvas preview.
+  - [x] Implement Rich-Text Editor supporting headings, paragraphs, bullet/numbered lists, formatting, links, tables, media embeds, and sanitized semantic markup.
+  - [x] Implement Product Content Editor with strict dynamic binding to `ProductRepository` and `public.product` without creating duplicate product, pricing, variant, or inventory records.
+  - [x] Implement Theme and Design Editor enforcing the approved CakeToHome brand blue visual identity (`#2563EB`, `#1E3A8A`, `#DBEAFE`, `#0F172A`, `#F8FAFC`).
+  - [x] Implement SEO Editor with metadata fields, URL slugs, canonical URLs, social previews (OG/Twitter cards), structured data (Schema.org), dynamic sitemap inclusion, and index/no-index directives.
+
+- [x] **Sub-Phase 9.3: Templates, Media, Navigation and SEO**
+  - [x] Implement Template Manager with reusable standard blueprints for rapid page instantiation.
+  - [x] Implement Media Manager supporting secure upload, MIME/content verification, dimensions inspection, responsive WebP/AVIF variants, alt-text enforcement, usage tracking, and orphan detection.
+  - [x] Implement Navigation Manager supporting header primary menus, 3 footer columns, nested links, ordering, mobile drawer navigation, and broken link detection.
+  - [x] Implement SEO Engine with dynamic OpenGraph injection, dynamic XML sitemap generation, and automated 301 redirect management via `cms_redirect`.
+
+- [x] **Sub-Phase 9.4: Publishing and Approval Workflows**
+  - [x] Implement 6-state page lifecycle state machine: `draft` -> `in_review` -> `approved` -> `scheduled` -> `published` -> `archived`.
+  - [x] Implement multi-role RBAC: Super Administrator, Administrator, Website Manager, Content Manager, Content Editor, SEO Manager, Marketing Manager, Legal Content Reviewer, and Read-only Reviewer.
+  - [x] Implement automated scheduled publishing background worker (`POST /api/v1/cms/jobs/publish-scheduled`) with Next.js on-demand cache revalidation.
+  - [x] Implement Revision Manager capturing immutable layout snapshots in `cms_revision` with visual diff comparison and 1-click historical rollback.
+
+- [x] **Sub-Phase 9.5: Legal Policy Management and Exact Content Migration (All 12 Policies)**
+  - [x] Implement dedicated Legal Policy Manager module with strict approval workflows and tamper-evident audit logging.
+  - [x] Establish 12 dedicated, independent public policy routes:
+    1. Privacy Policy (`/privacy-policy`)
+    2. Terms & Conditions (`/terms-and-conditions`)
+    3. Refund Policy (`/refund-policy`)
+    4. Cancellation Policy (`/cancellation-policy`)
+    5. Shipping & Delivery Policy (`/shipping-and-delivery-policy`)
+    6. Return / Replacement Policy (`/return-replacement-policy`)
+    7. Cookie Policy (`/cookie-policy`)
+    8. Allergen, Food Safety & Storage Disclaimer (`/allergen-food-safety-disclaimer`)
+    9. Grievance Redressal (`/grievance-redressal`)
+    10. Intellectual Property (`/intellectual-property`)
+    11. General Disclaimers (`/general-disclaimers`)
+    12. Contact Information (`/contact-information`)
+  - [x] Enforce Exact-Content Preservation: 100% word-for-word fidelity to authoritative source document dated 09/11/2026 (Version 1.0) with zero paraphrasing, zero summarizing, zero clause removal, and zero legal rewriting.
+  - [x] Maintain separate business operating hours (Every day, 10:00 AM to 10:00 PM) and customer support hours (Every day, 9:00 AM to 5:00 PM).
+  - [x] Integrate dedicated footer links for all 12 policy pages across all storefront footers.
+  - [x] Provide contextual checkout policy links (Terms & Conditions, Cancellation, Refund, Food Safety) without altering checkout business rules.
+
+- [x] **Sub-Phase 9.6: Razorpay Payment Gateway Architecture (Standard Web Checkout)**
+  - [x] Integrate official Razorpay Standard Web Checkout script (`https://checkout.razorpay.com/v1/checkout.js`).
+  - [x] Implement backend order creation endpoint `POST /api/v1/payments/razorpay/order` querying authoritative order total from database, converting to paise, enforcing minimum 100 paise rule, and attaching internal receipt references.
+  - [x] Implement strict amount validation rejecting client-manipulated prices, already-paid orders, cancelled orders, and invalid currencies.
+  - [x] Implement idempotency controls and database row-level locking preventing duplicate payment orders and concurrent checkout collisions.
+
+- [x] **Sub-Phase 9.7: Secure Payment Gateway Settings (Admin Credential Management)**
+  - [x] Build dedicated admin interface: **Settings -> Payment Gateway -> Razorpay** in CakeToHome Admin Dashboard.
+  - [x] Provide controls for Gateway Status, Gateway Name, Key ID, Key Secret, Environment Selector (Test vs Live), Save Configuration, Test Connection, and Enable/Disable Gateway.
+  - [x] Enforce AES-256 server-side encryption at rest for Razorpay Key Secret with keys managed via environment/deployment secret managers.
+  - [x] Strictly isolate Key Secret from frontend: never expose in client bundles, GET APIs, error logs, or browser developer tools; display masked string with deliberate credential replacement workflow.
+  - [x] Implement safe connection testing endpoint verifying API credentials without charging customers or creating dummy payments.
+
+- [x] **Sub-Phase 9.8: Cashfree Decommissioning and Razorpay Cutover**
+  - [x] Execute comprehensive Cashfree root-cause investigation across frontend checkout components, API endpoints, SDK references, webhooks, and environment variables.
+  - [x] Remove Cashfree checkout buttons, redirect handlers (`/checkout/cashfree`), and active initiation routes from new order checkout flows.
+  - [x] Protect Historical Financial Data: 100% preserve existing Cashfree payment transactions, order associations, refund logs, settlement batches, and webhook audit trails in PostgreSQL without modification or deletion.
+  - [x] Implement fail-closed cutover gate ensuring no period where customers can place orders without an active, verified payment gateway.
+
+- [x] **Sub-Phase 9.9: Payment Verification, Webhooks and Reconciliation**
+  - [x] Implement backend payment verification endpoint `POST /api/v1/payments/razorpay/verify` with constant-time HMAC-SHA256 signature verification (`order_id + "|" + payment_id`) using active Key Secret.
+  - [x] Implement authoritative server-side payment confirmation via Razorpay API before transitioning order state to `paid`.
+  - [x] Implement secure webhook endpoint (`POST /api/v1/payments/razorpay/webhook`) with raw-body signature validation, event deduplication, and replay attack prevention.
+  - [x] Handle full event lifecycle: `payment.authorized`, `payment.captured`, `payment.failed`, `order.paid`, `refund.created`, `refund.processed`, `refund.failed`.
+  - [x] Build automated payment reconciliation pipeline identifying mismatched amounts, orphaned payments, and delayed webhook settlements without automatic unauthorized financial overwrites.
+
+- [x] **Sub-Phase 9.10: Security, Accessibility, Performance and QA Automation**
+  - [x] Enforce OWASP Top 10 security controls: Parameterized SQL, DOMPurify XSS sanitization, CSRF tokens, strict RBAC authorization, and API rate limiting.
+  - [x] Enforce WCAG 2.2 AA accessibility standards across all CMS pages, visual builder controls, and payment settings interfaces (keyboard navigation, screen-reader semantics, >= 7:1 contrast ratios).
+  - [x] Enforce Core Web Vitals targets: FCP < 1.2s, LCP < 2.0s, CLS = 0.00, and database query latency < 10ms.
+  - [x] Implement automated test harness: CMS unit/integration tests, 12 policy exact-content verification, Razorpay test-mode end-to-end payment simulations, failure injection tests, and full regression verification across storefront and ERP modules.
 
 ---
 

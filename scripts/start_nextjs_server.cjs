@@ -13,7 +13,8 @@ const child = spawn(process.execPath, ['--max-old-space-size=4096', nextBin, 'de
     PORT: '3000',
     NODE_ENV: 'development',
     DATABASE_URL: 'postgresql://cth_test_user:cth_test_password@127.0.0.1:5433/cth_rehearsal_phase5',
-    TEST_DATABASE_URL: 'postgresql://cth_test_user:cth_test_password@127.0.0.1:5433/cth_rehearsal_phase5'
+    TEST_DATABASE_URL: 'postgresql://cth_test_user:cth_test_password@127.0.0.1:5433/cth_rehearsal_phase5',
+    GATEWAY_SECRET_MASTER_KEY: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
   },
   stdio: 'inherit'
 });

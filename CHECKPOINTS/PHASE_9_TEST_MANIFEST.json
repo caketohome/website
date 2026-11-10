@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0.0",
+  "phase": "Phase 9 — CMS, Legal Policies & Razorpay Gateway Migration",
+  "generated_at": "2026-11-10T11:53:42.880Z",
+  "test_suites": [
+    {
+      "suite_id": "SUITE_P9_RAZORPAY_BACKEND",
+      "file": "scratch/test_stage2_razorpay_backend.cjs",
+      "total_tests": 9,
+      "passed": 9,
+      "failed": 0,
+      "status": "PASSED",
+      "tests": [
+        "Razorpay Order Creation (POST /api/v1/payments/razorpay/order) -> 200 OK",
+        "Razorpay Status Polling (GET /api/v1/payments/razorpay/status/:id) -> 200 OK",
+        "HMAC-SHA256 Constant-Time Verification (POST /api/v1/payments/razorpay/verify) -> 200 OK",
+        "Database Order Confirmation Invariant -> status=\"confirmed\", payment_status=\"paid\"",
+        "Admin Diagnostic Non-Mutating Connection Probe -> 200 OK, zero secret leaks",
+        "Admin Config Save (AES-256-GCM Envelope v1$iv$authTag$cipher) -> 200 OK",
+        "Admin Config Read -> 200 OK with masked secrets",
+        "Admin Controlled Refund with Reason Code & Double-Entry Reversal -> 200 OK",
+        "Cashfree Decommissioning Guard -> HTTP 410 CASHFREE_DECOMMISSIONED"
+      ]
+    },
+    {
+      "suite_id": "SUITE_P9_LEGAL_POLICIES",
+      "file": "scratch/test_all_12_policies.cjs",
+      "total_tests": 12,
+      "passed": 12,
+      "failed": 0,
+      "status": "PASSED",
+      "tests": [
+        "/privacy-policy -> 200 OK, verbatim text verified",
+        "/terms-and-conditions -> 200 OK, verbatim text verified",
+        "/refund-policy -> 200 OK, verbatim text verified",
+        "/cancellation-policy -> 200 OK, verbatim text verified",
+        "/shipping-and-delivery-policy -> 200 OK, verbatim text verified",
+        "/return-replacement-policy -> 200 OK, verbatim text verified",
+        "/cookie-policy -> 200 OK, verbatim text verified",
+        "/allergen-food-safety-disclaimer -> 200 OK, verbatim text verified",
+        "/grievance-redressal -> 200 OK, verbatim text verified",
+        "/intellectual-property -> 200 OK, verbatim text verified",
+        "/general-disclaimers -> 200 OK, verbatim text verified",
+        "/contact-information -> 200 OK, verbatim text verified"
+      ]
+    },
+    {
+      "suite_id": "SUITE_P9_PLAYWRIGHT_BROWSER",
+      "file": "scratch/run_phase9_playwright_suite.cjs",
+      "total_tests": 16,
+      "passed": 16,
+      "failed": 0,
+      "status": "PASSED",
+      "viewports": [
+        "Desktop (1920x1080)",
+        "Tablet (768x1024)",
+        "Mobile (390x844)"
+      ],
+      "screenshots_captured": 16
+    }
+  ],
+  "summary": {
+    "total_suites": 3,
+    "total_assertions": 37,
+    "passed_assertions": 37,
+    "failed_assertions": 0,
+    "overall_status": "100% PASSED"
+  }
+}

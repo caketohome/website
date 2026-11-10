@@ -1,37 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
+import { RazorpayPaymentService } from "@/lib/services/razorpay-payment.service";
 
 export const dynamic = "force-dynamic";
 
 /**
  * POST /api/v1/payments/webhook
- * [DECOMMISSIONED] Legacy Razorpay Webhook Endpoint
- * 
- * In accordance with CakeToHome Phase 5 Architecture Decisions:
- * Razorpay is decommissioned for all new payment operations.
- * Cashfree is the exclusive gateway for all new transactions (/api/v1/payments/cashfree/webhook).
- * Historical Razorpay transactions, accounting entries, and audit ledgers remain preserved.
+ * Razorpay Payment Webhook Ingestion (Standardized Endpoint)
  */
 export async function POST(req: NextRequest) {
-  return NextResponse.json(
-    {
-      success: false,
-      error: "RAZORPAY_GATEWAY_DECOMMISSIONED",
-      message: "The Razorpay payment processing endpoint is decommissioned. All new payments must use the Cashfree integration endpoint at /api/v1/payments/cashfree/webhook.",
-      provider: "razorpay",
-      status: "decommissioned",
-      timestamp: new Date().toISOString(),
-    },
-    { status: 410 }
-  );
-}
+  try {
+    const signature = req.headers.get("x-razorpay-signature") || "";
+    const rawBody = await req.text();
 
-export async function GET() {
-  return NextResponse.json(
-    {
-      status: "decommissioned",
-      provider: "razorpay",
-      message: "Razorpay payment processing is decommissioned in CakeToHome Phase 5. Use Cashfree.",
-    },
-    { status: 410 }
-  );
+    if (!signature || !rawBody) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "MISSING_WEBHOOK_PAYLOAD_OR_SIGNATURE",
+          message: "x-razorpay-signature header and payload body are required.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const result = await RazorpayPaymentService.processWebhook({
+      rawBody,
+      signature
+    });
+
+    return NextResponse.json(result, { status: result.statusCode || 200 });
+  } catch (err: any) {
+    console.error("[RazorpayWebhookAPI] Error:", err.message);
+    return NextResponse.json(
+      {
+        success: false,
+        error: "WEBHOOK_PROCESSING_FAILED",
+        message: err.message || "Failed to process Razorpay webhook",
+      },
+      { status: 500 }
+    );
+  }
 }

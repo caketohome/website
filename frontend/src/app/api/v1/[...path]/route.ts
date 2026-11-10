@@ -101,6 +101,8 @@ import type { GstReportFilters, GstReportType } from "@frontend/lib/services/gst
 import { PaymentVerificationService } from "@frontend/lib/services/payment-verification.service";
 import { CashfreePaymentService } from "@frontend/lib/services/cashfree-payment.service";
 import { CrossAppEventService } from "@frontend/lib/services/cross-app-event.service";
+import { RazorpayPaymentService } from "@frontend/lib/services/razorpay-payment.service";
+import { PaymentGatewayConfigService } from "@frontend/lib/services/payment-gateway-config.service";
 
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
@@ -984,6 +986,18 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
     // 2. Fallback Route: Disk-Backed ApiEngine
     if (path === "health") return jsonWithDataSource(ApiEngine.getHealth(), "postgres");
+
+    if (path.startsWith("payments/razorpay/status/")) {
+      const orderId = path.replace("payments/razorpay/status/", "");
+      const status = await RazorpayPaymentService.getOrderStatus(orderId);
+      if (!status) return jsonWithDataSource({ success: false, error: "ORDER_NOT_FOUND" }, "postgres", 404);
+      return jsonWithDataSource({ success: true, ...status }, "postgres", 200);
+    }
+
+    if (path === "admin/payments/razorpay/config") {
+      const config = await PaymentGatewayConfigService.getAdminConfig("razorpay");
+      return jsonWithDataSource({ success: true, config }, "postgres", 200);
+    }
 
     if (path === "test/state-city-lifecycle") {
       try {
@@ -9832,49 +9846,98 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource(result, "postgres");
     }
 
-    if (path === "payments/razorpay/create-order" || path === "store/payments/razorpay/create-order") {
-      return jsonWithDataSource(
-        {
-          success: false,
-          error: "RAZORPAY_DECOMMISSIONED",
-          message: "Razorpay has been decommissioned. Cashfree is the sole active payment gateway.",
-        },
-        "postgres",
-        410
-      );
+    if (path === "payments/razorpay/order" || path === "payments/razorpay/create-order" || path === "store/payments/razorpay/create-order") {
+      const orderId = body.order_id || body.orderId;
+      if (!orderId) {
+        return jsonWithDataSource({ success: false, error: "INVALID_PARAMETERS", message: "Valid order_id is required" }, "postgres", 400);
+      }
+      try {
+        const orderResult = await RazorpayPaymentService.createOrder(orderId);
+        return jsonWithDataSource(orderResult, "postgres", 200);
+      } catch (err: any) {
+        const code = err.message?.includes("ORDER_NOT_FOUND") ? 404 : 500;
+        return jsonWithDataSource({ success: false, error: "RAZORPAY_ORDER_FAILED", message: err.message }, "postgres", code);
+      }
     }
 
-    if (path === "payments/cashfree/create-order" || path === "store/payments/cashfree/create-order") {
-      const cfSession = await CashfreePaymentService.createOrderSession({
-        orderId: body.order_id || body.orderId,
-        amount: Number(body.amount || 0),
-        currency: body.currency || "INR",
-        customerId: body.customer_id || body.customerId || "cust_guest",
-        customerPhone: body.customer_phone || body.customerPhone || "9876543210",
-        customerName: body.customer_name || body.customerName || "Valued Customer",
-        customerEmail: body.customer_email || body.customerEmail || "customer@caketohome.in",
-      });
-      return jsonWithDataSource({ success: true, ...cfSession }, "postgres", 201);
-    }
-
-    if (path === "payments/razorpay/verify-signature" || path === "store/payments/razorpay/verify-signature") {
-      return jsonWithDataSource(
-        {
-          success: false,
-          error: "RAZORPAY_DECOMMISSIONED",
-          message: "Razorpay has been decommissioned. Cashfree is the sole active payment gateway.",
-        },
-        "postgres",
-        410
-      );
+    if (path === "payments/razorpay/verify" || path === "payments/razorpay/verify-signature" || path === "store/payments/razorpay/verify-signature") {
+      try {
+        const result = await RazorpayPaymentService.verifyPayment({
+          razorpay_order_id: body.razorpay_order_id || body.razorpayOrderId,
+          razorpay_payment_id: body.razorpay_payment_id || body.razorpayPaymentId,
+          razorpay_signature: body.razorpay_signature || body.razorpaySignature,
+          order_id: body.order_id || body.orderId
+        });
+        return jsonWithDataSource(result, "postgres", result.success ? 200 : (result.status === "payment_exception" ? 422 : 400));
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: "VERIFICATION_FAILED", message: err.message }, "postgres", 500);
+      }
     }
 
     if (path === "payments/razorpay/webhook" || path === "payments/webhook" || path === "store/payments/webhook") {
+      try {
+        const signature = req.headers.get("x-razorpay-signature") || "";
+        const rawText = JSON.stringify(body);
+        const result = await RazorpayPaymentService.processWebhook({ rawBody: rawText, signature });
+        return jsonWithDataSource(result, "postgres", result.statusCode || 200);
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: "WEBHOOK_FAILED", message: err.message }, "postgres", 500);
+      }
+    }
+
+    if (path === "admin/payments/razorpay/test-connection") {
+      try {
+        const result = await PaymentGatewayConfigService.testConnection({
+          key_id: body.key_id,
+          key_secret: body.key_secret,
+          environment: body.environment
+        });
+        return jsonWithDataSource(result, "postgres", 200);
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: "TEST_FAILED", message: err.message }, "postgres", 500);
+      }
+    }
+
+    if (path === "admin/payments/razorpay/config") {
+      try {
+        const result = await PaymentGatewayConfigService.saveAdminConfig({
+          provider: body.provider || "razorpay",
+          environment: body.environment?.toUpperCase() === "LIVE" ? "LIVE" : "TEST",
+          key_id: body.key_id,
+          key_secret: body.key_secret,
+          webhook_secret: body.webhook_secret,
+          is_active: body.is_active ?? true,
+          updated_by: "admin_user"
+        });
+        return jsonWithDataSource(result, "postgres", 200);
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: "CONFIG_SAVE_FAILED", message: err.message }, "postgres", 500);
+      }
+    }
+
+    if (path === "admin/payments/razorpay/refund") {
+      try {
+        const result = await RazorpayPaymentService.processRefund({
+          order_id: body.order_id,
+          amount: Number(body.amount),
+          reason_code: body.reason_code,
+          reason_explanation: body.reason_explanation,
+          requested_by: body.requested_by || "admin_user",
+          approved_by: body.approved_by || "admin_super",
+          idempotency_key: body.idempotency_key
+        });
+        return jsonWithDataSource(result, "postgres", 200);
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: "REFUND_FAILED", message: err.message }, "postgres", 500);
+      }
+    }
+
+    if (path === "payments/cashfree/create-order" || path === "store/payments/cashfree/create-order" || path.startsWith("payments/cashfree/")) {
       return jsonWithDataSource(
         {
           success: false,
-          error: "RAZORPAY_DECOMMISSIONED",
-          message: "Razorpay has been decommissioned. Cashfree is the sole active payment gateway.",
+          error: "CASHFREE_DECOMMISSIONED",
+          message: "Cashfree payment gateway has been fully decommissioned. Razorpay Standard Checkout is the sole active payment gateway for CakeToHome.",
         },
         "postgres",
         410

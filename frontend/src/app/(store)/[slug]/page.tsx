@@ -70,7 +70,7 @@ export default async function CmsPageRoute({
             <p className="text-lg text-muted-foreground">{page.subheading}</p>
           )}
           {page.intro_content && (
-            <div className="mt-4">{page.intro_content}</div>
+            <div className="mt-4 whitespace-pre-line leading-relaxed text-slate-700 dark:text-slate-300 font-sans">{page.intro_content}</div>
           )}
         </div>
       )}
