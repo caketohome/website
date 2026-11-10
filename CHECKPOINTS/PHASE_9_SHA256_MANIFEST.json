@@ -1,57 +1,57 @@
 {
   "schema_version": "1.0.0",
   "phase": "Phase 9 — CMS, Legal Policies & Razorpay Gateway Migration",
-  "generated_at": "2026-11-10T11:53:42.479Z",
+  "generated_at": "2026-11-10T13:01:53.241Z",
   "files": {
     "cakes2home-main/cakes2home-main/migration/20261110_phase9_razorpay_gateway_and_refunds.sql": {
-      "sha256": "4a9a9dfb2fd963d3c6708c9e8f19ff1991b761ad96a21b962d6f566793e5410a",
-      "size_bytes": 4488,
-      "last_modified": "2026-11-10T10:42:21.875Z"
+      "sha256": "7348b3b024b332af5c65f5b790b5b8c14de913c314cdf64d9bfa89ece55f679b",
+      "size_bytes": 4489,
+      "last_modified": "2026-11-10T12:04:34.238Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/lib/services/payment-gateway-config.service.ts": {
-      "sha256": "23814041c5c6937811f933120c705709f3ac001ab5d0936fd80db785e5df2b6e",
-      "size_bytes": 15918,
-      "last_modified": "2026-11-10T10:44:24.628Z"
+      "sha256": "a0448c4dcded9377238a03f7f5baa3ed531284c3c33295253e307b8fde87eb98",
+      "size_bytes": 15919,
+      "last_modified": "2026-11-10T12:04:33.592Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/lib/services/razorpay-payment.service.ts": {
-      "sha256": "e3f80ce76ea081168f42976c20b7f041eab2b59b64e841cf70569ed52b6018f0",
-      "size_bytes": 33734,
-      "last_modified": "2026-11-10T11:41:01.873Z"
+      "sha256": "0c0612366d28f1283b52f42db9e6ae451b4539910024c44516832f5bb75af506",
+      "size_bytes": 33804,
+      "last_modified": "2026-11-10T12:41:29.900Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/app/api/v1/payments/razorpay/order/route.ts": {
-      "sha256": "7e54170a297d8347ecd3bf0e28432034f9a31b50c34a1de2490c804027be3707",
-      "size_bytes": 1172,
-      "last_modified": "2026-11-10T10:47:25.533Z"
+      "sha256": "c9bc353ca38529c58bdb6ea271680f821662a46a845bd869cba482de163b5ee7",
+      "size_bytes": 1173,
+      "last_modified": "2026-11-10T12:04:29.449Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/app/api/v1/payments/razorpay/verify/route.ts": {
-      "sha256": "806e6dd241c65426aee08e0e5f121e84e732d95d0236e7e7e46125ed85b5d71d",
-      "size_bytes": 1675,
-      "last_modified": "2026-11-10T10:47:34.425Z"
+      "sha256": "c55e3a546415d034c6d2a9129fd4dba8ed6568153beefdfc0d790f8dc790cb1c",
+      "size_bytes": 1676,
+      "last_modified": "2026-11-10T12:04:30.240Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/app/api/v1/payments/razorpay/webhook/route.ts": {
-      "sha256": "dcacad12efaa62af452e2e984d685d2985ae98fc32a00cfa517cae00516238c0",
-      "size_bytes": 1253,
-      "last_modified": "2026-11-10T10:47:51.968Z"
+      "sha256": "8d95e6c0bb79390849320ad5f6bb6d97185d80a9809e78ec297a1f32fd9574f0",
+      "size_bytes": 1254,
+      "last_modified": "2026-11-10T12:04:31.860Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/app/api/v1/payments/razorpay/status/[order_id]/route.ts": {
-      "sha256": "f07c75a91e50907d893c0ad0036e18c7fc4c563bdb5a754e158d74e46d3858c8",
-      "size_bytes": 1082,
-      "last_modified": "2026-11-10T10:48:00.385Z"
+      "sha256": "ab05d8dd2d02ac74d3bd61e7eb7441ae960901b8fe1ffb594e2d63c8d1225987",
+      "size_bytes": 1083,
+      "last_modified": "2026-11-10T12:04:30.981Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/app/api/v1/admin/payments/razorpay/config/route.ts": {
-      "sha256": "885fe7007f99ba707108d7e356bd117fd06da4a658275d30a92e49203b9bcada",
-      "size_bytes": 2052,
-      "last_modified": "2026-11-10T10:48:28.835Z"
+      "sha256": "6fb9426034755c9023f0ba8df814b4a107b0f88b6b81f726d076993069166536",
+      "size_bytes": 2702,
+      "last_modified": "2026-11-10T12:43:11.810Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/app/api/v1/admin/payments/razorpay/test-connection/route.ts": {
-      "sha256": "cbda5e1f64e5028c910ee19c5babcceea8b82eeb6fb871b77d3b41458dba6e13",
-      "size_bytes": 1192,
-      "last_modified": "2026-11-10T10:48:20.179Z"
+      "sha256": "5f9d96d4f2585b1a11358193feef22dc8aff76652a324f061e3f2b02d8f37268",
+      "size_bytes": 1193,
+      "last_modified": "2026-11-10T12:04:27.427Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/app/api/v1/admin/payments/razorpay/refund/route.ts": {
-      "sha256": "de46c4ef0c1112b6770d64285e06790861051d8ce1729bb866df94058041c8c5",
-      "size_bytes": 1626,
-      "last_modified": "2026-11-10T10:48:09.344Z"
+      "sha256": "1bf36323b43f4d739bfc3aab77c9d591ad60f23eaf0a075a879331e36d05ce44",
+      "size_bytes": 1627,
+      "last_modified": "2026-11-10T12:04:26.047Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/app/api/v1/[...path]/route.ts": {
       "sha256": "f15e35b421dd7c461fa2546485002045c2e35c8fcfb0a25c25c0c1b6223ed421",
@@ -59,9 +59,9 @@
       "last_modified": "2026-11-10T10:50:51.210Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/app/(checkout)/checkout/razorpay/page.tsx": {
-      "sha256": "5547c71cba9baa76d3c6540df8d387bbd6feb30d25b32ce58169236be1e9d035",
-      "size_bytes": 12157,
-      "last_modified": "2026-11-10T11:10:23.542Z"
+      "sha256": "7b516461ecf83888bad74ef9699e739d8df127daff3335b826f7040775e44cff",
+      "size_bytes": 11995,
+      "last_modified": "2026-11-10T12:42:56.053Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/app/(checkout)/checkout/cashfree/page.tsx": {
       "sha256": "ba61b411190a7b7425c41ce83521b01733b6e0c892e1c60837ad3fabd54f6836",
@@ -69,9 +69,9 @@
       "last_modified": "2026-11-10T11:10:33.213Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/components/dashboard/admin/compliance/payment-config-tab.tsx": {
-      "sha256": "d4d3947a04a99863c703d07a8ca86edb621e60e9bc62788773eaba836370aa58",
-      "size_bytes": 21607,
-      "last_modified": "2026-11-10T11:08:24.314Z"
+      "sha256": "721711bfc5016b0d30136240390b94e6eeea5bf300192d3e7746266b0015322c",
+      "size_bytes": 22332,
+      "last_modified": "2026-11-10T12:43:36.312Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/components/store/checkout/checkout-form.tsx": {
       "sha256": "5a7984fb4c42998a39e305918f6999320d1ca813bec3fa8288aa9d35a0607d5d",
@@ -109,9 +109,9 @@
       "last_modified": "2026-11-10T11:13:06.301Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/lib/actions/checkout.ts": {
-      "sha256": "2ac13e415b2691feeddcc66ab398b60a69431b4d88e1eb875ce20c0974b55d28",
-      "size_bytes": 8671,
-      "last_modified": "2026-11-10T11:11:16.941Z"
+      "sha256": "c93f2cb8f84d3687abb431f1c6f61cfca8b5a1c4a6ec715926960ea7052e5fbe",
+      "size_bytes": 8935,
+      "last_modified": "2026-11-10T12:42:13.235Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/lib/api-client.ts": {
       "sha256": "0a34eb8548df41d9161b6df85fe9ef561c91a340ec2da08057d996f11dc6d98c",
@@ -119,9 +119,9 @@
       "last_modified": "2026-11-10T11:14:26.226Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/lib/api-engine.ts": {
-      "sha256": "b573e4fe03a184cb536fb08162a752f31e1e5b075e68db749540d5fe638fc1d1",
-      "size_bytes": 1141116,
-      "last_modified": "2026-11-10T11:15:16.385Z"
+      "sha256": "08d66be188a72cc4a876eff17ba81c8d5cd5e5d6acd2a4e0d44c788e264097b2",
+      "size_bytes": 1141243,
+      "last_modified": "2026-11-10T12:44:43.615Z"
     },
     "cakes2home-main/cakes2home-main/frontend/src/app/(checkout)/your-order/page.tsx": {
       "sha256": "2af57f60f183d472f190ce40e978d458353e85adf2bae9b9e7fd10eed21e41bb",
@@ -134,14 +134,94 @@
       "last_modified": "2026-11-10T11:12:26.763Z"
     },
     "cakes2home-main/cakes2home-main/docs/20-roadmap.md": {
-      "sha256": "44e45ed3d81d38096c3471661b8b6739bce88335dfdafa93c013071f02465852",
-      "size_bytes": 31319,
-      "last_modified": "2026-11-10T11:51:36.017Z"
+      "sha256": "acdc15ef118fa531806f8fd61ff133b52a5c248edf195bc1dd9c2419e9229a02",
+      "size_bytes": 31681,
+      "last_modified": "2026-11-10T13:00:54.143Z"
     },
     "cakes2home-main/cakes2home-main/docs/26-phase-9-cms-legal-razorpay-migration.md": {
       "sha256": "e4d42f4b813d07bb7dcc11d4a45d83821ce00f86063c690f2ff2023cda8f6ee2",
       "size_bytes": 98689,
       "last_modified": "2026-11-10T11:51:51.354Z"
+    },
+    "cakes2home-main/cakes2home-main/artifacts/phase-9-browser-verification/01-storefront-home-desktop.png": {
+      "sha256": "33d37996604b560c982dddf38b542ec98cb8a2f3d7ae508faa0989e7bd901585",
+      "size_bytes": 332064,
+      "last_modified": "2026-11-10T12:53:09.694Z"
+    },
+    "cakes2home-main/cakes2home-main/artifacts/phase-9-browser-verification/02-storefront-footer-policies-desktop.png": {
+      "sha256": "7f244c2973c2cc8975db73482e323e0b83c0280fbfc7130f214565727caa19cf",
+      "size_bytes": 184383,
+      "last_modified": "2026-11-10T12:53:13.018Z"
+    },
+    "cakes2home-main/cakes2home-main/artifacts/phase-9-browser-verification/03-checkout-page-razorpay-selected-desktop.png": {
+      "sha256": "6d5b911b103fcd8f094cae1d7567e3867f0266de5290f62f2d057b0000839109",
+      "size_bytes": 131978,
+      "last_modified": "2026-11-10T12:54:00.613Z"
+    },
+    "cakes2home-main/cakes2home-main/artifacts/phase-9-browser-verification/04-razorpay-checkout-modal-page-desktop.png": {
+      "sha256": "c5d5bdd281b608dd07815865d0b8ff1ebc548fe1a1293ff8fe8067f8ef706bab",
+      "size_bytes": 49661,
+      "last_modified": "2026-11-10T12:54:15.594Z"
+    },
+    "cakes2home-main/cakes2home-main/artifacts/phase-9-browser-verification/05-payment-failure-injection-desktop.png": {
+      "sha256": "dc1d9b3ce465d2c25ee5870a713703940c709aeb6e2166a1a21a857e00aca93e",
+      "size_bytes": 59554,
+      "last_modified": "2026-11-10T12:54:36.510Z"
+    },
+    "cakes2home-main/cakes2home-main/artifacts/phase-9-browser-verification/06-order-live-status-confirmed-desktop.png": {
+      "sha256": "e24337009e6aca51d31bb523f945c08934295a303e3af8d5127edfa1ec6c8c90",
+      "size_bytes": 155992,
+      "last_modified": "2026-11-10T12:54:48.579Z"
+    },
+    "cakes2home-main/cakes2home-main/artifacts/phase-9-browser-verification/07-admin-payment-gateway-razorpay-settings-desktop.png": {
+      "sha256": "506c78d3f9dc29018d2d7773001beef8db3ca9ff21a0f70141c2a40882e446f2",
+      "size_bytes": 906956,
+      "last_modified": "2026-11-10T12:54:53.693Z"
+    },
+    "cakes2home-main/cakes2home-main/artifacts/phase-9-browser-verification/08-privacy-policy-desktop.png": {
+      "sha256": "01458e1adba8b419b6ac700b331fbe6b1db1d8f868a1f8438769a5216d71df0b",
+      "size_bytes": 165670,
+      "last_modified": "2026-11-10T12:54:57.936Z"
+    },
+    "cakes2home-main/cakes2home-main/artifacts/phase-9-browser-verification/09-terms-and-conditions-desktop.png": {
+      "sha256": "01fff8960ba93dc874868ca85252ee5c2d066f2c3681d6cae12eba5b8d405247",
+      "size_bytes": 194596,
+      "last_modified": "2026-11-10T12:55:01.571Z"
+    },
+    "cakes2home-main/cakes2home-main/artifacts/phase-9-browser-verification/10-refund-policy-desktop.png": {
+      "sha256": "8a8b2eaff33a56b9d14c262e0b305d01640beba1f9945b97af2d9341010318a6",
+      "size_bytes": 188761,
+      "last_modified": "2026-11-10T12:55:04.751Z"
+    },
+    "cakes2home-main/cakes2home-main/artifacts/phase-9-browser-verification/11-contact-information-desktop.png": {
+      "sha256": "965ccf9ed997b7805e8f9b2a93f801c743ca51c4c2844341ff3f46fa9fa50e51",
+      "size_bytes": 223906,
+      "last_modified": "2026-11-10T12:55:07.455Z"
+    },
+    "cakes2home-main/cakes2home-main/artifacts/phase-9-browser-verification/12-storefront-home-tablet.png": {
+      "sha256": "6a061bbdbffe85ab46834409c26dd6dcff6220476cf77d4a2c61c34a527dcc06",
+      "size_bytes": 777671,
+      "last_modified": "2026-11-10T12:55:16.048Z"
+    },
+    "cakes2home-main/cakes2home-main/artifacts/phase-9-browser-verification/13-checkout-page-tablet.png": {
+      "sha256": "408152e01a8fdadf89d274697e9da45d7b3938d3b2ff0f5acf97c0abfe777ea0",
+      "size_bytes": 80374,
+      "last_modified": "2026-11-10T12:55:19.673Z"
+    },
+    "cakes2home-main/cakes2home-main/artifacts/phase-9-browser-verification/14-storefront-home-mobile.png": {
+      "sha256": "30d171256a6348f6099fd2fc20e1559809a6673c7d3926172f6c65de7f82d647",
+      "size_bytes": 311238,
+      "last_modified": "2026-11-10T12:55:26.397Z"
+    },
+    "cakes2home-main/cakes2home-main/artifacts/phase-9-browser-verification/15-checkout-page-mobile.png": {
+      "sha256": "c65bc6e2821867bff2151b9c7f8ec153fb3b5078ebb42b2f15b5ac423058b2e4",
+      "size_bytes": 45810,
+      "last_modified": "2026-11-10T12:55:29.096Z"
+    },
+    "cakes2home-main/cakes2home-main/artifacts/phase-9-browser-verification/16-razorpay-modal-mobile.png": {
+      "sha256": "98cd3942262e33eed1094e5e66cf4ec578380a31b21a15d2d245889693a1894d",
+      "size_bytes": 39199,
+      "last_modified": "2026-11-10T12:55:32.192Z"
     }
   }
 }

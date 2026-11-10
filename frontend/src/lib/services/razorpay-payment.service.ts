@@ -93,12 +93,12 @@ export class RazorpayPaymentService {
     // 1. Fetch Order from DB
     const orderRes = await dbQuery(
       `SELECT id, order_number, grand_total, customer_id, customer_name, customer_phone, branch_id, status, payment_status 
-       FROM public."order" WHERE id = $1`,
+       FROM public."order" WHERE id = $1 OR order_number = $1`,
       [orderId]
     );
 
     if (orderRes.rows.length === 0) {
-      throw new Error(`ORDER_NOT_FOUND: Order with ID ${orderId} does not exist.`);
+      throw new Error(`ORDER_NOT_FOUND: Order with ID or number "${orderId}" does not exist in the database.`);
     }
 
     const order = orderRes.rows[0];
@@ -279,7 +279,7 @@ export class RazorpayPaymentService {
       // 2. Lock Order FOR UPDATE
       const orderRes = await txClient.query(
         `SELECT id, order_number, status, payment_status, grand_total, customer_id, branch_id 
-         FROM public."order" WHERE id = $1 FOR UPDATE`,
+         FROM public."order" WHERE id = $1 OR order_number = $1 FOR UPDATE`,
         [resolvedOrderId]
       );
 

@@ -106,3 +106,4 @@ SELECT
   NOW(), 
   NOW()
 WHERE NOT EXISTS (SELECT 1 FROM public.accounting_account WHERE code = '5020');
+

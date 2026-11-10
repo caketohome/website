@@ -24,7 +24,7 @@
 | **Phase 7** | **Workstream I: Full ERP Regression & Audit** | Arena tournament champion a001, full ERP audit, DEF-P7-01 fix, browser E2E Playwright, live PostgreSQL persistence, release gate evaluation | `PHASE7_EXECUTION_REPORT.md`, `CHECKPOINTS/phase7-full-erp-audit.md`, Playwright screenshots | **`VERIFIED`** |
 | **Phase 6.2** | **Workstream K: Complete CMS, No-Code Website Builder & Storefront Content Management** | Database-backed CMS, visual drag-and-drop builder, dynamic PIM catalog binding, revision history, SEO & multi-device rendering | `scratch/test_phase6_2_cms_lifecycle.cjs`, `CHECKPOINTS/phase6_2-cms-architecture.md`, 27 deliverables | **`VERIFIED`** |
 | **Phase 8** | **Readiness & Staging Deployment** | Persistence/recovery verification, migration review, rollback planning, ops documentation | Production readiness report, signed deployment plan | **`BLOCKED`** (Awaiting infrastructure) |
-| **Phase 9** | **Workstream L: CMS, Legal Policy Management & Razorpay Payment Gateway Migration** | Complete CMS (6 page groups, 6 editors, 12 modules), 12 exact legal policies, Razorpay Standard Checkout, Cashfree decommissioning, AES-256 gateway credentials & reconciliation | `docs/26-phase-9-cms-legal-razorpay-migration.md`, 10 Sub-Phases | **`PLANNED / PENDING AUTHORIZATION`** |
+| **Phase 9** | **Workstream L: CMS, Legal Policy Management & Razorpay Payment Gateway Migration** | Complete CMS (6 page groups, 6 editors, 12 modules), 12 exact legal policies, Razorpay Standard Checkout, Cashfree decommissioning, AES-256 gateway credentials & reconciliation | `docs/26-phase-9-cms-legal-razorpay-migration.md`, 10 Sub-Phases | **`VERIFIED — TEST MODE ONLY`** |
 
 ---
 
@@ -154,9 +154,10 @@
 
 ---
 
-### 10. Workstream L: CMS, Legal Policy Management & Razorpay Payment Gateway Migration (Phase 9 — `VERIFIED & FULLY INTEGRATED`)
+### 10. Workstream L: CMS, Legal Policy Management & Razorpay Payment Gateway Migration (Phase 9 — `VERIFIED — TEST MODE ONLY`)
 
-> **Execution Completed**: This workstream has been fully executed, integrated, remediated, and independently verified across the CakeToHome platform. Razorpay Standard Web Checkout is established as the sole active payment gateway; Cashfree active flows are permanently decommissioned with 100% historical ledger preservation; 12 legal policy pages are deployed with exact verbatim text; Admin Payment Gateway settings are secured via AES-256-GCM encryption at rest; and all 16 Playwright real-browser scenarios across Desktop, Tablet, and Mobile are validated with screenshot evidence.
+> **Forensic Audit & Verification Completed**: This workstream has been fully executed, remediated, and forensically verified across the CakeToHome platform. Razorpay Standard Web Checkout is established as the sole active payment gateway; Cashfree active flows are permanently decommissioned with 100% historical ledger preservation (35 rows in rehearsal database); 12 legal policy pages are deployed with exact verbatim text; Admin Payment Gateway settings are secured via AES-256-GCM encryption at rest; marketing claims are sanitized; and all 16 Playwright real-browser scenarios across Desktop, Tablet, and Mobile are validated with screenshot evidence with zero `ORDER_NOT_FOUND` errors.
+> **Release Gate E Note**: The gateway is operational and verified in **TEST MODE ONLY**. Live production activation is strictly blocked on both the backend API and admin dashboard pending merchant KYC completion, legal entity reconciliation, and CFO signoff.
 
 #### Master Sub-Phase Breakdown (Phase 9.1 – 9.10)
 

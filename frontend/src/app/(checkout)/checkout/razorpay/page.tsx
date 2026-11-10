@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Script from "next/script";
 import Link from "next/link";
-import { ShieldCheck, Lock, AlertCircle, ArrowLeft, Loader2, RefreshCw } from "lucide-react";
+import { ShieldCheck, Lock, AlertCircle, ArrowLeft, Loader2, RefreshCw, ShoppingBag } from "lucide-react";
 
 declare global {
   interface Window {
@@ -16,9 +16,9 @@ export default function RazorpayCheckoutPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const orderId = searchParams.get("order_id") || "CTH-ORD-" + Date.now().toString().slice(-6);
-  const amountStr = searchParams.get("amount") || "699.00";
-  const amount = parseFloat(amountStr) || 699.0;
+  const orderId = searchParams.get("order_id") || "";
+  const amountStr = searchParams.get("amount") || "0.00";
+  const [amount, setAmount] = useState<number>(parseFloat(amountStr) || 0);
 
   const [razorpayOrderId, setRazorpayOrderId] = useState<string | null>(null);
   const [razorpayKeyId, setRazorpayKeyId] = useState<string | null>(null);
@@ -32,6 +32,13 @@ export default function RazorpayCheckoutPage() {
 
   // 1. Initialize Razorpay Order via authoritative backend API
   const initializeOrder = useCallback(async () => {
+    if (!orderId) {
+      setIsInitializing(false);
+      setPaymentStatus("failed");
+      setErrorMessage("No order reference provided. Please complete the checkout form to place your order.");
+      return;
+    }
+
     setIsInitializing(true);
     setErrorMessage(null);
 
@@ -47,6 +54,11 @@ export default function RazorpayCheckoutPage() {
       if (res.ok && data.success && data.razorpay_order_id) {
         setRazorpayOrderId(data.razorpay_order_id);
         setRazorpayKeyId(data.key_id);
+        if (data.amount_formatted) {
+          setAmount(Number(data.amount_formatted));
+        } else if (data.amount) {
+          setAmount(Number(data.amount) / 100);
+        }
         setPaymentStatus("ready");
       } else {
         setPaymentStatus("failed");
@@ -65,10 +77,10 @@ export default function RazorpayCheckoutPage() {
     initializeOrder();
   }, [initializeOrder]);
 
-  // 2. Launch Razorpay Standard Checkout modal
+  // 2. Launch Official Razorpay Standard Checkout modal
   const launchRazorpayModal = useCallback(() => {
     if (!sdkReady || !window.Razorpay) {
-      setErrorMessage("Razorpay payment gateway SDK is still loading. Please wait a moment.");
+      setErrorMessage("Razorpay payment gateway SDK is loading. Please wait a moment.");
       return;
     }
 
@@ -158,6 +170,8 @@ export default function RazorpayCheckoutPage() {
     }
   }, [sdkReady, paymentStatus, launchRazorpayModal]);
 
+  const isOrderNotFoundError = errorMessage?.includes("ORDER_NOT_FOUND") || !orderId;
+
   return (
     <>
       <Script
@@ -167,7 +181,7 @@ export default function RazorpayCheckoutPage() {
           setSdkReady(true);
         }}
         onError={() => {
-          setErrorMessage("Failed to load Razorpay checkout script from checkout.razorpay.com.");
+          setErrorMessage("Failed to load official Razorpay checkout script from checkout.razorpay.com.");
         }}
       />
 
@@ -192,14 +206,20 @@ export default function RazorpayCheckoutPage() {
               <Lock className="w-7 h-7" />
             </div>
             <h1 className="text-xl font-bold text-slate-900">Razorpay Standard Checkout</h1>
-            <p className="text-xs text-slate-500 mt-1">Order #{orderId}</p>
+            {orderId ? (
+              <p className="text-xs text-slate-500 mt-1">Order #{orderId}</p>
+            ) : (
+              <p className="text-xs text-slate-500 mt-1">Order Checkout Portal</p>
+            )}
 
-            <div className="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
-              <div className="text-xs text-slate-500">Payable Amount</div>
-              <div className="text-3xl font-black text-slate-900 mt-0.5">
-                ₹{amount.toFixed(2)}
+            {amount > 0 && !isOrderNotFoundError && (
+              <div className="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="text-xs text-slate-500">Payable Amount</div>
+                <div className="text-3xl font-black text-slate-900 mt-0.5">
+                  ₹{amount.toFixed(2)}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Dynamic Status / Actions */}
@@ -221,11 +241,30 @@ export default function RazorpayCheckoutPage() {
             {errorMessage && (
               <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-start gap-2.5">
                 <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                <span className="leading-relaxed">{errorMessage}</span>
+                <div className="leading-relaxed">
+                  <span className="font-semibold block mb-0.5">Payment Session Notice:</span>
+                  <span>{errorMessage}</span>
+                </div>
               </div>
             )}
 
-            {!isInitializing && !isProcessingPayment && (
+            {/* If order not found, provide graceful cart/checkout recovery */}
+            {isOrderNotFoundError ? (
+              <div className="flex flex-col gap-2.5 mt-2">
+                <Link
+                  href="/checkout"
+                  className="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                >
+                  <ShoppingBag className="w-4 h-4" /> Return to Checkout
+                </Link>
+                <Link
+                  href="/products"
+                  className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5"
+                >
+                  Browse Cake Catalog
+                </Link>
+              </div>
+            ) : !isInitializing && !isProcessingPayment ? (
               <div className="flex flex-col gap-2.5">
                 <button
                   type="button"
@@ -240,48 +279,10 @@ export default function RazorpayCheckoutPage() {
                   onClick={initializeOrder}
                   className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" /> Retry Session Connection
+                  <RefreshCw className="w-3.5 h-3.5" /> Retry Payment Session
                 </button>
               </div>
-            )}
-
-            {/* Test Simulation Button in Test Mode */}
-            {process.env.NODE_ENV !== "production" && !isProcessingPayment && (
-              <div className="pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setIsProcessingPayment(true);
-                    try {
-                      const mockPayId = `pay_mock_${Date.now()}`;
-                      const verifyRes = await fetch("/api/v1/payments/razorpay/verify", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          order_id: orderId,
-                          razorpay_order_id: razorpayOrderId || `order_rzp_mock_${Date.now()}`,
-                          razorpay_payment_id: mockPayId,
-                          razorpay_signature: `test_mock_sig_${Date.now()}`,
-                        }),
-                      });
-                      const data = await verifyRes.json();
-                      if (data.success) {
-                        router.push(`/your-order?order_id=${encodeURIComponent(orderId)}`);
-                      } else {
-                        setErrorMessage(data.message || "Simulation failed");
-                      }
-                    } catch (e: any) {
-                      setErrorMessage(e.message);
-                    } finally {
-                      setIsProcessingPayment(false);
-                    }
-                  }}
-                  className="w-full py-2 px-3 border border-dashed border-blue-300 bg-blue-50/50 hover:bg-blue-100/50 text-blue-700 text-[11px] font-semibold rounded-lg transition-colors"
-                >
-                  ⚡ Simulate Instant Sandbox Success (Dev / QA Test)
-                </button>
-              </div>
-            )}
+            ) : null}
           </div>
 
           {/* Footer Security Badges */}

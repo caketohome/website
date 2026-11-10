@@ -243,6 +243,14 @@ export function PaymentConfigTab({
             </div>
           </div>
 
+          {/* Gate E Administrative Blocker Banner */}
+          <div className="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-900 rounded-xl flex items-start gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
+              <span className="font-bold">Release Gate E Active (Merchant Identity & KYC Lock):</span> Live payment activation is strictly blocked until formal confirmation of merchant KYC, legal contracting entity alignment (Kerala Proprietorship vs Karnataka Pvt Ltd), and settlement bank verification. Gateway is locked to Test Mode.
+            </div>
+          </div>
+
           {/* Environment Selector */}
           <div>
             <Label className="text-xs font-semibold">Configuration Environment</Label>
@@ -264,30 +272,29 @@ export function PaymentConfigTab({
                   className="mt-0.5 text-blue-600"
                 />
                 <div>
-                  <span className="text-xs font-bold block">Test Mode (Sandbox Simulation)</span>
-                  <span className="text-[11px] text-slate-500">rzp_test_* credentials for safe verification</span>
+                  <span className="text-xs font-bold block">Test Mode (Active Sandbox)</span>
+                  <span className="text-[11px] text-slate-500">rzp_test_* credentials for verified testing</span>
                 </div>
               </button>
 
               <button
                 type="button"
-                onClick={() => setEnvironment("LIVE")}
-                className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all ${
-                  environment === "LIVE"
-                    ? "border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-200"
-                    : "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40"
-                }`}
+                disabled={true}
+                className="p-3 rounded-xl border border-amber-300 dark:border-amber-900/60 bg-amber-50/30 dark:bg-amber-950/20 text-left flex items-start gap-2.5 opacity-75 cursor-not-allowed"
+                title="Live Mode is locked pending Merchant KYC and Legal Entity Alignment (Gate E)"
               >
                 <input
                   type="radio"
                   name="env_choice"
-                  checked={environment === "LIVE"}
-                  onChange={() => setEnvironment("LIVE")}
-                  className="mt-0.5 text-emerald-600"
+                  disabled={true}
+                  checked={false}
+                  className="mt-0.5 text-slate-400"
                 />
                 <div>
-                  <span className="text-xs font-bold block">Live Mode (Production Traffic)</span>
-                  <span className="text-[11px] text-slate-500">rzp_live_* credentials for real customer banking</span>
+                  <span className="text-xs font-bold block text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <Lock className="w-3 h-3 text-amber-600" /> Live Mode (Gate E Blocked)
+                  </span>
+                  <span className="text-[11px] text-amber-800 dark:text-amber-400">Locked pending Merchant KYC signoff</span>
                 </div>
               </button>
             </div>

@@ -21,10 +21,10 @@ export async function getCheckoutAvailabilityAction(payload: {
   coupon_code?: string;
 }) {
   const cookieStore = cookies();
-  if ((payload.payment_method as string) === "razorpay") {
+  if ((payload.payment_method as string) === "cashfree") {
     return {
       success: false,
-      error: "Razorpay payment gateway is decommissioned. Please select Cashfree for online payments.",
+      error: "Cashfree payment gateway has been decommissioned. Please select Razorpay for online payments.",
     };
   }
 
@@ -222,6 +222,12 @@ export async function placeOrder(prevState: any, data: FormData) {
 
   if (!result.success) {
     return { message: result.error || "Failed to place order. Please verify your details." };
+  }
+
+  if (paymentMethod === "razorpay") {
+    const orderId = result.order_id || "";
+    const amount = Number(result.pricing?.grand_total || result.total || 525);
+    redirect(`/checkout/razorpay?order_id=${encodeURIComponent(orderId)}&amount=${amount}`);
   }
 
   if (paymentMethod === "cashfree") {

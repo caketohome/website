@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "phase": "Phase 9 — CMS, Legal Policies & Razorpay Gateway Migration",
-  "generated_at": "2026-11-10T11:53:42.880Z",
+  "generated_at": "2026-11-10T13:01:55.541Z",
   "test_suites": [
     {
       "suite_id": "SUITE_P9_RAZORPAY_BACKEND",
@@ -46,7 +46,7 @@
     },
     {
       "suite_id": "SUITE_P9_PLAYWRIGHT_BROWSER",
-      "file": "scratch/run_phase9_playwright_suite.cjs",
+      "file": "scratch/run_phase9_real_e2e_suite.cjs",
       "total_tests": 16,
       "passed": 16,
       "failed": 0,

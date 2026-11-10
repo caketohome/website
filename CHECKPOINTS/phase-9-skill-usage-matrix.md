@@ -20,3 +20,4 @@
 | **`api-design-and-security`** | `C:\Users\alexc\.gemini\config\skills\api-design-and-security\SKILL.md` | RESTful route handlers with strict request validation, idempotency guards, proper HTTP status codes, and sanitized responses preventing credential/stack-trace leakage. |
 | **`smart-coder`** | `C:\Users\alexc\.gemini\config\skills\smart-coder\SKILL.md` | Architecture-aware investigation: identified legal entity discrepancy (Proprietorship vs Pvt Ltd) without breaking verbatim text, ensured full capture invariant before marking order paid. |
 | **`lazy-coder`** | `C:\Users\alexc\.gemini\config\skills\lazy-coder\SKILL.md` | Reused existing accounting engine (`accounting_voucher`, `accounting_account`), database pool, and UI components without redundant wheel-reinvention. |
+

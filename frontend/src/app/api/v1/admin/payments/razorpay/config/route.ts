@@ -36,6 +36,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Gate E: Block Live Mode Activation pending formal Merchant KYC & Legal Entity Alignment
+    if (environment?.toUpperCase() === "LIVE" && process.env.MERCHANT_KYC_APPROVED !== "true") {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "LIVE_PAYMENT_ACTIVATION_BLOCKED",
+          message: "Live payment activation is strictly blocked pending formal merchant KYC, legal entity alignment (Kerala Proprietorship vs Karnataka Pvt Ltd), settlement bank verification, and CFO signoff. Gateway must remain in TEST mode.",
+          release_gate: "GATE_E_BLOCKED"
+        },
+        { status: 403 }
+      );
+    }
+
     const result = await PaymentGatewayConfigService.saveAdminConfig({
       provider: provider || "razorpay",
       environment: (environment?.toUpperCase() === "LIVE" ? "LIVE" : "TEST"),
@@ -55,3 +68,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
