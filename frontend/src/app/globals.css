@@ -5,52 +5,58 @@
 :root {
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-serif: 'Playfair Display', Georgia, Cambria, 'Times New Roman', serif;
-  /* Medusa UI & Global surface tokens (Default Light Theme) */
-  --fg-base: 17, 24, 39; /* #111827 */
-  --bg-base: 253, 251, 247; /* #FDFBF7 Cream */
-  --bg-subtle: 248, 250, 252; /* #F8FAFC */
+  /* Medusa UI & Global surface tokens (Default Approved Blue Light Theme) */
+  --fg-base: 15, 23, 42; /* #0F172A */
+  --bg-base: 248, 250, 252; /* #F8FAFC Light Background */
+  --bg-subtle: 241, 245, 249; /* #F1F5F9 */
   --ui-bg-base: #FFFFFF;
   --ui-bg-subtle: #F8FAFC;
   --ui-bg-field: #FFFFFF;
-  --ui-fg-base: #111827;
+  --ui-fg-base: #0F172A;
   --ui-fg-subtle: #475569;
   --ui-fg-muted: #64748B;
   --ui-border-base: #E2E8F0;
-  --brand-primary: #1D2F5D;
-  --brand-primary-dark: #0F1A36;
-  --brand-primary-light: #2A4380;
-  --brand-primary-soft: #EAEFF8;
-  --brand-cream: #FDFBF7;
-  --brand-warm-white: #FAFAF9;
+  --brand-primary: #2563EB;
+  --brand-primary-dark: #1E3A8A;
+  --brand-primary-light: #60A5FA;
+  --brand-primary-soft: #DBEAFE;
+  --brand-blue: #2563EB;
+  --brand-blue-hover: #1D4ED8;
+  --brand-blue-light: #DBEAFE;
+  --brand-blue-accent: #60A5FA;
+  --brand-blue-dark: #1E3A8A;
+  --brand-footer-dark: #0F172A;
+  --brand-cream: #F8FAFC;
+  --brand-warm-white: #FFFFFF;
   --brand-surface: #FFFFFF;
-  --brand-surface-muted: #F4F5F7;
-  --brand-text: #111827;
+  --brand-surface-muted: #F8FAFC;
+  --brand-text: #0F172A;
   --brand-text-muted: #64748B;
   --brand-border: #E2E8F0;
   --brand-gold: #D4AF37;
-  --brand-gold-soft: #FDF9EF;
-  --brand-navy: #1D2F5D;
-  --brand-navy-surface: #0D152B;
-  --brand-navy-dark: #07090E;
+  --brand-gold-soft: #EFF6FF;
+  --brand-navy: #1E3A8A;
+  --brand-navy-surface: #0F172A;
+  --brand-navy-dark: #0A0F1D;
   --brand-chocolate: #1A120B;
   --brand-neutral: #F8FAFC;
-  --brand-pink-soft: #FFF5F7;
-  --brand-pink-accent: #BE185D;
+  --brand-pink-soft: #EFF6FF;
+  --brand-pink-accent: #2563EB;
 
-  /* ── SHARED CAKETOHOME DESIGN SYSTEM TOKENS (LIGHT/DEFAULT) ── */
-  --page-bg: #FDFBF7;
+  /* ── SHARED CAKETOHOME APPROVED DESIGN SYSTEM TOKENS ── */
+  --page-bg: #F8FAFC;
   --surface-bg: #FFFFFF;
-  --elevated-surface: #F8FAFC;
+  --elevated-surface: #F1F5F9;
   --border-color: #E2E8F0;
-  --text-primary: #111827;
+  --text-primary: #0F172A;
   --text-secondary: #475569;
   --text-muted: #64748B;
   --text-disabled: #94A3B8;
-  --focus-ring: #D4AF37;
-  --primary-action: #1D2F5D;
-  --primary-action-hover: #152347;
-  --gold-action: #D4AF37;
-  --gold-action-hover: #C5A059;
+  --focus-ring: #2563EB;
+  --primary-action: #2563EB;
+  --primary-action-hover: #1D4ED8;
+  --gold-action: #2563EB;
+  --gold-action-hover: #1D4ED8;
   --status-danger: #DC2626;
   --status-danger-bg: #FEF2F2;
   --status-success: #059669;

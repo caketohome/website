@@ -65,12 +65,12 @@ export function PdpInfoTabs({
       content: (
         <div className="text-slate-600 text-sm leading-relaxed space-y-2">
           <p>
-            <strong className="text-[#1D2F5D]">Refrigeration:</strong>{" "}
+            <strong className="text-[#0F172A]">Refrigeration:</strong>{" "}
             {storageInstructions || "Store refrigerated at 2°C to 5°C. Keep in an airtight container or original box to maintain moisture."}
           </p>
           {shelfLife && (
             <p>
-              <strong className="text-[#1D2F5D]">Best Before:</strong> Consume within {shelfLife}.
+              <strong className="text-[#0F172A]">Best Before:</strong> Consume within {shelfLife}.
             </p>
           )}
           <p className="text-xs text-slate-500 italic">
@@ -87,13 +87,13 @@ export function PdpInfoTabs({
       content: (
         <div className="text-slate-600 text-sm leading-relaxed space-y-2">
           <p>
-            <strong className="text-[#1D2F5D]">Temperature-Controlled Delivery:</strong> All cakes are transported in air-conditioned delivery vans to prevent melting or shape distortion.
+            <strong className="text-[#0F172A]">Temperature-Controlled Delivery:</strong> All cakes are transported in air-conditioned delivery vans to prevent melting or shape distortion.
           </p>
           <p>
-            <strong className="text-[#1D2F5D]">Cancellation Policy:</strong> Orders can be cancelled or rescheduled up to 4 hours prior to the chosen delivery slot.
+            <strong className="text-[#0F172A]">Cancellation Policy:</strong> Orders can be cancelled or rescheduled up to 4 hours prior to the chosen delivery slot.
           </p>
           <p>
-            <strong className="text-[#1D2F5D]">Freshness Guarantee:</strong> If your cake arrives damaged or incomplete, contact support immediately for an instant replacement or refund.
+            <strong className="text-[#0F172A]">Freshness Guarantee:</strong> If your cake arrives damaged or incomplete, contact support immediately for an instant replacement or refund.
           </p>
         </div>
       ),
@@ -117,8 +117,8 @@ export function PdpInfoTabs({
               onClick={() => setActiveTabId(tab.id)}
               className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-2 whitespace-nowrap transition-all ${
                 isActive
-                  ? "bg-[#1D2F5D] text-white shadow-sm ring-1 ring-[#D4AF37]/40"
-                  : "text-slate-600 hover:text-[#1D2F5D] hover:bg-slate-50"
+                  ? "bg-[#2563EB] text-white shadow-sm ring-1 ring-blue-400/30"
+                  : "text-slate-600 hover:text-[#2563EB] hover:bg-slate-50"
               }`}
             >
               <IconComponent className="w-4 h-4" />

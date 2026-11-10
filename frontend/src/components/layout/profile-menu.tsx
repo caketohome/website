@@ -273,15 +273,15 @@ export const ProfileMenu = memo(function ProfileMenu({
       <Link
         href="/login"
         prefetch={false}
-        className={`flex items-center justify-center min-w-[40px] min-h-[40px] sm:min-w-0 p-2 sm:px-3.5 sm:py-2 rounded-xl text-sm font-semibold text-navy-accent bg-navy-accent/5 hover:bg-navy-accent/10 border border-navy-accent/10 transition-all hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-navy-accent/20 ${className}`}
+        className={`flex items-center justify-center min-w-[40px] min-h-[40px] sm:min-w-0 p-2 sm:px-3.5 sm:py-2 rounded-xl text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 ${className}`}
         aria-label="Sign in to your account"
         title="Sign in"
       >
-        <User className="w-5 h-5 sm:w-4 sm:h-4 text-navy-accent/80" />
+        <User className="w-5 h-5 sm:w-4 sm:h-4 text-slate-600" />
         <span className="hidden sm:inline ml-1.5">Login</span>
         <span className="hidden sm:inline relative flex h-2 w-2 ml-1">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#1D2F5D]"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2563EB]"></span>
         </span>
       </Link>
     );
@@ -298,10 +298,10 @@ export const ProfileMenu = memo(function ProfileMenu({
         aria-haspopup="menu"
         aria-label="User profile and account settings menu"
         data-testid="profile-menu-trigger"
-        className={`flex items-center gap-2 min-w-[40px] min-h-[40px] p-1.5 md:px-3 md:py-1.5 rounded-xl transition-colors duration-100 border select-none focus:outline-none focus:ring-2 focus:ring-navy-accent/20 cursor-pointer justify-center ${
+        className={`flex items-center gap-2 min-w-[40px] min-h-[40px] p-1.5 md:px-3 md:py-1.5 rounded-xl transition-colors duration-100 border select-none focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 cursor-pointer justify-center ${
           isOpen
-            ? "bg-navy-accent/10 border-navy-accent/20 ring-2 ring-navy-accent/10 text-navy-accent"
-            : "bg-transparent hover:bg-navy-accent/5 border-transparent text-navy-accent/90 hover:text-navy-accent"
+            ? "bg-navy-accent/10 border-slate-300 ring-2 ring-navy-accent/10 text-slate-700"
+            : "bg-transparent hover:bg-slate-100 border-transparent text-slate-700 hover:text-slate-700"
         }`}
       >
         {/* Avatar */}
@@ -314,14 +314,14 @@ export const ProfileMenu = memo(function ProfileMenu({
         {/* User Details (Desktop) */}
         {showNameOnDesktop && (
           <div className="hidden md:flex flex-col text-left leading-tight">
-            <span className="text-xs font-bold text-navy-accent max-w-[130px] truncate">{fullName}</span>
-            <span className="text-[10px] font-medium text-navy-accent/70">{roleConfig.label}</span>
+            <span className="text-xs font-bold text-slate-700 max-w-[130px] truncate">{fullName}</span>
+            <span className="text-[10px] font-medium text-slate-500">{roleConfig.label}</span>
           </div>
         )}
 
         <ChevronDown
-          className={`w-3.5 h-3.5 text-navy-accent/70 transition-transform duration-150 hidden sm:inline-block ${
-            isOpen ? "rotate-180 text-navy-accent" : ""
+          className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-150 hidden sm:inline-block ${
+            isOpen ? "rotate-180 text-slate-700" : ""
           }`}
         />
       </button>
@@ -398,7 +398,7 @@ export const ProfileMenu = memo(function ProfileMenu({
               type="button"
               onClick={handleLogoutClick}
               disabled={isLoggingOut}
-              className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold rounded-lg text-[#1D2F5D] dark:text-[#D4AF37] hover:bg-brand-gold-soft dark:hover:bg-rose-950/40 transition-colors group focus:outline-none focus:bg-brand-gold-soft dark:focus:bg-rose-950/40 disabled:opacity-50 cursor-pointer"
+              className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold rounded-lg text-[#2563EB] dark:text-[#D4AF37] hover:bg-blue-50 dark:hover:bg-rose-950/40 transition-colors group focus:outline-none focus:bg-blue-50 dark:focus:bg-rose-950/40 disabled:opacity-50 cursor-pointer"
               role="menuitem"
               tabIndex={0}
               data-testid="profile-menu-logout-button"

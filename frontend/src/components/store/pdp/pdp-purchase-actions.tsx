@@ -72,7 +72,7 @@ export function PdpPurchaseActions({
             Total Payable
           </span>
           <div className="flex items-baseline gap-2">
-            <span className="font-serif text-3xl sm:text-4xl font-bold text-[#1D2F5D] leading-tight">
+            <span className="font-serif text-3xl sm:text-4xl font-bold text-[#0F172A] leading-tight">
               ₹{totalPrice}
             </span>
           </div>
@@ -138,7 +138,7 @@ export function PdpPurchaseActions({
           data-testid="pdp-add-to-bag"
           onClick={onAddToCart}
           disabled={cartLoading || isOutOfStock}
-          className="w-full py-4 px-6 rounded-2xl bg-[#1D2F5D] hover:bg-[#152347] active:scale-[0.99] text-white font-bold text-xs uppercase tracking-[0.15em] flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-4 px-6 rounded-2xl bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-[0.99] text-white font-bold text-xs uppercase tracking-[0.15em] flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {cartLoading ? (
             <>
@@ -160,7 +160,7 @@ export function PdpPurchaseActions({
           data-testid="pdp-buy-now"
           onClick={onBuyNow}
           disabled={cartLoading || isOutOfStock}
-          className="w-full py-4 px-6 rounded-2xl bg-[#D4AF37] hover:bg-[#c29f2f] active:scale-[0.99] text-[#1D2F5D] font-bold text-xs uppercase tracking-[0.15em] flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-4 px-6 rounded-2xl bg-[#1E3A8A] hover:bg-[#172554] active:scale-[0.99] text-white font-bold text-xs uppercase tracking-[0.15em] flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           <Zap className="w-4 h-4 fill-current" />
           <span>{buyNowText}</span>
@@ -172,7 +172,7 @@ export function PdpPurchaseActions({
         <button
           type="button"
           onClick={handleShare}
-          className="inline-flex items-center gap-1.5 text-slate-500 hover:text-[#1D2F5D] font-medium transition-colors py-1 cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-slate-500 hover:text-[#2563EB] font-medium transition-colors py-1 cursor-pointer"
         >
           <Share2 className="w-3.5 h-3.5" />
           <span>{shareSuccess ? "Link copied to clipboard! 🎉" : "Share this cake"}</span>
@@ -206,7 +206,7 @@ export function PdpPurchaseActions({
 
       {/* Added to Bag Success Toast Banner */}
       {addedCartSuccess && !cartError && (
-        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#1D2F5D] border border-[#D4AF37]/50 text-white text-xs font-medium shadow-md animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#1E3A8A] border border-blue-400/40 text-white text-xs font-medium shadow-md animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center">
               <Check className="w-3.5 h-3.5 stroke-[3]" />
@@ -215,7 +215,7 @@ export function PdpPurchaseActions({
           </div>
           <Link
             href="/checkout"
-            className="bg-[#D4AF37] hover:bg-[#c29f2f] text-[#1D2F5D] font-bold uppercase tracking-wider text-[10px] rounded-xl px-3 py-1.5 transition-all"
+            className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold uppercase tracking-wider text-[10px] rounded-xl px-3 py-1.5 transition-all shadow-xs"
           >
             Checkout →
           </Link>

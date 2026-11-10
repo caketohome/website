@@ -44,11 +44,11 @@ export function PdpHighlights({
             key={idx}
             className="flex items-start gap-2.5 p-3 rounded-2xl bg-white/60 border border-slate-200/60 shadow-2xs"
           >
-            <div className="w-8 h-8 rounded-xl bg-amber-50 border border-[#D4AF37]/30 flex items-center justify-center text-[#1D2F5D] shrink-0 mt-0.5">
-              <IconComponent className="w-4 h-4 text-[#D4AF37]" />
+            <div className="w-8 h-8 rounded-xl bg-amber-50 border border-blue-200 flex items-center justify-center text-[#0F172A] shrink-0 mt-0.5">
+              <IconComponent className="w-4 h-4 text-[#2563EB]" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-[#1D2F5D] leading-snug truncate">
+              <span className="text-xs font-bold text-[#0F172A] leading-snug truncate">
                 {item.title}
               </span>
               <span className="text-[11px] text-slate-500 leading-tight line-clamp-2 mt-0.5">

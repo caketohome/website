@@ -64,7 +64,7 @@ export function PdpEmptyMessageModal({
             <h3 id="empty-msg-dialog-title" className="text-lg font-black text-slate-900 leading-snug">
               Add cake without a message?
             </h3>
-            <span className="text-xs font-semibold text-[#1D2F5D] uppercase tracking-wider">
+            <span className="text-xs font-semibold text-[#0F172A] uppercase tracking-wider">
               Optional Personalization
             </span>
           </div>
@@ -91,7 +91,7 @@ export function PdpEmptyMessageModal({
             type="button"
             disabled={cartLoading}
             onClick={onConfirm}
-            className="flex-1 py-3 px-4 rounded-xl bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all"
+            className="flex-1 py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all"
           >
             {cartLoading ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />

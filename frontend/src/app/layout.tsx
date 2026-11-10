@@ -41,10 +41,10 @@ export default function RootLayout({
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#1D2F5D" />
+        <meta name="theme-color" content="#2563EB" />
         <OrganizationJsonLd />
       </head>
-      <body className={`${sans.variable} ${serif.variable} font-sans min-h-screen bg-brand-cream text-brand-text antialiased`}>
+      <body className={`${sans.variable} ${serif.variable} font-sans min-h-screen bg-[#F8FAFC] text-[#0F172A] antialiased`}>
         <AuthProvider>
           <CustomerProvider>
             <FavoritesProvider>

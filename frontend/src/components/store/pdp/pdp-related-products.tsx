@@ -29,10 +29,10 @@ export function PdpRelatedProducts({
   return (
     <section className="w-full pt-12 mt-12 border-t border-slate-200/90" aria-label="Related Products">
       <div className="flex flex-col gap-2 mb-8 text-center sm:text-left">
-        <span className="text-xs uppercase tracking-[0.2em] font-bold text-[#D4AF37] flex items-center justify-center sm:justify-start gap-1.5">
+        <span className="text-xs uppercase tracking-[0.2em] font-bold text-[#2563EB] flex items-center justify-center sm:justify-start gap-1.5">
           <Sparkles className="w-3.5 h-3.5" /> Curated Recommendations
         </span>
-        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#1D2F5D]">
+        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#0F172A]">
           {heading}
         </h2>
       </div>

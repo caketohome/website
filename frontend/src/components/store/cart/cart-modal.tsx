@@ -256,17 +256,17 @@ export default function CartModal({
         {/* Top Header */}
         <div className="flex items-center justify-between px-5 sm:px-6 py-4 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#1D2F5D]/5 flex items-center justify-center text-[#1D2F5D]">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-[#2563EB]">
               <ShoppingBag className="w-5 h-5 stroke-[2.2]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg sm:text-xl font-serif font-bold text-[#1D2F5D] leading-none">
+                <h2 className="text-lg sm:text-xl font-serif font-bold text-[#0F172A] leading-none">
                   Your Bag
                 </h2>
                 <span
                   data-testid="cart-header-count"
-                  className="px-2 py-0.5 rounded-full bg-[#1D2F5D] text-white font-sans text-xs font-bold shadow-sm"
+                  className="px-2 py-0.5 rounded-full bg-[#2563EB] text-white font-sans text-xs font-bold shadow-xs"
                 >
                   {totalItemCount}
                 </span>
@@ -282,7 +282,7 @@ export default function CartModal({
             onClick={onClose}
             aria-label="Close bag"
             data-testid="cart-close-button"
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-[#1D2F5D]/20 cursor-pointer"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 cursor-pointer"
           >
             <X className="w-5 h-5 stroke-[2.2]" />
           </button>
@@ -291,36 +291,36 @@ export default function CartModal({
         {/* Truthful Delivery Status Banner */}
         {items.length > 0 && (
           resolvedDeliveryFee === 0 ? (
-            <div className="bg-[#1D2F5D] text-white px-5 sm:px-6 py-2.5 shrink-0 shadow-inner flex items-center justify-between text-xs font-medium">
+            <div className="bg-[#1E3A8A] text-white px-5 sm:px-6 py-2.5 shrink-0 shadow-inner flex items-center justify-between text-xs font-medium">
               <span className="flex items-center gap-1.5 text-emerald-300 font-bold">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                 Free Delivery confirmed {deliveryLocation ? `for ${deliveryLocation.split("—")[0].trim()}` : "for your order"}
               </span>
             </div>
           ) : hasThreshold && amountNeededForFreeDelivery > 0 ? (
-            <div className="bg-[#1D2F5D] text-white px-5 sm:px-6 py-2.5 shrink-0 shadow-inner">
+            <div className="bg-[#1E3A8A] text-white px-5 sm:px-6 py-2.5 shrink-0 shadow-inner">
               <div className="flex items-center justify-between text-xs font-medium mb-1.5">
                 <span className="flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <Sparkles className="w-3.5 h-3.5 text-blue-300" />
                   <span>
-                    Add <strong className="text-[#D4AF37]">₹{amountNeededForFreeDelivery}</strong> more for{" "}
+                    Add <strong className="text-blue-200">₹{amountNeededForFreeDelivery}</strong> more for{" "}
                     <strong>FREE Delivery</strong>
                   </span>
                 </span>
-                <span className="text-[11px] text-slate-300 font-mono">
+                <span className="text-[11px] text-blue-200 font-mono">
                   {deliveryProgressPercent}%
                 </span>
               </div>
               <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-[#D4AF37] to-amber-300 transition-all duration-500 ease-out rounded-full"
+                  className="h-full bg-gradient-to-r from-blue-400 to-indigo-300 transition-all duration-500 ease-out rounded-full"
                   style={{ width: `${deliveryProgressPercent}%` }}
                 />
               </div>
             </div>
           ) : !deliveryLocation && !deliveryPincode ? (
             <div className="bg-slate-100 border-b border-slate-200 text-slate-700 px-5 sm:px-6 py-2 shrink-0 flex items-center gap-1.5 text-xs">
-              <MapPin className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
+              <MapPin className="w-3.5 h-3.5 text-[#2563EB] shrink-0" />
               <span>Select delivery location at header or checkout to calculate delivery fee</span>
             </div>
           ) : null
@@ -371,8 +371,8 @@ export default function CartModal({
               data-testid="cart-loading-state"
               className="py-16 sm:py-20 text-center flex flex-col items-center justify-center gap-3 my-auto px-6"
             >
-              <div className="w-16 h-16 rounded-2xl bg-[#1D2F5D]/5 border border-[#1D2F5D]/10 flex items-center justify-center text-[#1D2F5D]">
-                <Loader2 className="w-8 h-8 animate-spin text-[#1D2F5D]" />
+              <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#2563EB]">
+                <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
               </div>
               <p className="text-xs text-slate-500 font-sans animate-pulse">
                 Fetching your bag...
@@ -415,7 +415,7 @@ export default function CartModal({
                     .catch((err) => setDrawerError(err.message || "Failed to load cart"))
                     .finally(() => setIsFetchingCart(false));
                 }}
-                className="mt-2 px-6 py-2.5 rounded-2xl bg-[#1D2F5D] hover:bg-[#152347] text-white font-sans text-xs font-bold uppercase tracking-wider transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                className="mt-2 px-6 py-2.5 rounded-2xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-sans text-xs font-bold uppercase tracking-wider transition-all shadow-md flex items-center gap-2 cursor-pointer"
               >
                 <span>Retry</span>
               </button>
@@ -426,11 +426,11 @@ export default function CartModal({
               data-testid="cart-empty-state"
               className="py-16 sm:py-20 text-center flex flex-col items-center justify-center gap-4 my-auto px-6"
             >
-              <div className="w-20 h-20 rounded-3xl bg-[#1D2F5D]/5 border border-[#1D2F5D]/10 flex items-center justify-center text-[#1D2F5D] shadow-sm">
-                <ShoppingBag className="w-10 h-10 stroke-[1.5] text-[#1D2F5D]/70" />
+              <div className="w-20 h-20 rounded-3xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#2563EB] shadow-xs">
+                <ShoppingBag className="w-10 h-10 stroke-[1.5] text-[#2563EB]" />
               </div>
               <div className="space-y-1 max-w-xs">
-                <h3 className="text-lg font-serif font-bold text-[#1D2F5D]">
+                <h3 className="text-lg font-serif font-bold text-[#0F172A]">
                   Your bag is empty
                 </h3>
                 <p className="text-xs text-slate-500 leading-relaxed font-sans">
@@ -441,7 +441,7 @@ export default function CartModal({
                 type="button"
                 data-testid="browse-cakes-button"
                 onClick={handleBrowseCatalog}
-                className="mt-2 px-6 py-3 rounded-2xl bg-[#1D2F5D] hover:bg-[#152347] active:scale-[0.99] text-white font-sans text-xs font-bold uppercase tracking-wider transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
+                className="mt-2 px-6 py-3 rounded-2xl bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-[0.99] text-white font-sans text-xs font-bold uppercase tracking-wider transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
               >
                 <span>Explore Gourmet Cakes</span>
                 <ArrowRight className="w-4 h-4" />
@@ -483,7 +483,7 @@ export default function CartModal({
                 </div>
                 <span
                   data-testid="cart-total-payable"
-                  className="font-serif text-2xl font-bold text-[#1D2F5D]"
+                  className="font-serif text-2xl font-bold text-[#0F172A]"
                 >
                   ₹{grandTotal.toLocaleString("en-IN")}
                 </span>
@@ -496,7 +496,7 @@ export default function CartModal({
               data-testid="cart-checkout-button"
               onClick={handleCheckout}
               disabled={items.length === 0}
-              className="w-full py-4 bg-[#1D2F5D] hover:bg-[#152347] active:scale-[0.99] text-white font-sans text-xs font-bold uppercase tracking-[0.15em] rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-[0.99] text-white font-sans text-xs font-bold uppercase tracking-[0.15em] rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span>Proceed to Checkout</span>
               <ArrowRight className="w-4 h-4" />
@@ -506,7 +506,7 @@ export default function CartModal({
             <button
               type="button"
               onClick={handleViewBag}
-              className="w-full py-1 text-center text-[11px] uppercase tracking-wider font-semibold text-slate-500 hover:text-[#1D2F5D] transition-colors cursor-pointer"
+              className="w-full py-1 text-center text-[11px] uppercase tracking-wider font-semibold text-slate-500 hover:text-[#2563EB] transition-colors cursor-pointer"
             >
               View Full Bag & Customizations
             </button>
@@ -641,7 +641,7 @@ function DrawerCartItem({
   return (
     <div
       data-testid={`cart-item-${item.id}`}
-      className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:border-[#D4AF37]/50 transition-all group"
+      className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-blue-200 transition-all group"
     >
       {/* Thumbnail */}
       <div className="relative w-18 h-18 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-200/60">
@@ -654,7 +654,7 @@ function DrawerCartItem({
         />
         {updating && (
           <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">
-            <Loader2 className="w-5 h-5 text-[#1D2F5D] animate-spin" />
+            <Loader2 className="w-5 h-5 text-[#2563EB] animate-spin" />
           </div>
         )}
       </div>
@@ -663,7 +663,7 @@ function DrawerCartItem({
       <div className="flex flex-col flex-1 min-w-0 py-0.5">
         {/* Title & Remove Button */}
         <div className="flex justify-between items-start gap-1">
-          <h3 className="text-xs sm:text-[13px] font-sans font-bold text-[#1D2F5D] truncate pr-1">
+          <h3 className="text-xs sm:text-[13px] font-sans font-bold text-[#0F172A] truncate pr-1">
             {title}
           </h3>
           <button
@@ -680,7 +680,7 @@ function DrawerCartItem({
         {/* Tags / Customizations */}
         <div className="flex flex-wrap items-center gap-1.5 mt-1">
           {weight && (
-            <span className="text-[10px] font-semibold text-[#1D2F5D] bg-[#1D2F5D]/5 px-2 py-0.5 rounded-md border border-[#1D2F5D]/10">
+            <span className="text-[10px] font-semibold text-[#2563EB] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
               {weight}
             </span>
           )}
@@ -733,7 +733,7 @@ function DrawerCartItem({
             </button>
             <span
               data-testid="cart-drawer-qty-value"
-              className="text-xs font-bold text-[#1D2F5D] min-w-6 text-center font-mono"
+              className="text-xs font-bold text-[#0F172A] min-w-6 text-center font-mono"
             >
               {currentQuantity}
             </span>
@@ -751,7 +751,7 @@ function DrawerCartItem({
 
           {/* Price */}
           <div className="text-right">
-            <div className="text-xs sm:text-sm font-bold font-serif text-[#1D2F5D]">
+            <div className="text-xs sm:text-sm font-bold font-serif text-[#0F172A]">
               ₹{lineTotal.toLocaleString("en-IN")}
             </div>
             {currentQuantity > 1 && (

@@ -18,7 +18,7 @@ const CheckoutMap = dynamic(
     ssr: false,
     loading: () => (
       <div className="w-full h-[240px] rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-xs text-zinc-500 animate-pulse">
-        <Loader2 className="w-4 h-4 animate-spin text-[#1D2F5D] mr-2" />
+        <Loader2 className="w-4 h-4 animate-spin text-[#0F172A] mr-2" />
         Loading delivery map...
       </div>
     ),
@@ -50,7 +50,7 @@ function Submit({ disabled, paymentMethod }: { disabled?: boolean; paymentMethod
   <Button
   type="submit"
   size="large"
-  className="w-full sm:w-auto mt-6 bg-[#1D2F5D] hover:bg-[#152347] text-white font-sans font-bold tracking-wider text-[14px] px-8 py-4 rounded-xl shadow-lg border border-[#D4AF37]/30 transition-all hover:scale-[1.01]"
+  className="w-full sm:w-auto mt-6 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-sans font-bold tracking-wider text-[14px] px-8 py-4 rounded-xl shadow-lg border border-blue-200 transition-all hover:scale-[1.01]"
   isLoading={status.pending}
   disabled={disabled}
   aria-label="Confirm and place your cake order"
@@ -666,61 +666,61 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full font-sans">
   {/* LEFT COLUMN: 3-Step Checkout Flow */}
   <div className="lg:col-span-7 flex flex-col gap-6">
-    <div className="flex justify-between items-center border-b border-slate-200 dark:border-navy-accent/60 pb-3">
+    <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-200 pb-3">
       <div>
-        <Heading level="h1" className="text-2xl md:text-3xl font-extrabold tracking-tight text-[#1D2F5D] dark:text-pearl">
+        <Heading level="h1" className="text-2xl md:text-3xl font-extrabold tracking-tight text-[#0F172A] dark:text-slate-900">
           Cake Delivery Checkout
         </Heading>
-        <p className="text-xs text-slate-600 dark:text-ash mt-0.5 font-medium">Direct Bakery Kitchen Fulfillment</p>
+        <p className="text-xs text-slate-600 dark:text-slate-500 mt-0.5 font-medium">Direct Bakery Kitchen Fulfillment</p>
       </div>
-      <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 dark:bg-obsidian-base text-[#1D2F5D] dark:text-pearl border border-slate-200 dark:border-navy-accent/60">
+      <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-50 text-[#0F172A] dark:text-slate-900 border border-slate-200 dark:border-slate-200">
         🔒 SSL Encrypted
       </span>
     </div>
 
     {/* Stepper Progress Indicator */}
-    <div className="flex justify-between items-center w-full bg-white dark:bg-obsidian-base p-3.5 rounded-2xl border border-slate-200 dark:border-navy-accent/60 shadow-sm" role="progressbar" aria-label="Checkout Progress">
+    <div className="flex justify-between items-center w-full bg-white dark:bg-slate-50 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-200 shadow-sm" role="progressbar" aria-label="Checkout Progress">
       <button
         type="button"
         onClick={() => setStep(1)}
         className={`flex items-center gap-2 text-xs md:text-sm font-semibold transition-all ${
-          step === 1 ? "text-[#1D2F5D] dark:text-pearl font-bold" : "text-slate-500 hover:text-slate-800 dark:hover:text-pearl"
+          step === 1 ? "text-[#0F172A] dark:text-slate-900 font-bold" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-900"
         }`}
       >
         <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
-          step > 1 ? "bg-[#1D2F5D] text-[#D4AF37] border border-[#D4AF37]/40" : step === 1 ? "border-2 border-[#D4AF37] text-white bg-[#1D2F5D]" : "border border-slate-300 dark:border-stone/70 text-slate-400"
+          step > 1 ? "bg-[#2563EB] text-[#2563EB] border border-blue-200" : step === 1 ? "border-2 border-[#2563EB] text-white bg-[#2563EB]" : "border border-slate-300  text-slate-400"
         }`}>
           {step > 1 ? "✓" : "1"}
         </span>
         <span>1. Contact</span>
       </button>
-      <div className="flex-1 h-px bg-[#D4AF37]/40 mx-2 hidden sm:block" />
+      <div className="flex-1 h-px bg-blue-200 mx-2 hidden sm:block" />
       <button
         type="button"
         disabled={!isStep1Valid}
         onClick={() => setStep(2)}
         className={`flex items-center gap-2 text-xs md:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
-          step === 2 ? "text-[#1D2F5D] dark:text-pearl font-bold" : "text-slate-500 hover:text-slate-800 dark:hover:text-pearl"
+          step === 2 ? "text-[#0F172A] dark:text-slate-900 font-bold" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-900"
         }`}
       >
         <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
-          step > 2 ? "bg-[#1D2F5D] text-[#D4AF37] border border-[#D4AF37]/40" : step === 2 ? "border-2 border-[#D4AF37] text-white bg-[#1D2F5D]" : "border border-slate-300 dark:border-stone/70 text-slate-400"
+          step > 2 ? "bg-[#2563EB] text-[#2563EB] border border-blue-200" : step === 2 ? "border-2 border-[#2563EB] text-white bg-[#2563EB]" : "border border-slate-300  text-slate-400"
         }`}>
           {step > 2 ? "✓" : "2"}
         </span>
         <span>2. Mode & Slots</span>
       </button>
-      <div className="flex-1 h-px bg-[#D4AF37]/40 mx-2 hidden sm:block" />
+      <div className="flex-1 h-px bg-blue-200 mx-2 hidden sm:block" />
       <button
         type="button"
         disabled={!isStep1Valid || !isStep2Valid}
         onClick={() => setStep(3)}
         className={`flex items-center gap-2 text-xs md:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
-          step === 3 ? "text-[#1D2F5D] dark:text-pearl font-bold" : "text-slate-500 hover:text-slate-800 dark:hover:text-pearl"
+          step === 3 ? "text-[#0F172A] dark:text-slate-900 font-bold" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-900"
         }`}
       >
         <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
-          step === 3 ? "border-2 border-[#D4AF37] text-white bg-[#1D2F5D]" : "border border-slate-300 dark:border-stone/70 text-slate-400"
+          step === 3 ? "border-2 border-[#2563EB] text-white bg-[#2563EB]" : "border border-slate-300  text-slate-400"
         }`}>
           3
         </span>
@@ -731,25 +731,25 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <form className="flex flex-col gap-6 w-full" action={action}>
  {/* STEP 1: Contact & Gifting Details */}
  {step === 1 && (
- <div className="border border-navy-accent/60 rounded-3xl p-6 bg-navy-surface flex flex-col gap-6 shadow-sm animate-fadeIn">
- <div className="flex justify-between items-center border-b border-navy-accent/60 pb-3">
- <Heading level="h2" className="text-lg font-bold text-pearl ">
+ <div className="border border-slate-200 rounded-3xl p-6 bg-white flex flex-col gap-6 shadow-sm animate-fadeIn">
+ <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+ <Heading level="h2" className="text-lg font-bold text-slate-900 ">
  1. Contact & Celebration Details
  </Heading>
- <span className="text-xs text-ash">Step 1 of 3</span>
+ <span className="text-xs text-slate-500">Step 1 of 3</span>
  </div>
 
  {/* Who is this order for? */}
  <div className="flex flex-col gap-2">
- <Label className="font-semibold text-xs text-pearl ">Who are we baking for?</Label>
+ <Label className="font-semibold text-xs text-slate-900 ">Who are we baking for?</Label>
  <div className="grid grid-cols-2 gap-3">
  <button
  type="button"
  onClick={() => setOrderedForSelf(true)}
  className={`py-3 px-4 rounded-2xl border text-left font-semibold text-xs md:text-sm transition-all flex items-center gap-2.5 ${
  orderedForSelf
- ? "border-taupe bg-obsidian-base/60 text-pearl ring-2 ring-navy-glow/20"
- : "border-navy-accent/60 text-pearl hover:bg-obsidian-base"
+ ? "border-[#2563EB] bg-blue-50/60 text-slate-900 ring-2 ring-blue-500/20"
+ : "border-slate-200 text-slate-900 hover:bg-slate-50"
  }`}
  >
  <span className="text-lg">👤</span>
@@ -760,8 +760,8 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => setOrderedForSelf(false)}
  className={`py-3 px-4 rounded-2xl border text-left font-semibold text-xs md:text-sm transition-all flex items-center gap-2.5 ${
  !orderedForSelf
- ? "border-taupe bg-obsidian-base/60 text-pearl ring-2 ring-navy-glow/20"
- : "border-navy-accent/60 text-pearl hover:bg-obsidian-base"
+ ? "border-[#2563EB] bg-blue-50/60 text-slate-900 ring-2 ring-blue-500/20"
+ : "border-slate-200 text-slate-900 hover:bg-slate-50"
  }`}
  >
  <span className="text-lg">🎁</span>
@@ -773,10 +773,10 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
 
  {/* Purchaser Details */}
  <div className="flex flex-col gap-4">
- <Text className="font-bold text-xs uppercase tracking-wider text-ash/70">Purchaser Contact Details</Text>
+ <Text className="font-bold text-xs uppercase tracking-wider text-slate-400">Purchaser Contact Details</Text>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <div>
- <Label className="font-semibold text-xs text-pearl ">First Name *</Label>
+ <Label className="font-semibold text-xs text-slate-900 ">First Name *</Label>
  <Input
  ref={firstNameRef}
  placeholder="Ananya"
@@ -788,7 +788,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  />
  </div>
  <div>
- <Label className="font-semibold text-xs text-pearl ">Last Name *</Label>
+ <Label className="font-semibold text-xs text-slate-900 ">Last Name *</Label>
  <Input
  placeholder="Sharma"
  name="last-name"
@@ -801,7 +801,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  </div>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <div>
- <Label className="font-semibold text-xs text-pearl ">Mobile Phone *</Label>
+ <Label className="font-semibold text-xs text-slate-900 ">Mobile Phone *</Label>
  <Input
  placeholder="+91 98765 43210"
  name="phone"
@@ -812,7 +812,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  />
  </div>
  <div>
- <Label className="font-semibold text-xs text-pearl ">Email Address (for invoice & updates) *</Label>
+ <Label className="font-semibold text-xs text-slate-900 ">Email Address (for invoice & updates) *</Label>
  <Input
  placeholder="ananya@example.com"
  name="email"
@@ -828,10 +828,10 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
 
  {/* Recipient Details Section (When Gifting) */}
  {!orderedForSelf && (
- <div className="border border-navy-accent/60 bg-obsidian-base/50 p-5 rounded-2xl flex flex-col gap-4">
+ <div className="border border-slate-200 bg-slate-50 p-5 rounded-2xl flex flex-col gap-4">
  <div className="flex items-center gap-2">
  <span className="text-lg">🎀</span>
- <Heading level="h3" className="text-sm font-bold text-pearl ">
+ <Heading level="h3" className="text-sm font-bold text-slate-900 ">
  Gift Recipient Information
  </Heading>
  </div>
@@ -844,7 +844,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  value={recipientName}
  onChange={(e) => setRecipientName(e.target.value)}
  required={!orderedForSelf}
- className="mt-1 bg-navy-surface "
+ className="mt-1 bg-white "
  />
  </div>
  <div>
@@ -855,7 +855,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  value={recipientPhone}
  onChange={(e) => setRecipientPhone(e.target.value)}
  required={!orderedForSelf}
- className="mt-1 bg-navy-surface "
+ className="mt-1 bg-white "
  />
  </div>
  </div>
@@ -866,7 +866,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  placeholder="Happy Birthday! Wishing you joy, sweet moments, and all the happiness in the world. With love, Ananya."
  value={giftMessage}
  onChange={(e) => setGiftMessage(e.target.value)}
- className="mt-1 text-xs bg-navy-surface "
+ className="mt-1 text-xs bg-white "
  rows={2}
  />
  </div>
@@ -877,7 +877,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  name="hide_invoice"
  checked={hideInvoice}
  onChange={(e) => setHideInvoice(e.target.checked)}
- className="rounded text-pearl"
+ className="rounded text-slate-900"
  />
  <span className="font-medium">📄 Hide Invoice from Cake Box</span>
  </label>
@@ -887,7 +887,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  name="anonymous_delivery"
  checked={anonymousDelivery}
  onChange={(e) => setAnonymousDelivery(e.target.checked)}
- className="rounded text-pearl"
+ className="rounded text-slate-900"
  />
  <span>🤫 Anonymous Delivery (Secret Surprise)</span>
  </label>
@@ -899,7 +899,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  type="button"
  disabled={!isStep1Valid}
  onClick={() => setStep(2)}
- className="mt-2 w-full sm:w-fit self-end bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold py-2.5 px-6 rounded-2xl border border-[#D4AF37]/30 shadow-md"
+ className="mt-2 w-full sm:w-fit self-end bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold py-2.5 px-6 rounded-2xl border border-blue-200 shadow-md"
  >
  Continue to Delivery Mode & Slots →
  </Button>
@@ -910,12 +910,12 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  {step === 2 && (
  <div className="flex flex-col gap-6 animate-fadeIn">
  {/* Order Mode Toggle */}
- <div className="border border-navy-accent/60 rounded-3xl p-6 bg-navy-surface flex flex-col gap-4 shadow-sm">
- <div className="flex justify-between items-center border-b border-navy-accent/60 pb-3">
- <Heading level="h2" className="text-lg font-bold text-pearl ">
+ <div className="border border-slate-200 rounded-3xl p-6 bg-white flex flex-col gap-4 shadow-sm">
+ <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+ <Heading level="h2" className="text-lg font-bold text-slate-900 ">
  2. Fulfillment Method
  </Heading>
- <span className="text-xs text-ash">Step 2 of 3</span>
+ <span className="text-xs text-slate-500">Step 2 of 3</span>
  </div>
 
  <div className={`grid ${storePickupEnabled ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} gap-3`}>
@@ -924,15 +924,15 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => handleModeChange("delivery")}
  className={`py-4 px-4 rounded-2xl border text-left font-semibold transition-all flex flex-col gap-1.5 ${
  deliveryType === "delivery"
- ? "border-taupe bg-obsidian-base/60 text-pearl ring-2 ring-navy-glow/20"
- : "border-navy-accent/60 text-pearl hover:bg-obsidian-base"
+ ? "border-[#2563EB] bg-blue-50/60 text-slate-900 ring-2 ring-blue-500/20"
+ : "border-slate-200 text-slate-900 hover:bg-slate-50"
  }`}
  >
  <div className="flex items-center gap-2">
  <span className="text-xl">🛵</span>
  <span className="font-bold text-sm md:text-base">Home Delivery</span>
  </div>
- <span className="text-[11px] text-ash">
+ <span className="text-[11px] text-slate-500">
  Direct delivery to doorstep via temperature-controlled courier
  </span>
  </button>
@@ -943,8 +943,8 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => handleModeChange("pickup")}
  className={`py-4 px-4 rounded-2xl border text-left font-semibold transition-all flex flex-col gap-1.5 ${
  deliveryType === "pickup"
- ? "border-taupe bg-obsidian-base/60 text-pearl ring-2 ring-navy-glow/20"
- : "border-navy-accent/60 text-pearl hover:bg-obsidian-base"
+ ? "border-[#2563EB] bg-blue-50/60 text-slate-900 ring-2 ring-blue-500/20"
+ : "border-slate-200 text-slate-900 hover:bg-slate-50"
  }`}
  >
  <div className="flex items-center gap-2">
@@ -966,26 +966,26 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
 
  {/* Mode 1: Home Delivery Location, Map-Fencing & Address Snapshot */}
  {deliveryType === "delivery" ? (
- <div className="border border-navy-accent/60 rounded-3xl p-6 bg-navy-surface flex flex-col gap-4 shadow-sm">
- <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-navy-accent/60 pb-2">
- <Heading level="h2" className="text-base font-bold text-pearl flex items-center gap-2">
+ <div className="border border-slate-200 rounded-3xl p-6 bg-white flex flex-col gap-4 shadow-sm">
+ <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
+ <Heading level="h2" className="text-base font-bold text-slate-900 flex items-center gap-2">
  <span>📍</span> Delivery Location &amp; Address Snapshot
  </Heading>
  <button
  type="button"
  onClick={handleUseCurrentLocation}
  disabled={locatingGps}
- className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-bold text-[#D4AF37] bg-obsidian-base border border-[#D4AF37]/30 hover:bg-[#1D2F5D]/20 transition shadow-sm"
+ className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-bold text-[#2563EB] bg-slate-50 border border-blue-200 hover:bg-[#2563EB]/20 transition shadow-sm"
  data-testid="use-current-location-btn"
  >
  {locatingGps ? (
  <>
- <Loader2 className="w-3.5 h-3.5 animate-spin text-pearl" />
+ <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-900" />
  <span>Detecting GPS...</span>
  </>
  ) : (
  <>
- <Crosshair className="w-3.5 h-3.5 text-pearl" />
+ <Crosshair className="w-3.5 h-3.5 text-slate-900" />
  <span>Use Current Location</span>
  </>
  )}
@@ -1008,11 +1008,11 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
 
  {/* Search Delivery Location Autocomplete */}
  <div ref={searchContainerRef} className="relative z-30">
- <Label className="font-semibold text-xs text-pearl mb-1 block">
+ <Label className="font-semibold text-xs text-slate-900 mb-1 block">
  Search Area, Landmark, or Complex
  </Label>
  <div className="relative">
- <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ash/70 pointer-events-none" />
+ <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
  <Input
  ref={searchInputRef}
  placeholder="Search area, landmark, street, or city..."
@@ -1022,41 +1022,41 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  if (locationSearchResults.length > 0 || locationSearchQuery.trim().length >= 2) setShowLocationDropdown(true);
  }}
  style={{ color: "#F4F5F8", caretColor: "#D4AF37" }}
- className="pl-10 pr-10 text-xs sm:text-sm bg-obsidian-base text-pearl placeholder:text-ash/70 border border-navy-accent/80 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/50 focus:outline-none selection:bg-[#D4AF37]/30 selection:text-white disabled:opacity-50 disabled:cursor-not-allowed [&:-webkit-autofill]:[box-shadow:0_0_0_1000px_#07090E_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:#F4F5F8]"
+ className="pl-10 pr-10 text-xs sm:text-sm bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200/80 focus:border-[#2563EB] focus:ring-1 focus:ring-[#D4AF37]/50 focus:outline-none selection:bg-[#2563EB]/30 selection:text-white disabled:opacity-50 disabled:cursor-not-allowed [&:-webkit-autofill]:[box-shadow:0_0_0_1000px_#07090E_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:#F4F5F8]"
  />
  {isSearchingLocation && (
- <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-[#D4AF37]" />
+ <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-[#2563EB]" />
  )}
  </div>
 
  {/* Autocomplete Results Dropdown */}
  {showLocationDropdown && (locationSearchResults.length > 0 || isSearchingLocation || (locationSearchQuery.trim().length >= 2 && !isSearchingLocation)) && (
- <div className="absolute left-0 right-0 top-full mt-1.5 bg-navy-surface/98 backdrop-blur-md border border-navy-accent/80 rounded-2xl shadow-[0_16px_40px_rgba(0,0,0,0.6)] p-2 z-50 max-h-60 overflow-y-auto space-y-1">
+ <div className="absolute left-0 right-0 top-full mt-1.5 bg-white/98 backdrop-blur-md border border-slate-200/80 rounded-2xl shadow-[0_16px_40px_rgba(0,0,0,0.6)] p-2 z-50 max-h-60 overflow-y-auto space-y-1">
  {isSearchingLocation ? (
- <div className="p-3 text-xs text-ash flex items-center gap-2 justify-center">
- <Loader2 className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
+ <div className="p-3 text-xs text-slate-500 flex items-center gap-2 justify-center">
+ <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2563EB]" />
  <span>Searching localities...</span>
  </div>
  ) : locationSearchResults.length > 0 ? (
  <>
- <div className="text-[10px] font-bold text-ash/70 px-3 py-1 uppercase tracking-wider">
+ <div className="text-[10px] font-bold text-slate-400 px-3 py-1 uppercase tracking-wider">
  Suggested Delivery Localities
  </div>
  {locationSearchResults.map((loc: any) => (
  <div
  key={loc.id}
  onClick={() => handleSelectSearchResult(loc)}
- className="p-2.5 rounded-2xl hover:bg-obsidian-base hover:bg-navy-accent/80 active:bg-navy-accent cursor-pointer flex items-center justify-between gap-3 text-xs transition"
+ className="p-2.5 rounded-2xl hover:bg-slate-50 hover:bg-navy-accent/80 active:bg-navy-accent cursor-pointer flex items-center justify-between gap-3 text-xs transition"
  >
  <div className="flex items-center gap-2 min-w-0">
- <MapPin className="w-4 h-4 shrink-0 text-[#D4AF37]" />
+ <MapPin className="w-4 h-4 shrink-0 text-[#2563EB]" />
  <div className="truncate">
- <p className="font-bold text-pearl truncate">{loc.label}</p>
- <p className="text-[11px] text-ash truncate">{loc.formatted_address}</p>
+ <p className="font-bold text-slate-900 truncate">{loc.label}</p>
+ <p className="text-[11px] text-slate-500 truncate">{loc.formatted_address}</p>
  </div>
  </div>
  {loc.pincode && (
- <span className="text-[10px] font-mono font-bold text-pearl bg-obsidian-base border border-navy-accent/60 px-2 py-0.5 rounded shrink-0">
+ <span className="text-[10px] font-mono font-bold text-slate-900 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded shrink-0">
  {loc.pincode}
  </span>
  )}
@@ -1064,7 +1064,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  ))}
  </>
  ) : (
- <div className="p-3 text-xs text-ash text-center">
+ <div className="p-3 text-xs text-slate-500 text-center">
  No matching localities found. Try another landmark or area.
  </div>
  )}
@@ -1075,8 +1075,8 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  {/* Customer Saved Addresses Chips */}
  {savedAddresses.length > 0 && (
  <div className="space-y-1.5 pt-1">
- <div className="flex items-center gap-1 text-[11px] font-bold text-ash uppercase">
- <Bookmark className="w-3 h-3 text-ash/70" />
+ <div className="flex items-center gap-1 text-[11px] font-bold text-slate-500 uppercase">
+ <Bookmark className="w-3 h-3 text-slate-400" />
  <span>Saved Delivery Addresses:</span>
  </div>
  <div className="flex flex-wrap gap-2">
@@ -1089,8 +1089,8 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => handleSelectSavedAddress(addr)}
  className={`px-3 py-1.5 rounded-2xl border text-xs font-semibold flex items-center gap-1.5 transition ${
  isSel
- ? "bg-[#1D2F5D] text-white border-[#D4AF37] shadow-sm"
- : "bg-obsidian-base text-pearl border-navy-accent/60 hover:border-[#D4AF37]/40"
+ ? "bg-[#2563EB] text-white border-[#2563EB] shadow-sm"
+ : "bg-slate-50 text-slate-900 border-slate-200 hover:border-blue-200"
  }`}
  >
  <span>{addr.label || addr.type || "Address"}</span>
@@ -1122,10 +1122,10 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  {/* Interactive Customer Location Map */}
  <div className="space-y-1.5 relative z-0">
  <div className="flex items-center justify-between text-xs">
- <Label className="font-semibold text-pearl flex items-center gap-1.5">
- <MapPin className="w-3.5 h-3.5 text-pearl" /> Confirm Pin on Map 📍
+ <Label className="font-semibold text-slate-900 flex items-center gap-1.5">
+ <MapPin className="w-3.5 h-3.5 text-slate-900" /> Confirm Pin on Map 📍
  </Label>
- <span className="text-[10px] text-ash">Drag pin to adjust exact delivery doorstep</span>
+ <span className="text-[10px] text-slate-500">Drag pin to adjust exact delivery doorstep</span>
  </div>
  <CheckoutMap
  latitude={typeof latitude === "number" ? latitude : undefined}
@@ -1142,8 +1142,8 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
 
  {/* Authoritative Serviceability Feedback Card */}
  {loadingAvailability ? (
- <div className="p-3.5 rounded-2xl bg-obsidian-base border border-navy-accent/60 flex items-center gap-2 text-xs text-ash animate-pulse">
- <Loader2 className="w-4 h-4 animate-spin text-pearl" />
+ <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-2 text-xs text-slate-500 animate-pulse">
+ <Loader2 className="w-4 h-4 animate-spin text-slate-900" />
  <span>Checking delivery availability...</span>
  </div>
  ) : availability ? (
@@ -1174,9 +1174,9 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  </div>
  </div>
  ) : (
- <div className="p-4 rounded-2xl bg-obsidian-base border border-navy-accent/60 flex flex-col gap-2">
+ <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col gap-2">
  <div className="flex items-center justify-between">
- <span className="text-xs font-bold text-[#1D2F5D] flex items-center gap-1.5">
+ <span className="text-xs font-bold text-[#0F172A] flex items-center gap-1.5">
  <span>❌</span> We currently don't deliver to this location
  </span>
  <div className="flex items-center gap-2">
@@ -1217,26 +1217,26 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  )}
  </div>
  ) : (
- <div className="p-3.5 rounded-2xl bg-obsidian-base border border-dashed border-navy-accent/60 text-center text-xs text-ash">
+ <div className="p-3.5 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center text-xs text-slate-500">
  <span>📍 Select your delivery location using GPS, Search, or Saved Addresses</span>
  </div>
  )}
 
  {/* Section B: Delivery Address Text (Human-Readable) — ONLY when Serviceable */}
  {availability?.serviceable && (
- <div className="border-t border-navy-accent/60 pt-4 flex flex-col gap-3">
+ <div className="border-t border-slate-200 pt-4 flex flex-col gap-3">
  <div className="flex flex-col gap-0.5">
- <Heading level="h3" className="text-sm font-bold text-pearl flex items-center gap-2">
+ <Heading level="h3" className="text-sm font-bold text-slate-900 flex items-center gap-2">
  <span>🏠</span> Delivery Address &amp; Gate Notes
  </Heading>
- <p className="text-[11px] text-ash">
+ <p className="text-[11px] text-slate-500">
  This address provides building, flat, and doorstep directions for our rider. Editing it will not alter your physical map pin above.
  </p>
  </div>
 
  <div className="grid grid-cols-1 gap-4 pt-1">
  <div>
- <Label className="font-semibold text-xs text-pearl ">Street Address / Flat / Building *</Label>
+ <Label className="font-semibold text-xs text-slate-900 ">Street Address / Flat / Building *</Label>
  <Input
  placeholder="House/Flat No., Building Name, Street/Road"
  name="address"
@@ -1248,7 +1248,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  </div>
  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
  <div>
- <Label className="font-semibold text-xs text-pearl ">City / Area *</Label>
+ <Label className="font-semibold text-xs text-slate-900 ">City / Area *</Label>
  <Input
  placeholder="City / Locality"
  name="city"
@@ -1259,7 +1259,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  />
  </div>
  <div>
- <Label className="font-semibold text-xs text-pearl ">Pincode <span className="text-[10px] text-ash font-normal">(Optional)</span></Label>
+ <Label className="font-semibold text-xs text-slate-900 ">Pincode <span className="text-[10px] text-slate-500 font-normal">(Optional)</span></Label>
  <Input
  placeholder="Auto-filled from map"
  name="zip"
@@ -1271,7 +1271,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  />
  </div>
  <div>
- <Label className="font-semibold text-xs text-pearl ">Landmark (Optional)</Label>
+ <Label className="font-semibold text-xs text-slate-900 ">Landmark (Optional)</Label>
  <Input
  placeholder="e.g. Near Metro Station / Park"
  name="landmark"
@@ -1282,7 +1282,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  </div>
  </div>
  <div>
- <Label className="font-semibold text-xs text-pearl ">Delivery Instructions / Gate Notes</Label>
+ <Label className="font-semibold text-xs text-slate-900 ">Delivery Instructions / Gate Notes</Label>
  <Input
  placeholder="e.g. Ring bell twice, leave with security if unavailable, call upon arrival"
  name="special-instructions"
@@ -1293,31 +1293,31 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  </div>
 
  {/* Explicit Map Re-anchoring Button */}
- <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-navy-accent/60 ">
- <p className="text-[11px] text-ash">
+ <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-200 ">
+ <p className="text-[11px] text-slate-500">
  Want to align your map pin to this typed address?
  </p>
  <button
  type="button"
  onClick={handleSearchAddressOnMap}
  disabled={isGeocodingAddress || (!address.trim() && !city.trim() && !zip.trim())}
- className="px-3 py-1.5 rounded-2xl border border-navy-accent/60 bg-obsidian-base hover:bg-[#1D2F5D]/30 :bg-zinc-750 text-xs font-semibold text-pearl flex items-center gap-1.5 transition disabled:opacity-50"
+ className="px-3 py-1.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-[#2563EB]/30 :bg-zinc-750 text-xs font-semibold text-slate-900 flex items-center gap-1.5 transition disabled:opacity-50"
  >
  {isGeocodingAddress ? (
  <>
- <Loader2 className="w-3.5 h-3.5 animate-spin text-pearl" />
+ <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-900" />
  <span>Locating on Map...</span>
  </>
  ) : (
  <>
- <MapPin className="w-3.5 h-3.5 text-pearl" />
+ <MapPin className="w-3.5 h-3.5 text-slate-900" />
  <span>Search this address on map</span>
  </>
  )}
  </button>
  </div>
  {addressGeocodeNotice && (
- <p className="text-[11px] text-pearl font-medium">
+ <p className="text-[11px] text-slate-900 font-medium">
  {addressGeocodeNotice}
  </p>
  )}
@@ -1332,8 +1332,8 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  </div>
  ) : (
  /* Mode 2: Store Pickup Branch Selection */
- <div className="border border-navy-accent/60 rounded-3xl p-6 bg-navy-surface flex flex-col gap-4 shadow-sm">
- <Heading level="h2" className="text-base font-bold text-pearl border-b border-navy-accent/60 pb-2 flex items-center gap-2">
+ <div className="border border-slate-200 rounded-3xl p-6 bg-white flex flex-col gap-4 shadow-sm">
+ <Heading level="h2" className="text-base font-bold text-slate-900 border-b border-slate-200 pb-2 flex items-center gap-2">
  <span>🏪</span> Select Bakery Hub for Pickup
  </Heading>
 
@@ -1347,18 +1347,18 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => handleBranchSelect(b.id)}
  className={`p-4 rounded-2xl border text-left transition-all flex flex-col gap-1.5 ${
  isSelected
- ? "border-taupe bg-obsidian-base/70 text-pearl ring-2 ring-navy-glow/20"
- : "border-navy-accent/60 hover:border-navy-glow"
+ ? "border-[#2563EB] bg-slate-50 text-slate-900 ring-2 ring-blue-500/20"
+ : "border-slate-200 hover:border-blue-300"
  }`}
  >
  <div className="flex justify-between items-center">
- <span className="font-bold text-sm text-pearl ">{b.name}</span>
+ <span className="font-bold text-sm text-slate-900 ">{b.name}</span>
  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 ">
  Open Daily
  </span>
  </div>
- <p className="text-xs text-ash">{b.address}</p>
- <span className="text-[11px] text-ash/70 font-mono mt-1">🕒 {b.timing || "09:00 AM - 11:00 PM"}</span>
+ <p className="text-xs text-slate-500">{b.address}</p>
+ <span className="text-[11px] text-slate-400 font-mono mt-1">🕒 {b.timing || "09:00 AM - 11:00 PM"}</span>
  </button>
  );
  })}
@@ -1369,19 +1369,19 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
 
  {/* Delivery / Pickup Date & Slot Scheduling — ONLY when Serviceable or Pickup */}
  {(deliveryType === "pickup" || availability?.serviceable) && (
- <div className="border border-navy-accent/60 rounded-3xl p-6 bg-navy-surface flex flex-col gap-4 shadow-sm">
- <div className="flex justify-between items-center border-b border-navy-accent/60 pb-2">
- <Heading level="h2" className="text-base font-bold text-pearl flex items-center gap-2">
+ <div className="border border-slate-200 rounded-3xl p-6 bg-white flex flex-col gap-4 shadow-sm">
+ <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+ <Heading level="h2" className="text-base font-bold text-slate-900 flex items-center gap-2">
  <span>🗓️</span> {deliveryType === "delivery" ? "Delivery Scheduling" : "Pickup Scheduling"}
  </Heading>
- <span className="text-xs font-semibold text-ash">
+ <span className="text-xs font-semibold text-slate-500">
  From: <b>{servicingBranchObj.name}</b>
  </span>
  </div>
 
  {/* Date Selector */}
  <div className="flex flex-col gap-1.5">
- <Label className="font-semibold text-xs text-pearl ">Select Date</Label>
+ <Label className="font-semibold text-xs text-slate-900 ">Select Date</Label>
  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
  {activeDates.slice(0, 8).map((d) => {
  const isSelected = selectedDate === d.date;
@@ -1393,15 +1393,15 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => handleDateChange(d.date)}
  className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center ${
  isSelected
- ? "border-[#D4AF37] bg-[#1D2F5D] text-white font-bold shadow-md shadow-[#1D2F5D]/30"
+ ? "border-[#2563EB] bg-[#2563EB] text-white font-bold shadow-md shadow-[#1D2F5D]/30"
  : d.is_available
- ? "border-navy-accent/60 bg-obsidian-base text-pearl hover:border-[#D4AF37]/40"
- : "border-navy-accent/60 opacity-40 cursor-not-allowed bg-white/5 text-ash/70"
+ ? "border-slate-200 bg-slate-50 text-slate-900 hover:border-blue-200"
+ : "border-slate-200 opacity-40 cursor-not-allowed bg-white/5 text-slate-400"
  }`}
  >
  <span className="text-xs font-bold">{d.label}</span>
  {!d.is_available && (
- <span className="text-[9px] text-pearl font-semibold">{d.reason || "Closed"}</span>
+ <span className="text-[9px] text-slate-900 font-semibold">{d.reason || "Closed"}</span>
  )}
  </button>
  );
@@ -1413,10 +1413,10 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  {/* Slots Grid */}
  <div className="flex flex-col gap-2 mt-3">
  <div className="flex justify-between items-center">
- <Label className="font-semibold text-xs text-pearl ">
+ <Label className="font-semibold text-xs text-slate-900 ">
  Select Time Window ({deliveryType === "delivery" ? "Delivery Slot" : "Pickup Window"})
  </Label>
- <span className="text-[11px] text-ash/70">Authoritative cutoff & capacity validation</span>
+ <span className="text-[11px] text-slate-400">Authoritative cutoff & capacity validation</span>
  </div>
 
  {loadingAvailability ? (
@@ -1426,8 +1426,8 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  ))}
  </div>
  ) : currentSlots.length === 0 ? (
- <div className="bg-obsidian-base border border-dashed border-navy-accent/60 rounded-2xl p-6 text-center">
- <Text className="text-xs text-ash italic">No operational slots available for this date. Please select another date.</Text>
+ <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-6 text-center">
+ <Text className="text-xs text-slate-500 italic">No operational slots available for this date. Please select another date.</Text>
  </div>
  ) : (
  <div className="flex flex-col gap-3">
@@ -1479,14 +1479,14 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  }}
  className={`flex flex-col text-left border rounded-2xl p-3.5 transition-all ${
  isSelected && isAvailable
- ? "border-taupe bg-obsidian-base/80 ring-2 ring-navy-glow/20 shadow-sm"
+ ? "border-[#2563EB] bg-slate-50/80 ring-2 ring-blue-500/20 shadow-sm"
  : isAvailable
- ? "border-navy-accent/60 bg-navy-surface hover:border-navy-glow cursor-pointer"
- : "border-navy-accent/60 bg-obsidian-base/80 opacity-60 cursor-not-allowed"
+ ? "border-slate-200 bg-white hover:border-blue-300 cursor-pointer"
+ : "border-slate-200 bg-slate-50/80 opacity-60 cursor-not-allowed"
  }`}
  >
  <div className="flex justify-between items-start w-full">
- <span className="font-bold text-xs md:text-sm text-pearl pr-1">
+ <span className="font-bold text-xs md:text-sm text-slate-900 pr-1">
  {slot.slot_name || slot.label}
  </span>
  {!isAvailable ? (
@@ -1505,11 +1505,11 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  </div>
 
  <div className="flex justify-between items-center mt-2 text-xs">
- <span className="text-ash font-mono text-[11px]">
+ <span className="text-slate-500 font-mono text-[11px]">
  {slot.start_time} - {slot.end_time}
  </span>
  {slot.extra_charge > 0 && (
- <span className="font-extrabold text-pearl text-xs">
+ <span className="font-extrabold text-slate-900 text-xs">
  +₹{slot.extra_charge} Surcharge
  </span>
  )}
@@ -1542,14 +1542,14 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => setStep(3)}
  className={`font-bold py-2.5 px-6 rounded-2xl w-full sm:w-auto transition-all ${
  isStep2Valid
- ? "bg-[#1D2F5D] hover:bg-[#152347] text-white border border-[#D4AF37]/30 shadow-md"
- : "bg-navy-accent/40 text-ash/70 cursor-not-allowed"
+ ? "bg-[#2563EB] hover:bg-[#1D4ED8] text-white border border-blue-200 shadow-md"
+ : "bg-navy-accent/40 text-slate-400 cursor-not-allowed"
  }`}
  >
  Continue to Review & Pay →
  </Button>
  {!isStep2Valid && (
- <span className="text-[11px] text-ash/70">
+ <span className="text-[11px] text-slate-400">
  {!selectedSlotId
  ? "Select an available delivery slot to proceed"
  : !isSelectedSlotAvailable
@@ -1566,33 +1566,33 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  {step === 3 && (
  <div className="flex flex-col gap-6 animate-fadeIn">
  {/* Review Card */}
- <div className="border border-navy-accent/60 rounded-3xl p-6 bg-navy-surface flex flex-col gap-4 shadow-sm">
- <Heading level="h2" className="text-base font-bold text-pearl border-b border-navy-accent/60 pb-2">
+ <div className="border border-slate-200 rounded-3xl p-6 bg-white flex flex-col gap-4 shadow-sm">
+ <Heading level="h2" className="text-base font-bold text-slate-900 border-b border-slate-200 pb-2">
  1. Order Details Summary
  </Heading>
 
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
  <div className="flex flex-col gap-1.5">
- <span className="font-bold text-ash/70 uppercase tracking-wider">Customer & Contact</span>
- <p className="font-bold text-sm text-pearl ">{firstName} {lastName}</p>
- <p className="text-ash ">📱 {phone}</p>
- <p className="text-ash ">✉️ {email}</p>
+ <span className="font-bold text-slate-400 uppercase tracking-wider">Customer & Contact</span>
+ <p className="font-bold text-sm text-slate-900 ">{firstName} {lastName}</p>
+ <p className="text-slate-500 ">📱 {phone}</p>
+ <p className="text-slate-500 ">✉️ {email}</p>
  {!orderedForSelf && recipientName && (
- <p className="mt-1 font-semibold text-pearl">
+ <p className="mt-1 font-semibold text-slate-900">
  🎁 Recipient: {recipientName} ({recipientPhone})
  </p>
  )}
  </div>
 
  <div className="flex flex-col gap-1.5">
- <span className="font-bold text-ash/70 uppercase tracking-wider">Fulfillment & Slot</span>
- <p className="font-bold text-sm text-pearl capitalize">
+ <span className="font-bold text-slate-400 uppercase tracking-wider">Fulfillment & Slot</span>
+ <p className="font-bold text-sm text-slate-900 capitalize">
  {deliveryType === "delivery" ? `🛵 Home Delivery (${zip})` : `🏪 Store Pickup (${servicingBranchObj.name})`}
  </p>
  {deliveryType === "delivery" && (
- <p className="text-ash ">{address}, {city}</p>
+ <p className="text-slate-500 ">{address}, {city}</p>
  )}
- <p className="mt-1 font-bold text-pearl ">
+ <p className="mt-1 font-bold text-slate-900 ">
  🗓️ Date: {selectedDate} | Slot: {currentSlotObj?.slot_name || selectedSlotId}
  </p>
  </div>
@@ -1600,9 +1600,9 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  </div>
 
  {/* Payment Method Selector */}
- <div className="border border-navy-accent/60 rounded-3xl p-6 bg-navy-surface flex flex-col gap-4 shadow-sm">
- <div className="flex justify-between items-center border-b border-navy-accent/60 pb-2">
- <Heading level="h2" className="text-base font-bold text-pearl ">
+ <div className="border border-slate-200 rounded-3xl p-6 bg-white flex flex-col gap-4 shadow-sm">
+ <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+ <Heading level="h2" className="text-base font-bold text-slate-900 ">
  2. Payment Method
  </Heading>
  <span className="text-xs text-emerald-600 font-bold flex items-center gap-1">
@@ -1616,21 +1616,21 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => setPaymentMethod("cashfree")}
  className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all ${
  paymentMethod === "cashfree"
- ? "border-[#D4AF37] bg-obsidian-base/60 ring-2 ring-[#D4AF37]/20"
- : "border-navy-accent/60 hover:border-navy-glow"
+ ? "border-[#2563EB] bg-blue-50/60 ring-2 ring-blue-500/20"
+ : "border-slate-200 hover:border-blue-300"
  }`}
  >
  <div className="flex justify-between items-center">
  <span className="text-2xl">💳</span>
  <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
- paymentMethod === "cashfree" ? "border-[#D4AF37] bg-[#1D2F5D] text-[#D4AF37] text-[10px]" : "border-stone/70"
+ paymentMethod === "cashfree" ? "border-[#2563EB] bg-[#2563EB] text-[#2563EB] text-[10px]" : "border-stone/70"
  }`}>
  {paymentMethod === "cashfree" && "✓"}
  </span>
  </div>
  <div>
- <h4 className="font-bold text-xs md:text-sm text-pearl ">Online UPI / Card</h4>
- <p className="text-[11px] text-ash mt-0.5">Google Pay, PhonePe, Cards, NetBanking</p>
+ <h4 className="font-bold text-xs md:text-sm text-slate-900 ">Online UPI / Card</h4>
+ <p className="text-[11px] text-slate-500 mt-0.5">Google Pay, PhonePe, Cards, NetBanking</p>
  </div>
  </button>
 
@@ -1639,21 +1639,21 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => setPaymentMethod("cod")}
  className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all ${
  paymentMethod === "cod"
- ? "border-[#D4AF37] bg-obsidian-base/60 ring-2 ring-[#D4AF37]/20"
- : "border-navy-accent/60 hover:border-navy-glow"
+ ? "border-[#2563EB] bg-blue-50/60 ring-2 ring-blue-500/20"
+ : "border-slate-200 hover:border-blue-300"
  }`}
  >
  <div className="flex justify-between items-center">
  <span className="text-2xl">💵</span>
  <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
- paymentMethod === "cod" ? "border-[#D4AF37] bg-[#1D2F5D] text-[#D4AF37] text-[10px]" : "border-stone/70"
+ paymentMethod === "cod" ? "border-[#2563EB] bg-[#2563EB] text-[#2563EB] text-[10px]" : "border-stone/70"
  }`}>
  {paymentMethod === "cod" && "✓"}
  </span>
  </div>
  <div>
- <h4 className="font-bold text-xs md:text-sm text-pearl ">Cash on Delivery</h4>
- <p className="text-[11px] text-ash mt-0.5">Pay upon delivery verification</p>
+ <h4 className="font-bold text-xs md:text-sm text-slate-900 ">Cash on Delivery</h4>
+ <p className="text-[11px] text-slate-500 mt-0.5">Pay upon delivery verification</p>
  </div>
  </button>
 
@@ -1662,29 +1662,29 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => setPaymentMethod("test_mode")}
  className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all ${
  paymentMethod === "test_mode"
- ? "border-[#D4AF37] bg-obsidian-base/60 ring-2 ring-[#D4AF37]/20"
- : "border-navy-accent/60 hover:border-navy-glow"
+ ? "border-[#2563EB] bg-blue-50/60 ring-2 ring-blue-500/20"
+ : "border-slate-200 hover:border-blue-300"
  }`}
  >
  <div className="flex justify-between items-center">
  <span className="text-2xl">⚡</span>
  <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
- paymentMethod === "test_mode" ? "border-[#D4AF37] bg-[#1D2F5D] text-[#D4AF37] text-[10px]" : "border-stone/70"
+ paymentMethod === "test_mode" ? "border-[#2563EB] bg-[#2563EB] text-[#2563EB] text-[10px]" : "border-stone/70"
  }`}>
  {paymentMethod === "test_mode" && "✓"}
  </span>
  </div>
  <div>
- <h4 className="font-bold text-xs md:text-sm text-pearl ">Sandbox Test</h4>
- <p className="text-[11px] text-ash mt-0.5">Simulate instant verified checkout</p>
+ <h4 className="font-bold text-xs md:text-sm text-slate-900 ">Sandbox Test</h4>
+ <p className="text-[11px] text-slate-500 mt-0.5">Simulate instant verified checkout</p>
  </div>
  </button>
  </div>
  </div>
 
  {/* Coupon / Promo Code */}
- <div className="border border-navy-accent/60 rounded-3xl p-6 bg-navy-surface flex flex-col gap-3 shadow-sm">
- <Label className="font-semibold text-xs text-pearl ">3. Apply Coupon / Voucher</Label>
+ <div className="border border-slate-200 rounded-3xl p-6 bg-white flex flex-col gap-3 shadow-sm">
+ <Label className="font-semibold text-xs text-slate-900 ">3. Apply Coupon / Voucher</Label>
  <div className="flex gap-2">
  <Input
  placeholder="e.g. CAKE50 or SWEET15"
@@ -1696,13 +1696,13 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  Apply
  </Button>
  </div>
- {couponError && <p className="text-xs text-pearl font-semibold">{couponError}</p>}
+ {couponError && <p className="text-xs text-slate-900 font-semibold">{couponError}</p>}
  {couponSuccess && <p className="text-xs text-emerald-600 font-semibold">{couponSuccess}</p>}
  </div>
 
  {/* Delivery Instructions */}
- <div className="border border-navy-accent/60 rounded-3xl p-6 bg-navy-surface flex flex-col gap-3 shadow-sm">
- <Label className="font-semibold text-xs text-pearl ">
+ <div className="border border-slate-200 rounded-3xl p-6 bg-white flex flex-col gap-3 shadow-sm">
+ <Label className="font-semibold text-xs text-slate-900 ">
  4. Special Kitchen or Delivery Instructions
  </Label>
  <Textarea
@@ -1734,14 +1734,14 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <input type="hidden" name="recipient-phone" value={recipientPhone} />
  <input type="hidden" name="gift-message" value={giftMessage} />
 
- <div className="flex justify-between items-center border-t border-navy-accent/60 pt-4">
+ <div className="flex justify-between items-center border-t border-slate-200 pt-4">
  <Button type="button" variant="secondary" onClick={() => setStep(2)} className="rounded-2xl">
  ← Back to Mode & Slots
  </Button>
  <div className="flex flex-col items-end gap-1">
  <Submit disabled={isSubmitDisabled} paymentMethod={paymentMethod} />
  {isSubmitDisabled && (
- <Text className="text-xs text-pearl mt-1">
+ <Text className="text-xs text-slate-900 mt-1">
  * Please ensure all previous step fields are valid.
  </Text>
  )}

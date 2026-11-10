@@ -189,7 +189,7 @@ export default function OrderDetailClient({ orderId }: { orderId: string }) {
  <StatusBadge color={statusColor(order.status)}>{order.status}</StatusBadge>
  </div>
  <div className="flex gap-2 flex-wrap items-center">
- <Button size="small" variant="secondary" onClick={handleReorder} disabled={busy} className="bg-obsidian-base text-[#152347] hover:bg-rosegold/20 font-bold border-navy-accent/60">
+ <Button size="small" variant="secondary" onClick={handleReorder} disabled={busy} className="bg-white text-slate-800 hover:bg-slate-50 font-bold border-slate-200">
  🔄 Reorder
  </Button>
  <Button size="small" variant="secondary" onClick={handleInvoice} disabled={busy}>

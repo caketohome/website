@@ -76,10 +76,10 @@ export default function CartButton({
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={handleClick}
-        className="relative group flex items-center justify-center min-w-[40px] min-h-[40px] sm:min-w-[44px] sm:min-h-[44px] p-2 rounded-xl text-navy-accent hover:bg-navy-accent/5 transition-colors focus:outline-none focus:ring-2 focus:ring-navy-accent/20 cursor-pointer"
+        className="relative group flex items-center justify-center min-w-[40px] min-h-[40px] sm:min-w-[44px] sm:min-h-[44px] p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 cursor-pointer"
       >
         <ShoppingBag
-          className="text-navy-accent hover:text-navy-glow transition-colors shrink-0"
+          className="text-slate-600 hover:text-[#2563EB] transition-colors shrink-0"
           viewBox="2 2 18 18"
           height={22}
           width={22}

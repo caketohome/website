@@ -64,17 +64,17 @@ export function ProductCard({ product }: { product: SearchResult }) {
         <div
             data-testid="product-card"
             data-product-id={prodId}
-            className="group relative flex flex-col h-full justify-between p-4 sm:p-5 rounded-[22px] shadow-[0_8px_30px_rgba(29,47,93,0.07)] hover:shadow-[0_20px_45px_rgba(29,47,93,0.15)] hover:-translate-y-1.5 transition-all duration-300 bg-[#FFFFFF] dark:bg-[#142040]/40 text-inherit border border-[#E2E8F0] dark:border-white/10"
+            className="group relative flex flex-col h-full justify-between p-4 sm:p-5 rounded-[22px] shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 bg-white text-inherit border border-[#E2E8F0] hover:border-blue-200"
         >
             {/* Stretched Link: Makes entire card clickable without invalid nested HTML */}
             <Link
                 href={productHref}
                 onClick={() => trackProductView(product.product_id)}
-                className="absolute inset-0 z-10 rounded-[22px] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2"
+                className="absolute inset-0 z-10 rounded-[22px] focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:ring-offset-2"
                 aria-label={`View details for ${product.title}`}
             />
 
-            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[16px] bg-[#F8FAFC] dark:bg-[#07090E] shrink-0">
+            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[16px] bg-[#F8FAFC] shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                     src={displayImage}
@@ -86,14 +86,14 @@ export function ProductCard({ product }: { product: SearchResult }) {
                     }}
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-t from-[#07090E]/30 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 via-transparent to-transparent pointer-events-none" />
 
                 {/* Badges / Merchandising */}
                 <div className="absolute top-3 right-3 flex flex-col gap-1.5 pointer-events-none">
                     {merchandising.map((m) => (
                         <div
                             key={m}
-                            className="bg-[#1D2F5D]/90 dark:bg-[#07090E]/90 border border-[#D4AF37]/50 backdrop-blur-md px-2.5 py-1 rounded-full text-[9px] uppercase tracking-widest text-[#D4AF37] font-semibold shadow-sm"
+                            className="bg-[#2563EB] text-white px-2.5 py-1 rounded-full text-[9px] uppercase tracking-widest font-bold shadow-xs"
                         >
                             {m}
                         </div>
@@ -108,10 +108,10 @@ export function ProductCard({ product }: { product: SearchResult }) {
                         disabled={loading}
                         aria-label={wished ? "Remove from Favorites" : "Add to Favorites"}
                         title={wished ? "Remove from Favorites" : "Add to Favorites"}
-                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md shadow-sm ${
+                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md shadow-xs ${
                             wished
-                                ? "bg-brand-gold-soft border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#D4AF37]/15"
-                                : "bg-white/85 dark:bg-[#1D2F5D]/80 border border-[#1D2F5D]/15 dark:border-white/20 text-[#1D2F5D] dark:text-[#FAF9F6] hover:text-[#D4AF37] hover:scale-105"
+                                ? "bg-blue-50 border border-blue-200 text-[#2563EB] hover:bg-blue-100"
+                                : "bg-white/90 border border-slate-200 text-slate-600 hover:text-[#2563EB] hover:scale-105"
                         }`}
                     >
                         <Heart fill={wished ? "currentColor" : "none"} className="w-4 h-4" />
@@ -123,12 +123,12 @@ export function ProductCard({ product }: { product: SearchResult }) {
             {(product.category || product.flavour) && (
                 <div className="flex items-center justify-between gap-1 text-[11px] mt-3.5">
                     {product.category && (
-                        <span className="font-sans text-[10px] uppercase tracking-[0.2em] text-[#606C88] dark:text-[#A0AEC0] truncate max-w-[70%] font-semibold">
+                        <span className="font-sans text-[10px] uppercase tracking-[0.2em] text-[#64748B] truncate max-w-[70%] font-semibold">
                             {product.category}
                         </span>
                     )}
                     {product.flavour && (
-                        <span className="font-sans text-[10px] text-[#606C88] dark:text-[#A0AEC0] truncate ml-auto italic">
+                        <span className="font-sans text-[10px] text-[#64748B] truncate ml-auto italic">
                             {product.flavour}
                         </span>
                     )}
@@ -137,12 +137,12 @@ export function ProductCard({ product }: { product: SearchResult }) {
 
             {/* Title & Description with controlled heights for strict grid alignment */}
             <div className="flex flex-col gap-1 flex-1 mt-2">
-                <h3 className="font-serif text-[18px] sm:text-[20px] font-semibold text-[#1D2F5D] dark:text-[#FAF9F6] leading-snug line-clamp-2 min-h-[3rem] group-hover:text-[#D4AF37] transition-colors">
+                <h3 className="font-serif text-[18px] sm:text-[20px] font-semibold text-[#0F172A] leading-snug line-clamp-2 min-h-[3rem] group-hover:text-[#2563EB] transition-colors">
                     {product.title}
                 </h3>
 
                 {product.description && (
-                    <p className="font-sans text-[#606C88] dark:text-[#C5CEE0] text-[12px] sm:text-[13px] leading-relaxed line-clamp-2 mt-0.5 min-h-[2.5rem]">
+                    <p className="font-sans text-[#64748B] text-[12px] sm:text-[13px] leading-relaxed line-clamp-2 mt-0.5 min-h-[2.5rem]">
                         {product.description}
                     </p>
                 )}
@@ -153,7 +153,7 @@ export function ProductCard({ product }: { product: SearchResult }) {
                     {dietary.map((d) => (
                         <div
                             key={d}
-                            className="bg-[#F8FAFC] dark:bg-white/5 border border-[#1D2F5D]/10 dark:border-white/10 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider text-[#1D2F5D] dark:text-[#C5CEE0] font-medium"
+                            className="bg-[#F1F5F9] border border-slate-200 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider text-slate-700 font-medium"
                         >
                             {d}
                         </div>
@@ -162,9 +162,9 @@ export function ProductCard({ product }: { product: SearchResult }) {
             )}
 
             {/* Price & Non-interactive Action Hint */}
-            <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#1D2F5D]/10 dark:border-white/10 shrink-0">
+            <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-200/80 shrink-0">
                 <div className="flex flex-col">
-                    <span className="font-sans text-base sm:text-lg font-bold text-[#1D2F5D] dark:text-[#FAF9F6]">
+                    <span className="font-sans text-base sm:text-lg font-bold text-[#0F172A]">
                         {(() => {
                             const pVal = (product.price && product.price > 0)
                                 ? product.price
@@ -177,15 +177,15 @@ export function ProductCard({ product }: { product: SearchResult }) {
                         })()}
                     </span>
                     {product.review_count > 0 && (
-                        <span className="font-sans text-[#C29B38] text-[11px] flex items-center gap-1 font-semibold">
+                        <span className="font-sans text-amber-500 text-[11px] flex items-center gap-1 font-semibold">
                             <span>★</span> <span>{product.rating.toFixed(1)}</span>
-                            <span className="text-[#606C88] dark:text-[#A0AEC0] font-normal">({product.review_count})</span>
+                            <span className="text-[#64748B] font-normal">({product.review_count})</span>
                         </span>
                     )}
                 </div>
 
                 {/* Non-interactive action hint */}
-                <span className="font-sans text-xs font-semibold text-[#1D2F5D] dark:text-[#D4AF37] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                <span className="font-sans text-xs font-semibold text-[#2563EB] flex items-center gap-1 group-hover:translate-x-1 group-hover:text-[#1D4ED8] transition-all">
                     View details <span aria-hidden="true">→</span>
                 </span>
             </div>

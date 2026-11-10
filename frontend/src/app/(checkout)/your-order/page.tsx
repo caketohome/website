@@ -32,7 +32,7 @@ export default async function YourOrderPage({
 
     if (!order) {
       try {
-        const { query: runQuery } = await import("@frontend/lib/db");
+        const { dbQuery: runQuery } = await import("@frontend/lib/db");
         const orderRes = await runQuery(
           `SELECT o.*,
             COALESCE(b.name, 'Indiranagar Flagship Kitchen') as branch_name,
@@ -91,16 +91,16 @@ export default async function YourOrderPage({
  if (!order) {
  return (
  <div className="max-w-3xl mx-auto px-4 py-16 text-center flex flex-col items-center gap-4">
- <div className="w-20 h-20 rounded-full bg-obsidian-base flex items-center justify-center text-3xl">
+ <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center text-3xl">
  🎂
  </div>
- <h1 className="text-2xl font-black text-pearl">No Recent Order Found</h1>
- <p className="text-sm text-ash max-w-md">
+ <h1 className="text-2xl font-black text-slate-900">No Recent Order Found</h1>
+ <p className="text-sm text-slate-500 max-w-md">
  We couldn't locate an active order session. If you just placed an order, check your SMS confirmation or enter your Order ID.
  </p>
  <Link
  href="/"
- className="mt-4 px-6 py-3 bg-rosegold hover:bg-[#152347] text-white font-bold text-sm rounded-2xl shadow transition"
+ className="mt-4 px-6 py-3 bg-[#2563EB] hover:bg-[#152347] text-white font-bold text-sm rounded-2xl shadow transition"
  >
  Return to Bakery
  </Link>
@@ -171,7 +171,7 @@ export default async function YourOrderPage({
 
  {/* Secure Delivery OTP Box */}
  {order.delivery_otp && (
- <div className="bg-gradient-to-b from-navy-surface to-obsidian-base border border-navy-accent/50 backdrop-blur-md border border-navy-accent/60/20 rounded-2xl p-4 text-center shrink-0 w-full sm:w-auto">
+ <div className="bg-blue-50/80 border border-slate-200 backdrop-blur-md border border-slate-200 rounded-2xl p-4 text-center shrink-0 w-full sm:w-auto">
  <span className="text-[11px] uppercase tracking-wider font-semibold text-emerald-100">
  Secure Delivery OTP
  </span>
@@ -188,17 +188,17 @@ export default async function YourOrderPage({
  {/* Main Details */}
  <div className="lg:col-span-7 flex flex-col gap-6">
  {/* Order Metadata Card */}
- <div className="p-6 rounded-3xl bg-navy-surface border border-navy-accent/60 shadow-sm flex flex-col gap-4">
- <div className="flex justify-between items-center border-b border-navy-accent/60 pb-3">
+ <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col gap-4">
+ <div className="flex justify-between items-center border-b border-slate-200 pb-3">
  <div>
- <span className="text-xs text-ash font-medium">Order Number</span>
- <p className="text-sm font-bold text-pearl font-mono">
+ <span className="text-xs text-slate-500 font-medium">Order Number</span>
+ <p className="text-sm font-bold text-slate-900 font-mono">
  {order.order_number || order.id}
  </p>
  </div>
  <div className="text-right">
- <span className="text-xs text-ash font-medium">KOT Ticket</span>
- <p className="text-xs font-bold text-pearl font-mono">
+ <span className="text-xs text-slate-500 font-medium">KOT Ticket</span>
+ <p className="text-xs font-bold text-slate-900 font-mono">
  {order.kot_number || `KOT-${order.order_number || order.id}`}
  </p>
  </div>
@@ -206,15 +206,15 @@ export default async function YourOrderPage({
 
  <div className="grid grid-cols-2 gap-4 text-xs">
  <div>
- <span className="text-ash font-medium">Delivery Schedule</span>
- <p className="font-bold text-pearl mt-0.5">
+ <span className="text-slate-500 font-medium">Delivery Schedule</span>
+ <p className="font-bold text-slate-900 mt-0.5">
  🗓️ {order.delivery_date}
  </p>
- <p className="text-ash ">{order.delivery_slot}</p>
+ <p className="text-slate-500 ">{order.delivery_slot}</p>
  </div>
  <div>
- <span className="text-ash font-medium">Payment Mode</span>
- <p className="font-bold text-pearl mt-0.5">
+ <span className="text-slate-500 font-medium">Payment Mode</span>
+ <p className="font-bold text-slate-900 mt-0.5">
  {order.payment_method || "Cashfree Online PG"}
  </p>
  <div className="flex flex-col gap-1 mt-1">
@@ -222,7 +222,7 @@ export default async function YourOrderPage({
  {order.payment_status === "pending" ? "Pending on Delivery" : "Captured (Paid)"}
  </span>
  {(order.transaction_id || order.payment?.transaction_id || order.metadata?.cf_payment_id) && (
- <span className="text-[10px] font-mono text-ash truncate" title={order.transaction_id || order.payment?.transaction_id}>
+ <span className="text-[10px] font-mono text-slate-500 truncate" title={order.transaction_id || order.payment?.transaction_id}>
  CF Ref: {order.transaction_id || order.payment?.transaction_id || order.metadata?.cf_payment_id}
  </span>
  )}
@@ -230,9 +230,9 @@ export default async function YourOrderPage({
  </div>
  </div>
 
-          <div className="border-t border-navy-accent/60 pt-3 text-xs">
-            <span className="text-ash font-medium">Delivery Destination</span>
-            <p className="font-medium text-pearl mt-0.5">
+          <div className="border-t border-slate-200 pt-3 text-xs">
+            <span className="text-slate-500 font-medium">Delivery Destination</span>
+            <p className="font-medium text-slate-900 mt-0.5">
               {typeof order.delivery_address === "string"
                 ? order.delivery_address
                 : typeof order.delivery_address === "object" && order.delivery_address !== null
@@ -251,14 +251,14 @@ export default async function YourOrderPage({
                 : "Delivery Address on File"}
             </p>
             {order.customer_phone && (
-              <p className="text-ash mt-0.5">Contact: {order.customer_phone}</p>
+              <p className="text-slate-500 mt-0.5">Contact: {order.customer_phone}</p>
             )}
           </div>
  </div>
 
  {/* Ordered Items List */}
- <div className="p-6 rounded-3xl bg-navy-surface border border-navy-accent/60 shadow-sm flex flex-col gap-4">
- <h2 className="text-base font-bold text-pearl flex items-center gap-2">
+ <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col gap-4">
+ <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
  <span>📦</span> Items in this Order ({items.length})
  </h2>
 
@@ -271,9 +271,9 @@ export default async function YourOrderPage({
  return (
  <div
  key={item.id}
- className="flex items-start gap-3.5 p-3 rounded-2xl bg-obsidian-base border border-navy-accent/60 "
+ className="flex items-start gap-3.5 p-3 rounded-2xl bg-slate-50 border border-slate-200 "
  >
- <div className="relative w-16 h-16 rounded-2xl overflow-hidden shrink-0 bg-navy-surface">
+ <div className="relative w-16 h-16 rounded-2xl overflow-hidden shrink-0 bg-white">
  <Image
  src={img}
  alt={item.title || "Cake"}
@@ -284,27 +284,27 @@ export default async function YourOrderPage({
 
  <div className="flex-1 min-w-0">
  <div className="flex justify-between items-start">
- <h3 className="text-sm font-bold text-pearl truncate pr-1">
+ <h3 className="text-sm font-bold text-slate-900 truncate pr-1">
  {item.title || item.name}
  </h3>
- <span className="text-sm font-extrabold text-pearl shrink-0">
+ <span className="text-sm font-extrabold text-slate-900 shrink-0">
  ₹{(price * qty).toLocaleString("en-IN")}
  </span>
  </div>
 
  <div className="flex flex-wrap items-center gap-1.5 mt-1">
- <span className="text-[10px] font-semibold text-ash">
+ <span className="text-[10px] font-semibold text-slate-500">
  {qty} × ₹{price}
  </span>
  {item.weight && (
- <span className="text-[10px] font-medium bg-rosegold/30 text-pearl px-1.5 py-0.5 rounded">
+ <span className="text-[10px] font-medium bg-blue-50 text-slate-900 px-1.5 py-0.5 rounded">
  {item.weight}
  </span>
  )}
  </div>
 
  {item.cake_message && (
- <p className="text-[11px] text-ash italic mt-1 truncate">
+ <p className="text-[11px] text-slate-500 italic mt-1 truncate">
  "{item.cake_message}"
  </p>
  )}
@@ -319,14 +319,14 @@ export default async function YourOrderPage({
  {/* Sidebar Summary & Next Steps */}
  <div className="lg:col-span-5 flex flex-col gap-6">
  {/* Statutory Tax & Price Breakdown */}
- <div className="p-6 rounded-3xl bg-navy-surface border border-navy-accent/60 shadow-sm flex flex-col gap-4 text-sm">
- <h2 className="text-base font-bold text-pearl border-b border-navy-accent/60 pb-3">
+ <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col gap-4 text-sm">
+ <h2 className="text-base font-bold text-slate-900 border-b border-slate-200 pb-3">
  Payment Summary
  </h2>
 
- <div className="flex justify-between text-ash ">
+ <div className="flex justify-between text-slate-500 ">
  <span>Subtotal</span>
- <span className="font-semibold text-pearl ">
+ <span className="font-semibold text-slate-900 ">
  ₹{Number(pricing.subtotal).toLocaleString("en-IN")}
  </span>
  </div>
@@ -338,43 +338,43 @@ export default async function YourOrderPage({
  </div>
  )}
 
- <div className="flex justify-between text-ash ">
+ <div className="flex justify-between text-slate-500 ">
  <span>Delivery Fee</span>
- <span className="font-semibold text-pearl ">
+ <span className="font-semibold text-slate-900 ">
  {pricing.delivery_fee === 0 ? "FREE" : `₹${pricing.delivery_fee}`}
  </span>
  </div>
 
  {Number(pricing.slot_surcharge) > 0 && (
- <div className="flex justify-between text-ash ">
+ <div className="flex justify-between text-slate-500 ">
  <span>Slot Surcharge</span>
- <span className="font-semibold text-pearl ">
+ <span className="font-semibold text-slate-900 ">
  ₹{pricing.slot_surcharge}
  </span>
  </div>
  )}
 
  {/* GST Details Box */}
- <div className="p-3 rounded-2xl bg-obsidian-base border border-navy-accent/60 text-xs flex flex-col gap-1">
- <div className="flex justify-between font-semibold text-pearl ">
+ <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs flex flex-col gap-1">
+ <div className="flex justify-between font-semibold text-slate-900 ">
  <span>Statutory GST (Intra-State)</span>
  <span>₹{Number(pricing.total_tax).toFixed(2)}</span>
  </div>
- <div className="flex justify-between text-ash pl-3">
+ <div className="flex justify-between text-slate-500 pl-3">
  <span>CGST (2.5%)</span>
  <span>₹{Number(pricing.cgst).toFixed(2)}</span>
  </div>
- <div className="flex justify-between text-ash pl-3">
+ <div className="flex justify-between text-slate-500 pl-3">
  <span>SGST (2.5%)</span>
  <span>₹{Number(pricing.sgst).toFixed(2)}</span>
  </div>
  </div>
 
- <div className="border-t border-navy-accent/60 pt-3 flex justify-between items-baseline">
- <span className="text-base font-extrabold text-pearl ">
+ <div className="border-t border-slate-200 pt-3 flex justify-between items-baseline">
+ <span className="text-base font-extrabold text-slate-900 ">
  {isPaid ? "Total Paid" : "Total Amount"}
  </span>
- <span className="text-2xl font-black text-pearl ">
+ <span className="text-2xl font-black text-slate-900 ">
  ₹{Number(pricing.grand_total).toLocaleString("en-IN")}
  </span>
  </div>
@@ -384,13 +384,13 @@ export default async function YourOrderPage({
  <div className="flex flex-col gap-3">
  <Link
  href={`/account/orders?highlight=${encodeURIComponent(order.id)}`}
- className="w-full py-3.5 px-4 bg-rosegold hover:bg-black text-white text-center font-bold text-sm rounded-2xl shadow transition flex items-center justify-center gap-2"
+ className="w-full py-3.5 px-4 bg-[#2563EB] hover:bg-black text-white text-center font-bold text-sm rounded-2xl shadow transition flex items-center justify-center gap-2"
  >
  <span>📋 View in My Orders</span>
  </Link>
  <Link
  href="/"
- className="w-full py-3 px-4 bg-navy-surface hover:bg-obsidian-base border border-navy-accent/60 text-pearl text-center font-semibold text-sm rounded-2xl transition"
+ className="w-full py-3 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-900 text-center font-semibold text-sm rounded-2xl transition"
  >
  ← Order More Cakes
  </Link>

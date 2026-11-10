@@ -653,7 +653,7 @@ export default function ProductDetailClient({
   const galleryLayout = pdpConfig?.gallery_layout || "left";
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 bg-[#FDFBF7] text-slate-900 min-h-screen">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 bg-[#F8FAFC] text-slate-900 min-h-screen">
       {/* 1. Dynamic Breadcrumbs */}
       <PdpBreadcrumb
         category={product.category}

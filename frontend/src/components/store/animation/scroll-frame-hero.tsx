@@ -875,18 +875,18 @@ export function ScrollFrameAnimation({
         <div className="relative z-10 p-6 sm:p-12 max-w-3xl flex flex-col items-center text-center gap-4">
           {badgeText && (
             <span
-              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase shadow-sm bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/35"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase shadow-sm bg-blue-500/20 text-blue-200 border border-blue-400/30"
               style={badgeBg ? { backgroundColor: badgeBg, color: badgeColor } : undefined}
             >
-              <Sparkles className="w-3 h-3 text-[#D4AF37]" />
+              <Sparkles className="w-3 h-3 text-blue-300" />
               <span>{badgeText}</span>
             </span>
           )}
-          <Heading level="h1" className="font-serif text-3xl sm:text-5xl font-normal sm:font-semibold tracking-[-0.02em] leading-[1.12] text-[#FAF9F6] drop-shadow-lg">
+          <Heading level="h1" className="font-serif text-3xl sm:text-5xl font-normal sm:font-semibold tracking-[-0.02em] leading-[1.12] text-white drop-shadow-lg">
             {headline}
           </Heading>
           {subheadline && (
-            <Text className="font-sans text-sm sm:text-base text-stone-200/90 max-w-xl font-normal leading-relaxed drop-shadow-sm">
+            <Text className="font-sans text-sm sm:text-base text-blue-100 max-w-xl font-normal leading-relaxed drop-shadow-sm">
               {subheadline}
             </Text>
           )}
@@ -896,7 +896,7 @@ export function ScrollFrameAnimation({
                 <Button
                   variant="primary"
                   size="large"
-                  className="rounded-full px-8 py-3.5 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-[#D4AF37] hover:bg-[#c59e2b] text-[#07090E] shadow-[0_10px_30px_rgba(212,175,55,0.3)] transition-all duration-300 border-none"
+                  className="rounded-full px-8 py-3.5 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-lg transition-all duration-300 border-none"
                   style={primaryCtaBg ? { backgroundColor: primaryCtaBg, color: primaryCtaColor } : undefined}
                 >
                   {primaryCtaText} <ArrowRight className="w-4 h-4 ml-1" />
@@ -967,7 +967,7 @@ export function ScrollFrameAnimation({
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 z-20 pointer-events-none">
           <div
             ref={progressBarRef}
-            className="h-full bg-[#D4AF37] origin-left transition-transform duration-75 ease-out shadow-[0_0_10px_rgba(212,175,55,0.5)]"
+            className="h-full bg-[#2563EB] origin-left transition-transform duration-75 ease-out shadow-[0_0_10px_rgba(37,99,235,0.5)]"
             style={{ transform: "scaleX(0)" }}
           />
         </div>
@@ -1007,18 +1007,18 @@ export function ScrollFrameAnimation({
         >
           {badgeText && (
             <span
-              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-4 shadow-xl backdrop-blur-md bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/35"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-4 shadow-xl backdrop-blur-md bg-blue-500/20 text-blue-200 border border-blue-400/35"
               style={badgeBg ? { backgroundColor: badgeBg, color: badgeColor } : undefined}
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <Sparkles className="w-3.5 h-3.5 text-blue-300" />
               <span>{badgeText}</span>
             </span>
           )}
-          <Heading level="h1" className="font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-normal sm:font-semibold tracking-[-0.025em] leading-[1.1] text-[#FAF9F6] drop-shadow-2xl max-w-3xl">
+          <Heading level="h1" className="font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-normal sm:font-semibold tracking-[-0.025em] leading-[1.1] text-white drop-shadow-2xl max-w-3xl">
             {headline}
           </Heading>
           {subheadline && (
-            <Text className="font-sans text-sm sm:text-lg text-stone-200/90 mt-3 max-w-2xl font-normal leading-relaxed drop-shadow-md">
+            <Text className="font-sans text-sm sm:text-lg text-blue-100 mt-3 max-w-2xl font-normal leading-relaxed drop-shadow-md">
               {subheadline}
             </Text>
           )}
@@ -1028,7 +1028,7 @@ export function ScrollFrameAnimation({
                 <Button
                   variant="primary"
                   size="large"
-                  className="rounded-full px-8 py-4 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-[#D4AF37] hover:bg-[#c59e2b] text-[#07090E] shadow-[0_15px_35px_rgba(212,175,55,0.3)] transition-all duration-300 border-none"
+                  className="rounded-full px-8 py-4 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-xl transition-all duration-300 border-none"
                   style={primaryCtaBg ? { backgroundColor: primaryCtaBg, color: primaryCtaColor } : undefined}
                 >
                   {primaryCtaText} <ArrowRight className="w-4 h-4 ml-1.5" />
@@ -1040,7 +1040,7 @@ export function ScrollFrameAnimation({
                 <Button
                   variant="secondary"
                   size="large"
-                  className="rounded-full px-7 py-4 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-white/10 hover:bg-white/20 text-[#FAF9F6] border border-white/20 backdrop-blur-md transition-all"
+                  className="rounded-full px-7 py-4 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md transition-all"
                 >
                   {secondaryCtaText}
                 </Button>
@@ -1055,16 +1055,16 @@ export function ScrollFrameAnimation({
           className="absolute inset-0 flex flex-col items-center justify-center p-6 sm:p-12 text-center text-white z-10 max-w-3xl mx-auto opacity-0 will-change-transform pointer-events-none"
         >
           {craftBadge && (
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-3 bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 backdrop-blur-md">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-3 bg-blue-500/20 text-blue-200 border border-blue-400/30 backdrop-blur-md">
               <Sparkles className="w-3.5 h-3.5" />
               <span>{craftBadge}</span>
             </span>
           )}
-          <Heading level="h2" className="font-serif text-2xl sm:text-4xl md:text-5xl font-normal sm:font-semibold tracking-tight text-[#FAF9F6] drop-shadow-2xl">
+          <Heading level="h2" className="font-serif text-2xl sm:text-4xl md:text-5xl font-normal sm:font-semibold tracking-tight text-white drop-shadow-2xl">
             {craftHeading}
           </Heading>
           {craftText && (
-            <Text className="font-sans text-xs sm:text-base text-stone-200/90 mt-2.5 max-w-xl font-normal drop-shadow-md leading-relaxed">
+            <Text className="font-sans text-xs sm:text-base text-blue-100 mt-2.5 max-w-xl font-normal drop-shadow-md leading-relaxed">
               {craftText}
             </Text>
           )}
@@ -1081,11 +1081,11 @@ export function ScrollFrameAnimation({
               <span>{fleetBadge}</span>
             </span>
           )}
-          <Heading level="h2" className="font-serif text-2xl sm:text-4xl md:text-5xl font-normal sm:font-semibold tracking-tight text-[#FAF9F6] drop-shadow-2xl">
+          <Heading level="h2" className="font-serif text-2xl sm:text-4xl md:text-5xl font-normal sm:font-semibold tracking-tight text-white drop-shadow-2xl">
             {fleetHeading}
           </Heading>
           {fleetText && (
-            <Text className="font-sans text-xs sm:text-base text-stone-200/90 mt-2.5 max-w-xl font-normal drop-shadow-md leading-relaxed">
+            <Text className="font-sans text-xs sm:text-base text-blue-100 mt-2.5 max-w-xl font-normal drop-shadow-md leading-relaxed">
               {fleetText}
             </Text>
           )}
@@ -1095,7 +1095,7 @@ export function ScrollFrameAnimation({
                 <Button
                   variant="primary"
                   size="large"
-                  className="rounded-full px-8 py-3.5 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-[#D4AF37] hover:bg-[#c59e2b] text-[#07090E] shadow-xl transition-all duration-300 border-none"
+                  className="rounded-full px-8 py-3.5 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-xl transition-all duration-300 border-none"
                 >
                   {fleetCtaText} <ArrowRight className="w-4 h-4 ml-1.5" />
                 </Button>

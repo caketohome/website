@@ -3,20 +3,103 @@ import Link from "next/link";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { FooterNavigation } from "@frontend/components/store/cms/navigation";
 import { Suspense } from "react";
+import { Heart, ShieldCheck, Truck, Clock, Sparkles } from "lucide-react";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 export default function Footer() {
   return (
-    <footer className="w-full flex flex-col gap-3 justify-center items-center py-6 px-4 bg-[#07090E] border-t border-white/10 text-slate-400 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:pb-8 transition-colors duration-200">
+    <footer className="w-full bg-gradient-to-b from-[#0F172A] via-[#1E3A8A] to-[#0F172A] text-slate-200 border-t border-blue-900/50 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:pb-8 transition-colors duration-200">
       {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
-      {/* CMS-driven footer navigation (renders nothing if no nav configured) */}
-      <Suspense fallback={null}>
-        <FooterNavigation />
-      </Suspense>
-      <p className="flex flex-wrap gap-1 text-xs sm:text-sm text-center px-4 justify-center text-slate-400 font-sans tracking-tight">
-        © {new Date().getFullYear()} CakeToHome — Premium Cake & Bakery Ordering Platform
-      </p>
+
+      {/* Trust & Assurance Banner */}
+      <div className="border-b border-blue-800/40 bg-blue-950/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-xs sm:text-sm text-blue-100">
+            <Sparkles className="w-4 h-4 text-blue-400 shrink-0" />
+            <span className="font-medium">100% Fresh Daily</span>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-xs sm:text-sm text-blue-100">
+            <Truck className="w-4 h-4 text-blue-400 shrink-0" />
+            <span className="font-medium">2-Hour Express Delivery</span>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-xs sm:text-sm text-blue-100">
+            <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
+            <span className="font-medium">Safe & Sealed Packaging</span>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-xs sm:text-sm text-blue-100">
+            <Clock className="w-4 h-4 text-blue-400 shrink-0" />
+            <span className="font-medium">Midnight Delivery Available</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8">
+        {/* Main Footer Columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-10">
+          {/* Brand Info */}
+          <div className="lg:col-span-2 flex flex-col gap-3">
+            <Link href="/" className="flex items-center gap-2 text-xl font-bold font-serif text-white hover:text-blue-300 transition-colors w-fit">
+              🎂 CakeToHome
+            </Link>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-sm">
+              Artisanal bakery crafted with passion in Bengaluru. We bake happiness fresh to order, delivering gourmet cakes, desserts, and savory treats with unmatched quality and punctuality.
+            </p>
+            <div className="flex items-center gap-2 pt-2 text-xs text-blue-200">
+              <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Kitchens active & dispatching across Bengaluru
+            </div>
+          </div>
+
+          {/* Categories */}
+          <div className="flex flex-col gap-2.5">
+            <h4 className="text-xs uppercase tracking-wider font-bold text-blue-300 font-sans">Artisanal Range</h4>
+            <ul className="flex flex-col gap-1.5 text-xs text-slate-300">
+              <li><Link href="/category/birthday-cakes" className="hover:text-white transition-colors">Birthday Cakes</Link></li>
+              <li><Link href="/category/anniversary-cakes" className="hover:text-white transition-colors">Anniversary Cakes</Link></li>
+              <li><Link href="/category/pastries" className="hover:text-white transition-colors">Pastries & Slices</Link></li>
+              <li><Link href="/category/chocolates" className="hover:text-white transition-colors">Gourmet Chocolates</Link></li>
+              <li><Link href="/search?is_bestseller=true" className="hover:text-white transition-colors">Bestsellers</Link></li>
+            </ul>
+          </div>
+
+          {/* Customer Service */}
+          <div className="flex flex-col gap-2.5">
+            <h4 className="text-xs uppercase tracking-wider font-bold text-blue-300 font-sans">Customer Care</h4>
+            <ul className="flex flex-col gap-1.5 text-xs text-slate-300">
+              <li><Link href="/account/orders" className="hover:text-white transition-colors">Track Your Order</Link></li>
+              <li><Link href="/search" className="hover:text-white transition-colors">Search Catalog</Link></li>
+              <li><Link href="/account" className="hover:text-white transition-colors">My Account</Link></li>
+              <li><Link href="/cart" className="hover:text-white transition-colors">View Cart</Link></li>
+            </ul>
+          </div>
+
+          {/* Contact & Support */}
+          <div className="flex flex-col gap-2.5">
+            <h4 className="text-xs uppercase tracking-wider font-bold text-blue-300 font-sans">Help & Support</h4>
+            <div className="text-xs text-slate-300 flex flex-col gap-1.5">
+              <p>Email: <a href="mailto:support@caketohome.com" className="text-blue-300 hover:underline">support@caketohome.com</a></p>
+              <p>Hours: 9:00 AM – 11:00 PM IST</p>
+              <p className="text-[11px] text-slate-400 mt-1">Cashfree Verified 256-bit Encrypted Checkout</p>
+            </div>
+          </div>
+        </div>
+
+        {/* CMS-driven footer navigation */}
+        <Suspense fallback={null}>
+          <FooterNavigation />
+        </Suspense>
+
+        {/* Bottom Bar */}
+        <div className="pt-6 border-t border-blue-900/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+          <p className="text-center sm:text-left">
+            © {new Date().getFullYear()} CakeToHome India Private Limited. All rights reserved.
+          </p>
+          <div className="flex items-center gap-4 text-xs text-slate-300">
+            <span className="flex items-center gap-1">Made with <Heart className="w-3 h-3 text-rose-400 fill-rose-400" /> in Bengaluru</span>
+          </div>
+        </div>
+      </div>
     </footer>
   );
 }

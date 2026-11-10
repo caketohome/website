@@ -27,14 +27,14 @@ export default async function RootLayout({
   return (
     <EngagementProvider>
       <div className="min-h-screen flex flex-col w-full">
-        <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md supports-[backdrop-filter]:bg-white/85 text-navy-accent border-b border-navy-accent/10 shadow-sm transition-colors duration-200">
+        <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/90 text-slate-900 border-b border-slate-200/80 shadow-xs transition-colors duration-200">
           {/* ── DESKTOP & TABLET HEADER (>= 768px / md) ── */}
           <nav className="hidden md:flex px-4 sm:px-6 md:px-8 lg:px-10 h-16 justify-between items-center w-full max-w-full gap-3 lg:gap-6">
             {/* Brand & Location & CMS Links */}
             <div className="flex gap-2 sm:gap-3 lg:gap-6 items-center shrink-0 min-w-0">
               <Link
                 href="/"
-                className="flex gap-1.5 sm:gap-2 items-center text-lg sm:text-xl font-bold font-serif text-navy-accent hover:text-navy-glow transition-colors opacity-100 shrink-0 select-none"
+                className="flex gap-1.5 sm:gap-2 items-center text-lg sm:text-xl font-bold font-serif text-slate-900 hover:text-[#2563EB] transition-colors opacity-100 shrink-0 select-none"
               >
                 🎂 CakeToHome
               </Link>
@@ -55,7 +55,7 @@ export default async function RootLayout({
               <NavFavorites />
               <Suspense
                 fallback={
-                  <div className="p-2 text-navy-accent/70 min-w-[44px] min-h-[44px] flex items-center justify-center">
+                  <div className="p-2 text-slate-500 min-w-[44px] min-h-[44px] flex items-center justify-center">
                     <span className="text-xl">🛍️</span>
                   </div>
                 }
@@ -73,7 +73,7 @@ export default async function RootLayout({
               {/* Brand Logo */}
               <Link
                 href="/"
-                className="flex items-center gap-1.5 text-base font-bold font-serif text-navy-accent hover:text-navy-glow transition-colors shrink-0 select-none"
+                className="flex items-center gap-1.5 text-base font-bold font-serif text-slate-900 hover:text-[#2563EB] transition-colors shrink-0 select-none"
               >
                 <span className="text-lg">🎂</span>
                 <span className="tracking-tight">CakeToHome</span>
@@ -85,7 +85,7 @@ export default async function RootLayout({
                 <NavFavorites />
                 <Suspense
                   fallback={
-                    <div className="p-2 text-navy-accent/70 min-w-[40px] min-h-[40px] flex items-center justify-center">
+                    <div className="p-2 text-slate-500 min-w-[40px] min-h-[40px] flex items-center justify-center">
                       <span className="text-lg">🛍️</span>
                     </div>
                   }
@@ -97,7 +97,7 @@ export default async function RootLayout({
             </nav>
 
             {/* Sub-Header Row: Full-Width Location Selector Bar */}
-            <div className="w-full border-t border-navy-accent/10">
+            <div className="w-full border-t border-slate-200/80">
               <DeliveryLocationHeader variant="bar" />
             </div>
           </div>

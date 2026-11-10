@@ -126,8 +126,8 @@ export function PdpCustomizationForm({
       {/* 1. Dietary Enhancements */}
       {showDietary && hasAnyDietary && (
         <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/60 flex flex-col gap-3">
-          <label className="text-xs uppercase tracking-wider font-bold text-[#1D2F5D] flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" /> Dietary Customization
+          <label className="text-xs uppercase tracking-wider font-bold text-[#0F172A] flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" /> Dietary Customization
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {hasSugarFree && (
@@ -161,7 +161,7 @@ export function PdpCustomizationForm({
                 <ImageIcon className="w-4 h-4" />
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-bold text-[#1D2F5D] uppercase tracking-wider">
+                <span className="text-xs font-bold text-[#0F172A] uppercase tracking-wider">
                   Edible Photo Print (+₹250) {requiredPhotoCake && <span className="text-rose-500">*</span>}
                 </span>
                 <span className="text-[11px] text-slate-500">High-resolution edible sugar sheet placed on cake</span>
@@ -177,7 +177,7 @@ export function PdpCustomizationForm({
                 value={photoUrl}
                 onChange={(e) => onPhotoUrlChange(e.target.value)}
                 placeholder="Paste direct photo link (or upload URL)..."
-                className="w-full text-xs sm:text-sm py-2.5 px-3.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+                className="w-full text-xs sm:text-sm py-2.5 px-3.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
               />
             </div>
           )}
@@ -190,9 +190,9 @@ export function PdpCustomizationForm({
           <div className="flex justify-between items-center">
             <label
               htmlFor="cake-inscription-input"
-              className="text-xs uppercase tracking-wider font-bold text-[#1D2F5D] flex items-center gap-1.5"
+              className="text-xs uppercase tracking-wider font-bold text-[#0F172A] flex items-center gap-1.5"
             >
-              <MessageSquare className="w-3.5 h-3.5 text-[#1D2F5D]" />
+              <MessageSquare className="w-3.5 h-3.5 text-[#0F172A]" />
               <span>Message on Cake</span>
               {requiredCakeMessage ? (
                 <span className="text-rose-500">*</span>
@@ -213,7 +213,7 @@ export function PdpCustomizationForm({
             maxLength={30}
             onChange={(e) => onCakeMessageChange(e.target.value.slice(0, 30))}
             placeholder="e.g., Happy 25th Anniversary Maya!"
-            className="w-full text-sm py-2.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1D2F5D] text-slate-800 transition-all"
+            className="w-full text-sm py-2.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB] text-slate-800 transition-all"
           />
         </div>
       )}
@@ -221,8 +221,8 @@ export function PdpCustomizationForm({
       {/* 4. Curated Celebration Accessories */}
       {accessories.length > 0 && (
         <div className="flex flex-col gap-3">
-          <label className="text-xs uppercase tracking-wider font-bold text-[#1D2F5D] flex items-center gap-1.5">
-            <Gift className="w-3.5 h-3.5 text-[#D4AF37]" /> Complete the Celebration
+          <label className="text-xs uppercase tracking-wider font-bold text-[#0F172A] flex items-center gap-1.5">
+            <Gift className="w-3.5 h-3.5 text-[#2563EB]" /> Complete the Celebration
           </label>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -237,7 +237,7 @@ export function PdpCustomizationForm({
                     isOutOfStock
                       ? "border-slate-200 bg-slate-50/80 opacity-60 cursor-not-allowed"
                       : isSelected
-                      ? "border-[#1D2F5D] bg-amber-50/40 shadow-xs ring-1 ring-[#1D2F5D] cursor-pointer"
+                      ? "border-[#2563EB] bg-amber-50/40 shadow-xs ring-1 ring-[#2563EB] cursor-pointer"
                       : "border-slate-200 bg-white hover:border-slate-300 shadow-2xs cursor-pointer"
                   }`}
                 >
@@ -254,7 +254,7 @@ export function PdpCustomizationForm({
                   <div className="flex flex-col flex-1 min-w-0">
                     <span className="text-xs font-semibold text-slate-900 truncate">{item.name}</span>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs font-bold text-[#1D2F5D]">₹{item.price}</span>
+                      <span className="text-xs font-bold text-[#0F172A]">₹{item.price}</span>
                       {isOutOfStock ? (
                         <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">Out of Stock at this Store</span>
                       ) : (item.available_stock !== undefined && item.available_stock <= (item.low_stock_threshold || 5)) ? (
@@ -268,7 +268,7 @@ export function PdpCustomizationForm({
                       isOutOfStock
                         ? "bg-slate-200 border-slate-300 text-slate-400"
                         : isSelected
-                        ? "bg-[#1D2F5D] border-[#1D2F5D] text-white"
+                        ? "bg-[#2563EB] border-[#2563EB] text-white"
                         : "bg-slate-100 border-slate-300 text-transparent"
                     }`}
                   >
@@ -290,7 +290,7 @@ export function PdpCustomizationForm({
                 onChange={(e) => onGreetingCardTextChange(e.target.value)}
                 rows={2}
                 placeholder="Write your heartfelt message here..."
-                className="w-full text-xs sm:text-sm p-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-2xs"
+                className="w-full text-xs sm:text-sm p-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB] shadow-2xs"
               />
             </div>
           )}

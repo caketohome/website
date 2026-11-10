@@ -58,7 +58,7 @@ export function PdpInfoPanel({
         {category && (
           <Link
             href={`/products?category=${catSlug}`}
-            className="inline-flex items-center px-3.5 py-1 rounded-full text-[11px] uppercase tracking-wider font-semibold bg-white text-[#1D2F5D] border border-[#1D2F5D]/20 hover:border-[#1D2F5D] transition-colors shadow-2xs"
+            className="inline-flex items-center px-3.5 py-1 rounded-full text-[11px] uppercase tracking-wider font-semibold bg-white text-[#0F172A] border border-[#2563EB]/20 hover:border-[#2563EB] transition-colors shadow-2xs"
           >
             {category}
           </Link>
@@ -82,7 +82,7 @@ export function PdpInfoPanel({
       </div>
 
       {/* Main Title Heading */}
-      <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-[#1D2F5D] leading-tight tracking-tight">
+      <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0F172A] leading-tight tracking-tight">
         {title}
       </h1>
 
@@ -90,14 +90,14 @@ export function PdpInfoPanel({
       <div className="flex items-center gap-3 sm:gap-4 flex-wrap text-sm">
         {showRating && (
           <div className="flex items-center gap-1.5 bg-amber-50/90 px-3 py-1 rounded-full border border-amber-200/80">
-            <span className="text-[#D4AF37] font-bold text-sm flex items-center gap-1">
+            <span className="text-[#2563EB] font-bold text-sm flex items-center gap-1">
               ★ {Number(rating || 4.9).toFixed(1)}
             </span>
             {showReviews && (
               <button
                 type="button"
                 onClick={onReviewsClick}
-                className="text-slate-600 hover:text-[#1D2F5D] text-xs font-medium underline underline-offset-2 transition-colors cursor-pointer"
+                className="text-slate-600 hover:text-[#2563EB] text-xs font-medium underline underline-offset-2 transition-colors cursor-pointer"
               >
                 ({reviewCount} reviews)
               </button>
@@ -115,7 +115,7 @@ export function PdpInfoPanel({
       {/* Price Display Section */}
       {showPrice && (
         <div className="flex items-baseline gap-3 pt-1">
-          <span className="font-serif text-3xl sm:text-4xl font-bold text-[#1D2F5D] tracking-tight">
+          <span className="font-serif text-3xl sm:text-4xl font-bold text-[#0F172A] tracking-tight">
             ₹{price}
           </span>
 
@@ -154,7 +154,7 @@ export function PdpInfoPanel({
             <Link
               key={occ.slug}
               href={`/occasions/${occ.slug}`}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white hover:bg-amber-50/60 border border-slate-200 text-xs font-medium text-slate-700 hover:text-[#1D2F5D] transition-all shadow-2xs"
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white hover:bg-amber-50/60 border border-slate-200 text-xs font-medium text-slate-700 hover:text-[#2563EB] transition-all shadow-2xs"
             >
               <span>{occ.icon || "🎂"}</span>
               <span>{occ.name}</span>
