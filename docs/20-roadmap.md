@@ -237,6 +237,39 @@
   - [x] Enforce WCAG 2.2 AA accessibility standards across all CMS pages, visual builder controls, and payment settings interfaces (keyboard navigation, screen-reader semantics, >= 7:1 contrast ratios).
   - [x] Enforce Core Web Vitals targets: FCP < 1.2s, LCP < 2.0s, CLS = 0.00, and database query latency < 10ms.
   - [x] Implement automated test harness: CMS unit/integration tests, 12 policy exact-content verification, Razorpay test-mode end-to-end payment simulations, failure injection tests, and full regression verification across storefront and ERP modules.
+  - [x] Real Playwright Browser Suite: 16/16 full-fidelity screenshots captured across Desktop (1920x1080), Tablet (768x1024), and Mobile (390x844) with zero `ORDER_NOT_FOUND` errors.
+  - [x] Exhaustive Verification Matrix: 20/20 test assertions passed across order lifecycle, signature security, SAVEPOINT transaction isolation, deterministic webhook deduplication, and double-entry equilibrium.
+
+---
+
+### 11. Approved Future Workstreams (Preserved Architecture Scope — Strictly NOT Executed in Phase 9)
+
+The following 6 strategic workstreams have been formally reviewed, scoped, and approved by architecture governance for subsequent execution phases. They are strictly preserved as separate, decoupled future milestones and must not be implemented prematurely:
+
+1. **Workstream M1: Meta Pixel + Conversions API (CAPI) Integration**
+   - **Scope**: Hybrid client-side Meta Pixel script (`fbq`) tracking standard e-commerce events (`PageView`, `ViewContent`, `AddToCart`, `InitiateCheckout`, `Purchase`) combined with server-side Conversions API (CAPI) via direct Graph API calls for resilient tracking bypassing client-side ad-blockers and iOS privacy restrictions.
+   - **Prerequisite**: Awaiting user-supplied Meta Pixel ID (`NEXT_PUBLIC_META_PIXEL_ID`) and Meta Conversions API Access Token (`META_CAPI_ACCESS_TOKEN`) in the IDE environment settings.
+   - **Status**: ⏸️ `BLOCKED PENDING USER-SUPPLIED CREDENTIALS IN IDE`.
+
+2. **Workstream M2: Unified Multi-Channel Product Catalogue**
+   - **Scope**: Unification of disparate storefront, physical POS, and third-party delivery aggregator catalogs (Swiggy, Zomato) into a single canonical PIM matrix. Includes consolidated recipe/ingredient bill-of-materials (BOM), allergen declarations, cake customizers, and branch-level inventory threshold alerting.
+   - **Status**: 📋 `APPROVED FUTURE SCOPE`.
+
+3. **Workstream M3: Franchise & Cross-Store Sharing-Panel Removal**
+   - **Scope**: Elimination of legacy cross-store inventory sharing panels in favor of strict multi-tenant franchise branch isolation. Replacement with formal Inter-Branch Transfer Orders (IBTO), transit custody slips, transit loss accounting, and franchise royalty fee calculation engines.
+   - **Status**: 📋 `APPROVED FUTURE SCOPE`.
+
+4. **Workstream M4: Customer Profile & Purchase-History Remediation**
+   - **Scope**: Upgraded customer account center featuring saved delivery address books with Google Places pinpoints, order re-order in 1-click, invoice PDF download generation, celebration date reminders (birthdays, anniversaries), and real-time live GPS driver tracking.
+   - **Status**: 📋 `APPROVED FUTURE SCOPE`.
+
+5. **Workstream M5: Delivery Driver Panel (Mobile Web & OTP Verification)**
+   - **Scope**: Dedicated PWA/mobile-optimized web portal for branch delivery partners. Features daily run-sheet manifest, turn-by-turn route ordering, cash-on-delivery collection logging, and mandatory 4-digit customer delivery confirmation OTP verification before handoff completion.
+   - **Status**: 📋 `APPROVED FUTURE SCOPE`.
+
+6. **Workstream M6: Comprehensive Full-Platform Penetration Testing**
+   - **Scope**: End-to-end black-box and white-box penetration testing across all Next.js 14 App Router API routes, Medusa services, and PostgreSQL stored procedures. Encompasses automated DAST scans, OWASP API Top 10 auditing, authenticated privilege escalation testing, SQLi/SSRF fuzzing, and production hardening certification.
+   - **Status**: 📋 `APPROVED FUTURE SCOPE`.
 
 ---
 
@@ -247,3 +280,5 @@
 3. **No Phantom Income or Expense**: Handovers, bank transfers, and deposit slips must transfer balance between asset accounts without creating phantom P&L revenue or expense.
 4. **Segregation of Duties**: Maker cannot be Checker or Poster on financial vouchers or expenses.
 5. **Historical Ledger Immutability**: Posted accounting vouchers are immutable; corrections require explicit reversal vouchers.
+6. **Statutory Legal Fidelity**: 100% word-for-word textual fidelity preserved across all 12 public policy documents without paraphrasing or omission.
+7. **Gate E Merchant KYC Blocker**: Live payment processing remains locked at the server and UI level until official merchant verification is complete.

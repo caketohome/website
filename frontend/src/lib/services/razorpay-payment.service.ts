@@ -93,7 +93,7 @@ export class RazorpayPaymentService {
     // 1. Fetch Order from DB
     const orderRes = await dbQuery(
       `SELECT id, order_number, grand_total, customer_id, customer_name, customer_phone, branch_id, status, payment_status 
-       FROM public."order" WHERE id = $1 OR order_number = $1`,
+       FROM public."order" WHERE id = $1 OR order_number = $1 LIMIT 1`,
       [orderId]
     );
 
@@ -279,7 +279,7 @@ export class RazorpayPaymentService {
       // 2. Lock Order FOR UPDATE
       const orderRes = await txClient.query(
         `SELECT id, order_number, status, payment_status, grand_total, customer_id, branch_id 
-         FROM public."order" WHERE id = $1 OR order_number = $1 FOR UPDATE`,
+         FROM public."order" WHERE id = $1 OR order_number = $1 LIMIT 1 FOR UPDATE`,
         [resolvedOrderId]
       );
 
@@ -386,46 +386,53 @@ export class RazorpayPaymentService {
              payment_method = 'RAZORPAY',
              updated_at = NOW() 
          WHERE id = $1`,
-        [resolvedOrderId]
+        [order.id]
       );
 
-      const branchId = order.branch_id || "branch_koramangala";
+      const branchId = order.branch_id || "br_indiranagar_01";
 
-      // 6. Deduct Inventory Movements & update branch_inventory
+      // 6. Deduct Inventory Movements & update branch_inventory (protected by SAVEPOINT)
       try {
+        await txClient.query("SAVEPOINT sp_inventory");
         const orderItems = await txClient.query(
           "SELECT id, product_id, quantity FROM public.order_item WHERE order_id = $1",
-          [resolvedOrderId]
+          [order.id]
         );
 
         for (const item of orderItems.rows) {
           if (item.product_id) {
-            const qty = Math.max(1, Math.abs(Number(item.quantity) || 1));
-            const mvId = `inv_mv_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
-            await txClient.query(
-              `INSERT INTO public.inventory_movement (
-                id, branch_id, product_id, quantity, direction, movement_type, order_id, reference_id, notes, created_by, created_at
-              ) VALUES ($1, $2, $3, $4, 'OUT', 'SALE', $5, $6, 'Order confirmed via Razorpay payment', 'razorpay_verify', NOW())`,
-              [mvId, branchId, item.product_id, qty, resolvedOrderId, razorpay_payment_id]
-            );
+            const prodCheck = await txClient.query("SELECT id FROM public.product WHERE id = $1", [item.product_id]);
+            if (prodCheck.rows.length > 0) {
+              const qty = Math.max(1, Math.abs(Number(item.quantity) || 1));
+              const mvId = `inv_mv_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
+              await txClient.query(
+                `INSERT INTO public.inventory_movement (
+                  id, branch_id, product_id, quantity, direction, movement_type, order_id, reference_id, notes, created_by, created_at
+                ) VALUES ($1, $2, $3, $4, 'OUT', 'SALE', $5, $6, 'Order confirmed via Razorpay payment', 'razorpay_verify', NOW())`,
+                [mvId, branchId, item.product_id, qty, order.id, razorpay_payment_id]
+              );
 
-            await txClient.query(
-              `UPDATE public.branch_inventory 
-               SET quantity = GREATEST(0, quantity - $3), updated_at = NOW() 
-               WHERE branch_id = $1 AND product_id = $2`,
-              [branchId, item.product_id, qty]
-            );
+              await txClient.query(
+                `UPDATE public.branch_inventory 
+                 SET quantity = GREATEST(0, quantity - $3), updated_at = NOW() 
+                 WHERE branch_id = $1 AND product_id = $2`,
+                [branchId, item.product_id, qty]
+              );
+            }
           }
         }
+        await txClient.query("RELEASE SAVEPOINT sp_inventory");
       } catch (invErr: any) {
+        await txClient.query("ROLLBACK TO SAVEPOINT sp_inventory").catch(() => {});
         console.warn("[Razorpay] Inventory deduction notice:", invErr.message);
       }
 
-      // 7. KOT Ticket Creation (if kot_tickets exists)
+      // 7. KOT Ticket Creation (if kot_tickets exists, protected by SAVEPOINT)
       try {
+        await txClient.query("SAVEPOINT sp_kot");
         const existingKot = await txClient.query(
           "SELECT id, kot_number FROM public.kot_tickets WHERE order_id = $1 LIMIT 1",
-          [resolvedOrderId]
+          [order.id]
         );
         let kotNumber = existingKot.rows.length > 0 ? existingKot.rows[0].kot_number : null;
         if (!kotNumber) {
@@ -437,7 +444,7 @@ export class RazorpayPaymentService {
             `INSERT INTO public.kot_tickets (id, order_id, branch_id, kot_number, status, items, created_at, updated_at) 
              VALUES ($1, $2, $3, $4, 'ACTIVE', '[]'::jsonb, NOW(), NOW()) 
              ON CONFLICT (order_id) DO NOTHING`,
-            [kotId, resolvedOrderId, branchId, kotNumber]
+            [kotId, order.id, branchId, kotNumber]
           );
         }
 
@@ -445,16 +452,19 @@ export class RazorpayPaymentService {
           `UPDATE public."order" 
            SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{kot_number}', to_jsonb($2::text), true) 
            WHERE id = $1`,
-          [resolvedOrderId, kotNumber]
+          [order.id, kotNumber]
         );
+        await txClient.query("RELEASE SAVEPOINT sp_kot");
       } catch (kotErr: any) {
+        await txClient.query("ROLLBACK TO SAVEPOINT sp_kot").catch(() => {});
         // Table may not exist in minimal test db; ignore gracefully
       }
 
-      // 8. Financial Accounting Double-Entry Voucher
+      // 8. Financial Accounting Double-Entry Voucher (protected by SAVEPOINT)
       // Debit: Account 1020 (Razorpay Clearing Account)
       // Credit: Customer Advances (Account 2141) / Receivable (1121)
       try {
+        await txClient.query("SAVEPOINT sp_accounting");
         const clearingVoucherId = `vch_pay_${Date.now()}_${crypto.randomBytes(3).toString("hex")}`;
         const voucherNo = `RV-RZP-${Date.now().toString().slice(-6)}`;
         const clearingJournalId = `je_pay_${Date.now()}_${crypto.randomBytes(3).toString("hex")}`;
@@ -478,8 +488,8 @@ export class RazorpayPaymentService {
             today,
             branchId,
             grandTotal,
-            resolvedOrderId,
-            `Razorpay payment captured (${razorpay_payment_id}) for order ${resolvedOrderId}`
+            order.id,
+            `Razorpay payment captured (${razorpay_payment_id}) for order ${order.id}`
           ]
         );
 
@@ -498,7 +508,7 @@ export class RazorpayPaymentService {
             today,
             branchId,
             grandTotal,
-            `Customer payment receipt in Razorpay Clearing (1020) for order ${resolvedOrderId}`
+            `Customer payment receipt in Razorpay Clearing (1020) for order ${order.id}`
           ]
         );
 
@@ -521,17 +531,19 @@ export class RazorpayPaymentService {
               grandTotal,
               branchId,
               `Debit 1020 Razorpay Clearing Account (${razorpay_payment_id})`,
-              `Credit 2141 Customer Advances for order ${resolvedOrderId}`
+              `Credit 2141 Customer Advances for order ${order.id}`
             ]
           );
         }
+        await txClient.query("RELEASE SAVEPOINT sp_accounting");
       } catch (accErr: any) {
+        await txClient.query("ROLLBACK TO SAVEPOINT sp_accounting").catch(() => {});
         console.warn("[Razorpay] Accounting voucher entry notice:", accErr.message);
       }
 
       return {
         success: true,
-        order_id: resolvedOrderId,
+        order_id: order.id,
         payment_id: razorpay_payment_id,
         status: "paid",
         message: "Payment successfully verified and order confirmed."
@@ -545,6 +557,7 @@ export class RazorpayPaymentService {
   public static async processWebhook(params: {
     rawBody: string;
     signature: string;
+    eventId?: string;
   }): Promise<RazorpayWebhookResult> {
     const { rawBody, signature } = params;
 
@@ -593,9 +606,9 @@ export class RazorpayPaymentService {
       };
     }
 
-    const eventId = payload.event_id || payload.id || `wh_${Date.now()}`;
-    const eventType = payload.event || "unknown";
     const payloadHash = crypto.createHash("sha256").update(rawBody).digest("hex");
+    const eventId = params.eventId || payload.event_id || payload.id || `wh_${payloadHash.slice(0, 24)}`;
+    const eventType = payload.event || "unknown";
 
     // Idempotency check in payment_webhook_log
     const existing = await dbQuery(

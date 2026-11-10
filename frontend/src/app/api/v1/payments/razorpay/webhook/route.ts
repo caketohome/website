@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   try {
     const signature = req.headers.get("x-razorpay-signature") || "";
+    const eventIdHeader = req.headers.get("x-razorpay-event-id") || undefined;
     const rawBody = await req.text();
 
     if (!signature || !rawBody) {
@@ -25,7 +26,8 @@ export async function POST(req: NextRequest) {
 
     const result = await RazorpayPaymentService.processWebhook({
       rawBody,
-      signature
+      signature,
+      eventId: eventIdHeader
     });
 
     return NextResponse.json(result, { status: result.statusCode || 200 });

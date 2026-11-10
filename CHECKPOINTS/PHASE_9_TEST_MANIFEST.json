@@ -1,25 +1,36 @@
 {
   "schema_version": "1.0.0",
   "phase": "Phase 9 — CMS, Legal Policies & Razorpay Gateway Migration",
-  "generated_at": "2026-11-10T13:01:55.541Z",
+  "generated_at": "2026-11-10T16:19:37.175Z",
   "test_suites": [
     {
-      "suite_id": "SUITE_P9_RAZORPAY_BACKEND",
-      "file": "scratch/test_stage2_razorpay_backend.cjs",
-      "total_tests": 9,
-      "passed": 9,
+      "suite_id": "SUITE_P9_EXHAUSTIVE_MATRIX",
+      "file": "scratch/test_phase9_exhaustive_matrix.cjs",
+      "total_tests": 20,
+      "passed": 20,
       "failed": 0,
       "status": "PASSED",
       "tests": [
-        "Razorpay Order Creation (POST /api/v1/payments/razorpay/order) -> 200 OK",
-        "Razorpay Status Polling (GET /api/v1/payments/razorpay/status/:id) -> 200 OK",
-        "HMAC-SHA256 Constant-Time Verification (POST /api/v1/payments/razorpay/verify) -> 200 OK",
-        "Database Order Confirmation Invariant -> status=\"confirmed\", payment_status=\"paid\"",
-        "Admin Diagnostic Non-Mutating Connection Probe -> 200 OK, zero secret leaks",
-        "Admin Config Save (AES-256-GCM Envelope v1$iv$authTag$cipher) -> 200 OK",
-        "Admin Config Read -> 200 OK with masked secrets",
-        "Admin Controlled Refund with Reason Code & Double-Entry Reversal -> 200 OK",
-        "Cashfree Decommissioning Guard -> HTTP 410 CASHFREE_DECOMMISSIONED"
+        "Razorpay Order Creation via internal order_id -> 200 OK",
+        "Razorpay Order Creation resolves human-readable order_number -> 200 OK (zero ORDER_NOT_FOUND)",
+        "Nonexistent order ID returns 404 ORDER_NOT_FOUND safely without crash",
+        "Cancelled order cannot initiate payment session (CANNOT_PAY_CANCELLED_ORDER)",
+        "Status polling returns pending status and total amount 699.00",
+        "Invalid/forged signature is rejected with HTTP 400 INVALID_SIGNATURE",
+        "Authentic HMAC-SHA256 signature confirms payment with status \"paid\"",
+        "Database order record transitioned to status=\"confirmed\", payment_status=\"paid\", payment_method=\"RAZORPAY\"",
+        "Duplicate payment verification is idempotent (returns already_processed, idempotent=true)",
+        "Signed Razorpay webhook processes with HTTP 200 OK",
+        "Duplicate webhook delivery is deduplicated (returns ignored_duplicate)",
+        "Diagnostic test connection probe executes non-mutating basic auth without secret leakage",
+        "Gate E blocker strictly returns HTTP 403 LIVE_PAYMENT_ACTIVATION_BLOCKED when live mode is attempted",
+        "Admin config save in TEST mode succeeds with AES-256-GCM envelope encryption",
+        "Admin config read masks key_secret and webhook_secret (has_key_secret: true, plaintext absent)",
+        "Admin refund processes successfully with status=\"processed\"",
+        "Order payment status in PostgreSQL transitioned to \"refunded\"",
+        "Cashfree create-order endpoint permanently returns HTTP 410 CASHFREE_DECOMMISSIONED",
+        "Double-entry general ledger equilibrium verified: Sum(Dr) = Sum(Cr), Net Diff = 0.00",
+        "Cashfree historical transaction rows preserved immutable in cth_rehearsal_phase5 (exactly 35 rows)"
       ]
     },
     {
@@ -61,8 +72,8 @@
   ],
   "summary": {
     "total_suites": 3,
-    "total_assertions": 37,
-    "passed_assertions": 37,
+    "total_assertions": 48,
+    "passed_assertions": 48,
     "failed_assertions": 0,
     "overall_status": "100% PASSED"
   }

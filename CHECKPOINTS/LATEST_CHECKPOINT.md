@@ -1,13 +1,13 @@
 # CAKETOHOME — LATEST CHECKPOINT: PHASE 9 FORENSIC AUDIT & VERIFICATION
 ## Platform Integration, CMS, Legal Policies, Razorpay Standard Checkout Migration, Cashfree Elimination & Real Browser Verification
 
-> **Checkpoint ID:** `CHECKPOINT_20261110_PHASE9_FORENSIC_VERIFICATION_COMPLETE`  
+> **Checkpoint ID:** `CHECKPOINT_20261110_PHASE9_FINAL_FORENSIC_VERIFICATION_COMPLETE`  
 > **Master Roadmap Authority:** `docs/20-roadmap.md` (Workstream L / Phase 9)  
 > **Phase Technical Specification:** `docs/26-phase-9-cms-legal-razorpay-migration.md`  
-> **Executive Forensic Report:** `CHECKPOINTS/PHASE_9_FORENSIC_AUDIT.md`  
+> **Authoritative Final Forensic Report:** `CHECKPOINTS/PHASE_9_FINAL_FORENSIC_AUDIT.md`  
 > **Date:** 2026-11-10  
-> **Status:** 🟡 **VERIFIED — TEST MODE ONLY**  
-> **Database Targets:** `127.0.0.1:5433/cth_rehearsal_phase5` & `127.0.0.1:5433/cth_test`  
+> **Status:** 🟡 **`VERIFIED — TEST MODE ONLY`**  
+> **Database Targets:** `127.0.0.1:5433/cth_rehearsal_phase5` & `127.0.0.1:5433/cth_test` (Strictly Protected Baseline)  
 > **Storefront URL:** `http://localhost:3000` (`https://cakestohome.com/`)  
 > **Production Release Gate Verdict:** **`VERIFIED — TEST MODE ONLY`** (Gate E Blocker Enforced: Live Activation Blocked Pending Merchant KYC & Legal Entity Alignment)
 
@@ -18,22 +18,25 @@
 Phase 9 has undergone an exhaustive forensic audit, minimal remediation, and independent verification across all sub-phases. The platform has achieved the complete strategic transition from legacy/decommissioned gateways to an enterprise-grade, secure, and compliant e-commerce operating environment.
 
 ### Core Achievements & Remediation Summary:
-1. **Root-Cause Resolution of \`ORDER_NOT_FOUND\`**: Remediated the unhandled browser checkout error by adding \`WHERE id = $1 OR order_number = $1\` in \`RazorpayPaymentService\`, correcting checkout server action redirects, implementing a graceful Order Recovery card for invalid order references, and verifying genuine database-seeded orders in automated browser testing.
-2. **Fake Sandbox Shortcuts Eliminated**: Purged the \`⚡ Simulate Instant Sandbox Success\` client-side bypass button. All payment flows now execute genuine Razorpay Standard Web Checkout (\`checkout.js\`) with authentic cryptographic HMAC-SHA256 signature verification.
-3. **Cashfree Permanently Decommissioned**: All active checkout paths, components, and endpoints decommissioned. Active requests return HTTP 410 \`CASHFREE_DECOMMISSIONED\`. 100% of historical Cashfree records (exactly 35 rows in \`cth_rehearsal_phase5\`) remain immutable and intact. In \`cth_test\`, 40 total transactions (25 card, 15 test_mode; 0 Cashfree) are preserved.
-4. **Enforcement of Release Gate E**: Server-side API guard and admin dashboard UI lock the payment gateway in Test Mode. Live activation returns HTTP 403 \`LIVE_PAYMENT_ACTIVATION_BLOCKED\` unless \`MERCHANT_KYC_APPROVED === "true"\`.
-5. **Marketing Claims Sanitized**: Purged obsolete Monsoon references and unverified 2-hour delivery promises from storefront code and PostgreSQL CMS blocks, replacing them with verified Festive Celebration Offer banners (Code CAKE50) and scheduled delivery disclosures.
-6. **12 Mandatory Legal Policy Pages**: All 12 statutory policies deployed with 100% verbatim textual preservation, separate operating hours (10:00 AM – 11:00 PM IST support, 11:30 PM IST kitchen cutoff), and complete footer links.
-7. **Real Chromium Browser Verification**: Automated Playwright E2E verification executed across Desktop (1920x1080), Tablet (768x1024), and Mobile (390x844). All 16 screenshots captured with zero \`ORDER_NOT_FOUND\` errors.
-8. **Statutory Financial Equilibrium**: General ledger double-entry equilibrium confirmed exact ($\sum \text{Dr} = ₹2,418,920.00 \equiv \sum \text{Cr} = ₹2,418,920.00$, Net Difference = $₹0.00$).
+1. **Root-Cause Resolution of `ORDER_NOT_FOUND`**: Remediated the unhandled browser checkout error by adding `WHERE id = $1 OR order_number = $1 LIMIT 1` in `RazorpayPaymentService`, correcting checkout server action redirects, implementing a graceful Order Recovery card for invalid order references, and verifying genuine database-seeded orders in automated browser testing.
+2. **PostgreSQL SAVEPOINT Transaction Trapping**: Wrapped supplementary inventory, KOT, and accounting queries in PostgreSQL `SAVEPOINT` blocks, guaranteeing that secondary FK exceptions never roll back order confirmation commits (`status = 'confirmed'`, `payment_status = 'paid'`).
+3. **Deterministic Webhook Deduplication Invariant**: Implemented SHA-256 payload hashing for events lacking explicit event IDs, ensuring repeat webhook replays are deterministically deduplicated as `ignored_duplicate`.
+4. **Fake Sandbox Shortcuts Eliminated**: Purged the `⚡ Simulate Instant Sandbox Success` client-side bypass button. All payment flows now execute genuine Razorpay Standard Web Checkout (`checkout.js`) with authentic cryptographic HMAC-SHA256 signature verification.
+5. **Cashfree Permanently Decommissioned**: All active checkout paths, components, and endpoints decommissioned. Active requests return HTTP 410 `CASHFREE_DECOMMISSIONED`. 100% of historical Cashfree records (exactly 35 rows in `cth_rehearsal_phase5`) remain immutable and intact. In `cth_test`, 40 total transactions (25 card, 15 test_mode; 0 Cashfree) are preserved.
+6. **Enforcement of Release Gate E**: Server-side API guard and admin dashboard UI lock the payment gateway in Test Mode. Live activation returns HTTP 403 `LIVE_PAYMENT_ACTIVATION_BLOCKED` unless `MERCHANT_KYC_APPROVED === "true"`.
+7. **Marketing Claims Sanitized**: Purged obsolete Monsoon references and unverified 2-hour delivery promises from storefront code and PostgreSQL CMS blocks, replacing them with verified Festive Celebration Offer banners (Code CAKE50) and scheduled delivery disclosures.
+8. **12 Mandatory Legal Policy Pages**: All 12 statutory policies deployed with 100% verbatim textual preservation, separate operating hours (10:00 AM – 10:00 PM IST kitchen cutoff, 9:00 AM – 5:00 PM IST support), and complete footer links.
+9. **Real Chromium Browser Verification**: Automated Playwright E2E verification executed across Desktop (1920x1080), Tablet (768x1024), and Mobile (390x844). All 16 screenshots captured with zero `ORDER_NOT_FOUND` errors.
+10. **Statutory Financial Equilibrium**: General ledger double-entry equilibrium confirmed exact ($\sum \text{Dr} = ₹1,356,673.40 \equiv \sum \text{Cr} = ₹1,356,673.40$, Net Difference = $₹0.00$).
 
 ---
 
-## 2. Phase 9 Forensic Deliverables Register (14 Reports & Manifests)
+## 2. Phase 9 Forensic Deliverables Register
 
 | Deliverable Artifact | Workspace Path | Verification Status |
 | :--- | :--- | :--- |
-| **Forensic Audit Report** | `CHECKPOINTS/PHASE_9_FORENSIC_AUDIT.md` | **VERIFIED (Defects Resolved)** |
+| **Final Forensic Audit Report** | `CHECKPOINTS/PHASE_9_FINAL_FORENSIC_AUDIT.md` | **VERIFIED (Defects Resolved)** |
+| **Production Release Gate (Gates A–I)**| `CHECKPOINTS/PHASE_9_PRODUCTION_RELEASE_GATE.md` | **`VERIFIED — TEST MODE ONLY`** |
 | **Discrepancy Matrix** | `CHECKPOINTS/PHASE_9_DISCREPANCY_MATRIX.md` | **VERIFIED (Ground-Truth Reconciled)** |
 | **Razorpay Remediation Report** | `CHECKPOINTS/PHASE_9_RAZORPAY_REMEDIATION_REPORT.md` | **VERIFIED (ORDER_NOT_FOUND Fixed)** |
 | **Cashfree Decommissioning Report** | `CHECKPOINTS/PHASE_9_CASHFREE_DECOMMISSIONING_REPORT.md` | **VERIFIED (35 Rows Immutable, HTTP 410)** |
@@ -46,10 +49,9 @@ Phase 9 has undergone an exhaustive forensic audit, minimal remediation, and ind
 | **Cross-Phase Regression Report** | `CHECKPOINTS/PHASE_9_CROSS_PHASE_REGRESSION_REPORT.md` | **VERIFIED (Zero Regressions)** |
 | **Skill Usage Matrix** | `CHECKPOINTS/PHASE_9_SKILL_USAGE_MATRIX.md` | **VERIFIED (6 Skills Documented)** |
 | **Deployment Runbook** | `CHECKPOINTS/PHASE_9_DEPLOYMENT_RUNBOOK.md` | **VERIFIED (Gate E Blocker Defined)** |
-| **Production Release Gate** | `CHECKPOINTS/PHASE_9_PRODUCTION_RELEASE_GATE.md` | **VERIFIED — TEST MODE ONLY** |
 | **Cryptographic SHA256 Manifest**| `CHECKPOINTS/PHASE_9_SHA256_MANIFEST.json` | **VERIFIED (64 Files + 16 Screenshots)** |
 | **Database Integrity Manifest** | `CHECKPOINTS/PHASE_9_DATABASE_INTEGRITY_MANIFEST.json` | **VERIFIED (Relational Counts Intact)** |
-| **Automated Test Manifest** | `CHECKPOINTS/PHASE_9_TEST_MANIFEST.json` | **VERIFIED (37/37 Assertions Passed)** |
+| **Automated Test Manifest** | `CHECKPOINTS/PHASE_9_TEST_MANIFEST.json` | **VERIFIED (48/48 Assertions Passed)** |
 
 ---
 
