@@ -1,13 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RazorpayPaymentService, RazorpayRefundReasonCode } from "@/lib/services/razorpay-payment.service";
+import { resolveServerSession } from "@/lib/security/auth-session";
 
 export const dynamic = "force-dynamic";
+
+function requireAdmin(req: NextRequest): NextResponse | null {
+  const session = resolveServerSession(req);
+  if (!session || !session.userId) {
+    return NextResponse.json(
+      { success: false, error: "UNAUTHORIZED", message: "Admin authentication required." },
+      { status: 401 }
+    );
+  }
+  if (session.role !== "SUPER_ADMIN" && session.role !== "ADMIN") {
+    return NextResponse.json(
+      { success: false, error: "FORBIDDEN", message: "Admin privileges required." },
+      { status: 403 }
+    );
+  }
+  return null;
+}
 
 /**
  * POST /api/v1/admin/payments/razorpay/refund
  * Admin Initiated Controlled Refund with Reason Code & Accounting Reversal
  */
 export async function POST(req: NextRequest) {
+  const authErr = requireAdmin(req);
+  if (authErr) return authErr;
+
   try {
     const body = await req.json();
     const { order_id, amount, reason_code, reason_explanation, requested_by, approved_by, idempotency_key } = body;

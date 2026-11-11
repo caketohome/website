@@ -153,8 +153,11 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
     }
 
     const canonicalOrderNumber = o.order_number || o.id || `CTH-ORD-${idx + 1}`;
-    const pickupOtp = typeof o.delivery?.pickup_otp === "string" && o.delivery.pickup_otp !== "Not generated" ? o.delivery.pickup_otp : (typeof o.pickup_otp === "string" && o.pickup_otp !== "Not generated" ? o.pickup_otp : "1294");
-    const deliveryOtp = typeof o.delivery?.delivery_otp === "string" && o.delivery.delivery_otp !== "Not generated" ? o.delivery.delivery_otp : (typeof o.delivery_otp === "string" && o.delivery_otp !== "Not generated" ? o.delivery_otp : "4819");
+    const pickupOtp = typeof o.delivery?.pickup_otp === "string" && o.delivery.pickup_otp !== "Not generated" ? o.delivery.pickup_otp : (typeof o.pickup_otp === "string" && o.pickup_otp !== "Not generated" ? o.pickup_otp : "");
+    const deliveryOtp = typeof o.delivery?.delivery_otp === "string" && o.delivery.delivery_otp !== "Not generated" ? o.delivery.delivery_otp : (typeof o.delivery_otp === "string" && o.delivery_otp !== "Not generated" ? o.delivery_otp : "");
+
+    // Strict Privacy Rule: Driver must NEVER receive the customer delivery OTP
+    const driverSafeDeliveryOtp = targetPartnerId ? undefined : (deliveryOtp || undefined);
 
     return {
       id: o.id || canonicalOrderNumber,
@@ -174,15 +177,23 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
       recipient_landmark: typeof o.landmark === "string" ? o.landmark : (o.recipient_landmark || ""),
       delivery_instructions: typeof o.delivery_instructions === "string" ? o.delivery_instructions : "",
       gift_message: typeof o.gift_message === "string" ? o.gift_message : (o.custom_message || ""),
-      delivery_otp: deliveryOtp,
+      delivery_otp: driverSafeDeliveryOtp,
       pickup_otp: pickupOtp,
+      delivery_otp_required: Boolean(deliveryOtp),
       delivery_latitude: typeof o.delivery_latitude === "number" ? o.delivery_latitude : (typeof o.latitude === "number" ? o.latitude : null),
       delivery_longitude: typeof o.delivery_longitude === "number" ? o.delivery_longitude : (typeof o.longitude === "number" ? o.longitude : null),
-      delivery: o.delivery || {
+      delivery: o.delivery ? {
+        ...o.delivery,
+        partner_id: o.delivery_partner_id || o.delivery?.partner_id || null,
+        partner_name: o.driver_name || o.delivery?.partner_name || null,
+        pickup_otp: pickupOtp,
+        delivery_otp: driverSafeDeliveryOtp,
+        status: status,
+      } : {
         partner_id: o.delivery_partner_id || null,
         partner_name: o.driver_name || null,
         pickup_otp: pickupOtp,
-        delivery_otp: deliveryOtp,
+        delivery_otp: driverSafeDeliveryOtp,
         status: status,
       },
       order: {
@@ -240,8 +251,8 @@ export async function retrieveDelivery(deliveryId: string): Promise<DeliveryDTO>
     recipient_phone: "",
     recipient_address: "Bakery Dispatch Hub",
     recipient_pincode: "560038",
-    delivery_otp: "4819",
-    pickup_otp: "1294",
+    delivery_otp: undefined,
+    pickup_otp: undefined,
     order: {
       id: deliveryId,
       display_number: deliveryId,

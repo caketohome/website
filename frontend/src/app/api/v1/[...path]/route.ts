@@ -87,7 +87,7 @@ import { TaxResolverService, TaxResolutionError } from "@frontend/lib/services/t
 import { CorporateAccountController } from "@frontend/lib/controllers/corporate-account.controller";
 import { DeliveryCoverageController } from "@frontend/lib/controllers/delivery-coverage.controller";
 import { CorporateRoutingController } from "@frontend/lib/controllers/corporate-routing.controller";
-import { SharedInventoryService } from "@frontend/lib/services/shared-inventory.service";
+// M3 Decommissioned: SharedInventoryService removed in favor of independent store inventory
 import { FeatureFlagService } from "@frontend/lib/services/feature-flag.service";
 import { OperationalClosureService } from "@frontend/lib/services/operational-closure.service";
 import { MarketplacePartnerService } from "@frontend/lib/services/marketplace-partner.service";
@@ -6276,16 +6276,9 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         return NextResponse.json({ error: err.message }, { status: 500 });
       }
     }
-    // ── Shared Cake & Bouquet Inventory (GET) ──
-    if (path === "inventory/shared") {
-      const filters = Object.fromEntries(url.searchParams);
-      const items = await SharedInventoryService.listSharedInventory(filters);
-      return jsonWithDataSource({ items, success: true }, "postgres");
-    }
-    if (path.startsWith("inventory/shared/") && !path.includes("/reserve") && !path.includes("/release")) {
-      const prodId = path.replace("inventory/shared/", "");
-      const available = await SharedInventoryService.getAvailableStock(prodId, url.searchParams.get("variant_id") || undefined);
-      return jsonWithDataSource({ product_id: prodId, available, success: true }, "postgres");
+    // ── Decommissioned Shared Cake & Bouquet Inventory (GET - HTTP 410) ──
+    if (path.startsWith("inventory/shared")) {
+      return jsonWithDataSource({ error: "SHARED_INVENTORY_DECOMMISSIONED", message: "Cross-store shared inventory has been decommissioned in favor of independent store inventory.", success: false }, "postgres", 410);
     }
 
     // ── Configurable Feature Toggles (GET) ──
@@ -6635,6 +6628,123 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     if (path.startsWith("admin/corporate-routing") || path.startsWith("corporate-routing")) {
       const userCtx = resolveUserContext(req);
       return CorporateRoutingController.handlePost(req, path, userCtx, body);
+    }
+
+    // ── Milestone M5: Delivery OTP Verification Subsystem POST Endpoints ───────
+    if (path === "delivery/verify-otp" || (path.startsWith("delivery-partner/jobs/") && path.endsWith("/delivery-otp/verify"))) {
+      const targetOrderId = body.order_id || body.orderId || path.split("/")[2];
+      const inputOtp = String(body.otp || body.delivery_otp || "").trim();
+      const partnerId = body.partner_id || body.partnerId || "dlp_auto";
+
+      if (!targetOrderId || !inputOtp) {
+        return jsonWithDataSource(
+          { success: false, error: "BAD_REQUEST", message: "Missing order_id or OTP code." },
+          "postgres",
+          400
+        );
+      }
+
+      // Check PostgreSQL & ApiEngine for authoritative order
+      const orderRes = await dbQuery(
+        `SELECT id, order_number, status, metadata FROM "order" WHERE (id = $1 OR order_number = $1) AND deleted_at IS NULL LIMIT 1`,
+        [targetOrderId]
+      );
+
+      const memOrder = ApiEngine.getOrder(targetOrderId);
+      if (orderRes.rows.length === 0 && !memOrder) {
+        return jsonWithDataSource(
+          { success: false, error: "NOT_FOUND", message: `Order '${targetOrderId}' not found.` },
+          "postgres",
+          404
+        );
+      }
+
+      const dbOrder = orderRes.rows[0];
+      const currentStatus = (dbOrder?.status || memOrder?.status || "").toLowerCase();
+      if (currentStatus === "delivered") {
+        return jsonWithDataSource(
+          { success: true, already_verified: true, message: "Order is already marked delivered.", status: "delivered" },
+          "postgres",
+          200
+        );
+      }
+
+      const meta = dbOrder?.metadata || memOrder?.metadata || {};
+      const expectedOtp = String(meta.delivery_otp || memOrder?.delivery_otp || memOrder?.delivery?.delivery_otp || "").trim();
+
+      if (!expectedOtp) {
+        return jsonWithDataSource(
+          { success: false, error: "NO_ACTIVE_OTP", message: "No active delivery OTP found for this order." },
+          "postgres",
+          400
+        );
+      }
+
+      const attempts = Number(meta.delivery_otp_attempts || memOrder?.delivery_otp_attempts || 0);
+      if (attempts >= 3) {
+        return jsonWithDataSource(
+          { success: false, error: "OTP_MAX_ATTEMPTS_EXCEEDED", message: "Maximum verification attempts (3) exceeded. Delivery verification locked. Contact customer support." },
+          "postgres",
+          429
+        );
+      }
+
+      if (inputOtp !== expectedOtp) {
+        const nextAttempts = attempts + 1;
+        if (dbOrder) {
+          await dbQuery(
+            `UPDATE "order" SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{delivery_otp_attempts}', to_jsonb($2::int)), updated_at = NOW() WHERE id = $1`,
+            [dbOrder.id, nextAttempts]
+          );
+        }
+        if (memOrder) {
+          memOrder.delivery_otp_attempts = nextAttempts;
+        }
+        const remaining = Math.max(0, 3 - nextAttempts);
+        return jsonWithDataSource(
+          { success: false, error: "INVALID_OTP", message: `Invalid customer delivery OTP. ${remaining} attempt${remaining !== 1 ? "s" : ""} remaining.`, remaining_attempts: remaining },
+          "postgres",
+          400
+        );
+      }
+
+      // Valid OTP: Transition to DELIVERED atomically in PostgreSQL & Memory
+      const now = new Date().toISOString();
+      if (dbOrder) {
+        await dbQuery(
+          `UPDATE "order"
+           SET status = 'delivered',
+               delivered_at = NOW(),
+               updated_at = NOW(),
+               metadata = jsonb_set(
+                 jsonb_set(
+                   jsonb_set(COALESCE(metadata, '{}'::jsonb), '{delivery_status}', '"delivered"'),
+                   '{delivery_otp_verified_at}', to_jsonb(NOW()::text)
+                 ),
+                 '{delivery_otp_attempts}', '0'::jsonb
+               )
+           WHERE id = $1`,
+          [dbOrder.id]
+        );
+      }
+
+      try {
+        await ApiEngine.verifyCustomerOtpBackend(targetOrderId, inputOtp, partnerId);
+      } catch (memErr: any) {
+        console.warn("[Delivery OTP API] ApiEngine warning:", memErr.message);
+      }
+
+      return jsonWithDataSource(
+        {
+          success: true,
+          status: "delivered",
+          delivery_status: "delivered",
+          message: "Customer delivery OTP verified successfully. Order delivered.",
+          verified_at: now,
+        },
+        "postgres",
+        200
+      );
     }
 
     // ── Phase C6.3: Manual Journal Subsystem POST Endpoints ──────────────────
@@ -9776,12 +9886,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
         const ord = orderRes.order;
 
-        // ── Confirm Shared Inventory Reservation ──
-        try {
-          await SharedInventoryService.confirmOrderReservation(ord.id);
-        } catch (e: any) {
-          console.warn("Shared inventory confirmation note:", e.message);
-        }
+        // M3: Shared inventory reservation hook removed
 
         // ── Capture Commercial Agreement Snapshot for Marketplace Orders ──
         if (body.partner_id) {
@@ -10796,47 +10901,9 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource({ document: ApiEngine.createComplianceDocument(body), success: true }, "postgres", 201);
     }
 
-    // ── Shared Cake & Bouquet Inventory (POST) ──
-    if (path === "inventory/shared/reserve") {
-      const userCtx = resolveUserContext(req);
-      const res = await SharedInventoryService.reserveStock({
-        productId: body.product_id || body.productId,
-        variantId: body.variant_id || body.variantId,
-        quantity: Number(body.quantity || 1),
-        entityType: (body.entity_type || body.entityType || "BRANCH").toUpperCase() as "BRANCH" | "PARTNER",
-        entityId: body.entity_id || body.entityId || "default",
-        orderId: body.order_id || body.orderId,
-        cartId: body.cart_id || body.cartId,
-        ttlMinutes: body.ttl_minutes || body.ttlMinutes || 15,
-        actorId: userCtx.userId || "guest",
-        actorRole: userCtx.role || "CUSTOMER",
-      });
-      return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
-    }
-    if (path === "inventory/shared/release") {
-      const userCtx = resolveUserContext(req);
-      const res = await SharedInventoryService.releaseReservation(
-        body.ref_id || body.refId || body.order_id || body.cart_id,
-        body.reason || "Released via API",
-        userCtx.userId || "system",
-        userCtx.role || "OPERATIONS"
-      );
-      return jsonWithDataSource(res, "postgres");
-    }
-    if (path === "inventory/shared/adjust") {
-      const userCtx = resolveUserContext(req);
-      if (userCtx.role !== "SUPER_ADMIN" && userCtx.role !== "ADMIN") {
-        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED: Only admins can adjust stock." }, "postgres", 403);
-      }
-      const res = await SharedInventoryService.adjustStock({
-        productId: body.product_id || body.productId,
-        variantId: body.variant_id || body.variantId,
-        quantityDelta: Number(body.quantity_delta || body.quantityDelta || 0),
-        reason: body.reason || "Inventory Adjustment",
-        actorId: userCtx.userId,
-        actorRole: userCtx.role,
-      });
-      return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
+    // ── Decommissioned Shared Cake & Bouquet Inventory (POST - HTTP 410) ──
+    if (path.startsWith("inventory/shared")) {
+      return jsonWithDataSource({ error: "SHARED_INVENTORY_DECOMMISSIONED", message: "Cross-store shared inventory has been decommissioned in favor of independent store inventory.", success: false }, "postgres", 410);
     }
 
     // ── Branch & Partner Operational Closures (POST) ──

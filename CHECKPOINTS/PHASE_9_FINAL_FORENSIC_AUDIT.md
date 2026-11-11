@@ -4,8 +4,8 @@
 - **Platform:** CakeToHome E-Commerce Platform
 - **Live Production URL:** `https://cakestohome.com/` (Local Test Runtime: `http://localhost:3000`)
 - **Audit Target Databases:**
-  - `postgresql://cth_test_user:cth_test_password@127.0.0.1:5433/cth_rehearsal_phase5` (Primary Operational Rehearsal Target)
-  - `postgresql://cth_test_user:cth_test_password@127.0.0.1:5433/cth_test` (Strictly Protected Read-Only Historical Baseline)
+  - `postgresql://cth_test_user:••••••••••••@127.0.0.1:5433/cth_rehearsal_phase5` (Primary Operational Rehearsal Target)
+  - `postgresql://cth_test_user:••••••••••••@127.0.0.1:5433/cth_test` (Strictly Protected Read-Only Historical Baseline)
 - **Master Roadmap Authority:** `docs/20-roadmap.md` (Workstream L / Phase 9)
 - **Phase Technical Specification:** `docs/26-phase-9-cms-legal-razorpay-migration.md`
 - **Audit Execution Date:** 2026-11-10
@@ -216,3 +216,4 @@ artifacts/phase-9-browser-verification/
 $$\mathbf{VERIFIED\;—\;TEST\;MODE\;ONLY}$$
 
 *Live production payment activation remains strictly blocked on server and UI until CakeToHome corporate management resolves the legal entity mismatch and completes Razorpay merchant KYC verification.*
+

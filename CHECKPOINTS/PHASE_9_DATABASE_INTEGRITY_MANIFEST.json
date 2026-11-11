@@ -2,29 +2,29 @@
   "schema_version": "1.0.0",
   "phase": "Phase 9 — CMS, Legal Policies & Razorpay Gateway Migration",
   "database": "cth_rehearsal_phase5",
-  "generated_at": "2026-11-10T16:19:37.174Z",
+  "generated_at": "2026-11-11T04:27:33.318Z",
   "table_counts": {
-    "order": 204,
+    "order": 207,
     "invoice": 78,
-    "payment_transaction": 125,
+    "payment_transaction": 127,
     "payment_gateway_config": 1,
-    "payment_refund": 5,
-    "payment_webhook_log": 4,
+    "payment_refund": 6,
+    "payment_webhook_log": 5,
     "cms_page": 27,
     "cms_revision": 13,
     "accounting_account": 109,
-    "accounting_voucher": 56,
-    "accounting_journal_entry": 49,
-    "accounting_journal_line": 107
+    "accounting_voucher": 58,
+    "accounting_journal_entry": 51,
+    "accounting_journal_line": 111
   },
   "financial_integrity": {
-    "total_debit": "1356673.40",
-    "total_credit": "1356673.40",
+    "total_debit": "1358071.40",
+    "total_credit": "1358071.40",
     "net_difference": "0.00",
     "equilibrium_verified": true
   },
   "payment_preservation": {
     "historical_cashfree_rows_preserved": 35,
-    "razorpay_transactions_created": 44
+    "razorpay_transactions_created": 46
   }
 }

@@ -1063,20 +1063,44 @@ export class OrderLifecycleService {
       };
     }
 
-    // OTP Validation
-    const rawExpectedOtp = order.delivery?.delivery_otp || order.delivery_otp;
-    const expectedOtp = typeof rawExpectedOtp === "string" && rawExpectedOtp.trim() ? rawExpectedOtp.trim() : "4819";
-    const cleanedInput = typeof otpInput === "string" ? otpInput.trim() : String(otpInput || "").trim();
-    const validOtps = [order.delivery?.delivery_otp, order.delivery_otp, expectedOtp].filter(Boolean);
+    // OTP Validation with strict 3-attempt limit & zero fallback shortcuts
+    const rawExpectedOtp = order.delivery?.delivery_otp || order.delivery_otp || order.metadata?.delivery_otp;
+    const expectedOtp = typeof rawExpectedOtp === "string" && rawExpectedOtp.trim() ? rawExpectedOtp.trim() : null;
 
-    if (!cleanedInput || !validOtps.includes(cleanedInput)) {
-      engine.addAuditLog?.(`Failed Customer Delivery OTP attempt for Order ${order.order_number || order.id} by Partner ${partner.full_name || partner.name}`);
+    if (!expectedOtp) {
       return {
         success: false,
         statusCode: 400,
-        error: "Invalid customer delivery OTP.",
+        error: "NO_ACTIVE_OTP",
+        message: "No active delivery OTP found for this order. Request customer to refresh tracking page.",
       };
     }
+
+    if ((order.delivery_otp_attempts || 0) >= 3) {
+      return {
+        success: false,
+        statusCode: 429,
+        error: "OTP_MAX_ATTEMPTS_EXCEEDED",
+        message: "Maximum verification attempts (3) exceeded. Order delivery verification locked. Contact support.",
+      };
+    }
+
+    const cleanedInput = typeof otpInput === "string" ? otpInput.trim() : String(otpInput || "").trim();
+
+    if (!cleanedInput || cleanedInput !== expectedOtp) {
+      order.delivery_otp_attempts = (order.delivery_otp_attempts || 0) + 1;
+      const remaining = Math.max(0, 3 - order.delivery_otp_attempts);
+      engine.addAuditLog?.(`Failed Customer Delivery OTP attempt (${order.delivery_otp_attempts}/3) for Order ${order.order_number || order.id} by Partner ${partner.full_name || partner.name}`);
+      return {
+        success: false,
+        statusCode: 400,
+        error: "INVALID_OTP",
+        message: `Invalid customer delivery OTP. ${remaining} attempt${remaining !== 1 ? "s" : ""} remaining.`,
+      };
+    }
+
+    // Success — reset attempts
+    order.delivery_otp_attempts = 0;
 
     const now = new Date().toISOString();
     order.status = "delivered";
@@ -1194,20 +1218,44 @@ export class OrderLifecycleService {
       };
     }
 
-    // OTP Validation
-    const rawExpectedOtp = order.delivery?.delivery_otp || order.delivery_otp;
-    const expectedOtp = typeof rawExpectedOtp === "string" && rawExpectedOtp.trim() ? rawExpectedOtp.trim() : "4819";
-    const cleanedInput = typeof otpInput === "string" ? otpInput.trim() : String(otpInput || "").trim();
-    const validOtps = [order.delivery?.delivery_otp, order.delivery_otp, expectedOtp].filter(Boolean);
+    // OTP Validation with strict 3-attempt limit & zero fallback shortcuts
+    const rawExpectedOtp = order.delivery?.delivery_otp || order.delivery_otp || order.metadata?.delivery_otp;
+    const expectedOtp = typeof rawExpectedOtp === "string" && rawExpectedOtp.trim() ? rawExpectedOtp.trim() : null;
 
-    if (!cleanedInput || !validOtps.includes(cleanedInput)) {
-      engine.addAuditLog?.(`Failed Customer Delivery OTP attempt for Order ${order.order_number || order.id} by Partner ${partner.full_name || partner.name}`);
+    if (!expectedOtp) {
       return {
         success: false,
         statusCode: 400,
-        error: "Invalid customer delivery OTP.",
+        error: "NO_ACTIVE_OTP",
+        message: "No active delivery OTP found for this order. Request customer to refresh tracking page.",
       };
     }
+
+    if ((order.delivery_otp_attempts || 0) >= 3) {
+      return {
+        success: false,
+        statusCode: 429,
+        error: "OTP_MAX_ATTEMPTS_EXCEEDED",
+        message: "Maximum verification attempts (3) exceeded. Order delivery verification locked. Contact support.",
+      };
+    }
+
+    const cleanedInput = typeof otpInput === "string" ? otpInput.trim() : String(otpInput || "").trim();
+
+    if (!cleanedInput || cleanedInput !== expectedOtp) {
+      order.delivery_otp_attempts = (order.delivery_otp_attempts || 0) + 1;
+      const remaining = Math.max(0, 3 - order.delivery_otp_attempts);
+      engine.addAuditLog?.(`Failed Customer Delivery OTP attempt (${order.delivery_otp_attempts}/3) for Order ${order.order_number || order.id} by Partner ${partner.full_name || partner.name}`);
+      return {
+        success: false,
+        statusCode: 400,
+        error: "INVALID_OTP",
+        message: `Invalid customer delivery OTP. ${remaining} attempt${remaining !== 1 ? "s" : ""} remaining.`,
+      };
+    }
+
+    // Success — reset attempts
+    order.delivery_otp_attempts = 0;
 
     const now = new Date().toISOString();
     order.status = "delivered";

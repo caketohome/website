@@ -64,7 +64,6 @@ const NAV_GROUPS: NavGroup[] = [
     icon: Building2,
     items: [
       { id: "branches", label: "Branches", icon: Building2, tabId: "branches" },
-      { id: "shared_inventory", label: "🎂 Shared Inventory", icon: Package, tabId: "shared_inventory" },
       { id: "operational_closures", label: "📅 Holiday Scheduling", icon: Clock, tabId: "operational_closures" },
       { id: "delivery", label: "Delivery", icon: Truck, tabId: "delivery" },
       { id: "fulfillment", label: "Operations & Cutoff", icon: Clock, tabId: "fulfillment" },

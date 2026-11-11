@@ -1,13 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PaymentGatewayConfigService } from "@/lib/services/payment-gateway-config.service";
+import { resolveServerSession } from "@/lib/security/auth-session";
 
 export const dynamic = "force-dynamic";
+
+function requireAdmin(req: NextRequest): NextResponse | null {
+  const session = resolveServerSession(req);
+  if (!session || !session.userId) {
+    return NextResponse.json(
+      { success: false, error: "UNAUTHORIZED", message: "Admin authentication required." },
+      { status: 401 }
+    );
+  }
+  if (session.role !== "SUPER_ADMIN" && session.role !== "ADMIN") {
+    return NextResponse.json(
+      { success: false, error: "FORBIDDEN", message: "Admin privileges required." },
+      { status: 403 }
+    );
+  }
+  return null;
+}
 
 /**
  * POST /api/v1/admin/payments/razorpay/test-connection
  * Hardened Diagnostic Connection Probe (SSRF Prevention, 5s timeout, manual redirect)
  */
 export async function POST(req: NextRequest) {
+  const authErr = requireAdmin(req);
+  if (authErr) return authErr;
+
   try {
     let body: any = {};
     try {

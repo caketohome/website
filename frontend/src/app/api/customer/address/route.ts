@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ApiEngine } from "@frontend/lib/api-engine";
+import { dbQuery } from "@frontend/lib/db";
 import { persistCustomerAddressToDb, deleteCustomerAddressFromDb, persistCustomerToDb } from "@frontend/lib/db-persistence";
 import { resolveVerifiedCustomer } from "@frontend/lib/security/auth-session";
 
@@ -89,6 +90,24 @@ export async function POST(req: NextRequest) {
     const existingAddresses: any[] = customer.addresses || [];
     const newAddressId = body.id || `addr_${Date.now()}`;
 
+    // Anti-IDOR: If updating existing address by ID, verify ownership in database
+    if (body.id) {
+      try {
+        const ownerCheck = await dbQuery(
+          `SELECT customer_id FROM public.customer_address WHERE id = $1 LIMIT 1`,
+          [body.id]
+        );
+        if (ownerCheck.rows.length > 0 && ownerCheck.rows[0].customer_id !== customer.id) {
+          return NextResponse.json(
+            { success: false, error: "FORBIDDEN: Address ownership validation failed." },
+            { status: 403 }
+          );
+        }
+      } catch (e: any) {
+        console.warn("[Address POST] Anti-IDOR check warning:", e.message);
+      }
+    }
+
     if (is_default) {
       existingAddresses.forEach((a) => (a.is_default = false));
     }
@@ -175,6 +194,22 @@ export async function DELETE(req: NextRequest) {
 
     if (!customer || index < 0) {
       return NextResponse.json({ success: false, error: "Customer not found" }, { status: 404 });
+    }
+
+    // Anti-IDOR: Verify that address exists and belongs to this customer
+    try {
+      const ownerCheck = await dbQuery(
+        `SELECT customer_id FROM public.customer_address WHERE id = $1 LIMIT 1`,
+        [addressId]
+      );
+      if (ownerCheck.rows.length > 0 && ownerCheck.rows[0].customer_id !== customer.id) {
+        return NextResponse.json(
+          { success: false, error: "FORBIDDEN: Cannot delete an address owned by another customer." },
+          { status: 403 }
+        );
+      }
+    } catch (e: any) {
+      console.warn("[Address DELETE] Anti-IDOR check warning:", e.message);
     }
 
     // 1. Direct PostgreSQL Deletion

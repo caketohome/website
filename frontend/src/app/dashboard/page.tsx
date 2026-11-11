@@ -225,10 +225,6 @@ const MarketplacePanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/marketplace-panel").then((mod) => ({ default: mod.MarketplacePanel })),
   "MarketplacePanel"
 );
-const SharedInventoryPanel = createDynamicPanel(
-  () => import("@frontend/components/dashboard/admin/shared-inventory-panel").then((mod) => ({ default: mod.SharedInventoryPanel })),
-  "SharedInventoryPanel"
-);
 const FeatureFlagsPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/feature-flags-panel").then((mod) => ({ default: mod.FeatureFlagsPanel })),
   "FeatureFlagsPanel"
@@ -248,7 +244,7 @@ type AdminTabId =
   | "crm" | "login_activity" | "marketing" | "popups" | "seo"
   | "automation" | "webhooks" | "cms" | "media" | "analytics" | "ai_concierge"
   | "staff_profiles" | "notifications" | "settings"
-  | "marketplace" | "shared_inventory" | "feature_flags" | "operational_closures";
+  | "marketplace" | "feature_flags" | "operational_closures";
 
 const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   orders: OrdersPanel,
@@ -298,7 +294,6 @@ const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   notifications: NotificationsPanel,
   settings: SettingsPanel,
   marketplace: MarketplacePanel,
-  shared_inventory: SharedInventoryPanel,
   feature_flags: FeatureFlagsPanel,
   operational_closures: OperationalClosuresPanel,
 };

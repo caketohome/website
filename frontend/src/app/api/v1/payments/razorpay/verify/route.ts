@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RazorpayPaymentService } from "@/lib/services/razorpay-payment.service";
+import { MetaCapiService } from "@/lib/services/meta-capi.service";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,23 @@ export async function POST(req: NextRequest) {
       razorpay_signature,
       order_id
     });
+
+    if (result.success && result.status === "paid" && result.order_id) {
+      // Non-blocking Meta Conversions API (CAPI) server-side event dispatch
+      const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || undefined;
+      const userAgent = req.headers.get("user-agent") || undefined;
+
+      MetaCapiService.sendPurchase({
+        order_id: result.order_id,
+        amount: Number(body.amount || 0),
+        email: body.email || body.customer_email,
+        phone: body.phone || body.customer_phone,
+        clientIp,
+        userAgent,
+      }).catch((capiErr) => {
+        console.warn("[RazorpayVerifyAPI] Meta CAPI non-blocking notice:", capiErr.message);
+      });
+    }
 
     const statusCode = result.success ? 200 : (result.status === "payment_exception" ? 422 : 400);
     return NextResponse.json(result, { status: statusCode });

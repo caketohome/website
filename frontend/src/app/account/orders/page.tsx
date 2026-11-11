@@ -16,6 +16,7 @@ import {
   ExternalLink,
   Star
 } from "lucide-react";
+import { ReorderButton } from "@frontend/components/store/account/reorder-button";
 
 export const metadata = {
   title: "My Orders | CakeToHome",
@@ -246,13 +247,7 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
                         Track
                       </Link>
 
-                      <Link
-                        href={`/shop`}
-                        className="px-3.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition-colors"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        Reorder
-                      </Link>
+                      <ReorderButton orderId={ord.id || ord.order_number} />
                     </div>
                   </div>
                 </div>
