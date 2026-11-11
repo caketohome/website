@@ -316,46 +316,82 @@ export class RazorpayPaymentService {
 
       const expectedPaise = Math.round(Number(order.grand_total) * 100);
 
-      // 3. Full Capture Invariant Check
-      // Verify payment details with Razorpay API (or test simulation)
+      // 3. Authoritative Gateway Payment Verification & Full Capture Invariant Check
       let isFullyCaptured = true;
-      if (!credentials.key_id.includes("placeholder") && !credentials.key_id.startsWith("rzp_test_mock")) {
+      let captureError: string | null = null;
+      let captureErrorCode: string = "PAYMENT_CAPTURE_VERIFICATION_FAILED";
+
+      const isMock = credentials.key_id.includes("placeholder") || credentials.key_id.startsWith("rzp_test_mock");
+
+      if (!isMock) {
         try {
           const authHeader = "Basic " + Buffer.from(`${credentials.key_id}:${credentials.key_secret}`).toString("base64");
           const rzpPayRes = await fetch(`https://api.razorpay.com/v1/payments/${razorpay_payment_id}`, {
             method: "GET",
             headers: { "Authorization": authHeader, "Accept": "application/json" }
           });
-          if (rzpPayRes.ok) {
+
+          if (!rzpPayRes.ok) {
+            const errData = await rzpPayRes.text();
+            isFullyCaptured = false;
+            captureErrorCode = "GATEWAY_PAYMENT_NOT_FOUND";
+            captureError = `GATEWAY_PAYMENT_NOT_FOUND: Payment "${razorpay_payment_id}" does not exist on Razorpay (HTTP ${rzpPayRes.status}).`;
+            console.error("[Razorpay] Upstream payment lookup failed:", rzpPayRes.status, errData);
+          } else {
             const payData = await rzpPayRes.json();
-            if (payData.status !== "captured" || Number(payData.amount) !== expectedPaise) {
+
+            // 3a. Order-to-Payment Association Check
+            if (payData.order_id && payData.order_id !== razorpay_order_id) {
               isFullyCaptured = false;
-              console.error("[Razorpay] Capture Invariant Failed:", {
-                gateway_status: payData.status,
-                gateway_amount: payData.amount,
-                expected_amount: expectedPaise
-              });
+              captureErrorCode = "GATEWAY_ORDER_MISMATCH";
+              captureError = `GATEWAY_ORDER_MISMATCH: Payment "${razorpay_payment_id}" belongs to Razorpay order "${payData.order_id}", not "${razorpay_order_id}".`;
+              console.error("[Razorpay] Order mismatch:", { payment_order_id: payData.order_id, submitted_order_id: razorpay_order_id });
+            }
+            // 3b. Status must be captured
+            else if (payData.status !== "captured") {
+              isFullyCaptured = false;
+              captureErrorCode = "PAYMENT_NOT_CAPTURED";
+              captureError = `PAYMENT_NOT_CAPTURED: Payment status on Razorpay is "${payData.status}", expected "captured".`;
+              console.error("[Razorpay] Status not captured:", payData.status);
+            }
+            // 3c. Exact amount check
+            else if (Number(payData.amount) !== expectedPaise) {
+              isFullyCaptured = false;
+              captureErrorCode = "AMOUNT_MISMATCH";
+              captureError = `AMOUNT_MISMATCH: Gateway payment amount (${payData.amount} paise) does not match order grand total (${expectedPaise} paise).`;
+              console.error("[Razorpay] Amount mismatch:", { gateway_amount: payData.amount, expected_amount: expectedPaise });
+            }
+            // 3d. Currency check
+            else if (payData.currency?.toUpperCase() !== "INR") {
+              isFullyCaptured = false;
+              captureErrorCode = "CURRENCY_MISMATCH";
+              captureError = `CURRENCY_MISMATCH: Gateway payment currency is "${payData.currency}", expected "INR".`;
+              console.error("[Razorpay] Currency mismatch:", payData.currency);
             }
           }
         } catch (apiErr: any) {
-          console.warn("[Razorpay] Could not query Razorpay payment endpoint directly, relying on signature verification:", apiErr.message);
+          isFullyCaptured = false;
+          captureErrorCode = "GATEWAY_COMMUNICATION_ERROR";
+          captureError = `GATEWAY_COMMUNICATION_ERROR: Failed to contact Razorpay API to verify payment: ${apiErr.message}`;
+          console.error("[Razorpay] Exception calling Razorpay payments API:", apiErr.message);
         }
       }
 
       if (!isFullyCaptured) {
-        // Strict invariant violation: partial capture or uncaptured funds
+        // Record failure in payment_transaction
         await txClient.query(
           `UPDATE public.payment_transaction 
-           SET status = 'payment_exception', failure_reason = 'Partial capture or amount mismatch invariant violation', updated_at = NOW() 
-           WHERE order_id = $1 AND provider = 'razorpay'`,
-          [resolvedOrderId]
+           SET status = 'payment_exception', failure_reason = $1, updated_at = NOW() 
+           WHERE order_id = $2 AND provider = 'razorpay'`,
+          [captureError || "Capture Invariant Violation", resolvedOrderId]
         );
         return {
           success: false,
           order_id: resolvedOrderId,
           payment_id: razorpay_payment_id,
           status: "payment_exception",
-          error: "PARTIAL_CAPTURE_NOT_SUPPORTED"
+          error: captureErrorCode,
+          message: captureError || "Payment capture verification failed against Razorpay API."
         };
       }
 
