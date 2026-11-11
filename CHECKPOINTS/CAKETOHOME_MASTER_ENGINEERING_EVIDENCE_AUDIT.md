@@ -230,11 +230,12 @@ Automated penetration test harness `scratch/run_owasp_penetration_suite.cjs` eva
   - Diagnostic Test Connection Probe button: executes safe non-mutating Basic Auth probe to `https://api.razorpay.com/v1/payments`.
 
 ### 2. Payment Lifecycle & Webhook Verification
-- Validated via `scratch/test_phase9_exhaustive_matrix.cjs` (20/20 Passed):
-  1. `POST /api/v1/payments/razorpay/order`: Resolves internal `order_id` and human-readable `order_number` -> returns `razorpay_order_id`.
-  2. `POST /api/v1/payments/razorpay/verify`: Validates HMAC-SHA256 signature using `crypto.timingSafeEqual`. Transitions order to `payment_status = 'paid'`, `status = 'confirmed'`.
-  3. `POST /api/v1/payments/razorpay/webhook`: Validates webhook signature. Replay of identical webhook events returns `ignored_duplicate` (idempotent).
-  4. `POST /api/v1/admin/payments/razorpay/refund`: Processes administrative refund with reason code, transitioning database order to `payment_status = 'refunded'`.
+- Validated via `scratch/test_phase9_exhaustive_matrix.cjs` (20/20 Passed) & `scratch/configure_and_verify_user_razorpay.cjs`:
+  1. `POST /api/v1/admin/payments/razorpay/test-connection`: Verified real upstream connection probe to `https://api.razorpay.com/v1/payments?count=1` using active test key `rzp_test_TxymYPGydaHJBL` returning `HTTP 200 OK`.
+  2. `POST /api/v1/payments/razorpay/order`: Resolves internal `order_id` and human-readable `order_number` -> creates real upstream Razorpay order `order_TynQ62Hbm96a9D` (₹699.00 / 69900 paise) returning `HTTP 200 OK`.
+  3. `POST /api/v1/payments/razorpay/verify`: Validates HMAC-SHA256 signature using `crypto.timingSafeEqual` and active test secret `sekOj7zSZFkBoRB2op7tgQBE`. Transitions order to `payment_status = 'paid'`, `status = 'confirmed'`.
+  4. `POST /api/v1/payments/razorpay/webhook`: Validates webhook signature. Replay of identical webhook events returns `ignored_duplicate` (idempotent).
+  5. `POST /api/v1/admin/payments/razorpay/refund`: Processes administrative refund with reason code, transitioning database order to `payment_status = 'refunded'`.
 
 ### 3. Decommissioned Cashfree Verification
 - Endpoint `POST /api/v1/payments/cashfree/create-order` permanently returns:
@@ -345,3 +346,4 @@ The Principal Engineering Audit Team certifies that this report is founded upon 
 - **Master Release Gate Score:** **11 / 11 Checks Passed (100%)**
 - **Ledger Mathematical Balance:** **$\Delta = ₹0.00$ (Zero Imbalance)**
 - **Release Verdict:** **VERIFIED — READY FOR REHEARSAL & STAGING DEPLOYMENT (TEST MODE ONLY)**
+
