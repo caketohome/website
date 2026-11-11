@@ -73,3 +73,4 @@ Direct network probe against the live Next.js App Router server (`http://localho
 The decommissioning of cross-store and franchise inventory sharing is complete. The system now strictly relies upon:
 1. **Master Product Catalogue (`public.product`):** Shared catalogue defining items, variants, base pricing, and descriptions.
 2. **Independent Branch Inventory (`public.branch_inventory`):** Branch-specific stock quantities, safety thresholds, and reservations isolated to individual physical fulfillment stores.
+

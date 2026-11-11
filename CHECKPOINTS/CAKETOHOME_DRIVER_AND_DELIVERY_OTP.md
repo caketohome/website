@@ -91,3 +91,4 @@ Direct automated tests against live PostgreSQL and Next.js App Router (`scratch/
 ## 4. Verification Sign-Off
 
 The website delivery driver console and mandatory customer OTP verification architecture is fully operational and securely enforced.
+

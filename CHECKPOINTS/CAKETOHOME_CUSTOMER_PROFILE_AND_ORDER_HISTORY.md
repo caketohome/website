@@ -76,3 +76,4 @@ Direct automated tests (`scratch/test_m4_customer_and_orders.cjs`):
 - **Test 3 (Unauthenticated Reorder Request):** Returned **HTTP 401 Unauthorized**.
 - **Test 4 (Relational Order Data):** Order `ORD-999991` returned full item count, `grand_total: 706.82`, `tax_total`, and `paid` status.
 - **Test 5 (Cleanup):** All test rows purged cleanly.
+
