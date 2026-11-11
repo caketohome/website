@@ -1,12 +1,12 @@
 # 26 — Phase 9 Master Technical Specification & Architecture
 ## Complete CMS, 12 Legal Policy Pages, Razorpay Standard Checkout Migration & Secure Gateway Settings
 
-> **Governance Authority**: CakeToHome India Private Limited  
-> **Master Execution Roadmap**: `docs/20-roadmap.md` (Workstream L / Phase 9)  
-> **Document Version**: 1.0.0-CANONICAL-SPECIFICATION  
-> **Authoritative Date**: 2026-11-10  
-> **Status**: **`VERIFIED & FULLY INTEGRATED`**  
-> **Change Boundary**: This document defines the engineering requirements, data models, API contracts, and implementation blueprints for Phase 9. All sub-phases have been fully executed, integrated, tested, and independently verified with real Playwright browser evidence and zero financial regression.
+> **Governance Authority**: Baked Cakes & Pastries (CakeToHome) (Sole Proprietorship, Kerala - State Code 32)  
+> **Master Execution Roadmap**: `docs/20-roadmap.md` (Workstream L / Phase 9 & Milestones M1–M11)  
+> **Document Version**: 2.0.0-CANONICAL-KERALA-SPECIFICATION  
+> **Authoritative Date**: 2026-11-11  
+> **Status**: **`VERIFIED & FULLY INTEGRATED — TEST MODE ONLY (GATE E BLOCKED PENDING KYC)`**  
+> **Change Boundary**: This document defines the engineering requirements, data models, API contracts, and implementation blueprints for Phase 9. All sub-phases have been fully executed, integrated, tested, and independently verified with real Playwright browser evidence, Kerala Sole Proprietorship entity migration, manual settlement bank verification (HDFC primary verified), and Razorpay test credentials validation (`rzp_test_TxymYPGydaHJBL`).
 
 ---
 

@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
         {
           success: false,
           error: "LIVE_PAYMENT_ACTIVATION_BLOCKED",
-          message: "Live payment activation is strictly blocked pending formal merchant KYC, legal entity alignment (Kerala Proprietorship vs Karnataka Pvt Ltd), settlement bank verification, and CFO signoff. Gateway must remain in TEST mode.",
+          message: "Live payment activation is strictly blocked pending formal merchant KYC approval with Razorpay, settlement bank verification, and CFO signoff for the approved Kerala Sole Proprietorship entity (CakeToHome / Baked Cakes & Pastries). Gateway must remain in TEST mode.",
           release_gate: "GATE_E_BLOCKED"
         },
         { status: 403 }

@@ -64,8 +64,8 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
     year: "numeric",
   });
 
-  const sellerLegalName = invoice.seller_legal_name || "CakeToHome India Private Limited";
-  const sellerGstin = invoice.seller_gstin || "29AABCC1234F1Z5";
+  const sellerLegalName = invoice.seller_legal_name || "Baked Cakes & Pastries (CakeToHome)";
+  const sellerGstin = invoice.seller_gstin || "32PENDINGREG001";
   const customerName = invoice.customer_name || invoice.ord_customer_name || "Valued Customer";
   const customerPhone = invoice.customer_phone || invoice.ord_customer_phone || "";
   const deliveryAddress = invoice.delivery_address || invoice.ord_delivery_address || metadata.delivery_address || "Indiranagar, Bengaluru, Karnataka 560038";
@@ -114,14 +114,14 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
               </div>
               <h1 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{sellerLegalName}</h1>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-md">
-                CIN: U15400KA2026PTC189211 • Indiranagar Commercial Hub, 100 Feet Road, Bengaluru, Karnataka 560038
+                Registered Office: 16/956, Thannimukku, Mayyanad, Kollam, Kerala - 691303
               </p>
               <div className="mt-2 text-xs font-mono text-slate-700 dark:text-slate-300 space-y-0.5">
                 <p>
-                  <strong>GSTIN:</strong> {sellerGstin} | <strong>State:</strong> Karnataka (Code 29)
+                  <strong>GSTIN:</strong> {sellerGstin} | <strong>Jurisdiction / State:</strong> Kerala (Code 32)
                 </p>
                 <p>
-                  <strong>FSSAI Lic No:</strong> 11223344556677 | <strong>Email:</strong> accounts@caketohome.in
+                  <strong>FSSAI Premises:</strong> Kowdiar, Thiruvananthapuram, Kerala - 695003 | <strong>Email:</strong> caketohomeoffice@gmail.com
                 </p>
               </div>
             </div>
@@ -158,7 +158,7 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
               <p className="text-slate-600 dark:text-slate-400">
                 Phone: <span className="font-mono">{customerPhone}</span>
               </p>
-              <p className="text-slate-500">Place of Supply: Karnataka (State Code 29)</p>
+              <p className="text-slate-500">Place of Supply: {invoice.seller_state_code === '29' ? 'Karnataka (State Code 29)' : 'Kerala (State Code 32)'}</p>
             </div>
 
             <div className="space-y-1 sm:text-right">
