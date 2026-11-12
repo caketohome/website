@@ -226,7 +226,10 @@ export async function placeOrder(prevState: any, data: FormData) {
 
   if (paymentMethod === "razorpay") {
     const orderId = result.order_id || "";
-    const amount = Number(result.pricing?.grand_total || result.total || 525);
+    const amount = Number(result.order?.grand_total ?? result.order?.total_amount ?? result.pricing?.grand_total ?? result.total ?? 0);
+    if (!orderId || !Number.isFinite(amount) || amount <= 0) {
+      return { message: "Invalid order total calculated. Cannot proceed to payment." };
+    }
     redirect(`/checkout/razorpay?order_id=${encodeURIComponent(orderId)}&amount=${amount}`);
   }
 

@@ -155,7 +155,7 @@ class CakeToHomeApiClient {
     const serverPort = process.env.PORT || "3000";
     const primaryUrl = typeof window !== "undefined"
       ? `/api/v1${cleanEndpoint}`
-      : `http://localhost:${serverPort}/api/v1${cleanEndpoint}`;
+      : `http://127.0.0.1:${serverPort}/api/v1${cleanEndpoint}`;
 
     // 1. Metadata Cache Resolution for low-churn GET endpoints
     if (method === "GET" && this.isCacheableEndpoint(cleanEndpoint, method)) {
@@ -1482,7 +1482,7 @@ class CakeToHomeApiClient {
 
   // ── Order Details API ──
   async getOrder(orderId: string) {
-    return this.request(`/orders/${orderId}`).catch(() => ({ order: null }));
+    return this.request(`/orders/${orderId}`).catch(() => ({ order: null, success: false }));
   }
 
   // ── Delivery Eligibility ──

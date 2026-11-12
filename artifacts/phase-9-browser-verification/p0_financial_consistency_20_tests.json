@@ -1,0 +1,216 @@
+{
+  "timestamp": "2026-11-12T07:48:04.558Z",
+  "total": 20,
+  "passed": 20,
+  "results": [
+    {
+      "id": 1,
+      "name": "Normal paid order (API + DB financial hydration)",
+      "status": "PASS",
+      "details": {
+        "order_id": "ord_live_nb_1794401032340",
+        "subtotal": 750,
+        "tax_amount": 37.5,
+        "grand_total": 787.5,
+        "items_count": 1,
+        "payment_status": "paid",
+        "gateway_payment_id": "pay_TysA3RwgFh8yNr"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Zero-value order blocked from creating Razorpay order",
+      "status": "PASS",
+      "details": {
+        "http_status": 422,
+        "error": "MISSING_ORDER_SUBTOTAL"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Missing subtotal blocked by DB NOT NULL constraint (23502) and Service MISSING_ORDER_SUBTOTAL",
+      "status": "PASS",
+      "details": {
+        "db_not_null_enforced": true,
+        "http_status": 422,
+        "error": "MISSING_ORDER_SUBTOTAL"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Missing grand total blocked by DB NOT NULL constraint (23502) and Service INVALID_ORDER_AMOUNT",
+      "status": "PASS",
+      "details": {
+        "db_not_null_enforced": true,
+        "http_status": 422,
+        "error": "INVALID_ORDER_AMOUNT"
+      }
+    },
+    {
+      "id": 5,
+      "name": "Missing line items blocked with MISSING_ORDER_ITEMS",
+      "status": "PASS",
+      "details": {
+        "http_status": 422,
+        "error": "MISSING_ORDER_ITEMS"
+      }
+    },
+    {
+      "id": 6,
+      "name": "Incorrect/tampered product price rejected with PRODUCT_PRICE_MISMATCH",
+      "status": "PASS",
+      "details": {
+        "http_status": 400,
+        "error": "PRODUCT_PRICE_MISMATCH: Expected unit price (1) does not match authoritative catalogue price (99) for 'Gold Acrylic Happy Birthday Topper'."
+      }
+    },
+    {
+      "id": 7,
+      "name": "Quantity calculation (3x unit price + zero/negative quantity rejection)",
+      "status": "PASS",
+      "details": {
+        "invalid_qty_error": "INVALID_ITEM_QUANTITY: Quantity for 'Gold Acrylic Happy Birthday Topper' must be a positive integer (received 0).",
+        "qty3_subtotal": 297,
+        "qty3_grand_total": 311.85
+      }
+    },
+    {
+      "id": 8,
+      "name": "Discount calculation and grand_total reconciliation",
+      "status": "PASS",
+      "details": {
+        "subtotal": 1000,
+        "discount_amount": 100,
+        "tax_amount": 50,
+        "grand_total": 950
+      }
+    },
+    {
+      "id": 9,
+      "name": "Delivery fee calculation and grand_total reconciliation",
+      "status": "PASS",
+      "details": {
+        "subtotal": 750,
+        "delivery_fee": 60,
+        "tax_amount": 37.5,
+        "grand_total": 847.5
+      }
+    },
+    {
+      "id": 10,
+      "name": "Statutory Intra-State GST calculation (2.5% CGST + 2.5% SGST = 5% GST)",
+      "status": "PASS",
+      "details": {
+        "tax_total": 37.5,
+        "cgst": 18.75,
+        "sgst": 18.75
+      }
+    },
+    {
+      "id": 11,
+      "name": "Paise conversion (₹787.50 -> 78,750 paise on Razorpay Order API)",
+      "status": "PASS",
+      "details": {
+        "razorpay_order_id": "order_TzBcH9mJ851XT2",
+        "amount_paise": 78750,
+        "amount_rupees": 787.5,
+        "currency": "INR"
+      }
+    },
+    {
+      "id": 12,
+      "name": "Gateway order amount mismatch blocked with GATEWAY_ORDER_AMOUNT_MISMATCH",
+      "status": "PASS",
+      "details": {
+        "verify_status": "payment_exception",
+        "error": "GATEWAY_ORDER_AMOUNT_MISMATCH",
+        "order_payment_status": "pending"
+      }
+    },
+    {
+      "id": 13,
+      "name": "Captured amount mismatch (78,750 paise vs 157,500 paise) blocked with AMOUNT_MISMATCH",
+      "status": "PASS",
+      "details": {
+        "verify_error": "AMOUNT_MISMATCH",
+        "verify_message": "AMOUNT_MISMATCH: Gateway payment amount (78750 paise) does not match order grand total (157500 paise).",
+        "ptx_status": "payment_exception",
+        "order_payment_status": "pending"
+      }
+    },
+    {
+      "id": 14,
+      "name": "Currency mismatch (USD vs INR) blocked with CURRENCY_MISMATCH",
+      "status": "PASS",
+      "details": {
+        "verify_error": "CURRENCY_MISMATCH",
+        "verify_message": "CURRENCY_MISMATCH: Order currency \"USD\" is invalid; expected \"INR\"."
+      }
+    },
+    {
+      "id": 15,
+      "name": "Duplicate payment verification is idempotent and prevents duplicate accounting vouchers",
+      "status": "PASS",
+      "details": {
+        "status": "already_processed",
+        "idempotent": true,
+        "vouchers_before": 1,
+        "vouchers_after": 1
+      }
+    },
+    {
+      "id": 16,
+      "name": "Order confirmation with missing financial values blocked at verifyPayment",
+      "status": "PASS",
+      "details": {
+        "verify_status": "payment_exception",
+        "verify_error": "MISSING_ORDER_SUBTOTAL",
+        "order_payment_status": "pending"
+      }
+    },
+    {
+      "id": 17,
+      "name": "Frontend /your-order blocks confirmation when monetary fields or items are missing/zero",
+      "status": "PASS",
+      "details": {
+        "contains_exception_code": true,
+        "contains_false_confirmed_banner": false
+      }
+    },
+    {
+      "id": 18,
+      "name": "Order Details API reads authoritative relational columns & order_item when metadata is minimal",
+      "status": "PASS",
+      "details": {
+        "subtotal": 750,
+        "tax_amount": 37.5,
+        "grand_total": 787.5,
+        "items_count": 1
+      }
+    },
+    {
+      "id": 19,
+      "name": "Incorrect order ID returns 404 on API, blocks Razorpay order, and shows 'No Recent Order Found' on UI",
+      "status": "PASS",
+      "details": {
+        "api_status": 404,
+        "rzp_status": 404,
+        "ui_shows_not_found": true,
+        "ui_has_kot_undefined": false
+      }
+    },
+    {
+      "id": 20,
+      "name": "Genuine confirmed order ord_live_nb_1794401032340 renders ₹787.50, ₹750 subtotal, ₹37.50 GST, and pay_TysA3RwgFh8yNr on /your-order",
+      "status": "PASS",
+      "details": {
+        "has_order_number": true,
+        "has_kot_number": true,
+        "has_subtotal_750": true,
+        "has_gst_37_50": true,
+        "has_total_787_50": true,
+        "has_payment_id": true
+      }
+    }
+  ]
+}

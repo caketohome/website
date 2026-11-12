@@ -24,35 +24,47 @@ export class OrderRepository {
    */
   static mapRowToDomain(o: any, timelineRows?: any[]): OrderDomain {
     const meta = o.metadata || {};
-    const rawItems: any[] = Array.isArray(meta.items) ? meta.items : [];
+    const rawItems: any[] = Array.isArray(meta.items) && meta.items.length > 0
+      ? meta.items
+      : (Array.isArray(o._relational_items) ? o._relational_items : []);
 
     let computedLineSubtotal = 0;
     let computedLineTax = 0;
 
     const items: OrderItemDomain[] = rawItems.map((item: any, idx: number) => {
       const quantity = Math.max(1, Number(item.quantity || 1));
-      const unitPrice = Number(item.unit_price ?? item.price ?? item.selling_price ?? 0);
-      const subtotal = Number(
-        item.subtotal ??
-        item.total_line_amount ??
-        (item.total && Number(item.total) > 0 ? Number(item.total) : unitPrice * quantity)
-      );
+      const itemTaxableValue = item.taxable_value !== undefined && item.taxable_value !== null && !isNaN(Number(item.taxable_value)) && Number(item.taxable_value) > 0
+        ? Number(item.taxable_value)
+        : null;
+      const rawUnitPrice = Number(item.unit_price ?? item.price ?? item.selling_price ?? 0);
+      const subtotal = itemTaxableValue !== null
+        ? itemTaxableValue
+        : Number(
+            item.subtotal ??
+            item.total_line_amount ??
+            (item.metadata?.line_total && Number(item.metadata.line_total) > 0
+              ? Number(item.metadata.line_total)
+              : (rawUnitPrice > 0 ? rawUnitPrice * quantity : 0))
+          );
+      const unitPrice = itemTaxableValue !== null && quantity > 0
+        ? Math.round((itemTaxableValue / quantity) * 100) / 100
+        : rawUnitPrice;
 
       // Tax authority: read persisted tax values first; calculate using item's persisted GST rate only if specified
-      const taxRate = typeof item.gst_rate_pct === "number"
-        ? item.gst_rate_pct
-        : (typeof item.tax_rate === "number" ? item.tax_rate : null);
+      const taxRate = item.gst_rate_pct !== undefined && item.gst_rate_pct !== null && !isNaN(Number(item.gst_rate_pct))
+        ? Number(item.gst_rate_pct)
+        : (item.tax_rate !== undefined && item.tax_rate !== null && !isNaN(Number(item.tax_rate)) ? Number(item.tax_rate) : null);
 
-      const lineTax = typeof item.tax_amount === "number"
-        ? item.tax_amount
+      const lineTax = item.tax_amount !== undefined && item.tax_amount !== null && !isNaN(Number(item.tax_amount))
+        ? Number(item.tax_amount)
         : (typeof item.cgst === "number"
             ? (Number(item.cgst) + Number(item.sgst ?? 0) + Number(item.igst ?? 0))
-            : (taxRate !== null ? Math.round((subtotal * taxRate) / 100) : 0));
+            : (taxRate !== null ? Math.round(((subtotal * taxRate) / 100) * 100) / 100 : 0));
 
-      computedLineSubtotal += subtotal;
-      computedLineTax += lineTax;
+      computedLineSubtotal = Math.round((computedLineSubtotal + subtotal) * 100) / 100;
+      computedLineTax = Math.round((computedLineTax + lineTax) * 100) / 100;
 
-      const cakeMsg = item.cake_message ?? item.customization?.message ?? null;
+      const cakeMsg = item.cake_message ?? item.customization?.message ?? item.metadata?.customization?.message ?? null;
 
       return {
         id: item.id || `item_${o.id}_${idx}`,
@@ -66,8 +78,8 @@ export class OrderRepository {
         product_name: item.product_name || item.title || item.name || "Artisan Cake",
         title: item.title || item.product_name || item.name || "Artisan Cake",
         thumbnail: item.thumbnail || "/images/placeholder-cake.png",
-        variant_name: item.variant_name || item.weight || "1 kg",
-        weight: item.weight || item.variant_name || "1 kg",
+        variant_name: item.variant_name || item.weight || item.metadata?.variant_name || "1 kg",
+        weight: item.weight || item.variant_name || item.metadata?.variant_name || "1 kg",
         quantity,
         unit_price: unitPrice,
         price: unitPrice,
@@ -76,14 +88,20 @@ export class OrderRepository {
         discount: Number(item.discount ?? 0),
         tax_rate: taxRate ?? 0,
         tax_amount: lineTax,
+        cgst: item.cgst != null ? Number(item.cgst) : Math.round((lineTax / 2) * 100) / 100,
+        sgst: item.sgst != null ? Number(item.sgst) : Math.round((lineTax / 2) * 100) / 100,
         tax_rate_id: item.tax_rate_id,
         tax_code: item.tax_code,
-        customization: item.customization || {
+        customization: item.customization || item.metadata?.customization || {
           message: cakeMsg || undefined,
           flavor: item.flavour || item.flavor || undefined,
           shape: item.shape || undefined,
         },
         total_line_amount: subtotal,
+        total: item.total !== undefined && item.total !== null && !isNaN(Number(item.total))
+          ? Number(item.total)
+          : Math.round((subtotal + lineTax) * 100) / 100,
+        taxable_value: subtotal,
         artisan: item.artisan !== undefined ? Boolean(item.artisan) : true,
         flavour: item.flavour || item.flavor || "Belgian Chocolate",
         shape: item.shape || "Round",
@@ -92,29 +110,45 @@ export class OrderRepository {
       } as OrderItemDomain;
     });
 
-    // Subtotal resolution
-    const subtotal = typeof meta.subtotal === "number"
-      ? meta.subtotal
-      : (computedLineSubtotal > 0 ? computedLineSubtotal : 0);
+    // Subtotal resolution: first-class PostgreSQL column o.subtotal, then meta.subtotal, then computed line subtotal
+    const rowSubtotal = o.subtotal !== undefined && o.subtotal !== null && !isNaN(Number(o.subtotal)) && Number(o.subtotal) > 0
+      ? Number(o.subtotal)
+      : null;
+    const metaSubtotal = meta.subtotal !== undefined && meta.subtotal !== null && !isNaN(Number(meta.subtotal)) && Number(meta.subtotal) > 0
+      ? Number(meta.subtotal)
+      : null;
+    const subtotal = rowSubtotal !== null
+      ? rowSubtotal
+      : (metaSubtotal !== null ? metaSubtotal : (computedLineSubtotal > 0 ? computedLineSubtotal : 0));
 
     // Discount resolution
-    const discountAmount = typeof meta.discount_amount === "number"
-      ? meta.discount_amount
-      : (typeof meta.discount === "number" ? meta.discount : 0);
+    const discountAmount = o.discount_total !== undefined && o.discount_total !== null && !isNaN(Number(o.discount_total))
+      ? Number(o.discount_total)
+      : (meta.discount_amount !== undefined && !isNaN(Number(meta.discount_amount))
+          ? Number(meta.discount_amount)
+          : (meta.discount !== undefined && !isNaN(Number(meta.discount)) ? Number(meta.discount) : 0));
 
     // Delivery fee resolution
-    const deliveryFee = typeof meta.delivery?.fee === "number"
-      ? Number(meta.delivery.fee)
-      : (typeof meta.delivery_fee === "number" ? Number(meta.delivery_fee) : 0);
+    const deliveryFee = o.delivery_fee !== undefined && o.delivery_fee !== null && !isNaN(Number(o.delivery_fee))
+      ? Number(o.delivery_fee)
+      : (meta.delivery?.fee !== undefined && !isNaN(Number(meta.delivery.fee))
+          ? Number(meta.delivery.fee)
+          : (meta.delivery_fee !== undefined && !isNaN(Number(meta.delivery_fee)) ? Number(meta.delivery_fee) : 0));
 
-    // Statutory Tax / GST resolution: use persisted tax; NEVER assume 5% fallback
-    const taxAmount = typeof meta.tax_amount === "number"
-      ? meta.tax_amount
-      : (typeof meta.tax_total === "number"
-          ? meta.tax_total
-          : (typeof meta.compliance_snapshot?.total_tax === "number"
-              ? meta.compliance_snapshot.total_tax
-              : (computedLineTax > 0 ? computedLineTax : 0)));
+    // Statutory Tax / GST resolution: first-class column o.tax_total, then meta.tax_amount/tax_total, then computed line tax
+    const rowTax = o.tax_total !== undefined && o.tax_total !== null && !isNaN(Number(o.tax_total)) && Number(o.tax_total) > 0
+      ? Number(o.tax_total)
+      : null;
+    const metaTax = meta.tax_amount !== undefined && meta.tax_amount !== null && !isNaN(Number(meta.tax_amount))
+      ? Number(meta.tax_amount)
+      : (meta.tax_total !== undefined && meta.tax_total !== null && !isNaN(Number(meta.tax_total))
+          ? Number(meta.tax_total)
+          : (meta.compliance_snapshot?.total_tax !== undefined && !isNaN(Number(meta.compliance_snapshot.total_tax))
+              ? Number(meta.compliance_snapshot.total_tax)
+              : null));
+    const taxAmount = rowTax !== null
+      ? rowTax
+      : (metaTax !== null ? metaTax : (computedLineTax > 0 ? computedLineTax : 0));
 
     // Tax jurisdiction: intra-state (CGST + SGST) vs inter-state (IGST)
     const isIntraState = meta.compliance_snapshot?.is_intra_state !== undefined
@@ -143,28 +177,37 @@ export class OrderRepository {
               ? meta.compliance_snapshot.igst
               : (!isIntraState && taxAmount > 0 ? taxAmount : 0)));
 
-    // Grand total resolution: use persisted grand_total / total if positive
-    const persistedTotal = typeof meta.total === "number" && meta.total > 0
-      ? meta.total
-      : (typeof meta.grand_total === "number" && meta.grand_total > 0
-          ? meta.grand_total
-          : (typeof meta.total_amount === "number" && meta.total_amount > 0
-              ? meta.total_amount
-              : (typeof o.total === "number" && o.total > 0 ? o.total : null)));
+    // Grand total resolution: first-class PostgreSQL column o.grand_total, then metadata totals, then calculated
+    const candidateTotals = [
+      o.grand_total,
+      o.total,
+      meta.grand_total,
+      meta.total_amount,
+      meta.total,
+    ];
+    let persistedTotal: number | null = null;
+    for (const cand of candidateTotals) {
+      if (cand !== undefined && cand !== null && cand !== "" && !isNaN(Number(cand)) && Number(cand) > 0) {
+        persistedTotal = Number(cand);
+        break;
+      }
+    }
 
     const totalAmount = persistedTotal !== null
       ? persistedTotal
       : (subtotal > 0
-          ? (meta.tax_inclusive !== false
-              ? Math.max(0, subtotal - discountAmount + deliveryFee)
-              : Math.max(0, subtotal - discountAmount + taxAmount + deliveryFee))
+          ? (meta.tax_inclusive === true
+              ? Math.round(Math.max(0, subtotal - discountAmount + deliveryFee) * 100) / 100
+              : Math.round(Math.max(0, subtotal - discountAmount + taxAmount + deliveryFee) * 100) / 100)
           : 0);
 
     const displayId = o.display_id || o.id;
     const orderNumber = o.order_number || meta.order_number || (typeof displayId === "number" || /^\d+$/.test(String(displayId)) ? `ORD-${displayId}` : String(displayId));
-    const status = (meta.bakery_status || o.status || "confirmed").toLowerCase();
-    const paymentStatus = (meta.payment_status || (status === "delivered" ? "captured" : "authorized")).toLowerCase();
-    const paymentMethod = meta.payment_method || meta.payment?.method || "card";
+    const status = (o.status && o.status !== "pending" ? o.status : (meta.bakery_status || o.status || "confirmed")).toLowerCase();
+    const ptx = o._payment_txn || null;
+    const rawPayStatus = o.payment_status || meta.payment_status || ptx?.status || (status === "delivered" ? "captured" : "pending");
+    const paymentStatus = String(rawPayStatus).toLowerCase();
+    const paymentMethod = o.payment_method || meta.payment_method || ptx?.provider || meta.payment?.method || "card";
 
     const pickupOtp = meta.delivery?.pickup_otp || meta.pickup_otp || null;
     const deliveryOtp = meta.delivery?.delivery_otp || meta.delivery_otp || null;
@@ -215,8 +258,8 @@ export class OrderRepository {
     const branchId = o.branch_id || meta.branch_id || null;
     const branch = branchId ? {
       id: branchId,
-      name: meta.branch_name || "Assigned Kitchen Branch",
-      code: meta.branch_code || "",
+      name: o.joined_branch_name || o.branch_name || meta.branch_name || "Assigned Kitchen Branch",
+      code: o.joined_branch_code || meta.branch_code || "",
       address: meta.branch_address || "",
       phone: meta.branch_phone || "",
       manager: meta.branch_manager || "",
@@ -240,19 +283,27 @@ export class OrderRepository {
       add_ons: meta.customization?.add_ons || meta.add_ons || [],
     };
 
-    const paid = paymentStatus === "captured"
+    const isPaymentCapturedOrPaid = paymentStatus === "captured" || paymentStatus === "paid";
+    const paid = isPaymentCapturedOrPaid
       ? totalAmount
       : (typeof meta.paid_amount === "number" ? meta.paid_amount : 0);
     const refunded = typeof meta.refund_amount === "number"
       ? meta.refund_amount
       : (paymentStatus === "refunded" ? totalAmount : 0);
-    const balance = paymentStatus === "captured" || paymentStatus === "refunded"
+    const balance = isPaymentCapturedOrPaid || paymentStatus === "refunded"
       ? 0
       : Math.max(0, totalAmount - paid);
 
+    const gatewayOrderId = ptx?.gateway_order_id || meta.razorpay_order_id || meta.payment?.gateway_order_id || undefined;
+    const gatewayPaymentId = ptx?.gateway_payment_id || ptx?.provider_ref || meta.razorpay_payment_id || meta.payment?.gateway_payment_id || undefined;
+    const transactionId = gatewayPaymentId || meta.payment?.transaction_id || meta.transaction_id || ptx?.id || (o.id ? `txn_${o.id.slice(-6)}` : "txn_pending");
+
     const payment = {
       method: paymentMethod,
-      transaction_id: meta.payment?.transaction_id || meta.transaction_id || (o.id ? `txn_${o.id.slice(-6)}` : "txn_pending"),
+      provider: ptx?.provider || paymentMethod,
+      transaction_id: transactionId,
+      gateway_order_id: gatewayOrderId,
+      gateway_payment_id: gatewayPaymentId,
       status: paymentStatus,
       cgst,
       sgst,
@@ -302,6 +353,7 @@ export class OrderRepository {
       order_id: o.id,
       display_id: o.display_id || o.id,
       order_number: orderNumber,
+      kot_number: kitchen.kot_number,
       customer_id: customer.id,
       customer_uid: customer.id,
       customer_name: customer.name,
@@ -309,17 +361,25 @@ export class OrderRepository {
       customer_phone: customer.phone,
       branch_id: branch ? branch.id : (o.branch_id || meta.branch_id || ""),
       branch_name: branch ? branch.name : (meta.branch_name || ""),
+      grand_total: totalAmount,
       total_amount: totalAmount,
       total: totalAmount,
       subtotal,
       discount_amount: discountAmount,
+      tax_total: taxAmount,
       tax_amount: taxAmount,
       delivery_fee: deliveryFee,
       currency: o.currency_code || "INR",
       status: status as any,
       payment_status: paymentStatus as any,
       payment_method: paymentMethod as any,
+      gateway_order_id: gatewayOrderId,
+      gateway_payment_id: gatewayPaymentId,
+      transaction_id: transactionId,
       delivery,
+      delivery_date: delivery.date,
+      delivery_slot: delivery.slot,
+      delivery_otp: delivery.delivery_otp,
       delivery_address: customer.address,
       delivery_latitude: typeof o.delivery_latitude === "number" ? o.delivery_latitude : meta.delivery_latitude,
       delivery_longitude: typeof o.delivery_longitude === "number" ? o.delivery_longitude : meta.delivery_longitude,
@@ -334,7 +394,7 @@ export class OrderRepository {
       timeline,
       staff_notes: Array.isArray(meta.staff_notes) ? meta.staff_notes : [],
       invoice_number: invoiceNumber,
-      invoice_status: paymentStatus === "captured" || status === "delivered" ? "PAID" : "ISSUED",
+      invoice_status: isPaymentCapturedOrPaid || status === "delivered" ? "PAID" : "ISSUED",
       invoice_date: o.created_at ? String(o.created_at).split("T")[0] : new Date().toISOString().split("T")[0],
       delivery_pincode: customer.pincode,
       delivery_city: customer.city,
@@ -347,7 +407,54 @@ export class OrderRepository {
       metadata: meta,
       created_at: o.created_at,
       updated_at: o.updated_at,
-    };
+    } as any;
+  }
+
+  /**
+   * Hydrate relational order_item and payment_transaction rows for order rows
+   */
+  private static async hydrateOrderRelations(rows: any[]): Promise<void> {
+    if (!rows || rows.length === 0) return;
+    const orderIds = rows.map((r) => r.id).filter(Boolean);
+    if (orderIds.length === 0) return;
+
+    try {
+      const itemsRes = await dbQuery(
+        `SELECT * FROM public.order_item WHERE order_id = ANY($1::text[]) ORDER BY created_at ASC, id ASC`,
+        [orderIds]
+      );
+      const itemsByOrder = new Map<string, any[]>();
+      for (const item of itemsRes.rows || []) {
+        const list = itemsByOrder.get(item.order_id) || [];
+        list.push(item);
+        itemsByOrder.set(item.order_id, list);
+      }
+      for (const row of rows) {
+        row._relational_items = itemsByOrder.get(row.id) || [];
+      }
+    } catch {
+      // Non-fatal if order_item table query fails
+    }
+
+    try {
+      const ptxRes = await dbQuery(
+        `SELECT * FROM public.payment_transaction
+         WHERE order_id = ANY($1::text[]) AND deleted_at IS NULL
+         ORDER BY CASE WHEN status = 'paid' OR status = 'captured' THEN 0 ELSE 1 END, updated_at DESC, created_at DESC`,
+        [orderIds]
+      );
+      const ptxByOrder = new Map<string, any>();
+      for (const ptx of ptxRes.rows || []) {
+        if (!ptxByOrder.has(ptx.order_id)) {
+          ptxByOrder.set(ptx.order_id, ptx);
+        }
+      }
+      for (const row of rows) {
+        row._payment_txn = ptxByOrder.get(row.id) || null;
+      }
+    } catch {
+      // Non-fatal if payment_transaction query fails
+    }
   }
 
   /**
@@ -384,7 +491,7 @@ export class OrderRepository {
 
     if (params.branch_id && params.branch_id !== "all") {
       values.push(params.branch_id);
-      conditions.push(`(o.metadata->>'branch_id' = $${values.length} OR o.metadata->>'branch' = $${values.length})`);
+      conditions.push(`(o.branch_id = $${values.length} OR o.metadata->>'branch_id' = $${values.length} OR o.metadata->>'branch' = $${values.length})`);
     }
 
     if (params.customer_id) {
@@ -402,14 +509,18 @@ export class OrderRepository {
 
     const queryValues = [...values, pageSize, offset];
     const res = await dbQuery(
-      `SELECT o.*, inv.invoice_number AS real_invoice_number, inv.id AS real_invoice_id, inv.status AS real_invoice_status
+      `SELECT o.*, b.name AS joined_branch_name, b.code AS joined_branch_code,
+              inv.invoice_number AS real_invoice_number, inv.id AS real_invoice_id, inv.status AS real_invoice_status
        FROM "order" o
+       LEFT JOIN public.branch b ON b.id = o.branch_id
        LEFT JOIN public.invoice inv ON inv.order_id = o.id AND inv.deleted_at IS NULL
        WHERE ${whereClause} ORDER BY o.created_at DESC, o.id DESC LIMIT $${queryValues.length - 1} OFFSET $${queryValues.length}`,
       queryValues
     );
 
-    const items = (res.rows || []).map((o: any) => this.mapRowToDomain(o));
+    const rows = res.rows || [];
+    await this.hydrateOrderRelations(rows);
+    const items = rows.map((o: any) => this.mapRowToDomain(o));
     const totalPages = Math.ceil(total / pageSize);
 
     return {
@@ -429,15 +540,19 @@ export class OrderRepository {
   static async findAll(limit: number = 20): Promise<OrderDomain[]> {
     const safeLimit = Math.min(Math.max(1, limit), 100);
     const res = await dbQuery(
-      `SELECT o.*, inv.invoice_number AS real_invoice_number, inv.id AS real_invoice_id, inv.status AS real_invoice_status
+      `SELECT o.*, b.name AS joined_branch_name, b.code AS joined_branch_code,
+              inv.invoice_number AS real_invoice_number, inv.id AS real_invoice_id, inv.status AS real_invoice_status
        FROM "order" o
+       LEFT JOIN public.branch b ON b.id = o.branch_id
        LEFT JOIN public.invoice inv ON inv.order_id = o.id AND inv.deleted_at IS NULL
        WHERE o.deleted_at IS NULL
        ORDER BY o.created_at DESC, o.id DESC LIMIT $1`,
       [safeLimit]
     );
 
-    return (res.rows || []).map((o: any) => this.mapRowToDomain(o));
+    const rows = res.rows || [];
+    await this.hydrateOrderRelations(rows);
+    return rows.map((o: any) => this.mapRowToDomain(o));
   }
 
   /**
@@ -445,14 +560,18 @@ export class OrderRepository {
    */
   static async findById(idOrNumber: string): Promise<OrderDomain | null> {
     const res = await dbQuery(
-      `SELECT o.*, inv.invoice_number AS real_invoice_number, inv.id AS real_invoice_id, inv.status AS real_invoice_status
+      `SELECT o.*, b.name AS joined_branch_name, b.code AS joined_branch_code,
+              inv.invoice_number AS real_invoice_number, inv.id AS real_invoice_id, inv.status AS real_invoice_status
        FROM "order" o
+       LEFT JOIN public.branch b ON b.id = o.branch_id
        LEFT JOIN public.invoice inv ON inv.order_id = o.id AND inv.deleted_at IS NULL
-       WHERE (o.id = $1 OR o.display_id::text = $1 OR o.metadata->>'order_number' = $1) AND o.deleted_at IS NULL LIMIT 1`,
+       WHERE (o.id = $1 OR o.order_number = $1 OR o.display_id::text = $1 OR o.metadata->>'order_number' = $1) AND o.deleted_at IS NULL LIMIT 1`,
       [idOrNumber]
     );
     if (!res.rows || res.rows.length === 0) return null;
     const orderRow = res.rows[0];
+
+    await this.hydrateOrderRelations([orderRow]);
 
     let timelineRows: any[] = [];
     try {

@@ -29,15 +29,21 @@ export default function RazorpayCheckoutPage() {
   const [paymentStatus, setPaymentStatus] = useState<"initializing" | "ready" | "processing" | "success" | "failed" | "dismissed">("initializing");
 
   const hasLaunchedRef = useRef(false);
+  const hasInitializedRef = useRef(false);
 
   // 1. Initialize Razorpay Order via authoritative backend API
-  const initializeOrder = useCallback(async () => {
+  const initializeOrder = useCallback(async (forceRetry = false) => {
     if (!orderId) {
       setIsInitializing(false);
       setPaymentStatus("failed");
       setErrorMessage("No order reference provided. Please complete the checkout form to place your order.");
       return;
     }
+
+    if (hasInitializedRef.current && !forceRetry) {
+      return;
+    }
+    hasInitializedRef.current = true;
 
     setIsInitializing(true);
     setErrorMessage(null);
@@ -276,7 +282,7 @@ export default function RazorpayCheckoutPage() {
 
                 <button
                   type="button"
-                  onClick={initializeOrder}
+                  onClick={() => initializeOrder(true)}
                   className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5"
                 >
                   <RefreshCw className="w-3.5 h-3.5" /> Retry Payment Session
