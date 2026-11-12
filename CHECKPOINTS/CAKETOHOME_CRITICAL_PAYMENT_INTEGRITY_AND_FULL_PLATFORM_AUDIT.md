@@ -4,7 +4,7 @@
 **Investigation Classification:** P0 CRITICAL FINANCIAL INTEGRITY & PAYMENT AUDIT  
 **Date of Audit:** 2026-11-12  
 **Auditing Authority:** Principal Software Architect, Payment Security Specialist, Lead QA Automation Architect & Financial Systems Auditor  
-**Repository Branch:** `main`  
+**Repository Branch:** `main` (Commit: `ceaa70bce6f2f3a6fa258464328a225453a50f06`)  
 **Database Evaluated:** PostgreSQL 16 on `127.0.0.1:5433/cth_rehearsal_phase5`  
 **Payment Gateway Provider:** Razorpay (Test Mode: `rzp_test_TxymYPGydaHJBL`)  
 **Production Release Status:** **GATE E BLOCKED (MANDATORY GATEWAY KYC PENDING)**  
