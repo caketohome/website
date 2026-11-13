@@ -2,19 +2,10 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-
-const AiChatAssistant = dynamic(
-  () => import("@frontend/components/store/ai-chat-assistant"),
-  { ssr: false }
-);
+import { WhatsAppSupportButton } from "./whatsapp-support-button";
 
 const ExitIntentPopup = dynamic(
   () => import("@frontend/components/store/marketing/exit-intent-popup"),
-  { ssr: false }
-);
-
-const WhatsAppSupportButton = dynamic(
-  () => import("@frontend/components/store/whatsapp-support-button"),
   { ssr: false }
 );
 
@@ -30,7 +21,6 @@ export function StorefrontFloatingWidgets() {
   return (
     <>
       <WhatsAppSupportButton />
-      <AiChatAssistant />
       <ExitIntentPopup />
     </>
   );

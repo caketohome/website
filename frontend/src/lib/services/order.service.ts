@@ -309,20 +309,44 @@ export class OrderService {
       });
     }
 
-    // 6. Authoritative Coupon / Discount Validation
+    // 6. Authoritative Coupon / Discount Validation (Strict Single Source of Truth)
     let discountAmount = 0;
     if (coupon_code) {
       const offer = await OfferRepository.findByCode(coupon_code);
-      if (offer && offer.is_active) {
-        if (subtotal >= (offer.min_order || offer.min_order_value || 0)) {
-          if (offer.type === "percentage" || offer.discount_type === "percentage") {
-            discountAmount = Math.round((subtotal * offer.discount_value) / 100);
-            if (offer.max_discount_value && discountAmount > offer.max_discount_value) {
-              discountAmount = offer.max_discount_value;
-            }
-          } else {
-            discountAmount = offer.discount_value;
-          }
+      if (!offer || (!offer.is_active && offer.status !== "active")) {
+        return {
+          success: false,
+          error: `INVALID_COUPON: Coupon "${coupon_code}" is invalid or inactive.`,
+        };
+      }
+      const now = new Date();
+      if (!(offer as any).never_expires && offer.ends_at && now > new Date(offer.ends_at)) {
+        return {
+          success: false,
+          error: `EXPIRED_COUPON: Coupon "${coupon_code}" has expired.`,
+        };
+      }
+      const minOrder = Number(offer.min_order_value ?? offer.min_order ?? 0);
+      if (minOrder > 0 && subtotal < minOrder) {
+        return {
+          success: false,
+          error: `MIN_ORDER_NOT_MET: Minimum cart value of ₹${minOrder} required for coupon "${coupon_code}".`,
+        };
+      }
+      const discountVal = Number(offer.discount_value || 10);
+      const isPercentage = (offer as any).type === "percentage" || (offer as any).discount_type === "percentage";
+      const isFreeDelivery = (offer as any).type === "free_delivery" || (offer as any).discount_type === "free_delivery";
+      if (isPercentage) {
+        discountAmount = Math.round((subtotal * discountVal) / 100);
+        if (offer.max_discount_value && discountAmount > offer.max_discount_value) {
+          discountAmount = offer.max_discount_value;
+        }
+      } else if (isFreeDelivery) {
+        discountAmount = deliveryFee || 49;
+      } else {
+        discountAmount = Math.min(discountVal, subtotal);
+        if (offer.max_discount_value && discountAmount > offer.max_discount_value) {
+          discountAmount = offer.max_discount_value;
         }
       }
     }

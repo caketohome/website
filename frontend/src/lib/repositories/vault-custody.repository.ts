@@ -131,12 +131,12 @@ export class VaultCustodyRepository {
         vm.source_type, vm.source_id, vm.teller_session_id, vm.teller_movement_id,
         vm.performed_by, vm.witnessed_by, vm.narration, vm.created_at,
         b.name AS branch_name,
-        u_p.first_name || ' ' || COALESCE(u_p.last_name, '') AS performed_by_name,
-        u_w.first_name || ' ' || COALESCE(u_w.last_name, '') AS witnessed_by_name
+        COALESCE(u_p.full_name, u_p.display_name) AS performed_by_name,
+        COALESCE(u_w.full_name, u_w.display_name) AS witnessed_by_name
       FROM public.branch_vault_movement vm
       JOIN public.branch b ON b.id = vm.branch_id
-      LEFT JOIN public."user" u_p ON u_p.id = vm.performed_by
-      LEFT JOIN public."user" u_w ON u_w.id = vm.witnessed_by
+      LEFT JOIN public.profiles u_p ON u_p.id::text = vm.performed_by
+      LEFT JOIN public.profiles u_w ON u_w.id::text = vm.witnessed_by
       WHERE vm.branch_id = $1
       ORDER BY vm.created_at DESC, vm.id DESC
       LIMIT $2 OFFSET $3;

@@ -211,7 +211,7 @@ export class DeliveryService {
     if (deliveryMode === "express") {
       cutoffStr = rules.express_cutoff || "19:00";
     } else if (deliveryMode === "midnight") {
-      cutoffStr = rules.midnight_cutoff || "20:00";
+      return { passed: true, cutoffTime: "N/A", reason: "Midnight delivery is discontinued. Please select standard or express delivery." };
     } else {
       cutoffStr = rules.same_day_cutoff || "18:00";
     }
@@ -260,16 +260,8 @@ export class DeliveryService {
     ];
 
     if (deliveryMode === "midnight") {
-      const midnightSlot = {
-        id: "slot_midnight",
-        time_range: "23:00 - 23:59 (Midnight)",
-        start_time: "23:00",
-        end_time: "23:59",
-        available: !isToday || (curTotalMins + prepTimeMinutes <= 23 * 60),
-        reason: isToday && curTotalMins + prepTimeMinutes > 23 * 60 ? "Requires 2 hours preparation time" : undefined,
-        fee: 149,
-      };
-      return [midnightSlot];
+      // Midnight delivery is disabled across the platform
+      return [];
     }
 
     return standardSlots.map((s) => {

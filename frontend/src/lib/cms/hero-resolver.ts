@@ -58,7 +58,7 @@ export interface ResolvedHeroBannerConfig {
 }
 
 const DEFAULT_HEADLINE = "Handcrafted Gourmet Cakes Delivered in 2 Hours";
-const DEFAULT_SUBHEADLINE = "Fresh, artisanal birthday & wedding cakes across Kerala. Midnight delivery available!";
+const DEFAULT_SUBHEADLINE = "Fresh, artisanal birthday & wedding cakes across Kerala. Express 2-hour delivery available!";
 const DEFAULT_BADGE = "100% Fresh & Artisanal • Express 2-Hour Delivery";
 const DEFAULT_PRIMARY_CTA_TEXT = "Explore Cakes";
 const DEFAULT_PRIMARY_CTA_URL = "/products";

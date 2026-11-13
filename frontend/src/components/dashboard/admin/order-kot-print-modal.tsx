@@ -37,8 +37,20 @@ export function OrderKotPrintModal({ order, onClose }: OrderKotPrintModalProps) 
 
         {/* Printable Ticket Area */}
         <div className="p-6 overflow-y-auto font-mono text-xs space-y-4 print:p-0 print:text-black">
-          <div className="text-center border-b-2 border-black pb-3 space-y-1">
-            <h2 className="text-xl font-extrabold uppercase tracking-wider">CAKETOHOME BAKERY KITCHEN</h2>
+          <div className="text-center border-b-2 border-black pb-3 space-y-1 flex flex-col items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/brand/caketo-home-logo-black.png"
+              alt="CakeToHome"
+              className="h-9 w-auto object-contain mx-auto mb-1 print:block dark:hidden"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/brand/caketo-home-logo-white.png"
+              alt="CakeToHome"
+              className="h-9 w-auto object-contain mx-auto mb-1 hidden dark:block print:hidden"
+            />
+            <h2 className="text-base font-extrabold uppercase tracking-wider">BAKERY KITCHEN</h2>
             <p className="text-sm font-bold">{order?.branch?.name || "Indiranagar Flagship Hub"}</p>
             <p className="text-xs">KOT TICKET #: <span className="font-extrabold underline">{kitchen?.kot_number || "KOT-0042"}</span></p>
             <p className="text-[10px] text-slate-500">{new Date().toLocaleString("en-IN")}</p>

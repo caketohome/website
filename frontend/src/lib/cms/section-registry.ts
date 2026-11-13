@@ -597,12 +597,12 @@ export const SECTION_REGISTRY: SectionTypeDefinition[] = [
   },
   {
     value: "midnight_delivery_cta",
-    label: "Midnight Delivery",
-    icon: "🌙",
+    label: "Scheduled Delivery",
+    icon: "📅",
     category: "conversion",
-    description: "Midnight delivery promotion",
+    description: "Scheduled celebration delivery promotion",
     editorType: "cta",
-    defaultConfig: { heading: "🌙 Midnight Delivery", subheading: "Surprise your loved ones at midnight", cta_text: "Book Midnight Delivery", cta_url: "/products?delivery=midnight", style: "midnight" },
+    defaultConfig: { heading: "📅 Scheduled Celebration Delivery", subheading: "Plan your celebration in advance with guaranteed slots", cta_text: "Schedule Delivery", cta_url: "/products", style: "scheduled" },
   },
   {
     value: "custom_cake_cta",
@@ -629,7 +629,7 @@ export const SECTION_REGISTRY: SectionTypeDefinition[] = [
     category: "conversion",
     description: "WhatsApp chat/order button",
     editorType: "cta",
-    defaultConfig: { heading: "Order via WhatsApp", subheading: "Chat with us for custom orders", cta_text: "Chat on WhatsApp", cta_url: "https://wa.me/919876543210", style: "whatsapp" },
+    defaultConfig: { heading: "Order via WhatsApp", subheading: "Chat with us for custom orders", cta_text: "Chat on WhatsApp", cta_url: "https://wa.me/919567789888", style: "whatsapp" },
   },
 
   // ── CATEGORY 7: TRUST ────────────────────────────────────────────────
@@ -1091,12 +1091,12 @@ export const SECTION_REGISTRY: SectionTypeDefinition[] = [
   },
   {
     value: "midnight_delivery_info",
-    label: "Midnight Delivery",
-    icon: "🌙",
+    label: "Scheduled Delivery",
+    icon: "📅",
     category: "delivery_location",
-    description: "Midnight delivery information and zones",
+    description: "Scheduled delivery information and zones",
     editorType: "delivery_coverage",
-    defaultConfig: { heading: "Midnight Delivery", subheading: "Surprise at 12 AM", style: "midnight" },
+    defaultConfig: { heading: "Scheduled Celebration Delivery", subheading: "Choose your preferred time slot", style: "scheduled" },
   },
 
   // ── CATEGORY 11: LEAD GENERATION ─────────────────────────────────────
@@ -1125,7 +1125,7 @@ export const SECTION_REGISTRY: SectionTypeDefinition[] = [
     category: "lead_generation",
     description: "WhatsApp chat button for enquiries",
     editorType: "cta",
-    defaultConfig: { heading: "Chat With Us", subheading: "Quick responses on WhatsApp", cta_text: "Open WhatsApp", cta_url: "https://wa.me/919876543210", style: "whatsapp" },
+    defaultConfig: { heading: "Chat With Us", subheading: "Quick responses on WhatsApp", cta_text: "Open WhatsApp", cta_url: "https://wa.me/919567789888", style: "whatsapp" },
   },
   {
     value: "corporate_enquiry",

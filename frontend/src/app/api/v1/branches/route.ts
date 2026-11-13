@@ -22,13 +22,20 @@ export async function GET(req: NextRequest) {
     const pincode = searchParams.get("pincode") || undefined;
     const areaName = searchParams.get("area") || undefined;
     const isExpress = searchParams.get("express") === "true";
-    const isMidnight = searchParams.get("midnight") === "true";
+    const isMidnight = false; // Midnight delivery discontinued
     const orderTotal = searchParams.get("orderTotal") ? parseFloat(searchParams.get("orderTotal")!) : undefined;
 
     if (latStr || lngStr || pincode || areaName) {
       const lat = latStr ? parseFloat(latStr) : undefined;
       const lng = lngStr ? parseFloat(lngStr) : undefined;
-      const resolved = ApiEngine.resolveSmartBranch({ lat, lng, pincode, areaName, isExpress, isMidnight, orderTotal });
+      const resolved = ApiEngine.resolveSmartBranch({ lat, lng, pincode, areaName, isExpress, isMidnight: false, orderTotal });
+      if (resolved?.branch?.fulfillment_rules) {
+        (resolved.branch.fulfillment_rules as any).midnight_enabled = false;
+      }
+      if (resolved?.zone) {
+        (resolved.zone as any).midnight_allowed = false;
+        (resolved.zone as any).midnight_charge = 0;
+      }
       return NextResponse.json({ ...resolved, success: true });
     }
 

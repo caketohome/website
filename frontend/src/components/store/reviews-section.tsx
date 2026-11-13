@@ -22,7 +22,7 @@ export function ReviewsSection() {
       date: "2 days ago",
       verified: true,
       headline: "Absolute perfection for my daughter's 5th birthday!",
-      comment: "Ordered the Belgian Dark Chocolate Truffle. The cake was delivered right on time at 11:55 PM for midnight surprise. Super moist, rich chocolate ganache, and not overly sweet!",
+      comment: "Ordered the Belgian Dark Chocolate Truffle. The cake was delivered right on time with express dispatch. Super moist, rich chocolate ganache, and not overly sweet!",
       image: "🎂",
       helpful: 24,
     },
@@ -80,7 +80,7 @@ export function ReviewsSection() {
                 <span className="text-xs font-bold text-ui-fg-base ml-2">Based on 1,428 Customer Reviews</span>
               </div>
               <Text className="text-xs text-ui-fg-subtle">
-                98% of customers recommend CakeToHome for fresh baking, midnight delivery punctuality, and rich flavors.
+                98% of customers recommend CakeToHome for fresh baking, delivery punctuality, and rich flavors.
               </Text>
             </div>
           </div>
@@ -96,7 +96,7 @@ export function ReviewsSection() {
             <Sparkles className="w-3.5 h-3.5 text-amber-500" /> AI Sentiment Highlights:
           </span>
           <Badge color="green"> Moist & Fresh Sponge (99%)</Badge>
-          <Badge color="green"> Punctual Midnight Delivery (97%)</Badge>
+          <Badge color="green"> Express On-Time Delivery (98%)</Badge>
           <Badge color="green"> Premium Belgian Chocolate (98%)</Badge>
           <Badge color="purple"> Master Pastry Chef Quality (96%)</Badge>
         </div>

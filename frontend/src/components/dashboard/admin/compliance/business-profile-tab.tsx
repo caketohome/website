@@ -56,7 +56,7 @@ export function BusinessProfileTab({
       email: profile?.authorized_signatory?.email || "caketohomeoffice@gmail.com",
       phone: profile?.authorized_signatory?.phone || "+91 81389 16888",
     },
-    logo_url: profile?.logo_url || "/logo.png",
+    logo_url: profile?.logo_url || "/assets/brand/caketo-home-logo-navy.png",
     status: profile?.status || "ACTIVE",
   });
 

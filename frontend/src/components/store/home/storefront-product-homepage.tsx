@@ -18,23 +18,23 @@ const ScrollFrameHero = dynamic(
   {
     ssr: false,
     loading: () => (
-      <section className="relative w-full min-h-[480px] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#2563EB] text-white rounded-3xl shadow-xl my-4">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-400/20 via-transparent to-transparent pointer-events-none" />
+      <section className="relative w-full min-h-[480px] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#0A0E17] text-white rounded-3xl shadow-2xl my-4 border border-[#FDE68A]/20">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-500/15 via-transparent to-transparent pointer-events-none" />
         <div className="relative z-10 p-6 sm:p-12 max-w-3xl flex flex-col items-center text-center gap-4">
-          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-1 shadow-sm bg-white/15 text-blue-100 border border-white/20 backdrop-blur-sm">
-            <Sparkles className="w-3.5 h-3.5 text-blue-300" />
+          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-1 shadow-lg bg-[#D97706]/20 text-[#FDE68A] border border-[#FDE68A]/30 backdrop-blur-sm">
+            <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
             100% Fresh & Artisanal • Express 2-Hour Delivery
           </span>
-          <Heading level="h1" className="font-serif text-3xl sm:text-5xl md:text-6xl font-normal sm:font-semibold tracking-[-0.025em] leading-[1.1] text-white drop-shadow-md">
+          <Heading level="h1" className="font-serif text-3xl sm:text-5xl md:text-6xl font-normal sm:font-semibold tracking-[-0.025em] leading-[1.1] text-white drop-shadow-xl">
             Freshly Baked Happiness
           </Heading>
-          <Text className="font-sans text-sm sm:text-base text-blue-100 max-w-xl font-normal leading-relaxed">
-            Explore gourmet cakes, handcrafted chocolates, fresh pastries, and savory treats. Delivered directly from our nearest kitchen for maximum freshness.
+          <Text className="font-sans text-sm sm:text-base text-stone-200 max-w-xl font-normal leading-relaxed">
+            Explore gourmet cakes, handcrafted chocolates, fresh pastries, and savory treats. Delivered directly from our nearest kitchen across Kerala.
           </Text>
           <div className="flex items-center gap-3 pt-2">
             <Link
               href="/search"
-              className="rounded-full px-8 py-3.5 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-white hover:bg-blue-50 text-[#1E3A8A] shadow-md transition-all flex items-center gap-1.5 font-bold"
+              className="rounded-full px-8 py-3.5 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-gradient-to-r from-[#D97706] to-[#B45309] hover:from-[#B45309] hover:to-[#92400E] text-white shadow-[0_10px_25px_rgba(217,119,6,0.35)] transition-all flex items-center gap-1.5 font-bold"
             >
               Explore Cakes <ArrowRight className="w-4 h-4 ml-1" />
             </Link>

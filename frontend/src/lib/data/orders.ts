@@ -132,7 +132,7 @@ export async function getDeliveryProof(orderId: string): Promise<{ proofs: Deliv
 }
 
 export function getInvoiceUrl(orderId: string): string {
-  return `/api/v1/accounting/invoices/${orderId}`;
+  return `/invoices/${orderId}`;
 }
 
 export async function downloadInvoice(orderId: string): Promise<Blob> {

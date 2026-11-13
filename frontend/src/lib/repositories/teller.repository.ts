@@ -28,7 +28,7 @@ export class TellerRepository {
     forUpdate = false
   ): Promise<TellerRow | null> {
     const queryFn = client ? client.query.bind(client) : dbQuery;
-    const lockClause = forUpdate ? " FOR UPDATE" : "";
+    const lockClause = forUpdate ? " FOR UPDATE OF t" : "";
     const sql = `
       SELECT 
         t.id, t.branch_id, t.user_id, t.name, t.code, t.status,
@@ -37,7 +37,7 @@ export class TellerRepository {
         u.email as user_email
       FROM public.teller t
       JOIN public.branch b ON b.id = t.branch_id
-      JOIN public."user" u ON u.id = t.user_id
+      LEFT JOIN public.profiles u ON u.id::text = t.user_id
       WHERE t.id = $1
       ${lockClause};
     `;
@@ -54,7 +54,7 @@ export class TellerRepository {
     forUpdate = false
   ): Promise<TellerRow | null> {
     const queryFn = client ? client.query.bind(client) : dbQuery;
-    const lockClause = forUpdate ? " FOR UPDATE" : "";
+    const lockClause = forUpdate ? " FOR UPDATE OF t" : "";
     const sql = `
       SELECT 
         t.id, t.branch_id, t.user_id, t.name, t.code, t.status,
@@ -63,7 +63,7 @@ export class TellerRepository {
         u.email as user_email
       FROM public.teller t
       JOIN public.branch b ON b.id = t.branch_id
-      JOIN public."user" u ON u.id = t.user_id
+      LEFT JOIN public.profiles u ON u.id::text = t.user_id
       WHERE t.user_id = $1 AND t.status = 'ACTIVE'
       ${lockClause};
     `;
@@ -87,7 +87,7 @@ export class TellerRepository {
         u.email as user_email
       FROM public.teller t
       JOIN public.branch b ON b.id = t.branch_id
-      JOIN public."user" u ON u.id = t.user_id
+      LEFT JOIN public.profiles u ON u.id::text = t.user_id
       WHERE t.user_id = $1
       ORDER BY t.created_at DESC;
     `;
@@ -112,7 +112,7 @@ export class TellerRepository {
         u.email as user_email
       FROM public.teller t
       JOIN public.branch b ON b.id = t.branch_id
-      JOIN public."user" u ON u.id = t.user_id
+      LEFT JOIN public.profiles u ON u.id::text = t.user_id
       WHERE t.branch_id = $1 AND t.code = $2;
     `;
     const res = await queryFn(sql, [branchId, code.trim().toUpperCase()]);
@@ -135,7 +135,7 @@ export class TellerRepository {
         u.email as user_email
       FROM public.teller t
       JOIN public.branch b ON b.id = t.branch_id
-      JOIN public."user" u ON u.id = t.user_id
+      LEFT JOIN public.profiles u ON u.id::text = t.user_id
       WHERE t.branch_id = $1
       ORDER BY CASE WHEN t.status = 'ACTIVE' THEN 0 ELSE 1 END, t.code ASC;
     `;
@@ -305,7 +305,7 @@ export class TellerRepository {
         u.email as user_email
       FROM public.teller t
       JOIN public.branch b ON b.id = t.branch_id
-      JOIN public."user" u ON u.id = t.user_id
+      LEFT JOIN public.profiles u ON u.id::text = t.user_id
       ${whereClause}
       ORDER BY CASE WHEN t.status = 'ACTIVE' THEN 0 ELSE 1 END, t.created_at DESC;
     `;

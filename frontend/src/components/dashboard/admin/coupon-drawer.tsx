@@ -724,7 +724,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                       Daily Happy Hour / Time Window Restriction (Optional)
                     </div>
                     <p className="text-xs text-slate-400">
-                      Restrict redemption to specific hours (e.g. Midnight Happy Hour 22:00 to 02:00 or Afternoon Tea 14:00 to 18:00).
+                      Restrict redemption to specific hours (e.g. Evening Rush 18:00 to 22:00 or Afternoon Tea 14:00 to 18:00).
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
@@ -800,7 +800,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                       />
                       <div>
                         <div className="text-xs font-semibold text-white">Exclude Flash Sale Items</div>
-                        <div className="text-[11px] text-slate-400">Coupon cannot be applied to midnight flash sale deals.</div>
+                        <div className="text-[11px] text-slate-400">Coupon cannot be applied to special flash sale deals.</div>
                       </div>
                     </label>
                   </div>

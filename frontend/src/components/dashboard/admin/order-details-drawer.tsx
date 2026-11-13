@@ -605,7 +605,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                       <option value="09:00 AM - 12:00 PM (Morning Slot)">09:00 AM - 12:00 PM (Morning Slot) - 4/15 Orders</option>
                       <option value="02:00 PM - 05:00 PM (Afternoon Slot)">02:00 PM - 05:00 PM (Afternoon Slot) - 8/15 Orders</option>
                       <option value="07:00 PM - 09:00 PM (Evening Slot)">07:00 PM - 09:00 PM (Evening Express) - 11/15 Orders</option>
-                      <option value="11:30 PM - 12:15 AM (Midnight Slot)">11:30 PM - 12:15 AM (Midnight Surprise) - 3/10 Orders</option>
+                      <option value="09:00 PM - 10:30 PM (Night Slot)">09:00 PM - 10:30 PM (Night Slot) - 3/10 Orders</option>
                     </select>
                   </div>
                   <div className="pt-4">

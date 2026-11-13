@@ -327,14 +327,14 @@ export class PettyCashRepository {
         pcr.bank_account_id, pcr.receipt_reference, pcr.metadata,
         pcr.created_at, pcr.updated_at,
         b.name AS branch_name,
-        u_m.first_name || ' ' || COALESCE(u_m.last_name, '') AS maker_name,
-        u_c.first_name || ' ' || COALESCE(u_c.last_name, '') AS checker_name,
-        u_d.first_name || ' ' || COALESCE(u_d.last_name, '') AS disburser_name
+        COALESCE(u_m.full_name, u_m.display_name) AS maker_name,
+        COALESCE(u_c.full_name, u_c.display_name) AS checker_name,
+        COALESCE(u_d.full_name, u_d.display_name) AS disburser_name
       FROM public.petty_cash_request pcr
       JOIN public.branch b ON b.id = pcr.branch_id
-      LEFT JOIN public."user" u_m ON u_m.id = pcr.maker_id
-      LEFT JOIN public."user" u_c ON u_c.id = pcr.checker_id
-      LEFT JOIN public."user" u_d ON u_d.id = pcr.disburser_id
+      LEFT JOIN public.profiles u_m ON u_m.id::text = pcr.maker_id
+      LEFT JOIN public.profiles u_c ON u_c.id::text = pcr.checker_id
+      LEFT JOIN public.profiles u_d ON u_d.id::text = pcr.disburser_id
       ${where}
       ORDER BY pcr.created_at DESC
       LIMIT ${limit} OFFSET ${offset};

@@ -594,19 +594,79 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
     });
 
     // 11. Offers — UNCONDITIONAL HYDRATION FROM POSTGRESQL
-    targetStore.offers = (offersRes.rows || []).map((off) => {
-      const meta = off.metadata || {};
+    const parseField = (val: any) => {
+      if (!val) return [];
+      if (Array.isArray(val)) return val;
+      if (typeof val === "string") {
+        try {
+          const parsed = JSON.parse(val);
+          return Array.isArray(parsed) ? parsed : [parsed];
+        } catch {
+          return val.includes(",") ? val.split(",").map((s) => s.trim()) : [val];
+        }
+      }
+      return val;
+    };
+    const parseObj = (val: any) => {
+      if (!val) return {};
+      if (typeof val === "object") return val;
+      if (typeof val === "string") {
+        try { return JSON.parse(val); } catch { return {}; }
+      }
+      return {};
+    };
+
+    targetStore.offers = (offersRes.rows || []).map((off: any) => {
+      const meta = parseObj(off.metadata);
       return {
         id: off.id,
         name: off.name,
         code: off.code,
-        type: off.type,
-        discount_type: off.type,
-        discount_value: Number(off.discount_value || 0),
-        min_order: Number(off.min_order || 0),
-        is_active: off.is_active !== false,
-        description: off.description,
-        rules: meta.rules || {},
+        type: off.type || "percentage",
+        status: off.status || "active",
+        priority: Number(off.priority) || 0,
+        starts_at: off.starts_at ? new Date(off.starts_at).toISOString() : null,
+        ends_at: off.ends_at ? new Date(off.ends_at).toISOString() : null,
+        start_time: off.start_time,
+        end_time: off.end_time,
+        timezone: off.timezone || "Asia/Kolkata",
+        never_expires: Boolean(off.never_expires),
+        usage_limit: off.usage_limit !== null && off.usage_limit !== undefined ? Number(off.usage_limit) : null,
+        per_customer_limit: off.per_customer_limit !== null && off.per_customer_limit !== undefined ? Number(off.per_customer_limit) : null,
+        daily_limit: off.daily_limit !== null && off.daily_limit !== undefined ? Number(off.daily_limit) : null,
+        monthly_limit: off.monthly_limit !== null && off.monthly_limit !== undefined ? Number(off.monthly_limit) : null,
+        is_stackable: Boolean(off.is_stackable),
+        is_public: off.is_public !== false,
+        auto_apply: Boolean(off.auto_apply),
+        delivery_mode: off.delivery_mode || "all",
+        allowed_payment_methods: parseField(off.allowed_payment_methods),
+        min_order_value: Number(off.min_order_value) || 0,
+        max_discount_value: off.max_discount_value !== null && off.max_discount_value !== undefined ? Number(off.max_discount_value) : null,
+        min_quantity: Number(off.min_quantity) || 1,
+        description: off.description || "",
+        applicable_branches: parseField(off.applicable_branches),
+        applicable_cities: parseField(off.applicable_cities),
+        applicable_pincodes: parseField(off.applicable_pincodes),
+        excluded_pincodes: parseField(off.excluded_pincodes),
+        applicable_products: parseField(off.applicable_products),
+        applicable_categories: parseField(off.applicable_categories),
+        applicable_flavors: parseField(off.applicable_flavors),
+        applicable_shapes: parseField(off.applicable_shapes),
+        applicable_weights: parseField(off.applicable_weights),
+        customer_eligibility: off.customer_eligibility || "all",
+        allowed_customer_ids: parseField(off.allowed_customer_ids),
+        allowed_phones: parseField(off.allowed_phones),
+        allowed_emails: parseField(off.allowed_emails),
+        customer_tags: parseField(off.customer_tags),
+        exclude_discounted_items: Boolean(off.exclude_discounted_items),
+        exclude_flash_sales: Boolean(off.exclude_flash_sales),
+        approval_status: off.approval_status || "approved",
+        created_by: off.created_by || "system",
+        approved_by: off.approved_by,
+        total_redemptions: Number(off.total_redemptions) || 0,
+        total_discount_given: Number(off.total_discount_given) || 0,
+        total_revenue_generated: Number(off.total_revenue_generated) || 0,
+        metadata: meta,
         created_at: off.created_at,
         updated_at: off.updated_at,
       };
@@ -1629,39 +1689,158 @@ export async function persistLeadEnquiryToDb(enquiry: {
 /**
  * Persists an Offer to PostgreSQL
  */
+function toTextCol(val: any): string | null {
+  if (val === undefined || val === null) return null;
+  if (typeof val === "object") return JSON.stringify(val);
+  return String(val);
+}
+
 export async function persistOfferToDb(offer: any): Promise<void> {
   const id = offer.id || `off_${Date.now()}`;
+  const code = (offer.code || `OFFER_${Date.now()}`).toUpperCase().trim();
+  const meta = typeof offer.metadata === "object" ? offer.metadata : (offer.discount_value !== undefined ? { discount_value: offer.discount_value } : {});
+
   await dbQuery(
     `
-    INSERT INTO "offer" ("id", "name", "code", "discount_type", "discount_value", "min_order_amount", "is_active", "description", "created_at", "updated_at")
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+    INSERT INTO "offer" (
+      "id", "name", "code", "type", "status", "priority",
+      "starts_at", "ends_at", "usage_limit", "per_customer_limit", "is_stackable",
+      "description", "conditions", "rewards", "is_public", "branch_ids",
+      "customer_segments", "metadata", "total_redemptions", "start_time", "end_time",
+      "timezone", "never_expires", "daily_limit", "monthly_limit", "auto_apply",
+      "delivery_mode", "allowed_payment_methods", "min_order_value", "max_discount_value",
+      "min_quantity", "applicable_branches", "applicable_cities", "applicable_pincodes",
+      "excluded_pincodes", "applicable_products", "applicable_categories", "applicable_flavors",
+      "applicable_shapes", "applicable_weights", "customer_eligibility", "allowed_customer_ids",
+      "allowed_phones", "allowed_emails", "customer_tags", "exclude_discounted_items",
+      "exclude_flash_sales", "approval_status", "created_by", "approved_by",
+      "total_discount_given", "total_revenue_generated", "created_at", "updated_at"
+    )
+    VALUES (
+      $1, $2, $3, $4, $5, $6,
+      $7, $8, $9, $10, $11,
+      $12, $13, $14, $15, $16,
+      $17, $18, $19, $20, $21,
+      $22, $23, $24, $25, $26,
+      $27, $28, $29, $30,
+      $31, $32, $33, $34,
+      $35, $36, $37, $38,
+      $39, $40, $41, $42,
+      $43, $44, $45, $46,
+      $47, $48, $49, $50,
+      $51, $52, NOW(), NOW()
+    )
     ON CONFLICT ("id") DO UPDATE SET
       "name" = EXCLUDED.name,
       "code" = EXCLUDED.code,
-      "discount_type" = EXCLUDED.discount_type,
-      "discount_value" = EXCLUDED.discount_value,
-      "min_order_amount" = EXCLUDED.min_order_amount,
-      "is_active" = EXCLUDED.is_active,
+      "type" = EXCLUDED.type,
+      "status" = EXCLUDED.status,
+      "priority" = EXCLUDED.priority,
+      "starts_at" = EXCLUDED.starts_at,
+      "ends_at" = EXCLUDED.ends_at,
+      "usage_limit" = EXCLUDED.usage_limit,
+      "per_customer_limit" = EXCLUDED.per_customer_limit,
+      "is_stackable" = EXCLUDED.is_stackable,
       "description" = EXCLUDED.description,
+      "conditions" = EXCLUDED.conditions,
+      "rewards" = EXCLUDED.rewards,
+      "is_public" = EXCLUDED.is_public,
+      "branch_ids" = EXCLUDED.branch_ids,
+      "customer_segments" = EXCLUDED.customer_segments,
+      "metadata" = EXCLUDED.metadata,
+      "total_redemptions" = EXCLUDED.total_redemptions,
+      "start_time" = EXCLUDED.start_time,
+      "end_time" = EXCLUDED.end_time,
+      "timezone" = EXCLUDED.timezone,
+      "never_expires" = EXCLUDED.never_expires,
+      "daily_limit" = EXCLUDED.daily_limit,
+      "monthly_limit" = EXCLUDED.monthly_limit,
+      "auto_apply" = EXCLUDED.auto_apply,
+      "delivery_mode" = EXCLUDED.delivery_mode,
+      "allowed_payment_methods" = EXCLUDED.allowed_payment_methods,
+      "min_order_value" = EXCLUDED.min_order_value,
+      "max_discount_value" = EXCLUDED.max_discount_value,
+      "min_quantity" = EXCLUDED.min_quantity,
+      "applicable_branches" = EXCLUDED.applicable_branches,
+      "applicable_cities" = EXCLUDED.applicable_cities,
+      "applicable_pincodes" = EXCLUDED.applicable_pincodes,
+      "excluded_pincodes" = EXCLUDED.excluded_pincodes,
+      "applicable_products" = EXCLUDED.applicable_products,
+      "applicable_categories" = EXCLUDED.applicable_categories,
+      "applicable_flavors" = EXCLUDED.applicable_flavors,
+      "applicable_shapes" = EXCLUDED.applicable_shapes,
+      "applicable_weights" = EXCLUDED.applicable_weights,
+      "customer_eligibility" = EXCLUDED.customer_eligibility,
+      "allowed_customer_ids" = EXCLUDED.allowed_customer_ids,
+      "allowed_phones" = EXCLUDED.allowed_phones,
+      "allowed_emails" = EXCLUDED.allowed_emails,
+      "customer_tags" = EXCLUDED.customer_tags,
+      "exclude_discounted_items" = EXCLUDED.exclude_discounted_items,
+      "exclude_flash_sales" = EXCLUDED.exclude_flash_sales,
+      "approval_status" = EXCLUDED.approval_status,
+      "created_by" = EXCLUDED.created_by,
+      "approved_by" = EXCLUDED.approved_by,
+      "total_discount_given" = EXCLUDED.total_discount_given,
+      "total_revenue_generated" = EXCLUDED.total_revenue_generated,
       "updated_at" = NOW()
   `,
     [
       id,
-      offer.name || offer.title || offer.code || "Promo Offer",
-      (offer.code || `OFFER_${Date.now()}`).toUpperCase(),
-      offer.discount_type || offer.type || "flat",
-      Number(offer.discount_value ?? offer.amount ?? offer.value ?? 100),
-      Number(offer.min_order_amount ?? offer.min_order ?? offer.min_order_value ?? 499),
-      offer.is_active !== false,
+      offer.name || offer.title || code,
+      code,
+      offer.type || offer.discount_type || "percentage",
+      offer.status || "active",
+      Number(offer.priority) || 0,
+      offer.starts_at ? new Date(offer.starts_at) : null,
+      offer.ends_at ? new Date(offer.ends_at) : null,
+      offer.usage_limit ? Number(offer.usage_limit) : null,
+      offer.per_customer_limit !== undefined && offer.per_customer_limit !== null ? Number(offer.per_customer_limit) : 1,
+      Boolean(offer.is_stackable),
       offer.description || "",
+      toTextCol(offer.conditions),
+      toTextCol(offer.rewards),
+      offer.is_public !== false,
+      toTextCol(offer.branch_ids),
+      toTextCol(offer.customer_segments),
+      toTextCol(meta),
+      Number(offer.total_redemptions) || 0,
+      offer.start_time || null,
+      offer.end_time || null,
+      offer.timezone || "Asia/Kolkata",
+      Boolean(offer.never_expires),
+      offer.daily_limit ? Number(offer.daily_limit) : null,
+      offer.monthly_limit ? Number(offer.monthly_limit) : null,
+      Boolean(offer.auto_apply),
+      offer.delivery_mode || "all",
+      toTextCol(offer.allowed_payment_methods || ["cash", "card", "upi", "wallet", "cod", "online"]),
+      Number(offer.min_order_value ?? offer.min_order ?? offer.min_order_amount ?? 0),
+      offer.max_discount_value !== undefined && offer.max_discount_value !== null ? Number(offer.max_discount_value) : null,
+      Number(offer.min_quantity) || 1,
+      toTextCol(offer.applicable_branches || ["all"]),
+      toTextCol(offer.applicable_cities || ["all"]),
+      toTextCol(offer.applicable_pincodes || ["all"]),
+      toTextCol(offer.excluded_pincodes || []),
+      toTextCol(offer.applicable_products || []),
+      toTextCol(offer.applicable_categories || []),
+      toTextCol(offer.applicable_flavors || []),
+      toTextCol(offer.applicable_shapes || []),
+      toTextCol(offer.applicable_weights || []),
+      offer.customer_eligibility || "all",
+      toTextCol(offer.allowed_customer_ids || []),
+      toTextCol(offer.allowed_phones || []),
+      toTextCol(offer.allowed_emails || []),
+      toTextCol(offer.customer_tags || []),
+      Boolean(offer.exclude_discounted_items),
+      Boolean(offer.exclude_flash_sales),
+      offer.approval_status || "approved",
+      offer.created_by || "usr_super_admin",
+      offer.approved_by || null,
+      Number(offer.total_discount_given) || 0,
+      Number(offer.total_revenue_generated) || 0,
     ]
   );
 }
 
-
-/**
- * Persists a Setting to PostgreSQL
- */
 export async function persistSettingToDb(
   groupOrSetting: string | { group?: string; key: string; value: any; is_public?: boolean },
   key?: string,
@@ -1813,12 +1992,9 @@ export async function persistPopupCampaignToDb(campaign: any): Promise<void> {
  * Deletes / archives an Offer from PostgreSQL
  */
 export async function deleteOfferFromDb(offerId: string): Promise<void> {
-  await dbQuery(`UPDATE "offer" SET "deleted_at" = NOW(), "is_active" = false WHERE "id" = $1 OR "code" = $1`, [offerId]);
+  await dbQuery(`UPDATE "offer" SET "deleted_at" = NOW(), "status" = 'archived' WHERE "id" = $1 OR "code" = $1`, [offerId]);
 }
 
-/**
- * Deletes / archives a Popup Campaign from PostgreSQL
- */
 export async function deletePopupCampaignFromDb(id: string): Promise<void> {
   await dbQuery(`UPDATE "popup_campaigns" SET "deleted_at" = NOW(), "status" = 'archived' WHERE "id" = $1`, [id]);
 }

@@ -23,6 +23,9 @@ module.exports = defineConfig({
   },
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
+    // Medusa's tables live in their own schema so they never collide with the
+    // storefront's tables in `public` (same Supabase database).
+    databaseSchema: process.env.DATABASE_SCHEMA || "public",
     redisUrl: process.env.REDIS_URL,
     databaseDriverOptions: {
       connection: {

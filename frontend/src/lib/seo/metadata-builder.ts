@@ -64,7 +64,7 @@ export class SeoMetadataBuilder {
     const description =
       existing?.meta_description ||
       fallbackDescription ||
-      "Order fresh handcrafted artisanal cakes online with same-day and midnight delivery. Premium birthday, wedding, and celebration cakes from CakeToHome.";
+      "Order fresh handcrafted artisanal cakes online with same-day and scheduled delivery. Premium birthday, wedding, and celebration cakes from CakeToHome.";
 
     // Determine Absolute Canonical URL & Sanitize Domain
     const relativePath = existing?.url || (slug ? (slug.startsWith("/") ? slug : `/${slug}`) : "/");

@@ -602,12 +602,12 @@ export class SeoModuleService {
             slug,
             title: `${data.title || `Cake Delivery in ${area || city}`}`,
             meta_title: `Order Cakes Online in ${area || city} | CakeToHome ${area || city}`,
-            meta_description: `Fresh premium cakes delivered to your doorstep in ${area || city}. Same-day delivery, midnight delivery, custom birthday cakes. Order now from CakeToHome.`,
+            meta_description: `Fresh premium cakes delivered to your doorstep in ${area || city}. Same-day delivery, scheduled delivery, custom birthday cakes. Order now from CakeToHome.`,
             h1_text: `Best Cake Delivery in ${area || city}`,
-            content_html: data.content_html || `<p>CakeToHome delivers premium handcrafted cakes in ${area || city}. Choose from our collection of birthday cakes, wedding cakes, anniversary cakes, and custom designer cakes with same-day and midnight delivery.</p>`,
+            content_html: data.content_html || `<p>CakeToHome delivers premium handcrafted cakes in ${area || city}. Choose from our collection of birthday cakes, wedding cakes, anniversary cakes, and custom designer cakes with same-day and scheduled delivery.</p>`,
             faqs: JSON.stringify(data.faqs || [
-                { question: `Do you deliver cakes in ${area || city}?`, answer: `Yes! CakeToHome offers same-day and midnight cake delivery across ${area || city}.` },
-                { question: `What is the delivery time in ${area || city}?`, answer: `We deliver within 2-4 hours in ${area || city}. Midnight delivery is also available.` },
+                { question: `Do you deliver cakes in ${area || city}?`, answer: `Yes! CakeToHome offers same-day and scheduled cake delivery across ${area || city}.` },
+                { question: `What is the delivery time in ${area || city}?`, answer: `We deliver within 2-4 hours in ${area || city}. Scheduled delivery is also available.` },
                 { question: `Can I order a custom cake in ${area || city}?`, answer: `Absolutely! We specialize in custom birthday, wedding, and theme cakes in ${area || city}.` },
             ]),
             schema_json: JSON.stringify({
@@ -977,7 +977,7 @@ export class SeoModuleService {
                 return {
                     suggestions: [
                         `Order ${name} online from CakeToHome. Fresh, handcrafted with premium ingredients. Same-day delivery in ${city}. Order now!`,
-                        `Get the best ${name} delivered to your doorstep in ${city}. Midnight delivery available. 100% fresh guarantee from CakeToHome.`,
+                        `Get the best ${name} delivered to your doorstep in ${city}. Express 2-hour delivery available. 100% fresh guarantee from CakeToHome.`,
                         `${name} by CakeToHome — premium quality, same-day delivery in ${city}. Perfect for birthdays, anniversaries & celebrations.`,
                     ]
                 };
@@ -991,7 +991,7 @@ export class SeoModuleService {
                 return {
                     suggestions: [
                         { question: `How to order ${name}?`, answer: `You can order ${name} online through CakeToHome. Simply visit our website, select your cake, choose a delivery slot, and pay securely.` },
-                        { question: `Is ${name} available for midnight delivery?`, answer: `Yes! CakeToHome offers midnight delivery for ${name} in ${city} and surrounding areas.` },
+                        { question: `Is ${name} available for scheduled delivery?`, answer: `Yes! CakeToHome offers scheduled delivery slots for ${name} in ${city} and surrounding areas.` },
                         { question: `Can I customize ${name}?`, answer: `Absolutely! Contact our team to customize ${name} with your preferred flavors, decorations, and message.` },
                     ]
                 };

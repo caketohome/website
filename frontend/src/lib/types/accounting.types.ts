@@ -985,6 +985,8 @@ export interface PostCodShiftSettlementParams {
   remittedByStaffId: string; // Teller / Cashier accepting cash
   approvedBySupervisorId: string; // Cash Drawer Supervisor
   postedByGlAccountantId: string; // GL Accountant
+  /** Branch manager is the teller: may approve and post their own branch settlement */
+  managerIsTeller?: boolean;
   voucherDate?: string;
   notes?: string;
   supervisorActorContext?: { id: string; user_id: string; role: string; permissions?: string[]; [key: string]: unknown };

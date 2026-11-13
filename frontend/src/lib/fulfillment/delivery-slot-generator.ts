@@ -6,7 +6,7 @@
  * - Branch operating hours & holiday calendar
  * - Product preparation time + buffer
  * - Delivery window limits (earliest / latest slot)
- * - Configurable Express delivery & Late-night / Midnight delivery
+ * - Configurable Express delivery & Scheduled slots
  * - Existing slot bookings / capacity
  *
  * Slots are generated with explicit availability, status, and reason codes.
@@ -99,13 +99,11 @@ export class DeliverySlotGenerator {
     const isPastCorporateCutoff = currentTimeMinutes >= corporateCutoffMinutes;
     const isSameDayEnabled = globalConfig.global_same_day_delivery_enabled !== false;
 
-    // Resolve Late Night & Express Configuration
-    const globalLateNight = (globalConfig.late_night_delivery as LateNightDeliveryConfig | undefined) || DEFAULT_LATE_NIGHT_CONFIG;
-    const lateNightConfig: LateNightDeliveryConfig = slotConfig.late_night_delivery || {
+    // Resolve Late Night & Express Configuration - Midnight Delivery is disabled globally
+    const lateNightConfig: LateNightDeliveryConfig = {
       ...DEFAULT_LATE_NIGHT_CONFIG,
-      ...globalLateNight,
-      enabled: slotConfig.midnight_delivery_enabled ?? globalLateNight.enabled ?? DEFAULT_LATE_NIGHT_CONFIG.enabled,
-      additional_charge: slotConfig.midnight_extra_charge ?? globalLateNight.additional_charge ?? DEFAULT_LATE_NIGHT_CONFIG.additional_charge,
+      enabled: false,
+      additional_charge: 0,
     };
 
     const globalExpress = (globalConfig.express_delivery as ExpressDeliveryConfig | undefined) || DEFAULT_EXPRESS_CONFIG;
@@ -291,80 +289,7 @@ export class DeliverySlotGenerator {
         }
       }
 
-      // ── Late-Night / Midnight Delivery Slots ──────────────────────────────
-      if (lateNightConfig.enabled) {
-        const isMidnightAllowedForDate = !lateNightConfig.same_day_only || isToday;
-        const isMidnightDayAllowed = !lateNightConfig.allowed_days || lateNightConfig.allowed_days.length === 0 || lateNightConfig.allowed_days.includes(dayOfWeek);
-
-        if (isMidnightAllowedForDate && isMidnightDayAllowed) {
-          const midStartStr = lateNightConfig.start_time || "23:30";
-          const midEndStr = lateNightConfig.end_time || "00:05";
-          const midStartMinutes = timeStringToMinutes(midStartStr);
-          const midSlotId = `SLOT_MIDNIGHT_${dateStr}`;
-          const midBooked = existingBookings.get(midSlotId) || 0;
-          const midMax = lateNightConfig.max_capacity || 15;
-          const midRemaining = Math.max(0, midMax - midBooked);
-
-          let midAvailable = true;
-          let midStatus: DeliverySlot["status"] = "AVAILABLE";
-          let midReasonCode: FulfillmentReason = "AVAILABLE";
-          let midReasonMsg = "";
-
-          if (isToday) {
-            // Check whether midnight follows corporate cutoff or special cutoff
-            const effectiveMidnightCutoff = lateNightConfig.subject_to_corporate_cutoff
-              ? corporateCutoff
-              : (lateNightConfig.special_order_cutoff || corporateCutoff);
-            const effectiveMidCutoffMins = timeStringToMinutes(effectiveMidnightCutoff);
-
-            if (currentTimeMinutes >= effectiveMidCutoffMins) {
-              midAvailable = false;
-              midStatus = "PAST_CUTOFF";
-              midReasonCode = lateNightConfig.subject_to_corporate_cutoff
-                ? "CORPORATE_CUTOFF_PASSED"
-                : "SPECIAL_CUTOFF_PASSED";
-              midReasonMsg = `Midnight ordering closed (cutoff: ${formatTimeForDisplay(effectiveMidnightCutoff)})`;
-            } else if (currentTimeMinutes + totalLeadMinutes > midStartMinutes) {
-              midAvailable = false;
-              midStatus = "PREP_TIME_EXCEEDED";
-              midReasonCode = "PRODUCT_PREP_TIME";
-              midReasonMsg = `Insufficient prep time remaining for midnight dispatch`;
-            }
-          }
-
-          if (midAvailable && midRemaining <= 0) {
-            midAvailable = false;
-            midStatus = "FULL";
-            midReasonCode = "SLOT_CAPACITY_FULL";
-            midReasonMsg = "Midnight slots fully booked";
-          }
-
-          const midLabel = lateNightConfig.display_name || `🌙 Midnight Surprise (${formatTimeForDisplay(midStartStr)} - ${formatTimeForDisplay(midEndStr)})`;
-
-          allSlots.push({
-            id: midSlotId,
-            date: dateStr,
-            start_time: midStartStr,
-            end_time: midEndStr,
-            label: midLabel,
-            slot_name: midLabel,
-            available: midAvailable,
-            is_available: midAvailable,
-            status: midStatus,
-            reason_code: midReasonCode,
-            reason_message: midReasonMsg,
-            booked_count: midBooked,
-            max_capacity: midMax,
-            remaining_capacity: midRemaining,
-            extra_charge: lateNightConfig.additional_charge,
-            extra_fee: lateNightConfig.additional_charge,
-            slot_type: "midnight",
-            is_express: false,
-            is_midnight: true,
-            cutoff: isToday ? (lateNightConfig.subject_to_corporate_cutoff ? corporateCutoff : lateNightConfig.special_order_cutoff || corporateCutoff) : undefined,
-          });
-        }
-      }
+      // Note: Midnight Delivery discontinued
     }
 
     return allSlots;

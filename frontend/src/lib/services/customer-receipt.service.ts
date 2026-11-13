@@ -1371,7 +1371,7 @@ export class CustomerReceiptService {
           "Cashier/teller accepting cash remittance cannot post the shift settlement voucher to the General Ledger."
         );
       }
-      if (params.approvedBySupervisorId === params.postedByGlAccountantId) {
+      if (params.approvedBySupervisorId === params.postedByGlAccountantId && !params.managerIsTeller) {
         throw new CustomerReceiptError(
           "SEGREGATION_OF_DUTIES_VIOLATION",
           "Supervisor verifying cash drawer cannot post the shift settlement voucher to the General Ledger."

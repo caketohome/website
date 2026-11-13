@@ -1336,8 +1336,8 @@ const DEFAULT_SETTINGS = {
 
 const DEFAULT_SEO_CONFIG = {
   meta_title: "CakeToHome — Premium Gourmet Cakes Delivered in 2 Hours",
-  meta_description: "Order handcrafted artisanal cakes online in Bangalore. Midnight delivery, customized birthday cakes, and same-day fresh delivery.",
-  keywords: "cakes online, birthday cake delivery, midnight cake delivery bangalore, online bakery",
+  meta_description: "Order handcrafted artisanal cakes online in Bangalore. Express 2-hour delivery, customized birthday cakes, and same-day fresh delivery.",
+  keywords: "cakes online, birthday cake delivery, cake delivery bangalore, online bakery",
   ga_id: "G-CTH987654321",
   fb_pixel_id: "123456789012345",
   gtm_id: "GTM-CTH2026",
@@ -1373,17 +1373,17 @@ const DEFAULT_CMS_PAGES = [
     url_path: "/",
     breadcrumb_title: "Home",
     meta_title: "Order Fresh Cakes Online in Bangalore — Delivered in 2 Hours | CakeToHome",
-    meta_description: "CakeToHome delivers handcrafted artisanal cakes across Bangalore in under 2 hours. Birthday, wedding, and custom photo cakes with midnight delivery slots.",
+    meta_description: "CakeToHome delivers handcrafted artisanal cakes across Bangalore in under 2 hours. Birthday, wedding, and custom photo cakes with express delivery slots.",
     robots_tag: "index, follow",
     canonical_url: "https://cakes2home.com/",
     keywords: "cake delivery bangalore, birthday cake online, custom cakes bangalore, 2 hour cake delivery",
     og_title: "Fresh Cakes Delivered in 2 Hours — CakeToHome",
-    og_description: "Handcrafted birthday, wedding & photo cakes delivered fresh across Bangalore. Same-day & midnight delivery available.",
+    og_description: "Handcrafted birthday, wedding & photo cakes delivered fresh across Bangalore. Same-day & express delivery available.",
     og_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1200",
     og_type: "website",
     twitter_card: "summary_large_image",
     twitter_title: "Fresh Cakes Delivered in 2 Hours — CakeToHome",
-    twitter_description: "Order birthday, wedding & photo cakes online. Midnight delivery across Bangalore.",
+    twitter_description: "Order birthday, wedding & photo cakes online. Express delivery across Bangalore.",
     structured_data_type: "WebPage",
     sitemap_include: true,
     sitemap_priority: "1.0",
@@ -1490,7 +1490,7 @@ const DEFAULT_CMS_PAGES = [
           order: 1,
           config: {
             headline: "Handcrafted Gourmet Cakes Delivered in 2 Hours",
-            subheadline: "Fresh, artisanal birthday & wedding cakes across Bangalore. Midnight delivery available!",
+            subheadline: "Fresh, artisanal birthday & wedding cakes across Bangalore. Express 2-hour delivery available!",
             badge_text: "100% Fresh & Artisanal • Express 2-Hour Delivery",
             cta_primary_text: "Order a Cake",
             cta_primary_url: "/products",
@@ -1691,7 +1691,7 @@ const DEFAULT_CMS_PAGES = [
     url_path: "/faq",
     breadcrumb_title: "FAQ",
     meta_title: "Frequently Asked Questions — Cake Delivery, Orders & More | CakeToHome",
-    meta_description: "Find answers to your questions about cake delivery timings, customization options, payment, midnight deliverys and more at CakeToHome.",
+    meta_description: "Find answers to your questions about cake delivery timings, customization options, payment, express delivery and more at CakeToHome.",
     robots_tag: "index, follow",
     canonical_url: "https://cakes2home.com/faq",
     structured_data_type: "FAQPage",
@@ -1702,7 +1702,7 @@ const DEFAULT_CMS_PAGES = [
     visibility_rules: { audience: "public", devices: "all", locations: "all" },
     announcement_bar: { enabled: false, text: "", cta_text: "", cta_url: "", bg_color: "#e11d48" },
     sections: [
-      { id: "sec_faq_main", type: "faq", name: "FAQ Content", enabled: true, order: 1, config: { heading: "Frequently Asked Questions", faqs: [ { q: "Do you deliver at midnight?", a: "Yes! We offer midnight delivery slots (11:30 PM – 12:05 AM) across Bangalore for birthday surprises." }, { q: "Can I customize the cake flavor and message?", a: "Absolutely! Choose from Belgian Chocolate, Red Velvet, Alphonso Mango, Lotus Biscoff and more. Add a personalized message during checkout." }, { q: "Do you offer gourmet cakes?", a: "Yes, all our cakes are available in artisan versions at no extra cost." }, { q: "What is your cancellation policy?", a: "Orders can be cancelled within 2 hours of placement for a full refund. After that, a 15% cancellation fee applies." } ] } },
+      { id: "sec_faq_main", type: "faq", name: "FAQ Content", enabled: true, order: 1, config: { heading: "Frequently Asked Questions", faqs: [ { q: "Do you offer same-day delivery?", a: "Yes! We offer same-day and 2-hour express delivery slots across Bangalore for fresh celebration cakes." }, { q: "Can I customize the cake flavor and message?", a: "Absolutely! Choose from Belgian Chocolate, Red Velvet, Alphonso Mango, Lotus Biscoff and more. Add a personalized message during checkout." }, { q: "Do you offer gourmet cakes?", a: "Yes, all our cakes are available in artisan versions at no extra cost." }, { q: "What is your cancellation policy?", a: "Orders can be cancelled within 2 hours of placement for a full refund. After that, a 15% cancellation fee applies." } ] } },
     ],
     draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
     published_config: {},
@@ -1773,10 +1773,10 @@ const DEFAULT_CMS_PAGES = [
     url_path: "/birthday-cakes-bangalore",
     breadcrumb_title: "Birthday Cakes",
     meta_title: "Best Birthday Cakes in Bangalore — Same Day Delivery | CakeToHome",
-    meta_description: "Order the best birthday cakes in Bangalore with same-day & midnight delivery. Customizable, artisan, and photo cakes from ₹399. Free delivery above ₹599.",
+    meta_description: "Order the best birthday cakes in Bangalore with same-day & express delivery. Customizable, artisan, and photo cakes from ₹399. Free delivery above ₹599.",
     robots_tag: "index, follow",
     canonical_url: "https://cakes2home.com/birthday-cakes-bangalore",
-    keywords: "birthday cakes bangalore, birthday cake delivery, custom birthday cake, midnight birthday cake delivery",
+    keywords: "birthday cakes bangalore, birthday cake delivery, custom birthday cake, express birthday cake delivery",
     structured_data_type: "Product",
     sitemap_include: true,
     sitemap_priority: "0.8",
@@ -1785,9 +1785,9 @@ const DEFAULT_CMS_PAGES = [
     visibility_rules: { audience: "public", devices: "all", locations: "bangalore" },
     announcement_bar: { enabled: true, text: "🎂 Birthday Special — Extra 10% OFF with Code BDAY10", cta_text: "Order Now", cta_url: "/products?occasion=birthday", bg_color: "#7c3aed" },
     sections: [
-      { id: "sec_bd_hero", type: "hero", name: "Birthday Hero", enabled: true, order: 1, config: { headline: "Make Their Birthday Unforgettable", subheadline: "Handcrafted birthday cakes with same-day & midnight delivery across Bangalore", cta_primary_text: "Order Birthday Cake", cta_primary_url: "/products?occasion=birthday", height: "large" } },
+      { id: "sec_bd_hero", type: "hero", name: "Birthday Hero", enabled: true, order: 1, config: { headline: "Make Their Birthday Unforgettable", subheadline: "Handcrafted birthday cakes with same-day & express delivery across Bangalore", cta_primary_text: "Order Birthday Cake", cta_primary_url: "/products?occasion=birthday", height: "large" } },
       { id: "sec_bd_products", type: "product_grid", name: "Birthday Cake Collection", enabled: true, order: 2, config: { heading: "🎂 Our Birthday Cake Collection", mode: "manual", layout: "grid", columns: 4, product_ids: [] } },
-      { id: "sec_bd_faq", type: "faq", name: "Birthday Delivery FAQ", enabled: true, order: 3, config: { heading: "Birthday Cake FAQ", faqs: [ { q: "Can I order a birthday cake for midnight delivery?", a: "Yes! Choose the midnight slot (11:30 PM – 12:05 AM) at checkout for a perfect surprise." }, { q: "Can I add a custom message on the cake?", a: "Yes, enter your message in the customization section during checkout — up to 30 characters." } ] } },
+      { id: "sec_bd_faq", type: "faq", name: "Birthday Delivery FAQ", enabled: true, order: 3, config: { heading: "Birthday Cake FAQ", faqs: [ { q: "Can I schedule a birthday cake delivery?", a: "Yes! Choose your preferred celebration slot at checkout for a perfect celebration." }, { q: "Can I add a custom message on the cake?", a: "Yes, enter your message in the customization section during checkout — up to 30 characters." } ] } },
     ],
     draft_config: { sections: [], banners: [], products_mode: "manual", product_ids: [], category_ids: [] },
     published_config: null,
@@ -1956,7 +1956,7 @@ const DEFAULT_CMS_PAGES = [
     url_path: "/testimonials",
     breadcrumb_title: "Testimonials",
     meta_title: "Customer Reviews & Testimonials | CakeToHome",
-    meta_description: "Read genuine customer reviews and ratings for CakeToHome birthday cakes, midnight surprise deliveries, and customized photo cakes in Bangalore.",
+    meta_description: "Read genuine customer reviews and ratings for CakeToHome birthday cakes, 2-hour express deliveries, and customized photo cakes in Bangalore.",
     robots_tag: "index, follow",
     canonical_url: "https://cakes2home.com/testimonials",
     structured_data_type: "AboutPage",
@@ -1967,7 +1967,7 @@ const DEFAULT_CMS_PAGES = [
     visibility_rules: { audience: "public", devices: "all", locations: "all" },
     sections: [
       { id: "sec_test_hero", type: "hero", name: "Reviews Hero", enabled: true, order: 1, config: { headline: "Loved by Over 50,000 Celebrations", subheadline: "Rated 4.9/5 across Bangalore for taste, freshness, and punctual delivery.", height: "medium" } },
-      { id: "sec_test_body", type: "brand_story", name: "Featured Reviews", enabled: true, order: 2, config: { heading: "What Our Customers Say", body: "⭐ \"The Belgian Dark Truffle was a masterpiece! Midnight delivery arrived at exactly 11:45 PM for my husband's 30th birthday.\" — Ananya S., Indiranagar\n\n⭐ \"Super soft artisan Red Velvet. Everyone at the party was asking where we ordered it from.\" — Rahul V., Koramangala\n\n⭐ \"Ordered in the afternoon and received at 5 PM for our anniversary. Outstanding packaging and taste.\" — Deepa K., HSR Layout" } },
+      { id: "sec_test_body", type: "brand_story", name: "Featured Reviews", enabled: true, order: 2, config: { heading: "What Our Customers Say", body: "⭐ \"The Belgian Dark Truffle was a masterpiece! Express delivery arrived right on time for my husband's 30th birthday.\" — Ananya S., Indiranagar\n\n⭐ \"Super soft artisan Red Velvet. Everyone at the party was asking where we ordered it from.\" — Rahul V., Koramangala\n\n⭐ \"Ordered in the afternoon and received at 5 PM for our anniversary. Outstanding packaging and taste.\" — Deepa K., HSR Layout" } },
     ],
     draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
     published_config: {},
@@ -1998,7 +1998,7 @@ const DEFAULT_CMS_PAGES = [
     sections: [
       { id: "sec_about_hero", type: "hero", name: "About Hero", enabled: true, order: 1, config: { headline: "Handcrafting Joy, One Cake at a Time", subheadline: "Artisanal bakery in Bengaluru baking fresh from 5 AM daily with zero artificial preservatives.", height: "medium" } },
       { id: "sec_about_story", type: "brand_story", name: "Our Baking Heritage", enabled: true, order: 2, config: { heading: "Our Heritage & Philosophy", body: "CakeToHome was born out of a simple belief: celebrations deserve real, freshly baked cakes made with pure butter, authentic Belgian cocoa, and farm-fresh cream — never premixes or frozen stock. Every single cake is baked to order and dispatched in temperature-controlled boxes for perfection." } },
-      { id: "sec_about_values", type: "features", name: "Core Commitments", enabled: true, order: 3, config: { heading: "Our Quality Promises", items: [ { title: "100% Fresh Daily", description: "Oven fresh, never refrigerated beforehand.", icon: "Sparkles" }, { title: "Pure Belgian Chocolate", description: "Real cocoa butter, zero compound fat.", icon: "Heart" }, { title: "2-Hour Express Delivery", description: "Precision chilled delivery across Bangalore.", icon: "Clock" }, { title: "Midnight Surprises", description: "Punctual delivery between 11:30 PM and midnight.", icon: "Moon" } ] } },
+      { id: "sec_about_values", type: "features", name: "Core Commitments", enabled: true, order: 3, config: { heading: "Our Quality Promises", items: [ { title: "100% Fresh Daily", description: "Oven fresh, never refrigerated beforehand.", icon: "Sparkles" }, { title: "Pure Belgian Chocolate", description: "Real cocoa butter, zero compound fat.", icon: "Heart" }, { title: "2-Hour Express Delivery", description: "Precision chilled delivery across Bangalore.", icon: "Clock" }, { title: "Express Deliveries", description: "Punctual chilled delivery within 2 hours.", icon: "Clock" } ] } },
     ],
     draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
     published_config: {},
@@ -2027,7 +2027,7 @@ const DEFAULT_CMS_PAGES = [
     nav_location: "footer",
     visibility_rules: { audience: "public", devices: "all", locations: "all" },
     sections: [
-      { id: "sec_contact_hero", type: "hero", name: "Contact Hero", enabled: true, order: 1, config: { headline: "We're Here to Help Your Celebrations", subheadline: "Reach our customer delight team 7 days a week from 8:00 AM to midnight.", height: "small" } },
+      { id: "sec_contact_hero", type: "hero", name: "Contact Hero", enabled: true, order: 1, config: { headline: "We're Here to Help Your Celebrations", subheadline: "Reach our customer delight team 7 days a week from 8:00 AM to 11:00 PM.", height: "small" } },
       { id: "sec_contact_body", type: "brand_story", name: "Direct Support Channels", enabled: true, order: 2, config: { heading: "Get in Touch", body: "📞 Phone Support: +91 98765 00000 (8:00 AM – 11:30 PM)\n💬 WhatsApp Support: +91 98765 00000 (Instant order updates & live tracking)\n✉️ Email: support@cakes2home.com (Corporate & custom bulk cake enquiries)\n📍 Central Bakery Hub: 100 Feet Road, Indiranagar, Bengaluru, Karnataka 560038" } },
     ],
     draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
@@ -2107,7 +2107,7 @@ const DEFAULT_CMS_PAGES = [
     url_path: "/shipping-policy",
     breadcrumb_title: "Shipping Policy",
     meta_title: "Shipping & Delivery Policy | CakeToHome",
-    meta_description: "Details on our 2-hour express delivery, midnight slots, insulated temperature packaging, and serviceability across Bengaluru.",
+    meta_description: "Details on our 2-hour express delivery, scheduled slots, insulated temperature packaging, and serviceability across Bengaluru.",
     robots_tag: "index, follow",
     canonical_url: "https://cakes2home.com/shipping-policy",
     structured_data_type: "WebPage",
@@ -2118,7 +2118,7 @@ const DEFAULT_CMS_PAGES = [
     visibility_rules: { audience: "public", devices: "all", locations: "all" },
     sections: [
       { id: "sec_ship_hero", type: "hero", name: "Shipping Hero", enabled: true, order: 1, config: { headline: "Shipping & Delivery Policy", subheadline: "Precision, temperature-controlled delivery across Bangalore.", height: "small" } },
-      { id: "sec_ship_body", type: "brand_story", name: "Delivery Standards", enabled: true, order: 2, config: { heading: "Delivery Timelines & Safe Transit", body: "1. Delivery Slots: Standard slots (morning, afternoon, evening), 2-Hour Express, and Midnight (11:30 PM – 12:05 AM).\n\n2. Temperature Control: Cakes are packaged in custom insulated boxes with food-grade chilling pads to ensure intact frosting and structural perfection even during peak traffic.\n\n3. Handover Protocol: Riders verify delivery using an OTP sent to the recipient's phone number to guarantee safe handover to the intended party.\n\n4. Service Areas: Currently serving all major zones of Bengaluru including Indiranagar, Koramangala, HSR Layout, Whitefield, Bellandur, JP Nagar, Jayanagar, Malleshwaram, and Electronic City." } },
+      { id: "sec_ship_body", type: "brand_story", name: "Delivery Standards", enabled: true, order: 2, config: { heading: "Delivery Timelines & Safe Transit", body: "1. Delivery Slots: Standard slots (morning, afternoon, evening) and 2-Hour Express Delivery.\n\n2. Temperature Control: Cakes are packaged in custom insulated boxes with food-grade chilling pads to ensure intact frosting and structural perfection even during peak traffic.\n\n3. Handover Protocol: Riders verify delivery using an OTP sent to the recipient's phone number to guarantee safe handover to the intended party.\n\n4. Service Areas: Currently serving all major zones of Bengaluru including Indiranagar, Koramangala, HSR Layout, Whitefield, Bellandur, JP Nagar, Jayanagar, Malleshwaram, and Electronic City." } },
     ],
     draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
     published_config: {},
@@ -2586,7 +2586,7 @@ const DEFAULT_OCCASIONS: OccasionItem[] = [
     icon: "🎂",
     description: "Cakes & celebrations for memorable birthday parties",
     short_description: "Celebrate birthdays with handcrafted gourmet cakes and sparklers.",
-    long_description: "Make every birthday extraordinary with our artisanal birthday cakes. From rich Belgian chocolate truffles to whimsical rainbow layer cakes, customized with free celebration message plaques and midnight delivery across Bangalore.",
+    long_description: "Make every birthday extraordinary with our artisanal birthday cakes. From rich Belgian chocolate truffles to whimsical rainbow layer cakes, customized with free celebration message plaques and express delivery across Bangalore.",
     cover_image: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&q=80&w=1200",
     image_url: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&q=80&w=1200",
     mobile_cover_image: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&q=80&w=600",
@@ -2600,8 +2600,8 @@ const DEFAULT_OCCASIONS: OccasionItem[] = [
     show_in_nav: true,
     show_in_search: true,
     seo_title: "Order Birthday Cakes Online in Bangalore — Express Delivery | CakeToHome",
-    seo_description: "Handcrafted birthday cakes delivered fresh in under 2 hours across Bangalore. Premium chocolate, red velvet, and custom photo cakes with midnight delivery.",
-    seo_keywords: "birthday cake online, birthday cake delivery bangalore, midnight birthday cake, gourmet birthday cakes",
+    seo_description: "Handcrafted birthday cakes delivered fresh in under 2 hours across Bangalore. Premium chocolate, red velvet, and custom photo cakes with express delivery.",
+    seo_keywords: "birthday cake online, birthday cake delivery bangalore, express birthday cake, gourmet birthday cakes",
     og_image: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&q=80&w=1200",
     display_order: 1,
     status: "active",
@@ -2961,8 +2961,8 @@ const DEFAULT_OCCASIONS: OccasionItem[] = [
     name: "New Year",
     slug: "new-year",
     icon: "🎆",
-    description: "Sparkling midnight cakes for ringing in the new year",
-    short_description: "Celebrate the countdown with midnight truffle cakes.",
+    description: "Sparkling celebration cakes for ringing in the new year",
+    short_description: "Celebrate the countdown with artisan truffle cakes.",
     cover_image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=1200",
     image_url: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=1200",
     mobile_cover_image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=600",
@@ -3272,13 +3272,13 @@ export interface ServiceArea {
 }
 
 export const DEFAULT_DELIVERY_PROFILES: DeliveryProfile[] = [
-  { id: "prof_regular", name: "Regular Cake Profile", max_delivery_distance_km: null, min_prep_time_hours: 1, vehicle_restriction: "bike", slot_duration_mins: 60, same_day_cutoff_time: "20:00", is_fragile: false, requires_refrigeration: true, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true },
-  { id: "prof_designer", name: "Designer Cake Profile", max_delivery_distance_km: 15, min_prep_time_hours: 6, vehicle_restriction: "car", slot_duration_mins: 120, same_day_cutoff_time: "16:00", is_fragile: true, requires_refrigeration: true, same_day_allowed: true, express_allowed: false, midnight_allowed: true, scheduled_allowed: true },
-  { id: "prof_photo", name: "Photo Cake Profile", max_delivery_distance_km: 15, min_prep_time_hours: 4, vehicle_restriction: "bike", slot_duration_mins: 60, same_day_cutoff_time: "18:00", is_fragile: false, requires_refrigeration: true, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true },
+  { id: "prof_regular", name: "Regular Cake Profile", max_delivery_distance_km: null, min_prep_time_hours: 1, vehicle_restriction: "bike", slot_duration_mins: 60, same_day_cutoff_time: "20:00", is_fragile: false, requires_refrigeration: true, same_day_allowed: true, express_allowed: true, midnight_allowed: false, scheduled_allowed: true },
+  { id: "prof_designer", name: "Designer Cake Profile", max_delivery_distance_km: 15, min_prep_time_hours: 6, vehicle_restriction: "car", slot_duration_mins: 120, same_day_cutoff_time: "16:00", is_fragile: true, requires_refrigeration: true, same_day_allowed: true, express_allowed: false, midnight_allowed: false, scheduled_allowed: true },
+  { id: "prof_photo", name: "Photo Cake Profile", max_delivery_distance_km: 15, min_prep_time_hours: 4, vehicle_restriction: "bike", slot_duration_mins: 60, same_day_cutoff_time: "18:00", is_fragile: false, requires_refrigeration: true, same_day_allowed: true, express_allowed: true, midnight_allowed: false, scheduled_allowed: true },
   { id: "prof_wedding", name: "Tiered Wedding Cake Profile", max_delivery_distance_km: 10, min_prep_time_hours: 24, vehicle_restriction: "van", slot_duration_mins: 120, same_day_cutoff_time: "12:00", is_fragile: true, requires_refrigeration: true, same_day_allowed: false, express_allowed: false, midnight_allowed: false, scheduled_allowed: true },
   { id: "prof_icecream", name: "Ice Cream Cake Profile", max_delivery_distance_km: 8, min_prep_time_hours: 2, vehicle_restriction: "car", slot_duration_mins: 30, same_day_cutoff_time: "19:00", is_fragile: true, requires_refrigeration: true, same_day_allowed: true, express_allowed: true, midnight_allowed: false, scheduled_allowed: true },
-  { id: "prof_dry", name: "Dry Cake Profile", max_delivery_distance_km: null, min_prep_time_hours: 0.5, vehicle_restriction: "bike", slot_duration_mins: 60, same_day_cutoff_time: "21:00", is_fragile: false, requires_refrigeration: false, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true },
-  { id: "prof_tier", name: "Multi-Tier Cake Profile", max_delivery_distance_km: 12, min_prep_time_hours: 12, vehicle_restriction: "van", slot_duration_mins: 120, same_day_cutoff_time: "14:00", is_fragile: true, requires_refrigeration: true, same_day_allowed: true, express_allowed: false, midnight_allowed: true, scheduled_allowed: true },
+  { id: "prof_dry", name: "Dry Cake Profile", max_delivery_distance_km: null, min_prep_time_hours: 0.5, vehicle_restriction: "bike", slot_duration_mins: 60, same_day_cutoff_time: "21:00", is_fragile: false, requires_refrigeration: false, same_day_allowed: true, express_allowed: true, midnight_allowed: false, scheduled_allowed: true },
+  { id: "prof_tier", name: "Multi-Tier Cake Profile", max_delivery_distance_km: 12, min_prep_time_hours: 12, vehicle_restriction: "van", slot_duration_mins: 120, same_day_cutoff_time: "14:00", is_fragile: true, requires_refrigeration: true, same_day_allowed: true, express_allowed: false, midnight_allowed: false, scheduled_allowed: true },
 ];
 
 export const DEFAULT_SERVICE_AREAS: ServiceArea[] = [
@@ -3477,7 +3477,7 @@ export interface CityArea {
 }
 
 const DEFAULT_CITY_AREAS: CityArea[] = [
-  { id: "area_01", city_name: "Bengaluru", zone_name: "East Zone", area_name: "Indiranagar", localities: ["100 Feet Road", "12th Main", "CMH Road", "Domlur", "HAL"], pincodes: ["560038", "560008", "560071"], status: "open", express_available: true, midnight_available: true, branch_ids: ["br_indiranagar"] },
+  { id: "area_01", city_name: "Bengaluru", zone_name: "East Zone", area_name: "Indiranagar", localities: ["100 Feet Road", "12th Main", "CMH Road", "Domlur", "HAL"], pincodes: ["560038", "560008", "560071"], status: "open", express_available: true, midnight_available: false, branch_ids: ["br_indiranagar"] },
   { id: "area_02", city_name: "Bengaluru", zone_name: "South Zone", area_name: "Koramangala", localities: ["4th Block", "5th Block", "6th Block", "1st Block", "Sony Signal"], pincodes: ["560034", "560095", "560047"], status: "open", express_available: true, midnight_available: true, branch_ids: ["br_koramangala"] },
   { id: "area_03", city_name: "Bengaluru", zone_name: "South Zone", area_name: "HSR Layout", localities: ["Sector 1", "Sector 2", "Sector 7", "27th Main"], pincodes: ["560102", "560068"], status: "open", express_available: true, midnight_available: true, branch_ids: ["br_koramangala", "br_hsr"] },
   { id: "area_04", city_name: "Bengaluru", zone_name: "East Zone", area_name: "Whitefield", localities: ["ITPL Main Road", "Brookefield", "Marathahalli", "Varthur"], pincodes: ["560066", "560048", "560037"], status: "open", express_available: false, midnight_available: true, branch_ids: ["br_whitefield"] },
@@ -3606,7 +3606,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
       express_enabled: true,
       express_prep_mins: 45,
       express_surcharge: 49,
-      midnight_enabled: true,
+      midnight_enabled: false,
       midnight_window: { start: "23:30", end: "00:05" },
       midnight_surcharge: 79,
       slot_duration_mins: 60,
@@ -3647,7 +3647,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
         free_delivery_threshold: 999,
         same_day_allowed: true,
         express_allowed: true,
-        midnight_allowed: true,
+        midnight_allowed: false,
         scheduled_allowed: true,
         delivery_charge: 0,
         express_charge: 49,
@@ -3679,7 +3679,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
         free_delivery_threshold: 1299,
         same_day_allowed: true,
         express_allowed: true,
-        midnight_allowed: true,
+        midnight_allowed: false,
         scheduled_allowed: true,
         delivery_charge: 79,
         express_charge: 99,
@@ -3779,7 +3779,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
       express_enabled: true,
       express_prep_mins: 45,
       express_surcharge: 49,
-      midnight_enabled: true,
+      midnight_enabled: false,
       midnight_window: { start: "23:30", end: "00:05" },
       midnight_surcharge: 79,
       slot_duration_mins: 60,
@@ -3797,8 +3797,8 @@ const DEFAULT_BRANCHES: BranchItem[] = [
     current_hourly_load: 3,
     deliverable_areas: ["Koramangala", "HSR Layout", "BTM Layout", "Ejipura"],
     delivery_zones: [
-      { id: "br_koramangala_z1", name: "Zone A", display_order: 1, priority: 10, fence_type: "RADIUS", min_km: 0, max_km: 5, radius_km: 5, center_latitude: 12.9352, center_longitude: 77.6245, enabled: true, est_delivery_mins: 30, preparation_buffer_mins: 15, max_cake_weight_kg: 10, max_cake_quantity: 5, min_order_value: 299, max_order_value: 50000, free_delivery_threshold: 999, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true, delivery_charge: 49, express_charge: 49, midnight_charge: 79, holiday_charge: 49, pincodes: ["560034", "560095"], cities: ["Bengaluru"], areas: ["Koramangala"], service_areas: ["4th Block Hub"] },
-      { id: "br_koramangala_z2", name: "Zone B", display_order: 2, priority: 5, fence_type: "RADIUS", min_km: 5, max_km: 10, radius_km: 10, center_latitude: 12.9352, center_longitude: 77.6245, enabled: true, est_delivery_mins: 55, preparation_buffer_mins: 20, max_cake_weight_kg: 8, max_cake_quantity: 3, min_order_value: 399, max_order_value: 50000, free_delivery_threshold: 1299, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true, delivery_charge: 69, express_charge: 99, midnight_charge: 99, holiday_charge: 79, pincodes: ["560102", "560076"], cities: ["Bengaluru"], areas: ["HSR Layout", "BTM Layout"], service_areas: ["Sony Signal Corridor"] },
+      { id: "br_koramangala_z1", name: "Zone A", display_order: 1, priority: 10, fence_type: "RADIUS", min_km: 0, max_km: 5, radius_km: 5, center_latitude: 12.9352, center_longitude: 77.6245, enabled: true, est_delivery_mins: 30, preparation_buffer_mins: 15, max_cake_weight_kg: 10, max_cake_quantity: 5, min_order_value: 299, max_order_value: 50000, free_delivery_threshold: 999, same_day_allowed: true, express_allowed: true, midnight_allowed: false, scheduled_allowed: true, delivery_charge: 49, express_charge: 49, midnight_charge: 79, holiday_charge: 49, pincodes: ["560034", "560095"], cities: ["Bengaluru"], areas: ["Koramangala"], service_areas: ["4th Block Hub"] },
+      { id: "br_koramangala_z2", name: "Zone B", display_order: 2, priority: 5, fence_type: "RADIUS", min_km: 5, max_km: 10, radius_km: 10, center_latitude: 12.9352, center_longitude: 77.6245, enabled: true, est_delivery_mins: 55, preparation_buffer_mins: 20, max_cake_weight_kg: 8, max_cake_quantity: 3, min_order_value: 399, max_order_value: 50000, free_delivery_threshold: 1299, same_day_allowed: true, express_allowed: true, midnight_allowed: false, scheduled_allowed: true, delivery_charge: 69, express_charge: 99, midnight_charge: 99, holiday_charge: 79, pincodes: ["560102", "560076"], cities: ["Bengaluru"], areas: ["HSR Layout", "BTM Layout"], service_areas: ["Sony Signal Corridor"] },
     ],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -3856,7 +3856,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
       express_enabled: true,
       express_prep_mins: 45,
       express_surcharge: 49,
-      midnight_enabled: true,
+      midnight_enabled: false,
       midnight_window: { start: "23:30", end: "00:05" },
       midnight_surcharge: 79,
       slot_duration_mins: 60,
@@ -3874,8 +3874,8 @@ const DEFAULT_BRANCHES: BranchItem[] = [
     current_hourly_load: 2,
     deliverable_areas: ["Whitefield", "Marathahalli", "Brookefield"],
     delivery_zones: [
-      { id: "br_whitefield_z1", name: "Zone A", display_order: 1, priority: 10, fence_type: "RADIUS", min_km: 0, max_km: 5, radius_km: 5, center_latitude: 12.9698, center_longitude: 77.7499, enabled: true, est_delivery_mins: 30, preparation_buffer_mins: 15, max_cake_weight_kg: 10, max_cake_quantity: 5, min_order_value: 299, max_order_value: 50000, free_delivery_threshold: 999, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true, delivery_charge: 119, express_charge: 49, midnight_charge: 79, holiday_charge: 49, pincodes: ["560066"], cities: ["Bengaluru"], areas: ["Whitefield"], service_areas: ["ITPL Main Road Hub"] },
-      { id: "br_whitefield_z2", name: "Zone B", display_order: 2, priority: 5, fence_type: "RADIUS", min_km: 5, max_km: 10, radius_km: 10, center_latitude: 12.9698, center_longitude: 77.7499, enabled: true, est_delivery_mins: 55, preparation_buffer_mins: 20, max_cake_weight_kg: 8, max_cake_quantity: 3, min_order_value: 399, max_order_value: 50000, free_delivery_threshold: 1299, same_day_allowed: true, express_allowed: false, midnight_allowed: true, scheduled_allowed: true, delivery_charge: 59, express_charge: 119, midnight_charge: 109, holiday_charge: 89, pincodes: ["560048", "560037"], cities: ["Bengaluru"], areas: ["Marathahalli", "Brookefield"], service_areas: ["Outer Ring Road Cluster"] },
+      { id: "br_whitefield_z1", name: "Zone A", display_order: 1, priority: 10, fence_type: "RADIUS", min_km: 0, max_km: 5, radius_km: 5, center_latitude: 12.9698, center_longitude: 77.7499, enabled: true, est_delivery_mins: 30, preparation_buffer_mins: 15, max_cake_weight_kg: 10, max_cake_quantity: 5, min_order_value: 299, max_order_value: 50000, free_delivery_threshold: 999, same_day_allowed: true, express_allowed: true, midnight_allowed: false, scheduled_allowed: true, delivery_charge: 119, express_charge: 49, midnight_charge: 79, holiday_charge: 49, pincodes: ["560066"], cities: ["Bengaluru"], areas: ["Whitefield"], service_areas: ["ITPL Main Road Hub"] },
+      { id: "br_whitefield_z2", name: "Zone B", display_order: 2, priority: 5, fence_type: "RADIUS", min_km: 5, max_km: 10, radius_km: 10, center_latitude: 12.9698, center_longitude: 77.7499, enabled: true, est_delivery_mins: 55, preparation_buffer_mins: 20, max_cake_weight_kg: 8, max_cake_quantity: 3, min_order_value: 399, max_order_value: 50000, free_delivery_threshold: 1299, same_day_allowed: true, express_allowed: false, midnight_allowed: false, scheduled_allowed: true, delivery_charge: 59, express_charge: 119, midnight_charge: 109, holiday_charge: 89, pincodes: ["560048", "560037"], cities: ["Bengaluru"], areas: ["Marathahalli", "Brookefield"], service_areas: ["Outer Ring Road Cluster"] },
     ],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -3933,7 +3933,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
       express_enabled: true,
       express_prep_mins: 45,
       express_surcharge: 49,
-      midnight_enabled: true,
+      midnight_enabled: false,
       midnight_window: { start: "23:30", end: "00:05" },
       midnight_surcharge: 89,
       slot_duration_mins: 60,
@@ -3973,7 +3973,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
         free_delivery_threshold: 999,
         same_day_allowed: true,
         express_allowed: true,
-        midnight_allowed: true,
+        midnight_allowed: false,
         scheduled_allowed: true,
         delivery_charge: 49,
         express_charge: 49,
@@ -4005,7 +4005,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
         free_delivery_threshold: 1299,
         same_day_allowed: true,
         express_allowed: false,
-        midnight_allowed: true,
+        midnight_allowed: false,
         scheduled_allowed: true,
         delivery_charge: 89,
         express_charge: 99,
@@ -4073,7 +4073,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
       express_enabled: true,
       express_prep_mins: 40,
       express_surcharge: 39,
-      midnight_enabled: true,
+      midnight_enabled: false,
       midnight_window: { start: "23:30", end: "00:05" },
       midnight_surcharge: 79,
       slot_duration_mins: 60,
@@ -4091,7 +4091,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
     current_hourly_load: 1,
     deliverable_areas: ["Chinnakada", "Asramam", "Kottarakkara", "Kadappakada"],
     delivery_zones: [
-      { id: "br_kollam_z1", name: "Zone KLM1", display_order: 1, priority: 10, fence_type: "RADIUS", min_km: 0, max_km: 8, radius_km: 8, center_latitude: 8.8932, center_longitude: 76.6141, enabled: true, est_delivery_mins: 40, preparation_buffer_mins: 15, max_cake_weight_kg: 10, max_cake_quantity: 5, min_order_value: 299, max_order_value: 50000, free_delivery_threshold: 999, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true, delivery_charge: 59, express_charge: 39, midnight_charge: 79, holiday_charge: 49, pincodes: ["691001", "691008", "691013"], cities: ["Kollam"], areas: ["Chinnakada", "Asramam"], service_areas: ["Clock Tower Hub"] },
+      { id: "br_kollam_z1", name: "Zone KLM1", display_order: 1, priority: 10, fence_type: "RADIUS", min_km: 0, max_km: 8, radius_km: 8, center_latitude: 8.8932, center_longitude: 76.6141, enabled: true, est_delivery_mins: 40, preparation_buffer_mins: 15, max_cake_weight_kg: 10, max_cake_quantity: 5, min_order_value: 299, max_order_value: 50000, free_delivery_threshold: 999, same_day_allowed: true, express_allowed: true, midnight_allowed: false, scheduled_allowed: true, delivery_charge: 59, express_charge: 39, midnight_charge: 79, holiday_charge: 49, pincodes: ["691001", "691008", "691013"], cities: ["Kollam"], areas: ["Chinnakada", "Asramam"], service_areas: ["Clock Tower Hub"] },
     ],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -4149,7 +4149,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
       express_enabled: true,
       express_prep_mins: 45,
       express_surcharge: 49,
-      midnight_enabled: true,
+      midnight_enabled: false,
       midnight_window: { start: "23:30", end: "00:05" },
       midnight_surcharge: 89,
       slot_duration_mins: 60,
@@ -4167,7 +4167,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
     current_hourly_load: 2,
     deliverable_areas: ["T. Nagar", "Mylapore", "Nungambakkam", "Alwarpet"],
     delivery_zones: [
-      { id: "br_chennai_z1", name: "Zone TN1", display_order: 1, priority: 10, fence_type: "RADIUS", min_km: 0, max_km: 6, radius_km: 6, center_latitude: 13.0418, center_longitude: 80.2341, enabled: true, est_delivery_mins: 35, preparation_buffer_mins: 15, max_cake_weight_kg: 10, max_cake_quantity: 5, min_order_value: 299, max_order_value: 50000, free_delivery_threshold: 999, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true, delivery_charge: 49, express_charge: 49, midnight_charge: 89, holiday_charge: 49, pincodes: ["600017", "600028", "600004"], cities: ["Chennai"], areas: ["T. Nagar", "Mylapore"], service_areas: ["Pondy Bazaar Hub"] },
+      { id: "br_chennai_z1", name: "Zone TN1", display_order: 1, priority: 10, fence_type: "RADIUS", min_km: 0, max_km: 6, radius_km: 6, center_latitude: 13.0418, center_longitude: 80.2341, enabled: true, est_delivery_mins: 35, preparation_buffer_mins: 15, max_cake_weight_kg: 10, max_cake_quantity: 5, min_order_value: 299, max_order_value: 50000, free_delivery_threshold: 999, same_day_allowed: true, express_allowed: true, midnight_allowed: false, scheduled_allowed: true, delivery_charge: 49, express_charge: 49, midnight_charge: 89, holiday_charge: 49, pincodes: ["600017", "600028", "600004"], cities: ["Chennai"], areas: ["T. Nagar", "Mylapore"], service_areas: ["Pondy Bazaar Hub"] },
     ],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -4225,7 +4225,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
       express_enabled: true,
       express_prep_mins: 45,
       express_surcharge: 59,
-      midnight_enabled: true,
+      midnight_enabled: false,
       midnight_window: { start: "23:30", end: "00:05" },
       midnight_surcharge: 99,
       slot_duration_mins: 60,
@@ -4265,7 +4265,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
         free_delivery_threshold: 999,
         same_day_allowed: true,
         express_allowed: true,
-        midnight_allowed: true,
+        midnight_allowed: false,
         scheduled_allowed: true,
         delivery_charge: 69,
         express_charge: 59,
@@ -8214,9 +8214,13 @@ export class ApiEngine {
 
     ApiEngine.addAuditLog(`Created Enterprise Coupon Code "${newOffer.code}" (${newOffer.name})`);
     ApiEngine.persist();
-    await persistOfferToDb(newOffer).catch((err) => {
+    try {
+      await persistOfferToDb(newOffer);
+    } catch (err: any) {
       console.error("[ApiEngine] Failed to persist offer to PostgreSQL:", err);
-    });
+      memoryStore.offers = (memoryStore.offers || []).filter((o) => o.id !== newOffer.id);
+      throw new Error(`Failed to persist offer to database: ${err.message}`);
+    }
     return newOffer;
   }
 
@@ -8225,6 +8229,7 @@ export class ApiEngine {
     const idx = memoryStore.offers.findIndex((o) => o.id === id);
     if (idx < 0) throw new Error(`Offer with ID ${id} not found`);
 
+    const previous = { ...memoryStore.offers[idx] };
     const updated = {
       ...memoryStore.offers[idx],
       ...data,
@@ -8247,9 +8252,13 @@ export class ApiEngine {
 
     ApiEngine.addAuditLog(`Updated Enterprise Coupon "${updated.code}"`);
     ApiEngine.persist();
-    await persistOfferToDb(updated).catch((err) => {
+    try {
+      await persistOfferToDb(updated);
+    } catch (err: any) {
       console.error("[ApiEngine] Failed to persist offer update to PostgreSQL:", err);
-    });
+      memoryStore.offers[idx] = previous;
+      throw new Error(`Failed to persist offer update to database: ${err.message}`);
+    }
     return updated;
   }
 
@@ -8274,9 +8283,13 @@ export class ApiEngine {
       ApiEngine.addAuditLog(`Deleted Promo Offer "${offer.code}"`);
     }
     ApiEngine.persist();
-    await deleteOfferFromDb(id).catch((err) => {
+    try {
+      await deleteOfferFromDb(id);
+    } catch (err: any) {
       console.error("[ApiEngine] Failed to delete offer from PostgreSQL:", err);
-    });
+      if (offer) memoryStore.offers.push(offer);
+      throw new Error(`Failed to delete offer from database: ${err.message}`);
+    }
     return true;
   }
 
@@ -8308,7 +8321,11 @@ export class ApiEngine {
   }
 
   static getCouponAnalyticsSummary() {
-    const offers = memoryStore.offers || [];
+    const offers = (memoryStore.offers && memoryStore.offers.length > 0)
+      ? memoryStore.offers
+      : ((globalThis as any).__CTH_MEMORY_STORE__?.offers && (globalThis as any).__CTH_MEMORY_STORE__.offers.length > 0)
+        ? (globalThis as any).__CTH_MEMORY_STORE__.offers
+        : ((globalThis as any).__CTH_OFFERS__ || []);
     const redemptions = memoryStore.offer_redemptions || [];
 
     const now = new Date();
@@ -12264,12 +12281,12 @@ export class ApiEngine {
       city, area, pincode: data.pincode || null, branch_id: data.branch_id || null, slug,
       title: data.title || `Cake Delivery in ${label}`,
       meta_title: `Order Cakes Online in ${label} | CakeToHome ${label}`,
-      meta_description: `Fresh premium cakes delivered to your doorstep in ${label}. Same-day delivery, midnight delivery, custom birthday cakes. Order now from CakeToHome.`,
+      meta_description: `Fresh premium cakes delivered to your doorstep in ${label}. Same-day delivery, scheduled delivery, custom birthday cakes. Order now from CakeToHome.`,
       h1_text: `Best Cake Delivery in ${label}`,
-      content_html: data.content_html || `<p>CakeToHome delivers premium handcrafted cakes in ${label}. Choose from our collection of birthday cakes, wedding cakes, anniversary cakes, and custom designer cakes with same-day and midnight delivery.</p>`,
+      content_html: data.content_html || `<p>CakeToHome delivers premium handcrafted cakes in ${label}. Choose from our collection of birthday cakes, wedding cakes, anniversary cakes, and custom designer cakes with same-day and scheduled delivery.</p>`,
       faqs: JSON.stringify(data.faqs || [
-        { question: `Do you deliver cakes in ${label}?`, answer: `Yes! CakeToHome offers same-day and midnight cake delivery across ${label}.` },
-        { question: `What is the delivery time in ${label}?`, answer: `We deliver within 2-4 hours in ${label}. Midnight delivery is also available.` },
+        { question: `Do you deliver cakes in ${label}?`, answer: `Yes! CakeToHome offers same-day and scheduled cake delivery across ${label}.` },
+        { question: `What is the delivery time in ${label}?`, answer: `We deliver within 2-4 hours in ${label}. Scheduled delivery is also available.` },
         { question: `Can I order a custom cake in ${label}?`, answer: `Absolutely! We specialize in custom birthday, wedding, and theme cakes in ${label}.` },
       ]),
       schema_json: JSON.stringify({
@@ -12518,7 +12535,7 @@ export class ApiEngine {
       case "meta_description":
         return { suggestions: [
           `Order ${name} online from CakeToHome. Fresh, handcrafted with premium ingredients. Same-day delivery in ${city}. Order now!`,
-          `Get the best ${name} delivered to your doorstep in ${city}. Midnight delivery available. 100% fresh guarantee from CakeToHome.`,
+          `Get the best ${name} delivered to your doorstep in ${city}. Express 2-hour delivery available. 100% fresh guarantee from CakeToHome.`,
           `${name} by CakeToHome — premium quality, same-day delivery in ${city}. Perfect for birthdays, anniversaries & celebrations.`,
         ]};
       case "keywords":
@@ -12526,7 +12543,7 @@ export class ApiEngine {
       case "faq":
         return { suggestions: [
           { question: `How to order ${name}?`, answer: `You can order ${name} online through CakeToHome. Simply visit our website, select your cake, choose a delivery slot, and pay securely.` },
-          { question: `Is ${name} available for midnight delivery?`, answer: `Yes! CakeToHome offers midnight delivery for ${name} in ${city} and surrounding areas.` },
+          { question: `Is ${name} available for scheduled delivery?`, answer: `Yes! CakeToHome offers scheduled delivery slots for ${name} in ${city} and surrounding areas.` },
           { question: `Can I customize ${name}?`, answer: `Absolutely! Contact our team to customize ${name} with your preferred flavors, decorations, and message.` },
         ]};
       case "alt_text":
@@ -12581,7 +12598,7 @@ export class ApiEngine {
           entity_type: "branch", entity_id: b.id,
           slug, url: `/cakes/${slug}`,
           meta_title: `CakeToHome ${b.name} — Cake Delivery in ${b.city || ""}`,
-          meta_description: `Order premium cakes from CakeToHome ${b.name}. Same-day delivery, midnight delivery, custom cakes in ${b.city || ""}.`,
+          meta_description: `Order premium cakes from CakeToHome ${b.name}. Same-day delivery, scheduled delivery, custom cakes in ${b.city || ""}.`,
           canonical_url: `https://cakes2home.com/cakes/${slug}`,
           h1_text: `Cake Delivery in ${b.name}`, h1_count: 1,
           has_schema: true, schema_types: JSON.stringify(["LocalBusiness", "Bakery"]),
@@ -13409,6 +13426,25 @@ export class ApiEngine {
     return memoryStore.audit_logs || [];
   }
 
+  static registerOffer(offer: any) {
+    if (!offer) return;
+    if ((globalThis as any).__CTH_MEMORY_STORE__) {
+      memoryStore = (globalThis as any).__CTH_MEMORY_STORE__;
+    }
+    if (!memoryStore) memoryStore = {} as any;
+    if (!Array.isArray(memoryStore.offers)) memoryStore.offers = [];
+    const code = (offer.code || "").toUpperCase().trim();
+    const idx = memoryStore.offers.findIndex((o: any) => o.code && o.code.toUpperCase() === code);
+    if (idx >= 0) {
+      memoryStore.offers[idx] = { ...memoryStore.offers[idx], ...offer };
+    } else {
+      memoryStore.offers.unshift(offer);
+    }
+    if ((globalThis as any).__CTH_MEMORY_STORE__) {
+      (globalThis as any).__CTH_MEMORY_STORE__.offers = memoryStore.offers;
+    }
+  }
+
   static applyPromoCode(cartId: string, promoCode: string, context?: {
     customer_id?: string;
     customer_phone?: string;
@@ -13420,9 +13456,12 @@ export class ApiEngine {
     payment_method?: string;
     delivery_type?: string;
   }) {
+    if ((globalThis as any).__CTH_MEMORY_STORE__) {
+      memoryStore = (globalThis as any).__CTH_MEMORY_STORE__;
+    }
     const cart = ApiEngine.getCart(cartId);
     const code = promoCode ? promoCode.toUpperCase().trim() : "";
-    const offers = memoryStore.offers || [];
+    const offers = (globalThis as any).__CTH_MEMORY_STORE__?.offers || memoryStore.offers || [];
     const now = new Date();
 
     if (!code) {
@@ -13441,41 +13480,10 @@ export class ApiEngine {
     );
 
     if (!offer) {
-      if (code === "CAKE50") {
-        const discount_amount = Math.min(200, Math.round((cart.subtotal || 0) * 0.5));
-        cart.discount_total = discount_amount;
-        cart.promo_code = "CAKE50";
-        cart.total = Math.max(0, (cart.subtotal || 0) - discount_amount);
-        cart.updated_at = now.toISOString();
-        ApiEngine.persist();
-        return { cart, valid: true, discount_amount, discount: discount_amount, offer: { code: "CAKE50", description: "50% Off (Max ₹200)" } };
-      }
-      if (code === "SWEET10" || code === "WELCOME10") {
-        const discount_amount = Math.round((cart.subtotal || 649) * 0.1);
-        cart.discount_total = discount_amount;
-        cart.promo_code = code;
-        cart.total = Math.max(0, (cart.subtotal || 649) - discount_amount);
-        cart.updated_at = now.toISOString();
-        ApiEngine.persist();
-        return { cart, valid: true, discount_amount, discount: discount_amount, offer: { code, description: "10% Recovery Discount" } };
-      }
-      if (code === "CAKE100") {
-        if ((cart.subtotal || 0) < 499) {
-          cart.promo_error = "CAKE100 requires min order value ₹499";
-          return { cart, valid: false, error: cart.promo_error };
-        }
-        const discount_amount = 100;
-        cart.discount_total = discount_amount;
-        cart.promo_code = "CAKE100";
-        cart.total = Math.max(0, (cart.subtotal || 0) - discount_amount);
-        cart.updated_at = now.toISOString();
-        ApiEngine.persist();
-        return { cart, valid: true, discount_amount, discount: discount_amount, offer: { code: "CAKE100", description: "Flat ₹100 Off" } };
-      }
       cart.discount_total = 0;
       cart.promo_code = null;
       cart.promo_offer_id = null;
-      cart.promo_error = `Coupon code "${code}" is invalid.`;
+      cart.promo_error = `Coupon code "${code}" is invalid or does not exist.`;
       cart.total = Math.max(0, cart.subtotal);
       cart.updated_at = now.toISOString();
       ApiEngine.persist();
@@ -13536,45 +13544,55 @@ export class ApiEngine {
       return { cart, valid: false, error: cart.promo_error };
     }
 
+    // Helper for robust array parsing from JSON text or arrays
+    const parseList = (val: any): string[] => {
+      if (!val) return [];
+      if (Array.isArray(val)) return val.map(String).map(s => s.trim()).filter(s => s && s !== "[]");
+      if (typeof val === "string") {
+        try {
+          const parsed = JSON.parse(val);
+          if (Array.isArray(parsed)) return parsed.map(String).map(s => s.trim()).filter(s => s && s !== "[]");
+        } catch {}
+        const cleaned = val.replace(/^[["'s]+|[]"'s]+$/g, "").trim();
+        return cleaned && cleaned !== "[]" ? [cleaned] : [];
+      }
+      return [];
+    };
+
     // 7. Branch Restrictions
-    if (offer.applicable_branches && offer.applicable_branches.length > 0) {
-      const branches = Array.isArray(offer.applicable_branches) ? offer.applicable_branches : [offer.applicable_branches];
-      if (!branches.includes("all")) {
-        const branchId = context?.branch_id || cart.branch_id;
-        const branchName = context?.branch_name;
-        if (!branchId || (!branches.includes(branchId) && !branches.includes(branchName))) {
-          cart.promo_error = `Coupon "${code}" is not valid at the selected branch.`;
-          return { cart, valid: false, error: cart.promo_error };
-        }
+    const branches = parseList(offer.applicable_branches);
+    if (branches.length > 0 && !branches.includes("all")) {
+      const branchId = context?.branch_id || cart.branch_id;
+      const branchName = context?.branch_name;
+      if (!branchId || (!branches.includes(branchId) && !branches.includes(branchName))) {
+        cart.promo_error = `Coupon "${code}" is not valid at the selected branch.`;
+        return { cart, valid: false, error: cart.promo_error };
       }
     }
 
     // 8. City Restrictions
-    if (offer.applicable_cities && offer.applicable_cities.length > 0) {
-      const cities = Array.isArray(offer.applicable_cities) ? offer.applicable_cities : [offer.applicable_cities];
-      if (!cities.includes("all")) {
-        const city = context?.city || cart.city;
-        if (!city || !cities.map((c: string) => c.toLowerCase()).includes(city.toLowerCase())) {
-          cart.promo_error = `Coupon "${code}" is valid only in: ${cities.join(", ")}.`;
-          return { cart, valid: false, error: cart.promo_error };
-        }
+    const cities = parseList(offer.applicable_cities);
+    if (cities.length > 0 && !cities.includes("all")) {
+      const city = context?.city || cart.city;
+      if (!city || !cities.map((c: string) => c.toLowerCase()).includes(city.toLowerCase())) {
+        cart.promo_error = `Coupon "${code}" is valid only in: ${cities.join(", ")}.`;
+        return { cart, valid: false, error: cart.promo_error };
       }
     }
 
     // 9. Pincode Restrictions
-    if (offer.applicable_pincodes && offer.applicable_pincodes.length > 0) {
-      const pincodes = Array.isArray(offer.applicable_pincodes) ? offer.applicable_pincodes : [offer.applicable_pincodes];
-      if (!pincodes.includes("all")) {
-        const pin = context?.pincode || cart.pincode;
-        if (!pin || !pincodes.includes(pin)) {
-          cart.promo_error = `Coupon "${code}" is not serviceable at pincode ${pin || "entered"}.`;
-          return { cart, valid: false, error: cart.promo_error };
-        }
+    const pincodes = parseList(offer.applicable_pincodes);
+    if (pincodes.length > 0 && !pincodes.includes("all")) {
+      const pin = context?.pincode || cart.pincode;
+      if (!pin || !pincodes.includes(pin)) {
+        cart.promo_error = `Coupon "${code}" is not serviceable at pincode ${pin || "entered"}.`;
+        return { cart, valid: false, error: cart.promo_error };
       }
     }
-    if (offer.excluded_pincodes && offer.excluded_pincodes.length > 0) {
+    const excludedPins = parseList(offer.excluded_pincodes);
+    if (excludedPins.length > 0) {
       const pin = context?.pincode || cart.pincode;
-      if (pin && offer.excluded_pincodes.includes(pin)) {
+      if (pin && excludedPins.includes(pin)) {
         cart.promo_error = `Pincode ${pin} is excluded from coupon "${code}".`;
         return { cart, valid: false, error: cart.promo_error };
       }
@@ -13584,6 +13602,34 @@ export class ApiEngine {
     if (offer.customer_eligibility === "vip" && context?.customer_tier !== "vip") {
       cart.promo_error = `Coupon "${code}" is reserved exclusively for VIP Club members.`;
       return { cart, valid: false, error: cart.promo_error };
+    }
+
+    // 10b. Product Restrictions
+    const prods = parseList(offer.applicable_products);
+    if (prods.length > 0 && !prods.includes("all")) {
+      const cartProdIds = (cart.items || []).map((i: any) => String(i.product_id || i.id || ""));
+      const hasMatchingProduct = prods.some((p: string) => cartProdIds.includes(String(p)));
+      if (!hasMatchingProduct) {
+        cart.promo_error = `Coupon "${code}" is only valid on selected products.`;
+        return { cart, valid: false, error: cart.promo_error };
+      }
+    }
+
+    // 10c. Category Restrictions
+    const cats = parseList(offer.applicable_categories).map((c: string) => c.toLowerCase());
+    if (cats.length > 0 && !cats.includes("all")) {
+      const cartCategories = (cart.items || []).map((i: any) => {
+        const p = ApiEngine.getProductById(i.product_id);
+        const cName = p?.category || p?.metadata?.category || "";
+        const cSlug = p?.category_slug || p?.metadata?.category_slug || "";
+        const pCatId = p?.metadata?.primary_category_id || "";
+        return [cName.toLowerCase(), cSlug.toLowerCase(), pCatId.toLowerCase()];
+      }).flat().filter(Boolean);
+      const hasMatchingCategory = cats.some((cat: string) => cartCategories.some((cc: string) => cc.includes(cat) || cat.includes(cc)));
+      if (!hasMatchingCategory) {
+        cart.promo_error = `Coupon "${code}" is valid only on eligible cake categories.`;
+        return { cart, valid: false, error: cart.promo_error };
+      }
     }
 
     // 11. Calculate Discount
@@ -15670,7 +15716,7 @@ export class ApiEngine {
           areas: [resolvedCityName],
           enabled: true,
           express_allowed: true,
-          midnight_allowed: true,
+          midnight_allowed: false,
         },
       ];
     }
@@ -16746,7 +16792,7 @@ export class ApiEngine {
       express_enabled: true,
       express_prep_mins: 45,
       express_surcharge: 99,
-      midnight_enabled: true,
+      midnight_enabled: false,
       midnight_window: { start: "23:30", end: "00:05" },
       midnight_surcharge: 199,
       slot_duration_mins: 60,
@@ -17001,7 +17047,7 @@ export class ApiEngine {
       subject_to_corporate_cutoff: true,
       special_order_cutoff: null,
     };
-    const midnightEnabled = rules.midnight_enabled !== false && lateNightConfig.enabled !== false;
+    const midnightEnabled = false; // Midnight delivery is discontinued platform-wide
     if (mode === "delivery" && midnightEnabled) {
       const midnightBooked = bookedCounts["SLOT_MIDNIGHT"] || bookedCounts["slot_midnight"] || 0;
       const midnightMax = 15;
@@ -17292,9 +17338,9 @@ export class ApiEngine {
       {
         id: "midnight",
         name: "Midnight Surprise Delivery",
-        enabled: Boolean(slotsRes.delivery_slots.some((s: any) => s.slot_type === "midnight" && s.available)),
-        surcharge: slotsRes.delivery_slots.find((s: any) => s.slot_type === "midnight")?.extra_charge ?? 199,
-        description: "Delivered 11:30 PM - 12:05 AM",
+        enabled: false,
+        surcharge: 0,
+        description: "Discontinued",
       },
       {
         id: "pickup",
@@ -17474,10 +17520,10 @@ export class ApiEngine {
     const defaultPriority = b?.partner_failover?.priority || b?.delivery_partner_priority || ["porter", "rapido", "shadowfax", "own_fleet"];
 
     const partnerConfigs = b?.delivery_partners_config || {
-      porter: { enabled: true, status: "live", max_radius_km: 15, express_support: true, cod_support: true, large_cake_support: true, midnight_support: true, max_weight_kg: 20, current_load: 2, max_concurrent: 10, success_rate: 98, avg_rating: 4.9, base_fee: 49, per_km_fee: 5 },
+      porter: { enabled: true, status: "live", max_radius_km: 15, express_support: true, cod_support: true, large_cake_support: true, midnight_support: false, max_weight_kg: 20, current_load: 2, max_concurrent: 10, success_rate: 98, avg_rating: 4.9, base_fee: 49, per_km_fee: 5 },
       rapido: { enabled: true, status: "live", max_radius_km: 10, express_support: true, cod_support: true, large_cake_support: false, midnight_support: false, max_weight_kg: 5, current_load: 1, max_concurrent: 8, success_rate: 96, avg_rating: 4.8, base_fee: 39, per_km_fee: 4 },
-      shadowfax: { enabled: true, status: "live", max_radius_km: 12, express_support: false, cod_support: true, large_cake_support: true, midnight_support: true, max_weight_kg: 15, current_load: 3, max_concurrent: 12, success_rate: 95, avg_rating: 4.7, base_fee: 45, per_km_fee: 5 },
-      own_fleet: { enabled: true, status: "live", max_radius_km: 25, express_support: true, cod_support: true, large_cake_support: true, midnight_support: true, max_weight_kg: 30, current_load: 0, max_concurrent: 5, success_rate: 99, avg_rating: 5.0, base_fee: 59, per_km_fee: 6 },
+      shadowfax: { enabled: true, status: "live", max_radius_km: 12, express_support: false, cod_support: true, large_cake_support: true, midnight_support: false, max_weight_kg: 15, current_load: 3, max_concurrent: 12, success_rate: 95, avg_rating: 4.7, base_fee: 45, per_km_fee: 5 },
+      own_fleet: { enabled: true, status: "live", max_radius_km: 25, express_support: true, cod_support: true, large_cake_support: true, midnight_support: false, max_weight_kg: 30, current_load: 0, max_concurrent: 5, success_rate: 99, avg_rating: 5.0, base_fee: 59, per_km_fee: 6 },
     };
 
     // Filter eligible partners based on order context requirements
@@ -18382,6 +18428,8 @@ export class ApiEngine {
         })
       : [];
     const subtotal = normalizedItems.reduce((sum: number, i: any) => sum + (Number(i.total_price || i.subtotal) || 0), 0);
+    const promoCode = dbCart.promo_code || dbCart.coupon_code || dbCart.metadata?.promo_code || dbCart.metadata?.coupon_code || null;
+    const discountTotal = Number(dbCart.discount_total ?? dbCart.discount_amount ?? 0);
     const syncedCart = {
       ...dbCart,
       id: dbCart.id,
@@ -18389,7 +18437,11 @@ export class ApiEngine {
       customer_uid: dbCart.customer_id || dbCart.customer_uid || null,
       items: normalizedItems,
       subtotal,
-      total: Number(dbCart.total ?? subtotal),
+      promo_code: promoCode,
+      coupon_code: promoCode,
+      discount_total: discountTotal,
+      discount_amount: discountTotal,
+      total: Math.max(0, subtotal - discountTotal),
       status: dbCart.status || "ACTIVE",
       updated_at: dbCart.updated_at || new Date().toISOString(),
     };
@@ -18644,7 +18696,11 @@ export class ApiEngine {
     }
 
     cart.subtotal = cart.items.reduce((sum: number, i: any) => sum + (Number(i.total_price || i.subtotal) || 0), 0);
-    cart.total = cart.subtotal;
+    if (cart.promo_code) {
+      ApiEngine.applyPromoCode(cart.id, cart.promo_code);
+    } else {
+      cart.total = cart.subtotal;
+    }
     cart.status = "ACTIVE";
     cart.updated_at = new Date().toISOString();
     cart.last_activity_at = new Date().toISOString();
@@ -18702,7 +18758,16 @@ export class ApiEngine {
     }
 
     cart.subtotal = (cart.items || []).reduce((sum: number, i: any) => sum + (Number(i.total_price || i.subtotal) || 0), 0);
-    cart.total = cart.subtotal;
+    if ((cart.items || []).length === 0) {
+      cart.discount_total = 0;
+      cart.promo_code = null;
+      cart.promo_offer_id = null;
+      cart.total = 0;
+    } else if (cart.promo_code) {
+      ApiEngine.applyPromoCode(cart.id, cart.promo_code);
+    } else {
+      cart.total = cart.subtotal;
+    }
     cart.updated_at = new Date().toISOString();
     cart.last_activity_at = new Date().toISOString();
 
@@ -20247,9 +20312,8 @@ export class ApiEngine {
     if (zone.express_allowed) {
       slots.push({ id: "slot_express", label: "Within 60 Minutes (Express Delivery)", type: "express", price: zone.delivery_charge + zone.express_charge });
     }
-    if (zone.midnight_allowed) {
-      slots.push({ id: "slot_midnight", label: "11:00 PM - 12:00 AM (Midnight Special)", type: "midnight", price: zone.delivery_charge + zone.midnight_charge });
-    }
+    // Midnight delivery slots discontinued across platform
+    // if (zone.midnight_allowed) { ... }
 
     return {
       branch_code: assignedBranch.code,
@@ -20468,7 +20532,7 @@ export class ApiEngine {
         earliest_delivery: "Today by 6:00 PM",
         fee: evalResult.fee_breakdown?.total_delivery_fee || 0,
         express_available: true,
-        midnight_available: true,
+        midnight_available: false,
       };
     }
 

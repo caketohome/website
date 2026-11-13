@@ -5,7 +5,14 @@ import { Pool, PoolClient, QueryResult, QueryResultRow } from "pg";
  * The project's own Supabase DB host is always permitted; TEST_DATABASE_URL
  * is still locked to localhost to prevent accidental test runs against production.
  */
-const ALLOWED_SUPABASE_HOSTS = ['db.xfvgumatwucammmbwdwv.supabase.co'];
+const SUPABASE_PROJECT_REF = 'xfvgumatwucammmbwdwv';
+const ALLOWED_SUPABASE_HOSTS = [`db.${SUPABASE_PROJECT_REF}.supabase.co`];
+
+/** Supabase connection pooler (Supavisor) for THIS project only: user must be postgres.<project-ref>. */
+function isAllowedSupabasePooler(parsed: URL): boolean {
+  return /^aws-\d+-[a-z0-9-]+\.pooler\.supabase\.com$/.test(parsed.hostname)
+    && decodeURIComponent(parsed.username) === `postgres.${SUPABASE_PROJECT_REF}`;
+}
 
 export function getConnectionString(): string | undefined {
   const isTestMode = process.env.NODE_ENV === "test";
@@ -34,7 +41,7 @@ export function getConnectionString(): string | undefined {
     try {
       const parsed = new URL(rawUrl);
       const isLocalhost = parsed.hostname === '127.0.0.1' || parsed.hostname === 'localhost';
-      const isAllowedSupabase = ALLOWED_SUPABASE_HOSTS.includes(parsed.hostname);
+      const isAllowedSupabase = ALLOWED_SUPABASE_HOSTS.includes(parsed.hostname) || isAllowedSupabasePooler(parsed);
       if (!isLocalhost && !isAllowedSupabase) {
         throw new Error(`SECURITY ABORT: Database target (${parsed.hostname}) is not localhost or an allowed Supabase host.`);
       }

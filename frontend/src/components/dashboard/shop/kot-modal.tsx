@@ -74,8 +74,20 @@ export default function KotModal({ orderId, isOpen, onClose }: KotModalProps) {
         ) : kotData ? (
           <div className="p-6 font-mono text-zinc-900 dark:text-zinc-100 space-y-4 bg-white dark:bg-zinc-900 print:p-0 print:text-black">
             {/* Header / Brand */}
-            <div className="text-center border-b-2 border-dashed border-zinc-400 pb-3">
-              <h2 className="text-lg font-black tracking-wider uppercase">CAKETOHOME GOURMET KITCHEN</h2>
+            <div className="text-center border-b-2 border-dashed border-zinc-400 pb-3 flex flex-col items-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/assets/brand/caketo-home-logo-black.png"
+                alt="CakeToHome"
+                className="h-8 w-auto object-contain mx-auto mb-1 print:block dark:hidden"
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/assets/brand/caketo-home-logo-white.png"
+                alt="CakeToHome"
+                className="h-8 w-auto object-contain mx-auto mb-1 hidden dark:block print:hidden"
+              />
+              <h2 className="text-sm font-black tracking-wider uppercase">GOURMET KITCHEN</h2>
               <p className="text-xs text-zinc-500 font-sans">{kotData.branch_name} ({kotData.branch_code})</p>
               <div className="flex justify-between text-xs mt-2 font-bold">
                 <span>KOT: {kotData.kot_number}</span>

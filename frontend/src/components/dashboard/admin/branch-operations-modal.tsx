@@ -48,9 +48,9 @@ export function BranchOperationsModal({
   const [expressEnabled, setExpressEnabled] = useState(branch.fulfillment_rules?.express_enabled ?? true);
   const [expressSurcharge, setExpressSurcharge] = useState(branch.fulfillment_rules?.express_surcharge ?? 49);
   const [expressCutoffTime, setExpressCutoffTime] = useState(branch.fulfillment_rules?.express_cutoff_time || "");
-  const [midnightEnabled, setMidnightEnabled] = useState(branch.fulfillment_rules?.midnight_enabled ?? true);
-  const [midnightSurcharge, setMidnightSurcharge] = useState(branch.fulfillment_rules?.midnight_surcharge ?? 79);
-  const [midnightCutoffTime, setMidnightCutoffTime] = useState(branch.fulfillment_rules?.midnight_cutoff_time || "");
+  const [midnightEnabled, setMidnightEnabled] = useState(false);
+  const [midnightSurcharge, setMidnightSurcharge] = useState(0);
+  const [midnightCutoffTime, setMidnightCutoffTime] = useState("");
 
   // Temporary Closure State
   const [isPaused, setIsPaused] = useState(Boolean(branch.temporary_closure?.is_paused));
@@ -123,9 +123,9 @@ export function BranchOperationsModal({
         express_enabled: Boolean(expressEnabled),
         express_surcharge: Number(expressSurcharge),
         express_cutoff_time: expressCutoffTime || undefined,
-        midnight_enabled: Boolean(midnightEnabled),
-        midnight_surcharge: Number(midnightSurcharge),
-        midnight_cutoff_time: midnightCutoffTime || undefined,
+        midnight_enabled: false,
+        midnight_surcharge: 0,
+        midnight_cutoff_time: undefined,
       },
       temporary_closure: {
         is_paused: isPaused,
@@ -395,7 +395,7 @@ export function BranchOperationsModal({
                 </div>
 
                 <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700/60 space-y-3">
-                  <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100 block">⚡ Express & Midnight Surcharges</span>
+                  <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100 block">⚡ Express Delivery Surcharge</span>
                   <div className="flex items-center justify-between">
                     <span>⚡ Hyperlocal 45-Min Express</span>
                     <input
@@ -427,37 +427,7 @@ export function BranchOperationsModal({
                       </div>
                     </div>
                   )}
-                  <div className="flex items-center justify-between pt-2 border-t">
-                    <span>🌙 Midnight Surprise (11:30 PM - 12:05 AM)</span>
-                    <input
-                      type="checkbox"
-                      checked={midnightEnabled}
-                      onChange={(e) => setMidnightEnabled(e.target.checked)}
-                      className="rounded text-rose-600"
-                    />
-                  </div>
-                  {midnightEnabled && (
-                    <div className="space-y-2">
-                      <div>
-                        <Label className="text-xs">Midnight Surcharge (₹)</Label>
-                        <Input
-                          type="number"
-                          value={midnightSurcharge}
-                          onChange={(e) => setMidnightSurcharge(Number(e.target.value))}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Midnight Cutoff Time (Optional Override)</Label>
-                        <Input
-                          type="time"
-                          value={midnightCutoffTime}
-                          onChange={(e) => setMidnightCutoffTime(e.target.value)}
-                          className="mt-1"
-                        />
-                      </div>
-                    </div>
-                  )}
+                  
                 </div>
               </div>
             </div>

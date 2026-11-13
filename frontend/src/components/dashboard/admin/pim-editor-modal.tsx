@@ -219,7 +219,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
   const [minPrepHours, setMinPrepHours] = useState<string>(String(product?.pim_config?.min_prep_hours || "2"));
   const [sameDayAllowed, setSameDayAllowed] = useState<boolean>(product?.pim_config?.same_day_allowed ?? true);
   const [expressAllowed, setExpressAllowed] = useState<boolean>(product?.pim_config?.express_allowed ?? true);
-  const [midnightAllowed, setMidnightAllowed] = useState<boolean>(product?.pim_config?.midnight_allowed ?? false);
+  const [midnightAllowed, setMidnightAllowed] = useState<boolean>(false);
   const [scheduledAllowed, setScheduledAllowed] = useState<boolean>(product?.pim_config?.scheduled_allowed ?? true);
   const [hasDistanceLimit, setHasDistanceLimit] = useState<boolean>(
     (product?.pim_config?.max_delivery_distance_km != null && Number(product.pim_config.max_delivery_distance_km) > 0) ||
@@ -539,7 +539,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
         min_prep_hours: Number(minPrepHours) || 2,
         same_day_allowed: sameDayAllowed,
         express_allowed: expressAllowed,
-        midnight_allowed: midnightAllowed,
+        midnight_allowed: false,
         scheduled_allowed: scheduledAllowed,
         max_delivery_distance_km: hasDistanceLimit && Number(maxDeliveryDistanceKm) > 0 ? Number(maxDeliveryDistanceKm) : null,
       },
@@ -1578,10 +1578,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                         <input type="checkbox" checked={expressAllowed} onChange={(e) => setExpressAllowed(e.target.checked)} />
                         <span>Express Delivery</span>
                       </label>
-                      <label className="flex items-center gap-2 p-2.5 border rounded-lg bg-white dark:bg-slate-900 cursor-pointer">
-                        <input type="checkbox" checked={midnightAllowed} onChange={(e) => setMidnightAllowed(e.target.checked)} />
-                        <span>Midnight Delivery</span>
-                      </label>
+
                       <label className="flex items-center gap-2 p-2.5 border rounded-lg bg-white dark:bg-slate-900 cursor-pointer">
                         <input type="checkbox" checked={scheduledAllowed} onChange={(e) => setScheduledAllowed(e.target.checked)} />
                         <span>Scheduled Delivery</span>

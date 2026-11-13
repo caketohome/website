@@ -257,7 +257,7 @@ export class AiToolRegistry {
       deliveryFee: delivery.deliveryFee,
       etaMinutes: delivery.etaMinutes,
       expressAvailable: delivery.expressAvailable,
-      midnightAvailable: delivery.midnightAvailable,
+      midnightAvailable: false,
       blockedReason: delivery.blockedReason,
     };
   }
@@ -272,7 +272,7 @@ export class AiToolRegistry {
       estimatedMinutes: delivery.etaMinutes || 45,
       nextAvailableSlot: "45-Minute Hyperlocal Express",
       expressAvailable: delivery.expressAvailable,
-      midnightAvailable: delivery.midnightAvailable,
+      midnightAvailable: false,
       deliveryFee: delivery.deliveryFee,
     };
   }
@@ -301,7 +301,7 @@ export class AiToolRegistry {
       slotName = "45-Minute Express Hyperlocal Delivery";
     } else if (params.requestedSlot === "midnight") {
       fee += 149;
-      slotName = "Midnight Surprise Delivery (11:30 PM - 00:05 AM)";
+      slotName = "Scheduled Delivery (09:00 PM - 10:30 PM)";
     }
 
     return {
@@ -312,7 +312,7 @@ export class AiToolRegistry {
       deliveryFee: fee,
       freeDeliveryAbove: 599,
       expressAvailable: delivery.expressAvailable,
-      midnightAvailable: delivery.midnightAvailable,
+      midnightAvailable: false,
       packaging: "Climate-controlled shock-absorbent cake dome",
     };
   }
@@ -335,7 +335,7 @@ export class AiToolRegistry {
         { id: "slot_std_2", name: "Standard (02:00 PM - 05:00 PM)", price: 49, isFreeAbove599: true },
         { id: "slot_std_3", name: "Standard (06:00 PM - 09:00 PM)", price: 49, isFreeAbove599: true },
         { id: "slot_exp", name: "⚡ Express 45-Min Delivery", price: 99, available: delivery.expressAvailable },
-        { id: "slot_mid", name: "🌙 Midnight Surprise (11:30 PM - 12:05 AM)", price: 149, available: delivery.midnightAvailable },
+        // slot_mid removed - midnight delivery discontinued
       ],
     };
   }

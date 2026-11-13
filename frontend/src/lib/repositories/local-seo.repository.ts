@@ -83,7 +83,7 @@ export class LocalSeoRepository {
     const faqs = [
       {
         question: `How fast can I get cake delivery in ${city.name}?`,
-        answer: `CakeToHome delivers freshly baked cakes across ${city.name} in as little as 2 hours with our express delivery service. Midnight delivery (11:00 PM – 12:00 AM) is also available across all major neighborhoods.`,
+        answer: `CakeToHome delivers freshly baked cakes across ${city.name} in as little as 2 hours with our express delivery service. Scheduled delivery slots are also available across all major neighborhoods.`,
       },
       {
         question: `Are all cakes in ${city.name} 100% fresh and customizable?`,
@@ -183,7 +183,7 @@ export class LocalSeoRepository {
       state_name: city.state,
       h1: `Handcrafted Fresh Cake Delivery in ${city.name}`,
       meta_title: `Best Cake Delivery in ${city.name} — Same Day 2-Hour Delivery | CakeToHome`,
-      meta_description: `Order fresh handcrafted cakes online in ${city.name}. Same-day 2-hour delivery and midnight surprise delivery. 100% pure eggless options, photo cakes, and custom designs.`,
+      meta_description: `Order fresh handcrafted cakes online in ${city.name}. Same-day 2-hour delivery and scheduled celebration slots. 100% pure eggless options, photo cakes, and custom designs.`,
       canonical_url: canonical,
       hero_title: `Delicious Handcrafted Cakes in ${city.name}`,
       hero_subtitle: `Baked fresh with premium Belgian chocolate and 100% natural ingredients. Delivered to your doorstep across ${city.name} in 2 hours.`,

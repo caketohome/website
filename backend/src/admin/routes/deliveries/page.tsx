@@ -259,7 +259,7 @@ function DeliverySlotsTab() {
             <Input type="number" value={maxCapacity} onChange={(e) => setMaxCapacity(Number(e.target.value))} />
           </div>
           <div className="flex flex-col gap-1">
-            <Label>Midnight / Surcharge Fee</Label>
+            <Label>Express / Surcharge Fee</Label>
             <Input type="number" value={extraCharge} onChange={(e) => setExtraCharge(Number(e.target.value))} />
           </div>
         </div>

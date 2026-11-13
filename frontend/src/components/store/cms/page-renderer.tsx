@@ -10,6 +10,7 @@ import {
   CheckSquare, Search, Copy, Share2, Layers, AlertCircle, Quote as QuoteIcon,
   ArrowLeftRight, Play, Compass, MessageCircle, Send
 } from "lucide-react";
+import { CakeToHomeLogo } from "@frontend/components/common/logo";
 import dynamic from "next/dynamic";
 
 const ScrollFrameHero = dynamic(
@@ -577,7 +578,7 @@ function PincodeServiceabilityWidget({
         serviceable: true,
         speed: "Express 2-Hour Delivery Available",
         hub: "Indiranagar Flagship Kitchen (4.2 km)",
-        cutoff: "Order before 11:30 PM for Same-Night Midnight Surprise",
+        cutoff: "Order before 9:00 PM for Same-Day Express Delivery",
       });
     } else {
       setResult({
@@ -639,8 +640,8 @@ function DeliveryTimeSlotPicker({
 
   const slots = [
     { id: "standard", name: "Standard Delivery (Free)", time: "10:00 AM – 1:00 PM • 2:00 PM – 5:00 PM • 6:00 PM – 9:00 PM", fee: "₹0" },
-    { id: "express", name: "⚡ Express 2-Hour Delivery", time: "Dispatched hot from kitchen in cold-dome within 120 minutes", fee: "₹99" },
-    { id: "midnight", name: "🌙 Midnight Surprise Delivery", time: "11:30 PM – 12:05 AM (Exact midnight cake delivery guarantee)", fee: "₹199" },
+    { id: "express", name: "⚡ Express 2-Hour Delivery", time: "Dispatched fresh from kitchen in insulated dome within 120 minutes", fee: "₹99" },
+    { id: "scheduled", name: "📅 Scheduled / Fixed-Time Slot", time: "Choose your preferred 1-hour celebration delivery window", fee: "₹49" },
   ];
 
   return (
@@ -1657,13 +1658,13 @@ export function PageRenderer({
                       <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-semibold block">
                         Our Offerings
                       </span>
-                      <Heading level="h2" className="font-serif text-xl sm:text-2xl lg:text-3xl tracking-tight text-[#1D2F5D] dark:text-[#FAF9F6] font-bold">
+                      <Heading level="h2" className="font-serif text-xl sm:text-2xl lg:text-3xl tracking-tight text-[#0F172A] font-bold">
                         {heading}
                       </Heading>
-                      {subheading && <Text className="font-sans text-xs sm:text-sm text-[#606C88] dark:text-[#C5CEE0] font-normal">{subheading}</Text>}
+                      {subheading && <Text className="font-sans text-xs sm:text-sm text-[#64748B] font-normal">{subheading}</Text>}
                     </div>
                     {config.view_all_url && (
-                      <Link href={config.view_all_url} className="font-sans text-xs font-bold flex items-center gap-1 text-[#1D2F5D] dark:text-[#D4AF37] hover:text-[#D4AF37] transition-colors">
+                      <Link href={config.view_all_url} className="font-sans text-xs font-bold flex items-center gap-1 text-[#0F172A] hover:text-[#1D2F5D] transition-colors">
                         {config.view_all_text || "View All"} <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     )}
@@ -2260,11 +2261,7 @@ export function PageRenderer({
                     key={pid}
                     data-testid="product-card"
                     data-product-id={pid}
-                    className={`product-card-${sectionKey} group relative overflow-hidden flex flex-col justify-between transition-all duration-300 shrink-0 ${
-                      isLuxuryTheme
-                        ? "bg-[#142040]/30 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/50 shadow-[0_15px_40px_rgba(20,32,64,0.3)]"
-                        : "bg-white border border-[#E2E8F0] hover:border-[#D4AF37]/50 shadow-[0_8px_30px_rgba(29,47,93,0.06)] hover:shadow-[0_18px_45px_rgba(29,47,93,0.12)]"
-                    } ${
+                    className={`product-card-${sectionKey} group relative overflow-hidden flex flex-col justify-between transition-all duration-300 shrink-0 bg-white border border-[#E2E8F0] hover:border-slate-300 shadow-[0_4px_20px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)] ${
                       layoutMode === "carousel" ? "w-[240px] sm:w-[280px] snap-start" : ""
                     }`}
                     style={{ borderRadius: cardRadius }}
@@ -2272,12 +2269,12 @@ export function PageRenderer({
                     {/* Stretched Link: Makes entire product card clickable to PDP with accessible focus */}
                     <Link
                       href={`/products/${slug}`}
-                      className="absolute inset-0 z-10 rounded-[inherit] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2"
+                      className="absolute inset-0 z-10 rounded-[inherit] focus:outline-none focus:ring-2 focus:ring-[#0F172A] focus:ring-offset-2"
                       aria-label={`View details for ${product.title}`}
                     />
 
                     {showImage && (
-                      <div className={`product-img-box-${sectionKey} relative w-full overflow-hidden ${isLuxuryTheme ? "bg-[#0c1326]/50" : "bg-[#F8FAFC]"}`}>
+                      <div className={`product-img-box-${sectionKey} relative w-full overflow-hidden bg-[#F8FAFC]`}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={image}
@@ -2287,7 +2284,7 @@ export function PageRenderer({
                         />
                         {showBadge && (product.is_bestseller || product.is_featured || product.is_new_arrival) && (
                           <div className="absolute top-2.5 left-2.5 pointer-events-none">
-                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-semibold uppercase tracking-wider shadow-sm bg-[#1D2F5D]/90 text-[#D4AF37] border border-[#D4AF37]/40 backdrop-blur-md">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-semibold uppercase tracking-wider shadow-xs bg-[#0F172A] text-white">
                               {product.is_bestseller ? "Bestseller" : product.is_new_arrival ? "New" : "Featured"}
                             </span>
                           </div>
@@ -2300,11 +2297,7 @@ export function PageRenderer({
                                 e.preventDefault();
                                 e.stopPropagation();
                               }}
-                              className={`p-1.5 rounded-full shadow-sm transition-all ${
-                                isLuxuryTheme
-                                  ? "bg-[#0c1326]/70 hover:bg-[#0c1326] text-[#C5CEE0] hover:text-[#D4AF37] border border-white/10"
-                                  : "bg-white/85 hover:bg-white text-[#1D2F5D] hover:text-[#BE185D] border border-[#1D2F5D]/10"
-                              }`}
+                              className="p-1.5 rounded-full shadow-xs transition-all bg-white/90 hover:bg-white text-slate-600 hover:text-[#BE185D] border border-slate-200 hover:scale-105"
                               aria-label="Add to Wishlist"
                             >
                               <Heart className="w-3.5 h-3.5" />
@@ -2318,70 +2311,58 @@ export function PageRenderer({
                       <div className="flex flex-col gap-1.5">
                         <div className="flex items-center gap-2 flex-wrap">
                           {showRating && (
-                            <div className="flex items-center gap-1 text-[11px] font-semibold text-[#C29B38]">
-                              <Star className="w-3 h-3 fill-[#C29B38] text-[#C29B38]" />
+                            <div className="flex items-center gap-1 text-[11px] font-semibold text-[#D97706]">
+                              <Star className="w-3 h-3 fill-[#F59E0B] text-[#F59E0B]" />
                               <span>{rating}</span>
-                              {showReviewCount && <span className={`${isLuxuryTheme ? "text-[#C5CEE0]/60" : "text-[#606C88]"} font-normal`}>({reviewCount})</span>}
+                              {showReviewCount && <span className="text-[#64748B] font-normal">({reviewCount})</span>}
                             </div>
                           )}
                           {showFlavour && flavour && (
-                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded text-[#1D2F5D] dark:text-[#D4AF37] bg-[#1D2F5D]/10 dark:bg-[#D4AF37]/10 border border-[#1D2F5D]/20 dark:border-[#D4AF37]/30">
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded text-[#475569] bg-[#F1F5F9] border border-slate-200">
                               {flavour}
                             </span>
                           )}
                           {showWeight && weight && (
-                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${
-                              isLuxuryTheme ? "text-[#C5CEE0] bg-white/5 border-white/10" : "text-[#606C88] bg-[#F8FAFC] border-[#E2E8F0]"
-                            }`}>
+                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border text-[#64748B] bg-[#F8FAFC] border-[#E2E8F0]">
                               {weight}
                             </span>
                           )}
                         </div>
 
                         {showTitle && (
-                          <h3 className={`text-sm sm:text-base transition-colors line-clamp-2 min-h-[2.5rem] leading-snug ${
-                            isLuxuryTheme
-                              ? "font-serif text-[#FAF9F6] font-semibold group-hover:text-[#D4AF37]"
-                              : "font-serif text-[#1D2F5D] font-semibold group-hover:text-[#D4AF37]"
-                          }`}>
+                          <h3 className="font-serif text-sm sm:text-base font-semibold text-[#0F172A] leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#1D2F5D] transition-colors">
                             {product.title}
                           </h3>
                         )}
                         {showDesc && product.description && (
-                          <p className={`text-[11px] line-clamp-2 leading-relaxed min-h-[2rem] ${
-                            isLuxuryTheme ? "text-[#C5CEE0] font-light" : "text-[#606C88]"
-                          }`}>
+                          <p className="font-sans text-[11px] sm:text-[12px] text-[#64748B] leading-relaxed line-clamp-2 min-h-[2rem]">
                             {product.description}
                           </p>
                         )}
                         {showStock && (
                           <span className={`text-[10px] font-semibold ${
-                            product.in_stock !== false
-                              ? (isLuxuryTheme ? "text-emerald-400" : "text-emerald-600")
-                              : (isLuxuryTheme ? "text-amber-400" : "text-amber-600")
+                            product.in_stock !== false ? "text-emerald-600" : "text-amber-600"
                           }`}>
                             {product.in_stock !== false ? "● In Stock" : "● Made to Order"}
                           </span>
                         )}
                       </div>
 
-                      <div className={`flex items-center justify-between pt-2 border-t ${isLuxuryTheme ? "border-white/10" : "border-[#E2E8F0]"}`}>
+                      <div className="flex items-center justify-between pt-2 border-t border-[#E2E8F0]">
                         {showPrice && (
                           <div className="flex flex-col">
-                            <span className={`text-sm sm:text-base font-bold font-sans ${isLuxuryTheme ? "text-[#FAF9F6]" : "text-[#1D2F5D]"}`}>
+                            <span className="text-base sm:text-lg font-bold font-sans text-[#0F172A]">
                               ₹{price.toLocaleString()}
                             </span>
                             {showComparePrice && originalPrice > price && (
-                              <span className={`text-[10px] sm:text-xs line-through font-sans ${isLuxuryTheme ? "text-[#C5CEE0]/60" : "text-[#606C88]"}`}>
+                              <span className="text-[10px] sm:text-xs line-through font-sans text-[#64748B]">
                                 ₹{originalPrice.toLocaleString()}
                               </span>
                             )}
                           </div>
                         )}
                         {/* Non-interactive Action Hint instead of separate Order button */}
-                        <span className={`inline-flex items-center gap-1 text-xs font-sans font-semibold tracking-wide transition-transform group-hover:translate-x-1 ${
-                          isLuxuryTheme ? "text-[#D4AF37]" : "text-[#1D2F5D]"
-                        }`}>
+                        <span className="inline-flex items-center gap-1 text-xs font-sans font-semibold tracking-wide transition-transform group-hover:translate-x-1 text-[#1D2F5D] group-hover:text-[#0F172A]">
                           Explore cake <ArrowRight className="w-3 h-3" />
                         </span>
                       </div>
@@ -2427,13 +2408,13 @@ export function PageRenderer({
                       <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-semibold block">
                         Patisserie Selection
                       </span>
-                      <Heading level="h2" className="font-serif text-xl sm:text-2xl lg:text-3xl tracking-tight text-[#1D2F5D] dark:text-[#FAF9F6] font-bold">
+                      <Heading level="h2" className="font-serif text-xl sm:text-2xl lg:text-3xl tracking-tight text-[#0F172A] font-bold">
                         {heading}
                       </Heading>
-                      {subheading && <Text className="font-sans text-xs sm:text-sm text-[#606C88] dark:text-[#C5CEE0] font-normal">{subheading}</Text>}
+                      {subheading && <Text className="font-sans text-xs sm:text-sm text-[#64748B] font-normal">{subheading}</Text>}
                     </div>
                     {config.view_all_url && (
-                      <Link href={config.view_all_url} className="font-sans text-xs font-bold flex items-center gap-1 text-[#1D2F5D] dark:text-[#D4AF37] hover:text-[#D4AF37] transition-colors">
+                      <Link href={config.view_all_url} className="font-sans text-xs font-bold flex items-center gap-1 text-[#0F172A] hover:text-[#1D2F5D] transition-colors">
                         {config.view_all_text || "View All"} <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     )}
@@ -2466,9 +2447,20 @@ export function PageRenderer({
                 <header key={sectionKey} className="w-full bg-white/95 dark:bg-[#07090E]/95 backdrop-blur-md sticky top-0 z-40 border-b border-[#E2E8F0] dark:border-white/10 py-3 px-4 sm:px-6 shadow-sm rounded-2xl mb-4">
                   <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
                     <Link href="/" className="flex items-center gap-2">
-                      <span className="text-xl sm:text-2xl font-bold font-sans tracking-tight text-[#1D2F5D] dark:text-[#FAF9F6]">
-                        🎂 {brandName}
-                      </span>
+                      <CakeToHomeLogo
+                        variant="navy"
+                        mode="full"
+                        height={34}
+                        alt={brandName}
+                        className="dark:hidden"
+                      />
+                      <CakeToHomeLogo
+                        variant="white"
+                        mode="full"
+                        height={34}
+                        alt={brandName}
+                        className="hidden dark:block"
+                      />
                     </Link>
 
                     {/* Navigation items */}
@@ -2539,7 +2531,7 @@ export function PageRenderer({
                     <div className="bg-[#FDFBF7] dark:bg-white/5 p-3.5 rounded-xl border border-[#E2E8F0] dark:border-white/10 flex flex-col justify-between">
                       <div>
                         <span className="text-[10px] font-bold uppercase text-[#D4AF37] tracking-wider">Chef Special</span>
-                        <p className="font-serif font-semibold text-xs text-[#1D2F5D] dark:text-[#FAF9F6] mt-1">Midnight Surprise Hamper</p>
+                        <p className="font-serif font-semibold text-xs text-[#1D2F5D] dark:text-[#FAF9F6] mt-1">Celebration Surprise Hamper</p>
                         <p className="font-sans text-[11px] text-[#606C88] dark:text-[#A0AEC0] mt-0.5">Cake + Rose Bouquet + Candles</p>
                       </div>
                       <Link href="/products" className="font-sans text-xs font-bold text-[#1D2F5D] dark:text-[#D4AF37] mt-2 hover:underline">Shop Special →</Link>
@@ -2773,7 +2765,7 @@ export function PageRenderer({
                 { icon: "Sparkles", title: "Cash / Pay on Handover", desc: "Pay seamlessly when your fresh cake reaches your doorstep" },
               ] : section.type === "delivery_information" ? [
                 { icon: "Truck", title: "2-Hour Express Delivery", desc: "Fast-track delivery across all Kerala localities" },
-                { icon: "Clock", title: "Guaranteed Midnight Slot", desc: "11:30 PM to 12:05 AM surprise birthday & anniversary slots" },
+                { icon: "Clock", title: "Scheduled Delivery Slots", desc: "Select 1-hour delivery windows for seamless party planning" },
                 { icon: "ShieldCheck", title: "Chiller Van Fleet", desc: "Air-conditioned cold chain transit protects delicate fondant" },
                 { icon: "Gift", title: "Free Express Delivery", desc: "Enjoy zero delivery fee on all gourmet orders above ₹499" },
               ] : section.type === "contact_information" ? [
@@ -2794,7 +2786,7 @@ export function PageRenderer({
               ] : [
                 { icon: "Truck", title: "2-Hour Express Delivery", desc: "Fastest doorstep cake delivery across Kerala" },
                 { icon: "Sparkles", title: "Artisan Quality", desc: "Premium gourmet cakes crafted with Belgian chocolate and fresh fruits" },
-                { icon: "Clock", title: "Midnight Delivery", desc: "Special midnight surprise slots (11:30 PM - 12:05 AM)" },
+                { icon: "Clock", title: "Scheduled Delivery", desc: "Flexible celebration slots to match your event timeline" },
                 { icon: "ShieldCheck", title: "Artisanal Fresh Baking", desc: "Baked fresh after order placement with zero preservatives" },
               ];
 
@@ -2960,7 +2952,7 @@ export function PageRenderer({
             case "accordion": {
               const heading = config.heading || "Frequently Asked Questions";
               const defaultFaqs = [
-                { q: "Do you deliver cakes at midnight in Kerala?", a: "Yes! We offer guaranteed midnight delivery slots (11:30 PM – 12:05 AM) across all areas in Kerala for birthdays and anniversaries." },
+                { q: "What delivery options are available in Kerala?", a: "We offer 2-hour express delivery and scheduled celebration slots across all service areas in Kerala." },
                 { q: "Can I customize the cake size and flavour?", a: "Absolutely! You can choose sizes from 0.5 kg to 5.0 kg, select premium flavours (Belgian Chocolate, Red Velvet, Alphonso Mango, Lotus Biscoff), and add personal custom messages." },
                 { q: "How fresh are CakeToHome cakes?", a: "Every single cake is baked fresh to order in our local kitchen hubs using premium ingredients with zero artificial preservatives." },
               ];
@@ -3038,11 +3030,11 @@ export function PageRenderer({
                 section.type === "delivery_zones" ? "🗺️ Our Express Bakery Delivery Zones" :
                 section.type === "serviceability_map" ? "📍 Serviceability Hubs Across Kerala" :
                 section.type === "same_day_delivery_info" ? "🚀 2-Hour Same-Day Cake Delivery" :
-                section.type === "midnight_delivery_info" ? "🌙 Midnight Surprise Delivery Slots" :
+                section.type === "midnight_delivery_info" ? "📅 Scheduled Celebration Delivery Slots" :
                 "📍 We Deliver Fresh Cakes Across Kerala";
 
               const defaultSubheading =
-                section.type === "midnight_delivery_info" ? "Order before 8 PM for guaranteed delivery between 11:30 PM and 12:05 AM." :
+                section.type === "midnight_delivery_info" ? "Order in advance for guaranteed celebration time slots." :
                 section.type === "same_day_delivery_info" ? "Order by 6 PM for same-day evening celebration delivery." :
                 "Same-day & 2-hour express delivery available in all major clusters";
 
@@ -3294,9 +3286,9 @@ export function PageRenderer({
                           {ctaText} →
                         </Button>
                       </Link>
-                      <Link href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer">
+                      <Link href="https://wa.me/919567789888" target="_blank" rel="noopener noreferrer">
                         <Button variant="secondary" className={isLuxuryTheme ? "bg-white/10 hover:bg-white/15 text-white border-white/20 rounded-full px-5 py-3 text-xs" : "rounded-xl text-xs px-4 py-2.5"}>
-                          <MessageCircle className="w-4 h-4 mr-1.5 text-emerald-400" /> WhatsApp Concierge
+                          <MessageCircle className="w-4 h-4 mr-1.5 text-emerald-400" /> WhatsApp Concierge (+91 95677 89888)
                         </Button>
                       </Link>
                     </div>
@@ -3341,7 +3333,7 @@ export function PageRenderer({
               const heading = config.heading || (
                 section.type === "app_download" ? "📱 Download the CakeToHome Mobile App" :
                 section.type === "free_delivery_banner" ? "🚚 Free Express Delivery" :
-                section.type === "midnight_delivery_cta" ? "🌙 Midnight Cake Surprise Delivery" :
+                section.type === "midnight_delivery_cta" ? "📅 Scheduled Celebration Cake Delivery" :
                 section.type === "same_day_delivery_cta" ? "⚡ Same-Day Delivery in 2 Hours" :
                 section.type === "corporate_orders_cta" ? "🏢 Corporate Bulk Gifting & Events" :
                 section.type === "whatsapp_cta" ? "💬 Order Directly on WhatsApp" :
@@ -3353,12 +3345,12 @@ export function PageRenderer({
                 "Order handcrafted cakes baked fresh and delivered in 2 hours."
               );
               const ctaText = config.cta_text || (section.type === "app_download" ? "Get the App" : section.type === "whatsapp_cta" ? "Chat on WhatsApp" : "Order Now");
-              const ctaUrl = config.cta_url || (section.type === "whatsapp_cta" ? "https://wa.me/919876543210" : "/products");
+              const ctaUrl = config.cta_url || (section.type === "whatsapp_cta" ? "https://wa.me/919567789888" : "/products");
               const isWhatsapp = section.type === "whatsapp_cta" || config.style === "whatsapp";
 
               const secondaryCtaText = config.secondary_cta_text || config.secondary_cta?.text;
               const secondaryCtaUrl = config.secondary_cta_url || config.secondary_cta?.url || "/products";
-              const deliveryContext = config.delivery_context || "⚡ 2-Hour Express Delivery & Midnight Slots Available Across Kerala";
+              const deliveryContext = config.delivery_context || "⚡ 2-Hour Express Delivery & Scheduled Slots Available Across Kerala";
 
               const variant = config.variant || config.style_preset || config.style || (isLuxuryTheme ? "navy" : "navy");
 
@@ -3738,7 +3730,7 @@ export function PageRenderer({
               const heading = config.heading || "Sweet Celebrations • Customer Reviews";
               const defaultReviews = [
                 { name: "Priya Sharma", occasion: "1st Birthday • Koramangala", rating: 5, quote: "The Belgian chocolate truffle cake arrived right on time in pristine condition. All 25 guests were raving about how moist and rich it tasted!" },
-                { name: "Rohan & Sneha", occasion: "5th Anniversary • Indiranagar", rating: 5, quote: "Ordered the Red Velvet Heart cake for midnight delivery. It was delivered at exactly 11:58 PM with candles and knife included. Amazing service!" },
+                { name: "Rohan & Sneha", occasion: "5th Anniversary • Indiranagar", rating: 5, quote: "Ordered the Red Velvet Heart cake with scheduled delivery. It was delivered right on time with candles and knife included. Amazing service!" },
                 { name: "Vikram Mehta", occasion: "Corporate Milestone • Whitefield", rating: 5, quote: "CakeToHome handled our office delivery of 10 customized cakes seamlessly. Flawless presentation and fresh taste." },
               ];
               const reviewsList = (config.testimonials && config.testimonials.length > 0) ? config.testimonials : defaultReviews;
@@ -4001,7 +3993,7 @@ export function PageRenderer({
                   <span className="font-bold text-sm text-ui-fg-base">{heading}</span>
                   <div className="flex items-center gap-4">
                     <Link href="https://instagram.com" className="p-2 rounded-full bg-ui-bg-subtle hover:text-[#D4AF37] transition-colors">Instagram</Link>
-                    <Link href="https://wa.me/919876543210" className="p-2 rounded-full bg-ui-bg-subtle hover:text-emerald-600 transition-colors">WhatsApp</Link>
+                    <Link href="https://wa.me/919567789888" className="p-2 rounded-full bg-ui-bg-subtle hover:text-emerald-600 transition-colors">WhatsApp</Link>
                     <Link href="https://facebook.com" className="p-2 rounded-full bg-ui-bg-subtle hover:text-blue-600 transition-colors">Facebook</Link>
                   </div>
                   <span className="text-[11px] text-ui-fg-subtle">© {new Date().getFullYear()} CakeToHome. Freshly Baked Artisanal Delights.</span>

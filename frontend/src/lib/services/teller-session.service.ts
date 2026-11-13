@@ -56,18 +56,6 @@ export class TellerSessionService {
     }
   }
 
-  /**
-   * Guarantees actor exists in public."user" so that relational foreign keys
-   * (opened_by, closed_by, verified_by, settled_by) succeed reliably.
-   */
-  private static async ensureUserExists(userId: string, client: PoolClient): Promise<void> {
-    await client.query(
-      `INSERT INTO public."user" (id, email, created_at, updated_at)
-       VALUES ($1, $2, NOW(), NOW())
-       ON CONFLICT (id) DO NOTHING`,
-      [userId, `${userId}@cakes2home.local`]
-    );
-  }
 
   /**
    * Opens a new teller session.
@@ -149,8 +137,6 @@ export class TellerSessionService {
         );
       }
 
-      // 4. Ensure actor user identity exists in public."user" for relational session foreign key
-      await this.ensureUserExists(actor.userId, txClient);
 
       // 5. Create Session (expected_cash initially = opening_float)
       return TellerSessionRepository.create(
@@ -254,8 +240,6 @@ export class TellerSessionService {
       }
       const variance = round2(closingCount - expectedCash);
 
-      // 4. Ensure actor exists in public."user" for closed_by foreign key
-      await this.ensureUserExists(actor.userId, txClient);
 
       // 5. Persist close details
       return TellerSessionRepository.closeSession(
@@ -353,8 +337,6 @@ export class TellerSessionService {
       }
       const recalculatedVariance = round2(session.closing_count - recalculatedExpected);
 
-      // 4. Ensure verifier exists in public."user" for verified_by foreign key
-      await this.ensureUserExists(actor.userId, txClient);
 
       // 5. Persist verification
       return TellerSessionRepository.verifySession(
@@ -613,12 +595,6 @@ export class TellerSessionService {
       }
 
       const variance = round2(session.variance);
-
-      // Ensure settler and verifier exist in public."user" for settled_by foreign key and GL audit trail
-      await this.ensureUserExists(actor.userId, txClient);
-      if (session.verified_by) {
-        await this.ensureUserExists(session.verified_by, txClient);
-      }
 
       // 5. Zero-Variance Settlement (variance === 0.00)
       if (variance === 0) {
@@ -935,8 +911,6 @@ export class TellerSessionService {
       }
 
       // 3. Ensure user exists
-      await this.ensureUserExists(actor.userId, txClient);
-
       // 4. Create continuous branch cash custody session anchor
       const timestamp = Date.now();
       const continuousId = `sess_custody_${branchId}_${timestamp}`;

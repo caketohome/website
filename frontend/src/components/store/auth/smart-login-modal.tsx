@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { OtpLoginForm } from "./otp-login-form";
+import { CakeToHomeLogo } from "@frontend/components/common/logo";
 
 export interface SmartLoginModalProps {
   isOpen: boolean;
@@ -55,10 +56,10 @@ export function SmartLoginModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Ribbon */}
-        <div className="bg-gradient-to-r from-[#1D2F5D] via-[#1D2F5D] to-amber-500 px-6 py-4 text-white">
+        <div className="bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#D97706] px-6 py-4 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">🎂</span>
+              <CakeToHomeLogo variant="white" mode="symbol" width={28} height={28} />
               <h2 id="smart-login-modal-title" className="text-lg font-bold tracking-tight text-white">
                 {title}
               </h2>

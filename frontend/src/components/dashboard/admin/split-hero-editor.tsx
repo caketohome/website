@@ -35,7 +35,7 @@ export function SplitHeroEditor({ config, onChange, openImagePicker }: SplitHero
   };
 
   const secondaryCta = config.secondary_cta || {
-    text: config.cta_secondary_text || "Midnight Delivery",
+    text: config.cta_secondary_text || "Express Delivery",
     url: config.cta_secondary_url || "/delivery",
     variant: "secondary",
     new_tab: false,
@@ -406,7 +406,7 @@ export function SplitHeroEditor({ config, onChange, openImagePicker }: SplitHero
                 <Input
                   value={secondaryCta.text || ""}
                   onChange={(e) => updateSecondaryCta("text", e.target.value)}
-                  placeholder="Midnight Delivery"
+                  placeholder="Express Delivery"
                 />
               </Field>
               <Field label="Button Link URL">

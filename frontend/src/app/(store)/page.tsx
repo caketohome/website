@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
     entityType: "page",
     slug: "/",
     fallbackTitle: page?.meta_title || "Online Cakes & Cake Delivery in Kerala | CakeToHome",
-    fallbackDescription: page?.meta_description || "Order fresh handcrafted artisanal cakes online in Kerala with same-day and midnight delivery. Custom birthday cakes, anniversary cakes, and gourmet pastries.",
+    fallbackDescription: page?.meta_description || "Order fresh handcrafted artisanal cakes online in Kerala with same-day and express delivery. Custom birthday cakes, anniversary cakes, and gourmet pastries.",
     fallbackImage: page?.og_image || undefined,
   });
 }

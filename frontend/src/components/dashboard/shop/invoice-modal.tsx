@@ -77,8 +77,19 @@ export default function InvoiceModal({ orderId, isOpen, onClose }: InvoiceModalP
             {/* Header */}
             <div className="flex justify-between items-start border-b border-zinc-200 dark:border-zinc-800 pb-4">
               <div>
-                <h1 className="text-xl font-extrabold text-rose-600 tracking-tight">CakeToHome</h1>
-                <p className="text-[11px] text-zinc-500 font-semibold">{invoice.branch_name || "CakeToHome Kitchen Hub"}</p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/assets/brand/caketo-home-logo-navy.png"
+                  alt="CakeToHome"
+                  className="h-9 w-auto object-contain mb-1.5 print:block dark:hidden"
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/assets/brand/caketo-home-logo-white.png"
+                  alt="CakeToHome"
+                  className="h-9 w-auto object-contain mb-1.5 hidden dark:block print:hidden"
+                />
+                <p className="text-[11px] text-zinc-600 dark:text-zinc-300 font-semibold">{invoice.branch_name || "CakeToHome Kitchen Hub"}</p>
                 <p className="text-[10px] text-zinc-400">GSTIN: {invoice.branch_gstin || "UNVERIFIED_GSTIN"}</p>
                 <p className="text-[10px] text-zinc-400">FSSAI Lic No: {invoice.branch_fssai || "UNVERIFIED_FSSAI"}</p>
               </div>

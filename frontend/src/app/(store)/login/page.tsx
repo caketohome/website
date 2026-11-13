@@ -2,6 +2,7 @@ import { OtpLoginForm } from "@frontend/components/store/auth/otp-login-form";
 import { SeoMetadataBuilder } from "@frontend/lib/seo/metadata-builder";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CakeToHomeLogo } from "@frontend/components/common/logo";
 import { Sparkles, Check, Star } from "lucide-react";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -33,13 +34,14 @@ export default function LoginPage() {
 
           {/* Top: Brand Logo */}
           <div className="relative z-10 space-y-1">
-            <Link
+            <CakeToHomeLogo
+              variant="white"
+              mode="full"
+              height={52}
               href="/"
-              className="inline-flex items-center gap-2.5 text-2xl lg:text-3xl font-black tracking-tight text-white hover:text-amber-400 transition-colors"
-            >
-              <span className="text-2xl lg:text-3xl">🎂</span>
-              <span>CakeToHome</span>
-            </Link>
+              priority
+              className="py-1"
+            />
             <p className="text-[11px] font-bold text-amber-400 uppercase tracking-widest pl-0.5">
               Artisan Patisserie &amp; Modern Bakery
             </p>
@@ -61,7 +63,7 @@ export default function LoginPage() {
             </h1>
 
             <p className="text-xs md:text-sm lg:text-base text-neutral-300 leading-relaxed font-normal">
-              Premium artisan cakes baked fresh and delivered to your doorstep.
+              Premium artisan cakes baked fresh from scratch and delivered across Kerala with express 2-hour and scheduled slots.
             </p>
 
             {/* 3 Feature Pills */}
@@ -97,7 +99,7 @@ export default function LoginPage() {
               ))}
             </div>
             <p className="text-xs font-medium text-neutral-300">
-              Loved by thousands of cake lovers
+              Loved by 25,000+ happy families across Kerala
             </p>
           </div>
         </div>
@@ -106,10 +108,15 @@ export default function LoginPage() {
         <div className="col-span-1 md:col-span-7 lg:col-span-5 flex flex-col items-center justify-center p-4 sm:p-8 lg:p-12 bg-[#0c0a09] relative">
           
           {/* Mobile Top Brand Bar (Visible only on <md) */}
-          <div className="md:hidden w-full max-w-[420px] text-center mb-6 space-y-1">
-            <Link href="/" className="inline-flex items-center gap-2 text-2xl font-black text-white">
-              <span>🎂</span> CakeToHome
-            </Link>
+          <div className="md:hidden w-full max-w-[420px] flex flex-col items-center text-center mb-6 space-y-1">
+            <CakeToHomeLogo
+              variant="white"
+              mode="full"
+              height={44}
+              href="/"
+              priority
+              className="py-1"
+            />
             <p className="text-[11px] font-bold text-amber-400 tracking-wider uppercase">
               Fresh Cakes &bull; Delivered Fast
             </p>

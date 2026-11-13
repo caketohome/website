@@ -82,7 +82,19 @@ export function OrderInvoicePrintModal({ order, invoice, onClose }: OrderInvoice
           {/* Company & Invoice Header */}
           <div className="flex items-start justify-between border-b pb-4">
             <div>
-              <h1 className="text-2xl font-black text-emerald-700 tracking-tight">{sellerTradeName}</h1>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/assets/brand/caketo-home-logo-navy.png"
+                alt="CakeToHome"
+                className="h-10 w-auto object-contain mb-2 print:block dark:hidden"
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/assets/brand/caketo-home-logo-white.png"
+                alt="CakeToHome"
+                className="h-10 w-auto object-contain mb-2 hidden dark:block print:hidden"
+              />
+              <h1 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">{sellerTradeName}</h1>
               <p className="text-xs font-bold text-slate-700">{sellerLegalName}</p>
               <p className="text-[11px] text-slate-500">{sellerAddress}</p>
               <p className="text-[11px] font-semibold text-slate-700">

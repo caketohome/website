@@ -12,7 +12,7 @@ export function DeliverySimulator() {
   const [pincode, setPincode] = useState("560034");
   const [productId, setProductId] = useState("prod_01");
   const [weightKg, setWeightKg] = useState("1.5");
-  const [deliveryType, setDeliveryType] = useState<"same_day" | "express" | "midnight" | "scheduled">("same_day");
+  const [deliveryType, setDeliveryType] = useState<"same_day" | "express" | "scheduled">("same_day");
   const [orderTime, setOrderTime] = useState(new Date().toISOString().slice(0, 16));
 
   const [products, setProducts] = useState<any[]>([]);
@@ -149,7 +149,6 @@ export function DeliverySimulator() {
           >
             <option value="same_day">Same Day Standard</option>
             <option value="express">⚡ Express (45 Min)</option>
-            <option value="midnight">🌙 Midnight Surprise</option>
             <option value="scheduled">Scheduled Slot</option>
           </select>
         </div>

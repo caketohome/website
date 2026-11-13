@@ -397,7 +397,7 @@ export const BranchesPanel = memo(function BranchesPanel() {
         max_simultaneous_orders: 15,
         max_scheduled_orders: 50,
         max_express_orders: 20,
-        max_midnight_orders: 15,
+        max_midnight_orders: 0,
         busy_threshold: 80,
         emergency_stop: false,
         current_load: 0,

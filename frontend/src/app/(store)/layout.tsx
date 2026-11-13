@@ -1,5 +1,6 @@
 import Footer from "@frontend/components/common/footer";
 import { ProfileBadge } from "@frontend/components/common/profile-badge";
+import { CakeToHomeLogo } from "@frontend/components/common/logo";
 import NavCart from "@frontend/components/store/cart/nav-cart";
 import { NavFavorites } from "@frontend/components/store/favorites/nav-favorites";
 import { NavSearch } from "@frontend/components/store/search/nav-search";
@@ -32,12 +33,14 @@ export default async function RootLayout({
           <nav className="hidden md:flex px-4 sm:px-6 md:px-8 lg:px-10 h-16 justify-between items-center w-full max-w-full gap-3 lg:gap-6">
             {/* Brand & Location & CMS Links */}
             <div className="flex gap-2 sm:gap-3 lg:gap-6 items-center shrink-0 min-w-0">
-              <Link
+              <CakeToHomeLogo
+                variant="navy"
+                mode="full"
+                height={46}
+                priority
                 href="/"
-                className="flex gap-1.5 sm:gap-2 items-center text-lg sm:text-xl font-bold font-serif text-slate-900 hover:text-[#2563EB] transition-colors opacity-100 shrink-0 select-none"
-              >
-                🎂 CakeToHome
-              </Link>
+                className="py-1"
+              />
               <DeliveryLocationHeader variant="pill" />
               {/* CMS-driven header navigation (renders nothing if no nav configured) */}
               <Suspense fallback={null}>
@@ -71,13 +74,14 @@ export default async function RootLayout({
             {/* Top Row: Brand Logo & Mobile Action Toolbar */}
             <nav className="flex px-3 h-14 justify-between items-center w-full max-w-full gap-2">
               {/* Brand Logo */}
-              <Link
+              <CakeToHomeLogo
+                variant="navy"
+                mode="full"
+                height={38}
+                priority
                 href="/"
-                className="flex items-center gap-1.5 text-base font-bold font-serif text-slate-900 hover:text-[#2563EB] transition-colors shrink-0 select-none"
-              >
-                <span className="text-lg">🎂</span>
-                <span className="tracking-tight">CakeToHome</span>
-              </Link>
+                className="py-0.5"
+              />
 
               {/* Mobile Actions: Search, Wishlist, Cart, Profile */}
               <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">

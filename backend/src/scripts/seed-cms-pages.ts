@@ -136,7 +136,7 @@ export default async function seedCmsPages({ container }: ExecArgs) {
                 {
                     type: "paragraph",
                     content:
-                        "Delivery times are estimates. We are not liable for delays caused by factors beyond our control. Scheduled and midnight delivery slots are subject to branch coverage.",
+                        "Delivery times are estimates. We are not liable for delays caused by factors beyond our control. Scheduled and express delivery slots are subject to branch coverage.",
                 },
             ],
         },
@@ -173,14 +173,14 @@ export default async function seedCmsPages({ container }: ExecArgs) {
             title: "Shipping & Delivery Policy",
             meta_title: "Shipping & Delivery Policy — CakeToHome",
             meta_description:
-                "CakeToHome's delivery options including standard, scheduled, midnight, and fixed-time cake delivery.",
+                "CakeToHome's delivery options including standard, scheduled, and express cake delivery.",
             excerpt: "Delivery options, charges, and coverage areas.",
             blocks: [
                 { type: "heading", content: "Delivery Options" },
                 {
                     type: "paragraph",
                     content:
-                        "CakeToHome offers standard delivery, scheduled delivery, midnight delivery, and fixed-time delivery depending on branch coverage in your area.",
+                        "CakeToHome offers standard delivery, scheduled delivery, and 2-hour express delivery depending on branch coverage in your area.",
                 },
                 { type: "heading", content: "Delivery Charges" },
                 {
@@ -214,7 +214,7 @@ export default async function seedCmsPages({ container }: ExecArgs) {
                 {
                     type: "paragraph",
                     content:
-                        "Yes. We offer scheduled delivery, midnight delivery, and fixed-time delivery slots subject to branch availability.",
+                        "Yes. We offer scheduled delivery and 2-hour express delivery slots subject to branch availability.",
                 },
                 { type: "heading", content: "Do you offer custom cakes?" },
                 {

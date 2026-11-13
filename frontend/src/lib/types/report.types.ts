@@ -86,6 +86,8 @@ export interface TransactionalMetrics {
   igst: number;
   /** Whether any order lacks COGS data */
   cogsPartiallyUnavailable: boolean;
+  /** Collected minus (net sales + GST on the sale): GST over/under-collected at checkout */
+  gstVariance: number;
 }
 
 /** KPI card for dashboard display */

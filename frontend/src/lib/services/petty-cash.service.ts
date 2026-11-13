@@ -91,6 +91,7 @@ export type PettyCashErrorCode =
   | "REQUEST_NOT_FOUND"
   | "INVALID_REQUEST_STATUS"
   | "PETTY_CASH_LIMIT_UNCONFIGURED"
+  | "PETTY_CASH_INSUFFICIENT"
   | "IMPREST_LIMIT_EXCEEDED"
   | "SEGREGATION_OF_DUTIES_VIOLATION"
   | "ACCOUNT_NOT_FOUND"
@@ -247,6 +248,21 @@ export class PettyCashService {
       }
 
       if (request.request_type === "EXPENSE_CLAIM") {
+        // Petty cash must actually hold the money (GL 1114 balance for this branch).
+        const balRes = await txClient.query(
+          `SELECT COALESCE(SUM(l.debit_amount - l.credit_amount), 0)::numeric::float8 AS bal
+           FROM public.accounting_journal_line l
+           JOIN public.accounting_account a ON a.id = l.account_id
+           WHERE a.code = '1114' AND l.branch_id = $1`,
+          [request.branch_id]
+        );
+        const available = round2(Number(balRes.rows[0]?.bal || 0));
+        if (request.amount > available) {
+          throw new PettyCashServiceError(
+            "PETTY_CASH_INSUFFICIENT",
+            `Petty cash available ₹${available.toFixed(2)} is less than the claim ₹${Number(request.amount).toFixed(2)}.`
+          );
+        }
         // True imprest: posting the expense happens upon claim approval/posting!
         // Dr Expense, Dr Input Tax, Cr 1114
         const voucher = await this.postExpenseClaimVoucher(request, checkerId, txClient);

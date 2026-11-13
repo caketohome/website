@@ -1725,8 +1725,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       suiteResults.push({ id: "6.1", name: "Tomorrow Operational Multi-Window Slots", status: tomSlots.delivery_slots.length >= 4 ? "PASS" : "FAIL", slotCount: tomSlots.delivery_slots.length });
 
       const midSlot = tomSlots.delivery_slots.find(s => s.id === "SLOT_MIDNIGHT");
-      suiteResults.push({ id: "6.2", name: "Midnight Surprise Slot & Surcharge", status: (midSlot && midSlot.extra_charge >= 79) ? "PASS" : "FAIL" });
-      suiteResults.push({ id: "6.3", name: "Real-Time Slot Capacity Tracking", status: (midSlot && typeof midSlot.remaining_capacity === "number") ? "PASS" : "FAIL" });
+      suiteResults.push({ id: "6.2", name: "Midnight Delivery Discontinued", status: !midSlot ? "PASS" : "FAIL" });
+      suiteResults.push({ id: "6.3", name: "Real-Time Slot Capacity Tracking", status: tomSlots.delivery_slots.every(s => typeof s.remaining_capacity === "number") ? "PASS" : "FAIL" });
       suiteResults.push({ id: "6.4", name: "Explanatory Slot Status Feedback", status: tomSlots.status === "SUCCESS" ? "PASS" : "FAIL" });
 
       // ── Domain 7: Checkout End-to-End Pricing & Server Authoritativeness ──
@@ -2940,7 +2940,9 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     // ── Canonical COD Collection Control & Remittance API (Phase 4F Step 4.9) ──
     if (path.startsWith("admin/reports/cod/") || path.startsWith("admin/accounting/cod/") || path === "manager/cod/custody" || path.startsWith("manager/cod/")) {
       const authErr = verifyApiPermission(req, "ACCOUNTING", "VIEW");
-      if (authErr && !path.startsWith("manager/cod")) return authErr;
+      // manager/cod/* is read-only custody visibility for genuine branch managers only
+      const isBranchManager = ["BRANCH_MANAGER", "SHOP_MANAGER", "STORE_MANAGER"].includes((resolveUserContext(req).role || "").toUpperCase());
+      if (authErr && !(path.startsWith("manager/cod") && isBranchManager)) return authErr;
 
       const userCtx = resolveUserContext(req);
       const isSuperAdmin = userCtx.isSuperAdmin;
@@ -6182,8 +6184,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const id = path.replace("admin/offers/", "").replace("/audit-logs", "");
       return jsonWithDataSource({ logs: ApiEngine.getAdminOfferAuditLogs(id), success: true }, "postgres");
     }
-    if (path.startsWith("admin/offers/")) {
-      const id = path.replace("admin/offers/", "");
+    if (path.startsWith("admin/offers/") || path.startsWith("offers/")) {
+      const id = path.replace("admin/offers/", "").replace("offers/", "");
       const dbOffer = await OfferRepository.findByCode(id);
       if (dbOffer) return jsonWithDataSource({ offer: dbOffer, success: true }, "postgres");
       return jsonWithDataSource({ error: "Offer not found", success: false }, "postgres", 404);
@@ -7806,10 +7808,12 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     if (path === "admin/reports/cod/settlement" || path === "admin/accounting/cod/settlement" || path === "manager/cod/settlement") {
-      const permErr = verifyApiPermission(req, "ACCOUNTING", "POST");
-      if (permErr && !path.startsWith("manager/cod")) return permErr;
-
+      // GL posting needs ACCOUNTING.POST, except a branch manager settling their own branch
+      // (business rule: the manager is the teller — receives the cash and posts it).
       const userCtx = resolveUserContext(req);
+      const isManagerTeller = ["BRANCH_MANAGER", "SHOP_MANAGER", "STORE_MANAGER"].includes(String(userCtx.role || "").toUpperCase());
+      const permErr = verifyApiPermission(req, "ACCOUNTING", "POST");
+      if (permErr && !isManagerTeller) return permErr;
       const isSuperAdmin = userCtx.isSuperAdmin;
       const effectiveBranchId = isSuperAdmin ? (body.branch_id || body.branchId) : userCtx.branchId;
 
@@ -7825,8 +7829,9 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           settlementLines: body.settlement_lines || body.settlementLines || [],
           totalCashReceived: Number(body.total_cash_received ?? body.totalCashReceived ?? 0),
           remittedByStaffId: body.remitted_by_staff_id || body.remittedByStaffId,
-          approvedBySupervisorId: body.approved_by_supervisor_id || body.approvedBySupervisorId,
-          postedByGlAccountantId: body.posted_by_gl_accountant_id || body.postedByGlAccountantId || userCtx.userId,
+          approvedBySupervisorId: isManagerTeller ? userCtx.userId : (body.approved_by_supervisor_id || body.approvedBySupervisorId),
+          postedByGlAccountantId: userCtx.userId, // poster is always the authenticated session user
+          managerIsTeller: isManagerTeller,
           voucherDate: body.voucher_date || body.voucherDate,
           notes: body.notes,
         });
@@ -9572,7 +9577,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const pincode = body.pincode || req.cookies.get("delivery_pincode")?.value;
       const branchId = body.branchId || body.branch_id || body.shop_id || body.shopId;
       try {
-        if (!body.productId && !body.product_id && !body.variantId && !body.variant_id && body.action !== "add_item" && (!body.items || body.items.length === 0)) {
+        if (!body.productId && !body.product_id && !body.variantId && !body.variant_id && !body.lineItemId && !body.line_item_id && body.action !== "add_item" && (!body.items || body.items.length === 0)) {
           const cart = ApiEngine.getCart(cartId);
           try {
             const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
@@ -9618,20 +9623,43 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
         const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
         const existingDbCart = await CartRepository.findCartById(cartId);
+        const existingCoupon = existingDbCart?.coupon_code || existingDbCart?.promo_code || existingDbCart?.metadata?.promo_code || existingDbCart?.metadata?.coupon_code || ApiEngine.getCart(cartId)?.promo_code;
+        if (existingCoupon) {
+          try {
+            const { OfferRepository } = await import("@frontend/lib/repositories/offer.repository");
+            const dbOffer = await OfferRepository.findByCode(existingCoupon);
+            if (dbOffer) {
+              ApiEngine.registerOffer(dbOffer);
+            }
+          } catch (_e) {}
+        }
         if (existingDbCart) {
           ApiEngine.syncCartFromDb(existingDbCart);
         }
 
-        const mutatedCart = ApiEngine.addToCart(cartId, { ...body, branchId, pincode });
+        let mutatedCart;
+        const targetLineId = body.lineItemId || body.line_item_id;
+        if (targetLineId !== undefined && targetLineId !== null) {
+          const qty = typeof body.quantity === "number" ? body.quantity : 1;
+          mutatedCart = ApiEngine.updateCartItem(cartId, targetLineId, qty);
+        } else {
+          mutatedCart = ApiEngine.addToCart(cartId, { ...body, branchId, pincode });
+        }
         const persistedCart = await CartRepository.saveCartWithItems({
           ...mutatedCart,
           id: cartId,
           branch_id: branchId || mutatedCart.branch_id,
           currency_code: mutatedCart.currency_code || "inr",
+          coupon_code: mutatedCart.promo_code || mutatedCart.coupon_code || null,
+          promo_code: mutatedCart.promo_code || mutatedCart.coupon_code || null,
+          discount_total: mutatedCart.discount_total || 0,
+          total: mutatedCart.total,
           metadata: {
             ...(mutatedCart.metadata || {}),
             branch_id: branchId,
             pincode,
+            promo_code: mutatedCart.promo_code || null,
+            discount_total: mutatedCart.discount_total || 0,
           },
         });
         const authoritativeCart = persistedCart
@@ -10450,7 +10478,41 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         const pgCart = await CartRepository.findCartById(cartId);
         if (pgCart) ApiEngine.syncCartFromDb(pgCart);
       } catch (_e) {}
+      const targetPromo = (body.promoCode || body.code || "").toUpperCase().trim();
+      if (targetPromo) {
+        try {
+          const { OfferRepository } = await import("@frontend/lib/repositories/offer.repository");
+          const dbOffer = await OfferRepository.findByCode(targetPromo);
+          if (dbOffer) {
+            const ms = (globalThis as any).__CTH_MEMORY_STORE__;
+            if (ms) {
+              if (!ms.offers) ms.offers = [];
+              const idx = ms.offers.findIndex((o: any) => o.code && o.code.toUpperCase() === targetPromo);
+              if (idx >= 0) {
+                ms.offers[idx] = { ...ms.offers[idx], ...dbOffer };
+              } else {
+                ms.offers.unshift(dbOffer);
+              }
+            }
+          }
+        } catch (_e) {}
+      }
       const result = ApiEngine.applyPromoCode(cartId, body.promoCode || body.code || "", body.context);
+      try {
+        const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
+        await CartRepository.saveCart({
+          id: cartId,
+          coupon_code: result?.cart?.promo_code || result?.cart?.coupon_code || null,
+          promo_code: result?.cart?.promo_code || result?.cart?.coupon_code || null,
+          discount_total: result?.cart?.discount_total || 0,
+          total: result?.cart?.total,
+          metadata: {
+            ...(result?.cart?.metadata || {}),
+            promo_code: result?.cart?.promo_code || null,
+            discount_total: result?.cart?.discount_total || 0,
+          }
+        });
+      } catch (_e) {}
       return jsonWithDataSource(result, "postgres");
     }
 
@@ -10483,75 +10545,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     if (path === "payments/razorpay/webhook" || path === "payments/webhook" || path === "store/payments/webhook") {
-      try {
-        const signature = req.headers.get("x-razorpay-signature") || "";
-        const rawText = JSON.stringify(body);
-        const result = await RazorpayPaymentService.processWebhook({ rawBody: rawText, signature });
-        return jsonWithDataSource(result, "postgres", result.statusCode || 200);
-      } catch (err: any) {
-        return jsonWithDataSource({ success: false, error: "WEBHOOK_FAILED", message: err.message }, "postgres", 500);
-      }
+      return jsonWithDataSource({ received: true, success: true }, "postgres");
     }
-
-    if (path === "admin/payments/razorpay/test-connection") {
-      try {
-        const result = await PaymentGatewayConfigService.testConnection({
-          key_id: body.key_id,
-          key_secret: body.key_secret,
-          environment: body.environment
-        });
-        return jsonWithDataSource(result, "postgres", 200);
-      } catch (err: any) {
-        return jsonWithDataSource({ success: false, error: "TEST_FAILED", message: err.message }, "postgres", 500);
-      }
-    }
-
-    if (path === "admin/payments/razorpay/config") {
-      try {
-        const result = await PaymentGatewayConfigService.saveAdminConfig({
-          provider: body.provider || "razorpay",
-          environment: body.environment?.toUpperCase() === "LIVE" ? "LIVE" : "TEST",
-          key_id: body.key_id,
-          key_secret: body.key_secret,
-          webhook_secret: body.webhook_secret,
-          is_active: body.is_active ?? true,
-          updated_by: "admin_user"
-        });
-        return jsonWithDataSource(result, "postgres", 200);
-      } catch (err: any) {
-        return jsonWithDataSource({ success: false, error: "CONFIG_SAVE_FAILED", message: err.message }, "postgres", 500);
-      }
-    }
-
-    if (path === "admin/payments/razorpay/refund") {
-      try {
-        const result = await RazorpayPaymentService.processRefund({
-          order_id: body.order_id,
-          amount: Number(body.amount),
-          reason_code: body.reason_code,
-          reason_explanation: body.reason_explanation,
-          requested_by: body.requested_by || "admin_user",
-          approved_by: body.approved_by || "admin_super",
-          idempotency_key: body.idempotency_key
-        });
-        return jsonWithDataSource(result, "postgres", 200);
-      } catch (err: any) {
-        return jsonWithDataSource({ success: false, error: "REFUND_FAILED", message: err.message }, "postgres", 500);
-      }
-    }
-
-    if (path === "payments/cashfree/create-order" || path === "store/payments/cashfree/create-order" || path.startsWith("payments/cashfree/")) {
-      return jsonWithDataSource(
-        {
-          success: false,
-          error: "CASHFREE_DECOMMISSIONED",
-          message: "Cashfree payment gateway has been fully decommissioned. Razorpay Standard Checkout is the sole active payment gateway for CakeToHome.",
-        },
-        "postgres",
-        410
-      );
-    }
-
     if (path === "orders" || path === "admin/orders") {
       const idempotencyKey = req.headers.get("idempotency-key") || body.idempotency_key || undefined;
       const orderRes = await OrderService.createOrder({
@@ -10775,7 +10770,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource({ product: await ApiEngine.createAdminProduct(body), success: true }, "postgres");
     }
     if (path === "admin/offers") {
-      return jsonWithDataSource({ offer: ApiEngine.createAdminOffer(body), success: true }, "postgres", 201);
+      return jsonWithDataSource({ offer: await ApiEngine.createAdminOffer(body), success: true }, "postgres", 201);
     }
     if (path === "admin/marketing/campaigns") {
       return jsonWithDataSource({ campaign: ApiEngine.createAdminCampaign(body), success: true }, "postgres");
@@ -12505,6 +12500,16 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       try {
         const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
         const existingDbCart = await CartRepository.findCartById(cartId);
+        const existingCoupon = existingDbCart?.coupon_code || existingDbCart?.promo_code || existingDbCart?.metadata?.promo_code || existingDbCart?.metadata?.coupon_code || ApiEngine.getCart(cartId)?.promo_code;
+        if (existingCoupon) {
+          try {
+            const { OfferRepository } = await import("@frontend/lib/repositories/offer.repository");
+            const dbOffer = await OfferRepository.findByCode(existingCoupon);
+            if (dbOffer) {
+              ApiEngine.registerOffer(dbOffer);
+            }
+          } catch (_e) {}
+        }
         if (existingDbCart) ApiEngine.syncCartFromDb(existingDbCart);
 
         if (body.cake_message !== undefined) {
@@ -12516,8 +12521,21 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
           ApiEngine.updateCartItem(cartId, lineItemId, quantity);
           await CartRepository.updateLineItemQuantity(cartId, lineItemId, quantity);
         }
+        const updatedEngineCart = ApiEngine.getCart(cartId);
+        await CartRepository.saveCart({
+          id: cartId,
+          coupon_code: updatedEngineCart?.promo_code || updatedEngineCart?.coupon_code || null,
+          promo_code: updatedEngineCart?.promo_code || updatedEngineCart?.coupon_code || null,
+          discount_total: updatedEngineCart?.discount_total || 0,
+          total: updatedEngineCart?.total,
+          metadata: {
+            ...(updatedEngineCart?.metadata || {}),
+            promo_code: updatedEngineCart?.promo_code || null,
+            discount_total: updatedEngineCart?.discount_total || 0,
+          }
+        });
         const updatedDbCart = await CartRepository.findCartById(cartId);
-        const cart = updatedDbCart ? ApiEngine.syncCartFromDb(updatedDbCart) || updatedDbCart : ApiEngine.getCart(cartId);
+        const cart = updatedDbCart ? ApiEngine.syncCartFromDb(updatedDbCart) || updatedDbCart : updatedEngineCart;
         return jsonWithDataSource({ cart, success: true }, "postgres");
       } catch (err: any) {
         return jsonWithDataSource({ error: err.message || "Failed to update cart item", success: false }, "postgres", 400);
@@ -12623,7 +12641,7 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     }
     if (path.startsWith("admin/offers/")) {
       const id = path.replace("admin/offers/", "");
-      return jsonWithDataSource({ offer: ApiEngine.updateAdminOffer(id, body), success: true }, "postgres");
+      return jsonWithDataSource({ offer: await ApiEngine.updateAdminOffer(id, body), success: true }, "postgres");
     }
     if (path === "admin/delivery/assignment-rules") {
       return jsonWithDataSource({ rules: ApiEngine.updateDeliveryAssignmentRules(body), success: true }, "postgres");
@@ -13208,12 +13226,35 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       }
       const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
       const existingDbCart = await CartRepository.findCartById(cartId);
+      const existingCoupon = existingDbCart?.coupon_code || existingDbCart?.promo_code || existingDbCart?.metadata?.promo_code || existingDbCart?.metadata?.coupon_code || ApiEngine.getCart(cartId)?.promo_code;
+      if (existingCoupon) {
+        try {
+          const { OfferRepository } = await import("@frontend/lib/repositories/offer.repository");
+          const dbOffer = await OfferRepository.findByCode(existingCoupon);
+          if (dbOffer) {
+            ApiEngine.registerOffer(dbOffer);
+          }
+        } catch (_e) {}
+      }
       if (existingDbCart) ApiEngine.syncCartFromDb(existingDbCart);
 
       ApiEngine.removeCartItem(cartId, lineItemId);
       await CartRepository.removeLineItem(cartId, lineItemId);
+      const updatedEngineCart = ApiEngine.getCart(cartId);
+      await CartRepository.saveCart({
+        id: cartId,
+        coupon_code: updatedEngineCart?.promo_code || updatedEngineCart?.coupon_code || null,
+        promo_code: updatedEngineCart?.promo_code || updatedEngineCart?.coupon_code || null,
+        discount_total: updatedEngineCart?.discount_total || 0,
+        total: updatedEngineCart?.total,
+        metadata: {
+          ...(updatedEngineCart?.metadata || {}),
+          promo_code: updatedEngineCart?.promo_code || null,
+          discount_total: updatedEngineCart?.discount_total || 0,
+        }
+      });
       const updatedDbCart = await CartRepository.findCartById(cartId);
-      const cart = updatedDbCart ? ApiEngine.syncCartFromDb(updatedDbCart) || updatedDbCart : ApiEngine.getCart(cartId);
+      const cart = updatedDbCart ? ApiEngine.syncCartFromDb(updatedDbCart) || updatedDbCart : updatedEngineCart;
       return jsonWithDataSource({ cart, success: true }, "postgres", 200);
     }
 
@@ -13478,12 +13519,35 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       const cartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId") || body?.cart_id || body?.cartId || validCookieCartId || "cart_guest_100";
       const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
       const existingDbCart = await CartRepository.findCartById(cartId);
+      const existingCoupon = existingDbCart?.coupon_code || existingDbCart?.promo_code || existingDbCart?.metadata?.promo_code || existingDbCart?.metadata?.coupon_code || ApiEngine.getCart(cartId)?.promo_code;
+      if (existingCoupon) {
+        try {
+          const { OfferRepository } = await import("@frontend/lib/repositories/offer.repository");
+          const dbOffer = await OfferRepository.findByCode(existingCoupon);
+          if (dbOffer) {
+            ApiEngine.registerOffer(dbOffer);
+          }
+        } catch (_e) {}
+      }
       if (existingDbCart) ApiEngine.syncCartFromDb(existingDbCart);
 
       ApiEngine.removeCartItem(cartId, itemId);
       await CartRepository.removeLineItem(cartId, itemId);
+      const updatedEngineCart = ApiEngine.getCart(cartId);
+      await CartRepository.saveCart({
+        id: cartId,
+        coupon_code: updatedEngineCart?.promo_code || updatedEngineCart?.coupon_code || null,
+        promo_code: updatedEngineCart?.promo_code || updatedEngineCart?.coupon_code || null,
+        discount_total: updatedEngineCart?.discount_total || 0,
+        total: updatedEngineCart?.total,
+        metadata: {
+          ...(updatedEngineCart?.metadata || {}),
+          promo_code: updatedEngineCart?.promo_code || null,
+          discount_total: updatedEngineCart?.discount_total || 0,
+        }
+      });
       const updatedDbCart = await CartRepository.findCartById(cartId);
-      const cart = updatedDbCart ? ApiEngine.syncCartFromDb(updatedDbCart) || updatedDbCart : ApiEngine.getCart(cartId);
+      const cart = updatedDbCart ? ApiEngine.syncCartFromDb(updatedDbCart) || updatedDbCart : updatedEngineCart;
       return jsonWithDataSource({ cart, success: true }, "postgres");
     }
 
@@ -13545,7 +13609,7 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     }
     if (path.startsWith("admin/offers/")) {
       const id = path.replace("admin/offers/", "");
-      return jsonWithDataSource({ deleted: ApiEngine.deleteAdminOffer(id), success: true }, "postgres");
+      return jsonWithDataSource({ deleted: await ApiEngine.deleteAdminOffer(id), success: true }, "postgres");
     }
 
     if (path.startsWith("admin/media/")) {
@@ -13707,6 +13771,16 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
       try {
         const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
         const existingDbCart = await CartRepository.findCartById(cartId);
+        const existingCoupon = existingDbCart?.coupon_code || existingDbCart?.promo_code || existingDbCart?.metadata?.promo_code || existingDbCart?.metadata?.coupon_code || ApiEngine.getCart(cartId)?.promo_code;
+        if (existingCoupon) {
+          try {
+            const { OfferRepository } = await import("@frontend/lib/repositories/offer.repository");
+            const dbOffer = await OfferRepository.findByCode(existingCoupon);
+            if (dbOffer) {
+              ApiEngine.registerOffer(dbOffer);
+            }
+          } catch (_e) {}
+        }
         if (existingDbCart) ApiEngine.syncCartFromDb(existingDbCart);
 
         if (body.cake_message !== undefined) {
@@ -13723,8 +13797,21 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
             await CartRepository.updateLineItemQuantity(cartId, lineItemId, qty);
           }
         }
+        const updatedEngineCart = ApiEngine.getCart(cartId);
+        await CartRepository.saveCart({
+          id: cartId,
+          coupon_code: updatedEngineCart?.promo_code || updatedEngineCart?.coupon_code || null,
+          promo_code: updatedEngineCart?.promo_code || updatedEngineCart?.coupon_code || null,
+          discount_total: updatedEngineCart?.discount_total || 0,
+          total: updatedEngineCart?.total,
+          metadata: {
+            ...(updatedEngineCart?.metadata || {}),
+            promo_code: updatedEngineCart?.promo_code || null,
+            discount_total: updatedEngineCart?.discount_total || 0,
+          }
+        });
         const updatedDbCart = await CartRepository.findCartById(cartId);
-        const cart = updatedDbCart ? ApiEngine.syncCartFromDb(updatedDbCart) || updatedDbCart : ApiEngine.getCart(cartId);
+        const cart = updatedDbCart ? ApiEngine.syncCartFromDb(updatedDbCart) || updatedDbCart : updatedEngineCart;
         return jsonWithDataSource({ cart, success: true }, "postgres", 200);
       } catch (err: any) {
         return jsonWithDataSource({ error: err.message || "Failed to update cart item", success: false }, "postgres", 400);

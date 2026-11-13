@@ -25,16 +25,16 @@ export async function generateMetadata({ params }: CityPageProps) {
     if (!city) {
       return {
         title: "Online Cake Delivery | CakeToHome",
-        description: "Order fresh chef-crafted cakes online with same-day and midnight delivery across India.",
+        description: "Order fresh chef-crafted cakes online with same-day and express delivery across India.",
       };
     }
 
     return {
-      title: `Online Cake Delivery in ${city.name} | Midnight & Same Day Delivery | CakeToHome`,
+      title: `Online Cake Delivery in ${city.name} | Express & Same Day Delivery | CakeToHome`,
       description: `Order delicious artisanal birthday cakes, anniversary confections, and gourmet treats online in ${city.name}, ${city.state}. Hand-delivered in 45-60 minutes from local fulfillment hubs.`,
       openGraph: {
         title: `Online Cake Delivery in ${city.name} — CakeToHome`,
-        description: `Premium chef-baked cakes delivered fresh across ${city.name}. Same-day and midnight slots available.`,
+        description: `Premium chef-baked cakes delivered fresh across ${city.name}. Same-day and scheduled slots available.`,
       },
     };
   }
@@ -143,7 +143,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
                 </div>
                 <div className="bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-lg border border-white/10 text-xs font-medium flex items-center gap-1.5">
                   <Truck className="w-3.5 h-3.5 text-pink-400" />
-                  <span>Express & Midnight Delivery</span>
+                  <span>Express & Scheduled Delivery</span>
                 </div>
                 <div className="bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-lg border border-white/10 text-xs font-medium flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
@@ -175,8 +175,8 @@ export default async function CityLandingPage({ params }: CityPageProps) {
                 <div className="flex items-start gap-2.5">
                   <Award className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-semibold text-white block">Midnight Surprise Slots</span>
-                    <span className="text-[11px] text-purple-200/70">11:00 PM – 11:59 PM slot delivery</span>
+                    <span className="font-semibold text-white block">Scheduled Delivery Slots</span>
+                    <span className="text-[11px] text-purple-200/70">Flexible 1-hour celebration windows</span>
                   </div>
                 </div>
               </div>
@@ -343,7 +343,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
             {
               name: "Priya S.",
               area: localPage.city_name,
-              comment: "Ordered a midnight birthday cake for my sister. It arrived at exactly 11:50 PM in pristine condition and tasted divine!",
+              comment: "Ordered a birthday cake for my sister. It arrived right on schedule in pristine condition and tasted divine!",
               rating: 5,
             },
             {
@@ -423,7 +423,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
               Serviceable Pincodes in {localPage.city_name}
             </h3>
             <p className="text-xs text-slate-500 mb-4">
-              We offer express 45-min delivery and midnight cake delivery to the following postal codes:
+              We offer express 45-min delivery and scheduled celebration cake delivery to the following postal codes:
             </p>
             <div className="flex flex-wrap gap-2">
               {Array.from(new Set(pincodesList)).map((pin) => (

@@ -143,11 +143,15 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  const [occasion, setOccasion] = useState<string>("birthday");
 
  // Coupons / Promo
- const [giftCardCodeInput, setGiftCardCodeInput] = useState<string>("");
- const [appliedCouponCode, setAppliedCouponCode] = useState<string>("");
- const [couponDiscount, setCouponDiscount] = useState<number>(0);
+ const [giftCardCodeInput, setGiftCardCodeInput] = useState<string>(cart?.promo_code || "");
+ const [appliedCouponCode, setAppliedCouponCode] = useState<string>(cart?.promo_code || "");
+ const [couponDiscount, setCouponDiscount] = useState<number>(cart?.discount_total || 0);
  const [couponError, setCouponError] = useState<string>("");
- const [couponSuccess, setCouponSuccess] = useState<string>("");
+ const [couponSuccess, setCouponSuccess] = useState<string>(
+   cart?.promo_code && (cart?.discount_total || 0) > 0
+     ? `🎉 Coupon ${cart.promo_code} applied! You saved ₹${cart.discount_total}.`
+     : ""
+ );
  const [paymentMethod, setPaymentMethod] = useState<"cod" | "razorpay" | "cashfree" | "test_mode">("razorpay");
 
  // Availability, Dates, Slots & Real-time Pricing State
@@ -631,32 +635,31 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  }
  };
 
- // Apply a coupon claimed from a promo banner. One-shot; the backend (/cart/promo)
-  // revalidates eligibility, minimum order, cap and expiry before anything changes.
+  // Apply a coupon claimed from a promo banner or preserved on the cart.
+  // Revalidates eligibility, minimum order, cap and expiry server-side.
   useEffect(() => {
-  if (!cart?.id) return;
-  let pending: string | null = null;
-  try {
-  pending = sessionStorage.getItem(PENDING_COUPON_KEY);
-  if (pending) sessionStorage.removeItem(PENDING_COUPON_KEY);
-  } catch {}
-  if (!pending) return;
-  const code = pending.trim().toUpperCase();
-  setGiftCardCodeInput(code);
-  apiClient
-  .applyPromoCode(cart.id, code)
-  .then((res: any) => {
-  if (res?.valid) {
-  setAppliedCouponCode(res.code);
-  setCouponDiscount(res.discount || 0);
-  setCouponSuccess(`🎉 Coupon ${res.code} applied! You saved ₹${res.discount}.`);
-  fetchAvailability({ coupon: res.code });
-  } else {
-  setCouponError(res?.error || "Invalid or expired coupon code.");
-  }
-  })
-  .catch((e: any) => setCouponError(e?.message || "Failed to validate promo code."));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!cart?.id) return;
+    let pending: string | null = null;
+    try {
+      pending = sessionStorage.getItem(PENDING_COUPON_KEY);
+    } catch {}
+    const targetCode = (pending || cart?.promo_code || "").trim().toUpperCase();
+    if (!targetCode) return;
+    setGiftCardCodeInput(targetCode);
+    apiClient
+      .applyPromoCode(cart.id, targetCode)
+      .then((res: any) => {
+        if (res?.valid) {
+          setAppliedCouponCode(res.code);
+          setCouponDiscount(res.discount || 0);
+          setCouponSuccess(`🎉 Coupon ${res.code} applied! You saved ₹${res.discount}.`);
+          fetchAvailability({ coupon: res.code });
+        } else {
+          setCouponError(res?.error || "Invalid or expired coupon code.");
+        }
+      })
+      .catch((e: any) => setCouponError(e?.message || "Failed to validate promo code."));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart?.id]);
 
   // Step 1 Validation

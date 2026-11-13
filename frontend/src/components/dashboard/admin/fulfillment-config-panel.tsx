@@ -68,7 +68,7 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
   const [simBranchId, setSimBranchId] = useState("br_default");
   const [simDate, setSimDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [simMode, setSimMode] = useState<"delivery" | "pickup">("delivery");
-  const [simDeliveryMode, setSimDeliveryMode] = useState<"all" | "standard" | "express" | "midnight">("all");
+  const [simDeliveryMode, setSimDeliveryMode] = useState<"all" | "standard" | "express">("all");
   const [simBranches, setSimBranches] = useState<Array<{ id: string; name: string }>>([
     { id: "br_default", name: "Flagship Kitchen (Kollam Main Hub)" },
     { id: "br_kadavanthra", name: "Kochi Central Studio" },
@@ -537,148 +537,7 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
           </div>
         </Container>
 
-        {/* Section 1.5: Special Delivery Modes (Midnight) */}
-        <Container className="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-5">
-          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-            <Moon className="w-5 h-5 text-indigo-600" />
-            <h3 className="font-extrabold text-sm text-slate-900">Late-Night / Midnight Delivery Rules</h3>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200">
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-slate-800">Midnight Surprise Delivery</span>
-                <span className="text-[11px] text-slate-500">Enable midnight-crossing slots (e.g. 11:30 PM - 12:05 AM)</span>
-              </div>
-              <Switch
-                checked={config.late_night_delivery?.enabled ?? true}
-                onCheckedChange={(checked) =>
-                  setConfig({
-                    ...config,
-                    late_night_delivery: {
-                      ...(config.late_night_delivery || DEFAULT_LATE_NIGHT_CONFIG),
-                      enabled: checked,
-                    },
-                  })
-                }
-              />
-            </div>
-
-            {config.late_night_delivery?.enabled && (
-              <div className="space-y-3 p-3 rounded-2xl bg-indigo-50/40 border border-indigo-100">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold text-slate-700">Slot Window Start</Label>
-                    <Input
-                      type="time"
-                      value={config.late_night_delivery?.start_time || "23:30"}
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          late_night_delivery: {
-                            ...(config.late_night_delivery || DEFAULT_LATE_NIGHT_CONFIG),
-                            start_time: e.target.value,
-                          },
-                        })
-                      }
-                      className="text-xs font-semibold rounded-xl bg-white"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold text-slate-700">Slot Window End</Label>
-                    <Input
-                      type="time"
-                      value={config.late_night_delivery?.end_time || "00:05"}
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          late_night_delivery: {
-                            ...(config.late_night_delivery || DEFAULT_LATE_NIGHT_CONFIG),
-                            end_time: e.target.value,
-                          },
-                        })
-                      }
-                      className="text-xs font-semibold rounded-xl bg-white"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold text-slate-700">Surcharge (₹)</Label>
-                    <Input
-                      type="number"
-                      value={config.late_night_delivery?.additional_charge ?? 199}
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          late_night_delivery: {
-                            ...(config.late_night_delivery || DEFAULT_LATE_NIGHT_CONFIG),
-                            additional_charge: Number(e.target.value) || 0,
-                          },
-                        })
-                      }
-                      className="text-xs font-semibold rounded-xl bg-white"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold text-slate-700">Max Capacity / Night</Label>
-                    <Input
-                      type="number"
-                      value={config.late_night_delivery?.max_capacity ?? 5}
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          late_night_delivery: {
-                            ...(config.late_night_delivery || DEFAULT_LATE_NIGHT_CONFIG),
-                            max_capacity: Number(e.target.value) || 5,
-                          },
-                        })
-                      }
-                      className="text-xs font-semibold rounded-xl bg-white"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-indigo-100 mt-2">
-                  <span className="text-[11px] font-bold text-slate-800">Subject to Corporate Cutoff</span>
-                  <Switch
-                    checked={config.late_night_delivery?.subject_to_corporate_cutoff ?? true}
-                    onCheckedChange={(checked) =>
-                      setConfig({
-                        ...config,
-                        late_night_delivery: {
-                          ...(config.late_night_delivery || DEFAULT_LATE_NIGHT_CONFIG),
-                          subject_to_corporate_cutoff: checked,
-                        },
-                      })
-                    }
-                  />
-                </div>
-
-                {!config.late_night_delivery?.subject_to_corporate_cutoff && (
-                  <div className="space-y-1.5 pt-1">
-                    <Label className="text-xs font-bold text-slate-700">Special Midnight Cutoff Time</Label>
-                    <Input
-                      type="time"
-                      value={config.late_night_delivery?.special_order_cutoff || "21:30"}
-                      onChange={(e) =>
-                        setConfig({
-                          ...config,
-                          late_night_delivery: {
-                            ...(config.late_night_delivery || DEFAULT_LATE_NIGHT_CONFIG),
-                            special_order_cutoff: e.target.value,
-                          },
-                        })
-                      }
-                      className="text-xs font-semibold rounded-xl bg-white"
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </Container>
+        
 
         {/* Section 1.6: Store Pickup Fulfillment Configuration */}
         <Container className="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-5">
@@ -1084,10 +943,10 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
               onChange={(e) => setSimDeliveryMode(e.target.value as any)}
               className="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50 p-2.5 h-10"
             >
-              <option value="all">All Modes (Standard + Express + Midnight)</option>
+              <option value="all">All Modes (Standard + Express)</option>
               <option value="standard">Standard Scheduled Slots Only</option>
               <option value="express">⚡ Express 45-Min Only</option>
-              <option value="midnight">🌙 Midnight Delivery Only</option>
+              
             </select>
           </div>
         </div>
@@ -1122,8 +981,6 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
                       isAvail
                         ? slot.slot_type === "express"
                           ? "bg-amber-50/80 border-amber-300 shadow-sm"
-                          : slot.slot_type === "midnight"
-                          ? "bg-indigo-50/80 border-indigo-300 shadow-sm"
                           : "bg-white border-emerald-200 shadow-sm"
                         : "bg-slate-50 border-slate-200 opacity-60"
                     }`}

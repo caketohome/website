@@ -302,7 +302,7 @@ export async function checkDeliveryAvailability(pincodeInput: string): Promise<{
           branch_name: data.branch.name,
           area_name: `Zone (${cleanPin})`,
           express_available: true,
-          midnight_available: true,
+          midnight_available: false,
           message: `Fresh cake delivery via ${data.branch.name}. ETA: ~${data.etaminutes || 40} mins.`,
         };
       }

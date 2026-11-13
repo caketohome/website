@@ -15,6 +15,7 @@ import {
   Search, Receipt, Landmark, ClipboardCheck, BookOpen, Scale, Waves, Settings2, Wallet, Gift,
 } from "lucide-react";
 import { useAdminShell } from "./AdminShell";
+import { CakeToHomeLogo } from "@frontend/components/common/logo";
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * Sidebar Navigation Structure
@@ -202,10 +203,11 @@ export function AdminSidebar({ activeTabId, onNavigate, user }: AdminSidebarProp
     <div className="flex flex-col h-full">
       {/* ── Logo area ── */}
       <div className="h-14 flex items-center px-4 border-b border-white/10 shrink-0">
-        <Link href="/" className="flex items-center gap-2.5 text-white hover:text-amber-300 transition-colors min-w-0">
-          <span className="text-xl shrink-0">🎂</span>
-          {!sidebarCollapsed && (
-            <span className="text-sm font-bold tracking-wide truncate">CakeToHome</span>
+        <Link href="/" className="flex items-center gap-2.5 text-white hover:opacity-90 transition-opacity min-w-0">
+          {sidebarCollapsed ? (
+            <CakeToHomeLogo variant="white" mode="symbol" width={28} height={28} priority />
+          ) : (
+            <CakeToHomeLogo variant="white" mode="full" height={32} priority />
           )}
         </Link>
         {!sidebarCollapsed && (

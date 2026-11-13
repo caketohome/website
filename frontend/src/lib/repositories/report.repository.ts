@@ -106,13 +106,50 @@ function classifyOrder(meta: any, customerId: string | null, orderId?: string | 
   }
 
   // Check for zero-total orders that look like prototype
-  const total = Number(meta?.total || meta?.grand_total || 0);
+  const total = Number(meta?.total || meta?.grand_total || meta?.total_amount || 0);
   if (total === 0 && (meta?.items || []).length > 0) return "PROTOTYPE";
 
   // Guest/no-customer orders with placeholder data
   if (customerId === "guest" && !meta?.customer_uid) return "UNKNOWN";
 
   return "PRODUCTION";
+}
+
+// ─── Reportable Orders ───────────────────────────────────────────────────────
+// Sales, tax and GST reports count only real orders. TEST and PROTOTYPE (zero-value)
+// orders are excluded everywhere except the Exception / data-quality audit.
+
+function isReportableOrder(row: any): boolean {
+  const c = classifyOrder(row.metadata || {}, row.customer_id ?? null, row.id ?? null);
+  return c !== "TEST" && c !== "PROTOTYPE";
+}
+
+// Product GST rates (fallback when an order item doesn't carry its own rate).
+let PRODUCT_GST_RATES = new Map<string, number>();
+let productRatesLoadedAt = 0;
+async function loadProductGstRates() {
+  if (Date.now() - productRatesLoadedAt < 60_000) return;
+  const r = await dbQuery(`SELECT id, metadata->>'gst_rate' AS rate FROM public.product WHERE deleted_at IS NULL`);
+  PRODUCT_GST_RATES = new Map(r.rows.filter((x: any) => Number(x.rate) > 0).map((x: any) => [x.id, Number(x.rate)]));
+  productRatesLoadedAt = Date.now();
+}
+
+async function queryReportableOrders(sql: string, params: any[]) {
+  await loadProductGstRates();
+  const result = await dbQuery(sql, params);
+  return { ...result, rows: result.rows.filter(isReportableOrder) };
+}
+
+const CITY_ALIASES: Record<string, string> = { bangalore: "Bengaluru", bengaluru: "Bengaluru", bombay: "Mumbai", madras: "Chennai", calcutta: "Kolkata", cochin: "Kochi", trivandrum: "Thiruvananthapuram" };
+
+/** Indian address strings: "line, area, City, State, 560038" -> City + pincode. */
+const INDIAN_STATES = /^(andhra pradesh|arunachal pradesh|assam|bihar|chhattisgarh|goa|gujarat|haryana|himachal pradesh|jharkhand|karnataka|kerala|madhya pradesh|maharashtra|manipur|meghalaya|mizoram|nagaland|odisha|punjab|rajasthan|sikkim|tamil nadu|telangana|tripura|uttar pradesh|uttarakhand|west bengal|delhi|new delhi|jammu and kashmir|ladakh|puducherry|chandigarh|india)$/i;
+function parseAddressString(addr: string): { city: string; pincode: string } {
+  const pincode = (addr.match(/\b\d{6}\b/) || [""])[0];
+  const parts = addr.split(",").map((x) => x.replace(/\b\d{6}\b/g, "").trim()).filter(Boolean);
+  const named = parts.filter((x) => !INDIAN_STATES.test(x));
+  const raw = named.length > 1 ? named[named.length - 1] : "Unknown";
+  return { city: CITY_ALIASES[raw.toLowerCase()] || raw, pincode };
 }
 
 // ─── SQL Filter Builder ──────────────────────────────────────────────────────
@@ -166,6 +203,34 @@ function buildOrderFilters(filters: ReportFilters, startParamIndex: number = 1):
 
 // ─── Metadata Extraction Helpers ─────────────────────────────────────────────
 
+/** One sold item: its share of the order's sale value and the GST on that sale. */
+interface SaleLine { item: any; gross: number; discount: number; taxable: number; gst: number; rate: number; }
+
+function itemGstRate(item: any): number {
+  const r = Number(item.gst_rate_pct || item.tax_rate || item.gst_rate || PRODUCT_GST_RATES.get(item.product_id) || 0);
+  return r > 0 && r < 1 ? r * 100 : r; // tolerate 0.05-style rates
+}
+
+/**
+ * GST is calculated from the actual sale, per item at that item's rate:
+ *  - GST charged on top at checkout: taxable = sale after discount, GST = taxable x rate
+ *  - no GST added (price collected as-is): the amount paid is GST-inclusive,
+ *    taxable = sale x 100 / (100 + rate), GST = sale - taxable
+ */
+function computeSaleLines(items: any[], discountAmount: number, storedTax: number): SaleLine[] {
+  const gross = items.map((it) => Number(it.total_line_amount || it.subtotal || (Number(it.unit_price || 0) * Number(it.quantity || 1))));
+  const grossSum = gross.reduce((a, b) => a + b, 0);
+  const gstOnTop = storedTax > 0.009;
+  return items.map((item, i) => {
+    const discount = grossSum > 0 ? discountAmount * (gross[i] / grossSum) : 0;
+    const sale = Math.max(0, gross[i] - discount);
+    const rate = itemGstRate(item);
+    const taxable = gstOnTop ? sale : sale * 100 / (100 + rate);
+    const gst = gstOnTop ? sale * rate / 100 : sale - taxable;
+    return { item, gross: gross[i], discount, taxable, gst, rate };
+  });
+}
+
 function extractOrderFinancials(meta: any): {
   total: number; subtotal: number; taxAmount: number;
   discountAmount: number; deliveryFee: number;
@@ -177,10 +242,13 @@ function extractOrderFinancials(meta: any): {
   items: any[];
   isIntraState: boolean;
   cgst: number; sgst: number; igst: number;
+  storedTax: number;
+  lines: SaleLine[];
+  netExclTax: number;
 } {
   const total = Number(meta.total || meta.grand_total || meta.total_amount || 0);
   const subtotal = Number(meta.subtotal || 0);
-  const taxAmount = Number(meta.tax_amount || meta.tax_total || 0);
+  let taxAmount = Number(meta.tax_amount || meta.tax_total || 0);
   const discountAmount = Number(meta.discount_amount || meta.discount || 0);
   const deliveryFee = Number(meta.delivery?.fee || meta.delivery_fee || 0);
   const paymentMethod = normalizePaymentMethod(meta.payment_method);
@@ -202,8 +270,9 @@ function extractOrderFinancials(meta: any): {
     area = deliveryAddr.line1 || deliveryAddr.area || "";
     pincode = deliveryAddr.pincode || deliveryAddr.postal_code || "";
   } else if (typeof deliveryAddr === "string") {
-    // String address — can't reliably extract city
-    city = meta.delivery_city || "Unknown";
+    const parsed = parseAddressString(deliveryAddr);
+    city = meta.delivery_city || meta.city || parsed.city;
+    pincode = meta.delivery_pincode || meta.pincode || parsed.pincode;
   } else {
     city = meta.delivery_city || meta.city || "Unknown";
     area = meta.delivery_area || meta.area || "";
@@ -220,9 +289,19 @@ function extractOrderFinancials(meta: any): {
     ? Boolean(compSnap.is_intra_state)
     : (compSnap?.supply_type === "INTER-STATE" ? false : true);
 
-  // Tax split: use persisted values first
+  const storedTax = taxAmount;
+  const lines = computeSaleLines(items, discountAmount, storedTax);
+  if (lines.length > 0) taxAmount = Math.round(lines.reduce((s, l) => s + l.gst, 0) * 100) / 100;
+  const netExclTax = lines.length > 0
+    ? Math.round((lines.reduce((s, l) => s + l.taxable, 0) + deliveryFee) * 100) / 100
+    : Math.max(0, total - taxAmount);
+
+  // Tax split: from the sale-based GST when items exist, else persisted values
   let cgst = 0, sgst = 0, igst = 0;
-  if (typeof compSnap?.cgst === "number") {
+  if (lines.length > 0) {
+    if (isIntraState) { cgst = Math.round((taxAmount / 2) * 100) / 100; sgst = Math.round((taxAmount - cgst) * 100) / 100; }
+    else igst = taxAmount;
+  } else if (typeof compSnap?.cgst === "number") {
     cgst = compSnap.cgst;
     sgst = Number(compSnap.sgst || 0);
     igst = Number(compSnap.igst || 0);
@@ -249,6 +328,7 @@ function extractOrderFinancials(meta: any): {
     branchId, branchName, customerName, customerPhone,
     city, area, pincode, deliveryDate, items,
     isIntraState, cgst, sgst, igst,
+    storedTax, lines, netExclTax,
   };
 }
 
@@ -295,7 +375,7 @@ export class ReportRepository {
       ORDER BY o.created_at DESC
     `;
 
-    const result = await dbQuery(sql, params);
+    const result = await queryReportableOrders(sql, params);
 
     // Load product metadata for COGS lookup
     const productMap = await this.loadProductMetadataMap();
@@ -304,6 +384,7 @@ export class ReportRepository {
     let grossRevenue = 0, totalDiscounts = 0, totalTax = 0, deliveryFees = 0, totalRefunds = 0;
     let totalCogs: number | null = 0;
     let cgstTotal = 0, sgstTotal = 0, igstTotal = 0;
+    let netTotal = 0;
     let anyMissingCogs = false;
 
     for (const row of result.rows) {
@@ -330,6 +411,7 @@ export class ReportRepository {
       grossRevenue += fin.total;
       totalDiscounts += fin.discountAmount;
       totalTax += fin.taxAmount;
+      netTotal += fin.netExclTax;
       deliveryFees += fin.deliveryFee;
       cgstTotal += fin.cgst;
       sgstTotal += fin.sgst;
@@ -350,7 +432,7 @@ export class ReportRepository {
       }
     }
 
-    const netRevenue = Math.max(0, grossRevenue - totalDiscounts - totalTax);
+    const netRevenue = netTotal; // sale value after discount, excl. GST, incl. delivery
     const aov = validOrders > 0 ? Math.round((netRevenue / validOrders) * 100) / 100 : null;
     const grossProfit = totalCogs !== null ? Math.round((netRevenue - totalCogs) * 100) / 100 : null;
     const grossMarginPct = totalCogs !== null && netRevenue > 0
@@ -378,6 +460,8 @@ export class ReportRepository {
       sgst: Math.round(sgstTotal * 100) / 100,
       igst: Math.round(igstTotal * 100) / 100,
       cogsPartiallyUnavailable: anyMissingCogs,
+      // Collected minus (net sales + GST on the sale): GST over/under-collected at checkout
+      gstVariance: Math.round((grossRevenue - netRevenue - totalTax) * 100) / 100,
     };
   }
 
@@ -388,17 +472,17 @@ export class ReportRepository {
     const whereStr = whereClauses.join(" AND ");
 
     const sql = `
-      SELECT o.metadata, o.status::text as status
+      SELECT o.id, o.customer_id, o.metadata, o.status::text as status
       FROM public."order" o
       WHERE ${whereStr}
     `;
-    const result = await dbQuery(sql, params);
+    const result = await queryReportableOrders(sql, params);
     const productMap = await this.loadProductMetadataMap();
 
     const agg = new Map<string, {
       productId: string; productName: string; sku: string; category: string;
       hsnCode: string; uqc: string; gstRatePct: number;
-      qty: number; grossSales: number; discounts: number; taxAmount: number;
+      qty: number; grossSales: number; discounts: number; taxable: number; taxAmount: number;
       unitCost: number | null; cogsUnavailable: boolean;
       refundQty: number; refundAmt: number; sellingPrice: number;
     }>();
@@ -407,26 +491,42 @@ export class ReportRepository {
       const meta = row.metadata || {};
       const status = (row.status || "").toLowerCase();
       const isRefunded = status === "refunded" || status === "cancelled" || status === "canceled";
-      const items: any[] = Array.isArray(meta.items) ? meta.items : [];
+      const items: any[] = Array.isArray(meta.items) ? [...meta.items] : [];
+      const fin = extractOrderFinancials(meta);
 
-      for (const item of items) {
+      // Per-item sale value and GST (see computeSaleLines). Orders saved without item detail
+      // keep their value under one "unitemised" line so item/GST reports reconcile to orders.
+      const lines: SaleLine[] = fin.lines.length > 0 ? fin.lines
+        : (fin.total > 0 ? [{
+            item: { product_id: "unitemised", title: "Unitemised orders (no item detail)", quantity: 1, hsn_code: "UNCLASSIFIED" },
+            gross: Math.max(0, fin.total - fin.taxAmount - fin.deliveryFee) + fin.discountAmount,
+            discount: fin.discountAmount,
+            taxable: Math.max(0, fin.total - fin.taxAmount - fin.deliveryFee),
+            gst: fin.taxAmount,
+            rate: fin.total - fin.taxAmount - fin.deliveryFee > 0 ? Math.round((fin.taxAmount / (fin.total - fin.taxAmount - fin.deliveryFee)) * 100) : 0,
+          }] : []);
+
+      for (const line of lines) {
+        const item = line.item;
         const pid = item.product_id || item.id || "unknown";
         const productMeta = productMap.get(pid);
         const qty = Number(item.quantity || 1);
-        const itemTotal = Number(item.total_line_amount || item.subtotal || (Number(item.unit_price || 0) * qty));
-        const itemDiscount = Number(item.discount || 0);
-        const itemTax = Number(item.tax_amount || 0);
+        const itemTotal = line.gross;
+        const itemDiscount = line.discount;
+        const itemTaxable = line.taxable;
+        const itemTax = line.gst;
         const unitCost = extractItemCost(item, productMeta);
 
-        const existing = agg.get(pid) || {
+        const aggKey = `${pid}|${line.rate}`;
+        const existing = agg.get(aggKey) || {
           productId: pid,
           productName: item.title || item.product_name || productMeta?.title || pid,
           sku: productMeta?.sku || item.sku || `SKU-${pid.slice(-4)}`,
           category: productMeta?.category || item.category || "Cakes",
           hsnCode: productMeta?.hsn_code || item.hsn_code || "UNCLASSIFIED",
           uqc: productMeta?.uqc || item.uqc || "NOS - NUMBERS",
-          gstRatePct: Number(productMeta?.gst_rate || item.gst_rate || item.tax_rate || 5),
-          qty: 0, grossSales: 0, discounts: 0, taxAmount: 0,
+          gstRatePct: line.rate,
+          qty: 0, grossSales: 0, discounts: 0, taxable: 0, taxAmount: 0,
           unitCost: unitCost,
           cogsUnavailable: unitCost === null,
           refundQty: 0, refundAmt: 0,
@@ -440,6 +540,7 @@ export class ReportRepository {
           existing.qty += qty;
           existing.grossSales += itemTotal;
           existing.discounts += itemDiscount;
+          existing.taxable += itemTaxable;
           existing.taxAmount += itemTax;
         }
 
@@ -449,15 +550,15 @@ export class ReportRepository {
           existing.unitCost = unitCost;
         }
 
-        agg.set(pid, existing);
+        agg.set(aggKey, existing);
       }
     }
 
     return Array.from(agg.values()).map((p) => {
-      const net = p.grossSales - p.discounts;
       const gstRate = p.gstRatePct || 5;
-      const taxable = Math.round((net / (1 + gstRate / 100)) * 100) / 100;
-      const gst = Math.round((net - taxable) * 100) / 100;
+      const net = p.taxable; // net sales excl. GST, after discount
+      const taxable = Math.round(p.taxable * 100) / 100;
+      const gst = Math.round(p.taxAmount * 100) / 100;
       const totalCogs = p.unitCost !== null && !p.cogsUnavailable ? p.unitCost * p.qty : null;
       const profit = totalCogs !== null ? net - totalCogs : null;
       const margin = profit !== null && net > 0 ? Math.round((profit / net) * 10000) / 100 : null;
@@ -511,16 +612,16 @@ export class ReportRepository {
 
     // Get orders
     const sql = `
-      SELECT o.metadata, o.customer_id, o.status::text as status
+      SELECT o.id, o.metadata, o.customer_id, o.status::text as status
       FROM public."order" o
       WHERE ${whereStr}
     `;
-    const result = await dbQuery(sql, params);
+    const result = await queryReportableOrders(sql, params);
     const productMap = await this.loadProductMetadataMap();
 
     const branchAgg = new Map<string, {
       orders: number; delivered: number; cancelled: number;
-      grossSales: number; taxTotal: number; discTotal: number;
+      grossSales: number; taxTotal: number; discTotal: number; netTotal: number;
       cogs: number | null; cogsUnavailable: boolean;
       customers: Set<string>;
     }>();
@@ -534,7 +635,7 @@ export class ReportRepository {
       const isCancelled = status === "cancelled" || status === "canceled";
       const isRefunded = status === "refunded";
       if (isCancelled || isRefunded) {
-        const ex = branchAgg.get(bid) || { orders: 0, delivered: 0, cancelled: 0, grossSales: 0, taxTotal: 0, discTotal: 0, cogs: 0, cogsUnavailable: false, customers: new Set() };
+        const ex = branchAgg.get(bid) || { orders: 0, delivered: 0, cancelled: 0, grossSales: 0, taxTotal: 0, discTotal: 0, netTotal: 0, cogs: 0, cogsUnavailable: false, customers: new Set() };
         ex.orders++;
         if (isCancelled) ex.cancelled++;
         branchAgg.set(bid, ex);
@@ -542,11 +643,12 @@ export class ReportRepository {
       }
 
       const fin = extractOrderFinancials(meta);
-      const ex = branchAgg.get(bid) || { orders: 0, delivered: 0, cancelled: 0, grossSales: 0, taxTotal: 0, discTotal: 0, cogs: 0, cogsUnavailable: false, customers: new Set() };
+      const ex = branchAgg.get(bid) || { orders: 0, delivered: 0, cancelled: 0, grossSales: 0, taxTotal: 0, discTotal: 0, netTotal: 0, cogs: 0, cogsUnavailable: false, customers: new Set() };
       ex.orders++;
       if (status === "delivered") ex.delivered++;
       ex.grossSales += fin.total;
       ex.taxTotal += fin.taxAmount;
+      ex.netTotal += fin.netExclTax;
       ex.discTotal += fin.discountAmount;
       if (row.customer_id) ex.customers.add(row.customer_id);
 
@@ -568,7 +670,7 @@ export class ReportRepository {
     const rows: BranchPerformanceRow[] = [];
     for (const [bid, data] of branchAgg) {
       const branchInfo = branchMap.get(bid) || { name: bid, code: "", city: "", state: "" };
-      const netSales = Math.max(0, data.grossSales - data.taxTotal - data.discTotal);
+      const netSales = data.netTotal;
       const profit = data.cogs !== null ? Math.round((netSales - data.cogs) * 100) / 100 : null;
       const margin = profit !== null && netSales > 0 ? Math.round((profit / netSales) * 10000) / 100 : null;
       const aov = data.orders > 0 ? Math.round(netSales / data.orders) : null;
@@ -602,8 +704,8 @@ export class ReportRepository {
     const { whereClauses, params } = buildOrderFilters(filters);
     const whereStr = whereClauses.join(" AND ");
 
-    const sql = `SELECT o.metadata, o.status::text as status FROM public."order" o WHERE ${whereStr}`;
-    const result = await dbQuery(sql, params);
+    const sql = `SELECT o.id, o.customer_id, o.metadata, o.status::text as status FROM public."order" o WHERE ${whereStr}`;
+    const result = await queryReportableOrders(sql, params);
 
     const cityMap = new Map<string, CityPerformanceRow>();
 
@@ -626,7 +728,7 @@ export class ReportRepository {
       ex.grossSales += fin.total;
       ex.discounts += fin.discountAmount;
       ex.tax += fin.taxAmount;
-      ex.netSales += Math.max(0, fin.total - fin.discountAmount - fin.taxAmount);
+      ex.netSales += fin.netExclTax;
       if (isDelivered) ex.delivered++;
       if (isCancelled) ex.cancelled++;
 
@@ -654,8 +756,8 @@ export class ReportRepository {
         dz.branch_id,
         b.name         AS branch_name,
         b.metadata->>'city'  AS branch_city,
-        dz.polygon_coordinates IS NOT NULL AS has_polygon,
-        dz.radius_km
+        FALSE          AS has_polygon,
+        NULL::numeric  AS radius_km
       FROM delivery_zone dz
       INNER JOIN branch b ON b.id = dz.branch_id AND b.deleted_at IS NULL
       WHERE dz.deleted_at IS NULL
@@ -695,8 +797,8 @@ export class ReportRepository {
     // Step 2: Fetch orders using existing filters
     const { whereClauses, params } = buildOrderFilters(filters);
     const whereStr = whereClauses.join(" AND ");
-    const sql = `SELECT o.metadata, o.status::text as status FROM public."order" o WHERE ${whereStr}`;
-    const result = await dbQuery(sql, params);
+    const sql = `SELECT o.id, o.customer_id, o.metadata, o.status::text as status FROM public."order" o WHERE ${whereStr}`;
+    const result = await queryReportableOrders(sql, params);
 
     // Step 3: Aggregate by branch (which maps to its primary service zone)
     const zoneMap = new Map<string, ServiceAreaRow>();
@@ -740,15 +842,15 @@ export class ReportRepository {
     const { whereClauses, params } = buildOrderFilters(filters);
     const whereStr = whereClauses.join(" AND ");
 
-    const sql = `SELECT o.metadata, o.status::text as status FROM public."order" o WHERE ${whereStr}`;
-    const result = await dbQuery(sql, params);
+    const sql = `SELECT o.id, o.customer_id, o.metadata, o.status::text as status FROM public."order" o WHERE ${whereStr}`;
+    const result = await queryReportableOrders(sql, params);
 
     const methodMap = new Map<NormalizedPaymentMethod, { count: number; gross: number; refund: number }>();
 
     for (const row of result.rows) {
       const meta = row.metadata || {};
       const method = normalizePaymentMethod(meta.payment_method);
-      const gross = Number(meta.total || meta.grand_total || 0);
+      const gross = extractOrderFinancials(meta).total;
       const status = (row.status || "").toLowerCase();
       const isRefunded = status === "refunded" || status === "cancelled" || status === "canceled";
       const refundAmt = isRefunded ? (Number(meta.refund_amount) || gross) : 0;
@@ -851,7 +953,7 @@ export class ReportRepository {
       WHERE ${whereStr}
       ORDER BY o.created_at DESC
     `;
-    const result = await dbQuery(sql, params);
+    const result = await queryReportableOrders(sql, params);
     const productMap = await this.loadProductMetadataMap();
 
     return result.rows.map((row) => {
@@ -880,7 +982,7 @@ export class ReportRepository {
         }
       }
 
-      const taxableAmount = Math.max(0, fin.total - fin.discountAmount - fin.taxAmount);
+      const taxableAmount = fin.netExclTax;
       const grandTotal = fin.total;
       const profit = cogs !== null ? Math.round((taxableAmount - cogs) * 100) / 100 : null;
       const marginPct = profit !== null && taxableAmount > 0
@@ -936,11 +1038,11 @@ export class ReportRepository {
     const whereStr = whereClauses.join(" AND ");
 
     const sql = `
-      SELECT o.customer_id, o.metadata, o.status::text as status
+      SELECT o.id, o.customer_id, o.metadata, o.status::text as status
       FROM public."order" o
       WHERE ${whereStr} AND o.customer_id IS NOT NULL
     `;
-    const result = await dbQuery(sql, params);
+    const result = await queryReportableOrders(sql, params);
 
     // Load customer data
     const customerResult = await dbQuery(
@@ -1016,7 +1118,7 @@ export class ReportRepository {
     const whereStr = whereClauses.join(" AND ");
 
     const sql = `SELECT o.metadata FROM public."order" o WHERE ${whereStr}`;
-    const result = await dbQuery(sql, params);
+    const result = await queryReportableOrders(sql, params);
 
     const pairMap = new Map<string, { primary: string; co: string; count: number; revenue: number }>();
     let totalOrders = result.rows.length;
@@ -1057,7 +1159,7 @@ export class ReportRepository {
     const whereStr = whereClauses.join(" AND ");
 
     const sql = `SELECT o.status::text as status, o.metadata FROM public."order" o WHERE ${whereStr}`;
-    const result = await dbQuery(sql, params);
+    const result = await queryReportableOrders(sql, params);
 
     let totalDeliveries = result.rows.length;
     let deliveredOrders = 0;

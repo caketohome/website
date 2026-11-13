@@ -20,6 +20,11 @@ import {
   ExternalLink,
   Calendar,
   PlayCircle,
+  Database,
+  CheckCircle2,
+  Sparkles,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 import { AnnouncementBarConfig } from "../../store/cms/announcement-bar-section";
 
@@ -107,8 +112,154 @@ function Toggle({
 
 type EditorTab = "general" | "content" | "action" | "marquee" | "design" | "dimensions" | "spacing" | "typography" | "behavior" | "schedule";
 
+const BRAND_PRESETS = [
+  {
+    id: "espresso_gold",
+    name: "Espresso & Gold",
+    desc: "Luxury deep obsidian with honey gold accents & champagne badge",
+    config: {
+      bg_mode: "solid" as const,
+      bg_color: "#0F172A",
+      text_color: "#FFFFFF",
+      accent_color: "#F59E0B",
+      badge_bg: "rgba(217, 119, 6, 0.25)",
+      badge_text_color: "#FDE68A",
+      coupon_bg: "rgba(255, 255, 255, 0.15)",
+      coupon_text_color: "#FDE68A",
+      coupon_border_color: "rgba(245, 158, 11, 0.4)",
+      cta_bg_color: "#D97706",
+      cta_text_color: "#0F172A",
+      cta_hover_bg: "#B45309",
+      cta_hover_text: "#FFFFFF",
+    },
+  },
+  {
+    id: "artisan_ruby",
+    name: "Artisan Ruby & Honey",
+    desc: "Warm berry wine gradient with honey gold CTA",
+    config: {
+      bg_mode: "gradient" as const,
+      gradient_start: "#881337",
+      gradient_end: "#4C0519",
+      gradient_direction: "90deg",
+      text_color: "#FFFBEB",
+      accent_color: "#FDE68A",
+      badge_bg: "rgba(245, 158, 11, 0.3)",
+      badge_text_color: "#FDE68A",
+      coupon_bg: "#FFFFFF",
+      coupon_text_color: "#881337",
+      coupon_border_color: "rgba(255, 255, 255, 0.5)",
+      cta_bg_color: "#F59E0B",
+      cta_text_color: "#4C0519",
+      cta_hover_bg: "#D97706",
+      cta_hover_text: "#FFFFFF",
+    },
+  },
+  {
+    id: "vanilla_cream",
+    name: "Vanilla Cream & Warm Bronze",
+    desc: "Gentle bakery morning cream with roasted bronze text",
+    config: {
+      bg_mode: "solid" as const,
+      bg_color: "#FFFBEB",
+      text_color: "#1E293B",
+      accent_color: "#D97706",
+      badge_bg: "rgba(217, 119, 6, 0.15)",
+      badge_text_color: "#B45309",
+      coupon_bg: "#FFFFFF",
+      coupon_text_color: "#0F172A",
+      coupon_border_color: "#E2E8F0",
+      cta_bg_color: "#0F172A",
+      cta_text_color: "#FFFFFF",
+      cta_hover_bg: "#1E293B",
+      cta_hover_text: "#FDE68A",
+    },
+  },
+  {
+    id: "forest_emerald",
+    name: "Forest Emerald & Champagne",
+    desc: "Festive celebration deep green & champagne gold",
+    config: {
+      bg_mode: "solid" as const,
+      bg_color: "#064E3B",
+      text_color: "#ECFDF5",
+      accent_color: "#FDE68A",
+      badge_bg: "rgba(253, 230, 138, 0.2)",
+      badge_text_color: "#FDE68A",
+      coupon_bg: "rgba(255, 255, 255, 0.15)",
+      coupon_text_color: "#FDE68A",
+      coupon_border_color: "rgba(253, 230, 138, 0.3)",
+      cta_bg_color: "#FDE68A",
+      cta_text_color: "#064E3B",
+      cta_hover_bg: "#FCD34D",
+      cta_hover_text: "#064E3B",
+    },
+  },
+];
+
 export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEditorProps) {
   const [activeTab, setActiveTab] = useState<EditorTab>("general");
+  const [availableOffers, setAvailableOffers] = useState<any[]>([]);
+  const [loadingOffers, setLoadingOffers] = useState(false);
+  const [syncSuccessMsg, setSyncSuccessMsg] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    setLoadingOffers(true);
+    fetch("/api/v1/admin/offers")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!isMounted) return;
+        setAvailableOffers(data?.offers || []);
+      })
+      .catch(() => {
+        fetch("/api/v1/offers")
+          .then((r) => r.json())
+          .then((data) => {
+            if (!isMounted) return;
+            setAvailableOffers(data?.offers || []);
+          })
+          .catch(() => {});
+      })
+      .finally(() => {
+        if (isMounted) setLoadingOffers(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const linkedOffer = availableOffers.find(
+    (o) => config.coupon_code && o.code && o.code.toUpperCase() === config.coupon_code.toUpperCase()
+  );
+
+  const handleSelectOffer = (codeOrId: string) => {
+    const selected = availableOffers.find((o) => o.code === codeOrId || o.id === codeOrId);
+    if (!selected) return;
+
+    const discVal = Number(selected.discount_value ?? selected.metadata?.discount_value ?? 0);
+    const minOrder = Number(selected.min_order_value ?? selected.min_order ?? 0);
+    const maxDisc = selected.max_discount_value ? Number(selected.max_discount_value) : null;
+
+    let headline = selected.name || `Special Offer — ${selected.code}`;
+    let badge = selected.type === "percentage" ? `${discVal}% OFF` : selected.type === "flat" ? `₹${discVal} OFF` : "FREE DELIVERY";
+    let scrolling = `${selected.name} — Use code ${selected.code} at checkout!`;
+    if (minOrder > 0) scrolling += ` Min order ₹${minOrder}.`;
+
+    onChange({
+      ...config,
+      coupon_code: selected.code,
+      badge_text: badge,
+      text: headline,
+      scrolling_text: scrolling,
+      cta_url: `/products?promo=${selected.code}`,
+      action_enabled: true,
+      action_type: config.action_type === "none" ? "copy_coupon" : config.action_type || "copy_coupon",
+    });
+
+    setSyncSuccessMsg(`Announcement synchronized with Marketing Offer: ${selected.code}`);
+    setTimeout(() => setSyncSuccessMsg(null), 3500);
+  };
 
   const updateProp = (key: keyof AnnouncementBarConfig, val: any) => {
     onChange({ ...config, [key]: val });
@@ -242,6 +393,65 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
       {/* ═══════════════════════════════════════════════════════════ */}
       {activeTab === "content" && (
         <div className="flex flex-col gap-3">
+          {/* Synchronize with Marketing Offers */}
+          <div className="p-3 bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-orange-500/10 rounded-xl border border-amber-200/60 dark:border-amber-900/40 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-amber-400">
+                <Database className="w-3.5 h-3.5" />
+                <span>Link to Marketing Offer (PostgreSQL)</span>
+              </div>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-300/40 flex items-center gap-1">
+                <CheckCircle2 className="w-2.5 h-2.5" /> Live Backend
+              </span>
+            </div>
+            <p className="text-[11px] text-ui-fg-muted">
+              Select an offer from Admin Panel → Marketing → Offers to auto-populate the announcement headline and coupon code.
+            </p>
+            {loadingOffers ? (
+              <div className="text-xs text-ui-fg-muted flex items-center gap-1.5 py-1">
+                <RefreshCw className="w-3 h-3 animate-spin" /> Loading PostgreSQL offers...
+              </div>
+            ) : availableOffers.length > 0 ? (
+              <div className="flex flex-col gap-1.5">
+                <Select
+                  value={linkedOffer?.code || ""}
+                  onValueChange={(val) => handleSelectOffer(val)}
+                >
+                  <Select.Trigger className="text-xs font-medium">
+                    <Select.Value placeholder="Select a marketing offer to sync..." />
+                  </Select.Trigger>
+                  <Select.Content>
+                    {availableOffers.map((off) => (
+                      <Select.Item key={off.id || off.code} value={off.code || off.id}>
+                        {off.code} — {off.name} ({off.type === "percentage" ? `${off.discount_value}% OFF` : `₹${off.discount_value} OFF`})
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select>
+                {linkedOffer && (
+                  <div className="p-2 rounded-lg bg-ui-bg-base border border-amber-300/50 dark:border-amber-900/50 flex flex-col gap-1 text-[11px]">
+                    <div className="flex items-center justify-between font-bold text-ui-fg-base">
+                      <span>{linkedOffer.name}</span>
+                      <span className="font-mono text-amber-700 dark:text-amber-400 font-black">{linkedOffer.code}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-ui-fg-muted">
+                      <span>Min Order: ₹{linkedOffer.min_order_value || 0}</span>
+                      {linkedOffer.max_discount_value && <span>Max Cap: ₹{linkedOffer.max_discount_value}</span>}
+                      <span>Status: <strong className="text-emerald-600 uppercase">{linkedOffer.status}</strong></span>
+                    </div>
+                  </div>
+                )}
+                {syncSuccessMsg && (
+                  <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> {syncSuccessMsg}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="text-[11px] text-ui-fg-muted italic">No active marketing offers found in database.</p>
+            )}
+          </div>
+
           <Field label="Static Announcement Text" hint="Shown when display mode is 'Static'">
             <Textarea
               value={config.text || ""}
@@ -321,8 +531,8 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
                     <Field label="Success Text">
                       <Input value={config.copy_success_text || "Copied!"} onChange={(e) => updateProp("copy_success_text", e.target.value)} />
                     </Field>
-                    <ColorInput label="Pill BG" value={config.coupon_bg} onChange={(v) => updateProp("coupon_bg", v)} fallback="#ffffff" />
-                    <ColorInput label="Pill Text" value={config.coupon_text_color} onChange={(v) => updateProp("coupon_text_color", v)} fallback="#991B1B" />
+                    <ColorInput label="Pill BG" value={config.coupon_bg} onChange={(v) => updateProp("coupon_bg", v)} fallback="rgba(255,255,255,0.15)" />
+                    <ColorInput label="Pill Text" value={config.coupon_text_color} onChange={(v) => updateProp("coupon_text_color", v)} fallback="#FDE68A" />
                   </div>
                 </div>
               )}
@@ -330,7 +540,7 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
               {/* Link CTA Fields */}
               {(actionType === "open_link" || actionType === "copy_and_link") && (
                 <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
-                  <Text className="text-xs font-bold text-rose-600 uppercase flex items-center gap-1">
+                  <Text className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase flex items-center gap-1">
                     <ExternalLink className="w-3.5 h-3.5" /> Link Configuration
                   </Text>
                   <div className="grid grid-cols-2 gap-2">
@@ -342,12 +552,12 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
                     </Field>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <ColorInput label="CTA BG" value={config.cta_bg_color} onChange={(v) => updateProp("cta_bg_color", v)} fallback="#FFFFFF" />
-                    <ColorInput label="CTA Text" value={config.cta_text_color} onChange={(v) => updateProp("cta_text_color", v)} fallback="#991B1B" />
+                    <ColorInput label="CTA BG" value={config.cta_bg_color} onChange={(v) => updateProp("cta_bg_color", v)} fallback="#D97706" />
+                    <ColorInput label="CTA Text" value={config.cta_text_color} onChange={(v) => updateProp("cta_text_color", v)} fallback="#0F172A" />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <ColorInput label="CTA Hover BG" value={config.cta_hover_bg} onChange={(v) => updateProp("cta_hover_bg", v)} fallback="#FEE2E2" />
-                    <ColorInput label="CTA Hover Text" value={config.cta_hover_text} onChange={(v) => updateProp("cta_hover_text", v)} fallback="#7F1D1D" />
+                    <ColorInput label="CTA Hover BG" value={config.cta_hover_bg} onChange={(v) => updateProp("cta_hover_bg", v)} fallback="#B45309" />
+                    <ColorInput label="CTA Hover Text" value={config.cta_hover_text} onChange={(v) => updateProp("cta_hover_text", v)} fallback="#FFFFFF" />
                   </div>
                 </div>
               )}
@@ -424,6 +634,40 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
       {/* ═══════════════════════════════════════════════════════════ */}
       {activeTab === "design" && (
         <div className="flex flex-col gap-3">
+          {/* Brand Presets */}
+          <div className="flex flex-col gap-2 p-3 bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-orange-500/10 rounded-xl border border-amber-200/60 dark:border-amber-900/40">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-amber-400">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Brand Theme Presets</span>
+            </div>
+            <p className="text-[11px] text-ui-fg-muted">
+              One-click harmonized color palettes calibrated for luxury bakery storefront aesthetics.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {BRAND_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => onChange({ ...config, ...preset.config })}
+                  className="p-2 rounded-lg border border-ui-border-base bg-ui-bg-base hover:border-amber-500 text-left transition-all active:scale-98 cursor-pointer flex flex-col gap-1 shadow-xs"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <div
+                      className="w-3.5 h-3.5 rounded-full border border-black/20 shrink-0"
+                      style={{
+                        background: preset.config.bg_mode === "gradient"
+                          ? `linear-gradient(90deg, ${preset.config.gradient_start}, ${preset.config.gradient_end})`
+                          : preset.config.bg_color,
+                      }}
+                    />
+                    <span className="text-[11px] font-bold text-ui-fg-base truncate">{preset.name}</span>
+                  </div>
+                  <span className="text-[10px] text-ui-fg-muted line-clamp-1">{preset.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <Field label="Background Mode">
             <Select value={config.bg_mode || "solid"} onValueChange={(v) => updateProp("bg_mode", v as any)}>
               <Select.Trigger><Select.Value /></Select.Trigger>
@@ -437,8 +681,8 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
           {config.bg_mode === "gradient" ? (
             <div className="flex flex-col gap-2 p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base">
               <div className="grid grid-cols-2 gap-2">
-                <ColorInput label="Gradient Start" value={config.gradient_start} onChange={(v) => updateProp("gradient_start", v)} fallback="#E11D48" />
-                <ColorInput label="Gradient End" value={config.gradient_end} onChange={(v) => updateProp("gradient_end", v)} fallback="#BE123C" />
+                <ColorInput label="Gradient Start" value={config.gradient_start} onChange={(v) => updateProp("gradient_start", v)} fallback="#0F172A" />
+                <ColorInput label="Gradient End" value={config.gradient_end} onChange={(v) => updateProp("gradient_end", v)} fallback="#1E293B" />
               </div>
               <Field label="Direction">
                 <Select value={config.gradient_direction || "90deg"} onValueChange={(v) => updateProp("gradient_direction", v)}>
@@ -453,17 +697,17 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
               </Field>
             </div>
           ) : (
-            <ColorInput label="Background Color" value={config.bg_color} onChange={(v) => updateProp("bg_color", v)} fallback="#E11D48" />
+            <ColorInput label="Background Color" value={config.bg_color} onChange={(v) => updateProp("bg_color", v)} fallback="#0F172A" />
           )}
 
           <div className="grid grid-cols-2 gap-2">
             <ColorInput label="Text Color" value={config.text_color} onChange={(v) => updateProp("text_color", v)} fallback="#FFFFFF" />
-            <ColorInput label="Accent Color" value={config.accent_color} onChange={(v) => updateProp("accent_color", v)} fallback="#FDE047" />
+            <ColorInput label="Accent Color" value={config.accent_color} onChange={(v) => updateProp("accent_color", v)} fallback="#F59E0B" />
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <ColorInput label="Top Border" value={config.border_top_color} onChange={(v) => updateProp("border_top_color", v)} fallback="transparent" />
-            <ColorInput label="Bottom Border" value={config.border_bottom_color} onChange={(v) => updateProp("border_bottom_color", v)} fallback="rgba(0,0,0,0.15)" />
+            <ColorInput label="Bottom Border" value={config.border_bottom_color} onChange={(v) => updateProp("border_bottom_color", v)} fallback="rgba(245,158,11,0.2)" />
           </div>
         </div>
       )}

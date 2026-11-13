@@ -53,7 +53,7 @@ export function renderTemplate(
         return "10% OFF";
 
       case "coupon_expiry":
-        return "Midnight";
+        return "11:59 PM";
 
       case "city":
       case "city_name":

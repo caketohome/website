@@ -172,7 +172,6 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
             { id: "slot_morn", slot_name: "09:00 AM - 12:00 PM (Morning Slot)", delivery_charge: 0, is_available: true },
             { id: "slot_aft", slot_name: "01:00 PM - 04:00 PM (Afternoon Slot)", delivery_charge: 0, is_available: true },
             { id: "slot_eve", slot_name: "05:00 PM - 08:00 PM (Evening Slot)", delivery_charge: 0, is_available: true },
-            { id: "slot_mid", slot_name: "11:00 PM - 12:05 AM (Midnight Special)", delivery_charge: 150, is_available: true },
             { id: "slot_exp", slot_name: "Within 60 Mins (Express Delivery)", delivery_charge: 100, is_available: true },
           ];
           setSlots(fallback);
@@ -396,7 +395,7 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
 
       delivery_date: deliveryDate,
       delivery_slot: slotObj?.slot_name || "Evening Slot",
-      delivery_type: slotObj?.slot_name?.includes("Express") ? "Express Delivery" : slotObj?.slot_name?.includes("Midnight") ? "Midnight Delivery" : "Standard Delivery",
+      delivery_type: slotObj?.slot_name?.includes("Express") ? "Express Delivery" : "Standard Delivery",
 
       items: cartItems,
       subtotal: cartSubtotal,

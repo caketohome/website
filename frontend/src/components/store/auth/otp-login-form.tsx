@@ -14,16 +14,11 @@ import {
 } from "lucide-react";
 import { OtpError, requestOtp, verifyOtp } from "@frontend/lib/data/customer";
 import { useCustomer } from "@frontend/providers/customer-provider";
+import { CountryPhoneInput } from "./country-phone-input";
+import { normalizePhone } from "@frontend/lib/auth/phone";
+import { DEFAULT_COUNTRY, type Country } from "@frontend/lib/auth/countries";
 
 const RESEND_SECONDS = 60;
-
-/** Same rule as the server (src/lib/auth/phone.ts); server re-validates anyway. */
-function toTenDigits(input: string): string | null {
-  let d = input.replace(/\D/g, "");
-  if (d.length === 12 && d.startsWith("91")) d = d.slice(2);
-  else if (d.length === 11 && d.startsWith("0")) d = d.slice(1);
-  return /^[6-9]\d{9}$/.test(d) ? d : null;
-}
 
 export interface OtpLoginFormProps {
   redirectUrl?: string;
@@ -46,7 +41,11 @@ export function OtpLoginForm({
   const [step, setStep] = useState<"phone" | "otp" | "profile">("phone");
   const [destination, setDestination] = useState("/account");
   const [verifiedRole, setVerifiedRole] = useState("CUSTOMER");
+
+  // International phone state
+  const [selectedCountry, setSelectedCountry] = useState<Country>(DEFAULT_COUNTRY);
   const [phone, setPhone] = useState("");
+
   const [otpDigits, setOtpDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -55,6 +54,9 @@ export function OtpLoginForm({
   const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number>(RESEND_SECONDS);
   const [canResend, setCanResend] = useState(false);
+
+  /** The E.164 number sent to the server — stored so OTP step uses same value */
+  const [submittedE164, setSubmittedE164] = useState<string>("");
 
   const digitInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -116,20 +118,25 @@ export function OtpLoginForm({
     return "Something went wrong. Please try again.";
   };
 
+  /** Get validated E.164 from current phone + country, or null */
+  const getE164 = (): string | null =>
+    normalizePhone(phone, selectedCountry.dialCode, selectedCountry.iso2);
+
   const handleRequestOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setError(null);
 
-    const tenDigits = toTenDigits(phone);
-    if (!tenDigits) {
-      setError("Enter a valid 10-digit Indian mobile number.");
+    const e164 = getE164();
+    if (!e164) {
+      setError("Enter a valid phone number for the selected country.");
       return;
     }
     if (step === "otp" && !canResend) return;
 
     setLoading(true);
     try {
-      await requestOtp(tenDigits);
+      await requestOtp(e164);
+      setSubmittedE164(e164);
       setCountdown(RESEND_SECONDS);
       setCanResend(false);
       setOtpDigits(["", "", "", "", "", ""]);
@@ -149,7 +156,6 @@ export function OtpLoginForm({
       if (onClose) onClose();
       return;
     }
-    // Customers may return to where they were; staff go where the server's role says.
     router.push(role === "CUSTOMER" && redirectUrl ? redirectUrl : target);
     router.refresh();
   };
@@ -159,16 +165,14 @@ export function OtpLoginForm({
     setError(null);
 
     const code = getFullOtp();
-    const tenDigits = toTenDigits(phone);
-    if (!tenDigits || code.length !== 6) {
+    if (!submittedE164 || code.length !== 6) {
       setError("Enter the complete 6-digit code.");
       return;
     }
 
     setLoading(true);
     try {
-      // Server verifies with Supabase and sets httpOnly session cookies; role comes back from the DB.
-      const result = await verifyOtp(tenDigits, code);
+      const result = await verifyOtp(submittedE164, code);
       setOtpDigits(["", "", "", "", "", ""]);
       if (result.needs_profile) {
         setVerifiedRole(result.role);
@@ -210,6 +214,11 @@ export function OtpLoginForm({
     }
   };
 
+  /** Formatted display of the submitted number for OTP step */
+  const maskedDisplay = submittedE164
+    ? submittedE164
+    : `+${selectedCountry.dialCode} ${phone}`;
+
   return (
     <div className="w-full space-y-5 text-left">
       {/* Error Alert */}
@@ -227,22 +236,17 @@ export function OtpLoginForm({
             <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-300">
               Mobile Number
             </label>
-            <div className="relative flex items-center">
-              <div className="absolute left-3.5 flex items-center gap-1.5 text-xs font-bold text-neutral-400 border-r border-neutral-800 pr-3 select-none">
-                <span className="text-base leading-none">🇮🇳</span>
-                <span>+91</span>
-              </div>
-              <input
-                id="phone_input"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="98765 43210"
-                maxLength={14}
-                className="w-full bg-neutral-950 border border-neutral-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-xl pl-24 pr-4 py-3 text-sm text-white font-mono placeholder-neutral-600 transition-all font-medium"
-                autoFocus
-              />
-            </div>
+            <CountryPhoneInput
+              value={phone}
+              onChange={setPhone}
+              selectedCountry={selectedCountry}
+              onCountryChange={(c) => {
+                setSelectedCountry(c);
+                setPhone(""); // reset number when country changes
+              }}
+              disabled={loading}
+              autoFocus
+            />
             <p className="text-[11px] text-neutral-400">
               We&apos;ll send a 6-digit verification code to this number.
             </p>
@@ -250,7 +254,7 @@ export function OtpLoginForm({
 
           <button
             type="submit"
-            disabled={loading || !toTenDigits(phone)}
+            disabled={loading || !getE164()}
             className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? (
@@ -266,11 +270,12 @@ export function OtpLoginForm({
         </form>
       )}
 
-      {/* STEP 2: VERIFY OTP (EXISTING CUSTOMER) */}
+      {/* STEP 2: VERIFY OTP */}
       {step === "otp" && (
         <form onSubmit={handleVerifyOtp} className="space-y-4">
           <div className="text-xs text-neutral-400">
-            Enter the 6-digit code sent to <span className="font-mono text-amber-400 font-bold">+91 {toTenDigits(phone)}</span>
+            Enter the 6-digit code sent to{" "}
+            <span className="font-mono text-amber-400 font-bold">{maskedDisplay}</span>
           </div>
 
           <div className="space-y-2">
@@ -284,6 +289,7 @@ export function OtpLoginForm({
                   setStep("phone");
                   setOtpDigits(["", "", "", "", "", ""]);
                   setError(null);
+                  setSubmittedE164("");
                 }}
                 className="text-[11px] text-amber-400 hover:underline font-medium"
               >
@@ -353,7 +359,7 @@ export function OtpLoginForm({
         </form>
       )}
 
-      {/* STEP 3: PROFILE COMPLETION (phone already verified by Supabase) */}
+      {/* STEP 3: PROFILE COMPLETION */}
       {step === "profile" && (
         <form onSubmit={handleSaveProfile} className="space-y-4">
           <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1">
@@ -410,7 +416,7 @@ export function OtpLoginForm({
       {/* Trust Footnote */}
       <div className="pt-2 text-center flex items-center justify-center gap-1.5 text-[11px] text-neutral-400 select-none">
         <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-        <span>Secure SMS verification</span>
+        <span>Secure SMS verification · International numbers supported</span>
       </div>
     </div>
   );

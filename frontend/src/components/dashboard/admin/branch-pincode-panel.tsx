@@ -33,14 +33,14 @@ export function BranchPincodePanel() {
   const [prepBufferMins, setPrepBufferMins] = useState("30");
   const [sameDayAllowed, setSameDayAllowed] = useState(true);
   const [expressAllowed, setExpressAllowed] = useState(true);
-  const [midnightAllowed, setMidnightAllowed] = useState(true);
+  const [midnightAllowed, setMidnightAllowed] = useState(false);
   const [scheduledAllowed, setScheduledAllowed] = useState(true);
   const [maxCakeWeightKg, setMaxCakeWeightKg] = useState("10");
   const [minOrderValue, setMinOrderValue] = useState("0");
   const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState("499");
   const [deliveryCharge, setDeliveryCharge] = useState("49");
   const [expressCharge, setExpressCharge] = useState("99");
-  const [midnightCharge, setMidnightCharge] = useState("149");
+  const [midnightCharge, setMidnightCharge] = useState("0");
 
   // Move Pincode Modal
   const [showMoveModal, setShowMoveModal] = useState(false);
@@ -80,9 +80,9 @@ export function BranchPincodePanel() {
     name: "Indiranagar Flagship Bakery",
     code: "HUB-BLR-01",
     delivery_zones: [
-      { id: "zone_1", name: "Zone 1 (0-5 KM)", min_km: 0, max_km: 5, delivery_charge: 49, express_charge: 99, midnight_charge: 149, est_delivery_mins: 45, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true },
-      { id: "zone_2", name: "Zone 2 (5-10 KM)", min_km: 5, max_km: 10, delivery_charge: 69, express_charge: 129, midnight_charge: 179, est_delivery_mins: 60, same_day_allowed: true, express_allowed: true, midnight_allowed: true, scheduled_allowed: true },
-      { id: "zone_3", name: "Zone 3 (10-15 KM)", min_km: 10, max_km: 15, delivery_charge: 99, express_charge: 199, midnight_charge: 249, est_delivery_mins: 90, same_day_allowed: true, express_allowed: false, midnight_allowed: true, scheduled_allowed: true },
+      { id: "zone_1", name: "Zone 1 (0-5 KM)", min_km: 0, max_km: 5, delivery_charge: 49, express_charge: 99, midnight_charge: 149, est_delivery_mins: 45, same_day_allowed: true, express_allowed: true, midnight_allowed: false, scheduled_allowed: true },
+      { id: "zone_2", name: "Zone 2 (5-10 KM)", min_km: 5, max_km: 10, delivery_charge: 69, express_charge: 129, midnight_charge: 179, est_delivery_mins: 60, same_day_allowed: true, express_allowed: true, midnight_allowed: false, scheduled_allowed: true },
+      { id: "zone_3", name: "Zone 3 (10-15 KM)", min_km: 10, max_km: 15, delivery_charge: 99, express_charge: 199, midnight_charge: 249, est_delivery_mins: 90, same_day_allowed: true, express_allowed: false, midnight_allowed: false, scheduled_allowed: true },
     ]
   };
 
@@ -95,14 +95,14 @@ export function BranchPincodePanel() {
     setPrepBufferMins("30");
     setSameDayAllowed(true);
     setExpressAllowed(true);
-    setMidnightAllowed(true);
+    setMidnightAllowed(false);
     setScheduledAllowed(true);
     setMaxCakeWeightKg("10");
     setMinOrderValue("0");
     setFreeDeliveryThreshold("499");
     setDeliveryCharge("49");
     setExpressCharge("99");
-    setMidnightCharge("149");
+    setMidnightCharge("0");
     setShowZoneModal(true);
   };
 
@@ -115,7 +115,7 @@ export function BranchPincodePanel() {
     setPrepBufferMins(String(z.preparation_buffer_mins || 30));
     setSameDayAllowed(z.same_day_allowed !== false);
     setExpressAllowed(z.express_allowed !== false);
-    setMidnightAllowed(z.midnight_allowed !== false);
+    setMidnightAllowed(false);
     setScheduledAllowed(z.scheduled_allowed !== false);
     setMaxCakeWeightKg(String(z.max_cake_weight_kg || 10));
     setMinOrderValue(String(z.min_order_value || 0));
@@ -139,14 +139,14 @@ export function BranchPincodePanel() {
       preparation_buffer_mins: parseInt(prepBufferMins, 10) || 30,
       same_day_allowed: sameDayAllowed,
       express_allowed: expressAllowed,
-      midnight_allowed: midnightAllowed,
+      midnight_allowed: false,
       scheduled_allowed: scheduledAllowed,
       max_cake_weight_kg: parseFloat(maxCakeWeightKg) || 10,
       min_order_value: parseFloat(minOrderValue) || 0,
       free_delivery_threshold: parseFloat(freeDeliveryThreshold) || 499,
       delivery_charge: parseFloat(deliveryCharge) || 49,
       express_charge: parseFloat(expressCharge) || 99,
-      midnight_charge: parseFloat(midnightCharge) || 149,
+      midnight_charge: 0,
     };
 
     try {
@@ -405,10 +405,7 @@ export function BranchPincodePanel() {
                   <Input type="number" value={expressCharge} onChange={(e) => setExpressCharge(e.target.value)} required />
                 </div>
 
-                <div>
-                  <Label>Midnight Surcharge (₹)</Label>
-                  <Input type="number" value={midnightCharge} onChange={(e) => setMidnightCharge(e.target.value)} required />
-                </div>
+                
                 <div>
                   <Label>Preparation Buffer (Minutes)</Label>
                   <Input type="number" value={prepBufferMins} onChange={(e) => setPrepBufferMins(e.target.value)} required />
@@ -423,10 +420,7 @@ export function BranchPincodePanel() {
                     <input type="checkbox" checked={expressAllowed} onChange={(e) => setExpressAllowed(e.target.checked)} className="rounded" />
                     <span>Express Allowed</span>
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={midnightAllowed} onChange={(e) => setMidnightAllowed(e.target.checked)} className="rounded" />
-                    <span>Midnight Allowed</span>
-                  </label>
+
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={scheduledAllowed} onChange={(e) => setScheduledAllowed(e.target.checked)} className="rounded" />
                     <span>Scheduled Allowed</span>

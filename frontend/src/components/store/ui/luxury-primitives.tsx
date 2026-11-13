@@ -371,7 +371,7 @@ export function BakerMoodBadge({ className = "" }: { className?: string }) {
     greeting = "Afternoon Confectioner: Decorating Signature Cakes";
     icon = "🎂";
   } else if (currentHour >= 17) {
-    greeting = "Evening Patisserie: Midnight Deliveries in Motion";
+    greeting = "Evening Patisserie: Express Deliveries in Motion";
     icon = "✨";
   }
 

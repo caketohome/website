@@ -646,14 +646,14 @@ export class ExcelExportService {
     const kpiRows = [
       ["Total Orders", stats.totalOrders, "#,##0"],
       ["Gross Sales (Incl. Tax)", stats.grossRevenue, "₹#,##0.00"],
-      ["Total Discounts", stats.discounts, "₹#,##0.00"],
-      ["Net Sales (Excl. Tax)", stats.netSalesExclTax, "₹#,##0.00"],
-      ["GST Tax Collected", stats.gstCollected, "₹#,##0.00"],
-      ["Delivery Revenue", stats.deliveryFleetCosts || 0, "₹#,##0.00"],
+      ["Total Discounts", stats.totalDiscounts, "₹#,##0.00"],
+      ["Net Sales (Excl. Tax)", stats.netRevenue, "₹#,##0.00"],
+      ["GST Tax Collected", stats.totalTax, "₹#,##0.00"],
+      ["Delivery Revenue", stats.deliveryFees || 0, "₹#,##0.00"],
       ["Average Order Value (AOV)", stats.aov, "₹#,##0.00"],
       ["Delivered Orders", stats.deliveredOrders, "#,##0"],
       ["Cancelled Orders", stats.cancelledOrders, "#,##0"],
-      ["Customer Refunds", stats.refunds, "₹#,##0.00"],
+      ["Customer Refunds", stats.totalRefunds, "₹#,##0.00"],
     ];
 
     let rIdx = 7;
@@ -680,7 +680,7 @@ export class ExcelExportService {
 
     const payments = data.daily?.paymentSummary || [];
     for (const p of payments) {
-      sheet.getRow(rIdx).values = [p.method, p.count, p.gross, p.refundAmount || 0, p.netAmount || p.gross];
+      sheet.getRow(rIdx).values = [p.method, p.count, p.grossAmount, p.refundAmount || 0, p.netAmount || p.grossAmount];
       sheet.getCell(`C${rIdx}`).numFmt = "₹#,##0.00";
       sheet.getCell(`D${rIdx}`).numFmt = "₹#,##0.00";
       sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
@@ -736,7 +736,7 @@ export class ExcelExportService {
     const top3 = data.weekly?.top3Cakes || [];
     let rIdx = 8;
     for (const p of top3) {
-      sheet.getRow(rIdx).values = [`#${p.rank || 1}`, p.name, p.sku, p.quantitySold, p.netSales, p.avgSellingPrice];
+      sheet.getRow(rIdx).values = [`#${p.rank || 1}`, p.productName, p.sku, p.quantitySold, p.netSales, p.avgSellingPrice];
       sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
       sheet.getCell(`F${rIdx}`).numFmt = "₹#,##0.00";
       rIdx++;
@@ -757,7 +757,7 @@ export class ExcelExportService {
 
     const least = data.weekly?.leastSellingCakes || [];
     for (const p of least) {
-      sheet.getRow(rIdx).values = [`#${p.rank || 1}`, p.name, p.sku, p.quantitySold, p.netSales, p.avgSellingPrice];
+      sheet.getRow(rIdx).values = [`#${p.rank || 1}`, p.productName, p.sku, p.quantitySold, p.netSales, p.avgSellingPrice];
       sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
       sheet.getCell(`F${rIdx}`).numFmt = "₹#,##0.00";
       rIdx++;
@@ -778,7 +778,7 @@ export class ExcelExportService {
 
     const payments = data.weekly?.payments || [];
     for (const p of payments) {
-      sheet.getRow(rIdx).values = [p.method, p.count, p.gross, p.refundAmount || 0, (p.percentage || 0) / 100];
+      sheet.getRow(rIdx).values = [p.method, p.count, p.grossAmount, p.refundAmount || 0, (p.percentage || 0) / 100];
       sheet.getCell(`C${rIdx}`).numFmt = "₹#,##0.00";
       sheet.getCell(`D${rIdx}`).numFmt = "₹#,##0.00";
       sheet.getCell(`E${rIdx}`).numFmt = "0.00%";
@@ -935,7 +935,7 @@ export class ExcelExportService {
       sheet.getRow(rIdx).values = [
         o.id, o.invoiceNumber, o.orderDate, o.customerName, o.customerPhone,
         o.city, o.area, o.pincode, o.branchName, o.paymentMethod,
-        o.orderStatus, o.deliveryStatus, o.grossAmount, o.discount, o.taxAmount, o.netAmount
+        o.orderStatus, o.deliveryStatus, o.grossAmount, o.discount, o.taxAmount, o.taxableAmount
       ];
       sheet.getCell(`M${rIdx}`).numFmt = "₹#,##0.00";
       sheet.getCell(`N${rIdx}`).numFmt = "₹#,##0.00";
@@ -975,7 +975,7 @@ export class ExcelExportService {
     let rIdx = 7;
     items.forEach((p, idx) => {
       sheet.getRow(rIdx).values = [
-        `#${idx + 1}`, p.name, p.sku, p.category, p.hsnCode,
+        `#${idx + 1}`, p.productName, p.sku, p.category, p.hsnCode,
         p.quantitySold, p.grossSales, p.discounts, p.netSales, p.totalCogs, p.grossProfit, p.grossMarginPct / 100
       ];
       sheet.getCell(`G${rIdx}`).numFmt = "₹#,##0.00";
@@ -1128,14 +1128,14 @@ export class ExcelExportService {
     const statRows: [string, any, string][] = [
       ["Total Orders", stats.totalOrders || 0, "#,##0"],
       ["Gross Revenue", stats.grossRevenue || 0, "₹#,##0.00"],
-      ["Total Discounts", stats.discounts || 0, "₹#,##0.00"],
-      ["Net Sales (Excl. Tax)", stats.netSalesExclTax || 0, "₹#,##0.00"],
-      ["GST Tax Collected", stats.gstCollected || 0, "₹#,##0.00"],
-      ["Delivery Revenue", stats.deliveryFleetCosts || 0, "₹#,##0.00"],
+      ["Total Discounts", stats.totalDiscounts || 0, "₹#,##0.00"],
+      ["Net Sales (Excl. Tax)", stats.netRevenue || 0, "₹#,##0.00"],
+      ["GST Tax Collected", stats.totalTax || 0, "₹#,##0.00"],
+      ["Delivery Revenue", stats.deliveryFees || 0, "₹#,##0.00"],
       ["Average Order Value", stats.aov || 0, "₹#,##0.00"],
       ["Delivered Orders", stats.deliveredOrders || 0, "#,##0"],
       ["Cancelled Orders", stats.cancelledOrders || 0, "#,##0"],
-      ["Total Refunds", stats.refunds || 0, "₹#,##0.00"],
+      ["Total Refunds", stats.totalRefunds || 0, "₹#,##0.00"],
     ];
     for (const [lbl, val, fmt] of statRows) {
       sheet.getCell(`A${rIdx}`).value = lbl;
@@ -1174,7 +1174,7 @@ export class ExcelExportService {
     sheet.getRow(rIdx).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
     rIdx++;
     for (const p of (data.paymentBreakdown || [])) {
-      sheet.getRow(rIdx).values = [p.method, p.count, p.gross, p.netAmount || p.gross];
+      sheet.getRow(rIdx).values = [p.method, p.count, p.grossAmount, p.netAmount || p.grossAmount];
       sheet.getCell(`C${rIdx}`).numFmt = "₹#,##0.00";
       sheet.getCell(`D${rIdx}`).numFmt = "₹#,##0.00";
       rIdx++;
@@ -1255,8 +1255,8 @@ export class ExcelExportService {
     const totalGross = payments.totalCollected || 0;
     let rIdx = 8;
     for (const p of breakdown) {
-      const share = totalGross > 0 ? p.gross / totalGross : 0;
-      sheet.getRow(rIdx).values = [p.method, p.count, p.gross, p.refundAmount || 0, p.netAmount || p.gross, share];
+      const share = totalGross > 0 ? p.grossAmount / totalGross : 0;
+      sheet.getRow(rIdx).values = [p.method, p.count, p.grossAmount, p.refundAmount || 0, p.netAmount || p.grossAmount, share];
       sheet.getCell(`C${rIdx}`).numFmt = "₹#,##0.00";
       sheet.getCell(`D${rIdx}`).numFmt = "₹#,##0.00";
       sheet.getCell(`E${rIdx}`).numFmt = "₹#,##0.00";
@@ -1578,7 +1578,7 @@ export class ExcelExportService {
     s2.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
     let r2 = 7;
     (data.daily?.paymentSummary || []).forEach((p: any) => {
-      s2.getRow(r2).values = [p.method, p.count, p.gross, p.refundAmount || 0, p.netAmount || p.gross];
+      s2.getRow(r2).values = [p.method, p.count, p.grossAmount, p.refundAmount || 0, p.netAmount || p.grossAmount];
       s2.getCell(`C${r2}`).numFmt = "₹#,##0.00";
       s2.getCell(`D${r2}`).numFmt = "₹#,##0.00";
       s2.getCell(`E${r2}`).numFmt = "₹#,##0.00";
@@ -1595,13 +1595,13 @@ export class ExcelExportService {
     s3.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
     let r3 = 7;
     (data.weekly?.top3Cakes || []).forEach((p: any) => {
-      s3.getRow(r3).values = [`Top #${p.rank}`, p.name, p.sku, p.quantitySold, p.netSales, p.avgSellingPrice];
+      s3.getRow(r3).values = [`Top #${p.rank}`, p.productName, p.sku, p.quantitySold, p.netSales, p.avgSellingPrice];
       s3.getCell(`E${r3}`).numFmt = "₹#,##0.00";
       s3.getCell(`F${r3}`).numFmt = "₹#,##0.00";
       r3++;
     });
     (data.weekly?.leastSellingCakes || []).forEach((p: any) => {
-      s3.getRow(r3).values = [`Bottom #${p.rank}`, p.name, p.sku, p.quantitySold, p.netSales, p.avgSellingPrice];
+      s3.getRow(r3).values = [`Bottom #${p.rank}`, p.productName, p.sku, p.quantitySold, p.netSales, p.avgSellingPrice];
       s3.getCell(`E${r3}`).numFmt = "₹#,##0.00";
       s3.getCell(`F${r3}`).numFmt = "₹#,##0.00";
       r3++;
@@ -1629,7 +1629,7 @@ export class ExcelExportService {
     s5.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
     let r5 = 7;
     (data.products || []).forEach((p, idx) => {
-      s5.getRow(r5).values = [`#${idx + 1}`, p.name, p.sku, p.category, p.hsnCode, p.quantitySold, p.grossSales, p.discounts, p.netSales, p.grossProfit, p.grossMarginPct / 100];
+      s5.getRow(r5).values = [`#${idx + 1}`, p.productName, p.sku, p.category, p.hsnCode, p.quantitySold, p.grossSales, p.discounts, p.netSales, p.grossProfit, p.grossMarginPct / 100];
       s5.getCell(`G${r5}`).numFmt = "₹#,##0.00";
       s5.getCell(`H${r5}`).numFmt = "₹#,##0.00";
       s5.getCell(`I${r5}`).numFmt = "₹#,##0.00";
@@ -1682,7 +1682,7 @@ export class ExcelExportService {
     s8.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
     let r8 = 7;
     (data.payments?.breakdown || []).forEach((p: any) => {
-      s8.getRow(r8).values = [p.method, p.count, p.gross, p.refundAmount || 0, p.netAmount || p.gross];
+      s8.getRow(r8).values = [p.method, p.count, p.grossAmount, p.refundAmount || 0, p.netAmount || p.grossAmount];
       s8.getCell(`C${r8}`).numFmt = "₹#,##0.00";
       s8.getCell(`D${r8}`).numFmt = "₹#,##0.00";
       s8.getCell(`E${r8}`).numFmt = "₹#,##0.00";
@@ -1798,7 +1798,7 @@ export class ExcelExportService {
     s14.getRow(6).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E293B" } };
     let r14 = 7;
     (data.orderRegister || []).slice(0, 100).forEach((o) => {
-      s14.getRow(r14).values = [o.id, o.invoiceNumber, o.orderDate, o.customerName, o.city, o.branchName, o.paymentMethod, o.orderStatus, o.grossAmount, o.discount, o.taxAmount, o.netAmount];
+      s14.getRow(r14).values = [o.id, o.invoiceNumber, o.orderDate, o.customerName, o.city, o.branchName, o.paymentMethod, o.orderStatus, o.grossAmount, o.discount, o.taxAmount, o.taxableAmount];
       s14.getCell(`I${r14}`).numFmt = "₹#,##0.00";
       s14.getCell(`J${r14}`).numFmt = "₹#,##0.00";
       s14.getCell(`K${r14}`).numFmt = "₹#,##0.00";

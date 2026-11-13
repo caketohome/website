@@ -1,5 +1,6 @@
 import { Text } from "@medusajs/ui";
 import Link from "next/link";
+import { CakeToHomeLogo } from "@frontend/components/common/logo";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { FooterNavigation } from "@frontend/components/store/cms/navigation";
 import { Suspense } from "react";
@@ -29,7 +30,7 @@ export default function Footer() {
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-xs sm:text-sm text-blue-100">
             <Clock className="w-4 h-4 text-blue-400 shrink-0" />
-            <span className="font-medium">Midnight Delivery Available</span>
+            <span className="font-medium">Scheduled & Express Delivery</span>
           </div>
         </div>
       </div>
@@ -39,9 +40,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-10">
           {/* Brand Info */}
           <div className="lg:col-span-2 flex flex-col gap-3">
-            <Link href="/" className="flex items-center gap-2 text-xl font-bold font-serif text-white hover:text-blue-300 transition-colors w-fit">
-              🎂 CakeToHome
-            </Link>
+            <CakeToHomeLogo
+              variant="white"
+              mode="full"
+              height={44}
+              href="/"
+              className="py-1"
+            />
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-sm">
               Artisanal bakery crafted with passion in Kerala. We bake happiness fresh to order, delivering gourmet cakes, desserts, and savory treats with unmatched quality and punctuality.
             </p>
@@ -79,6 +84,7 @@ export default function Footer() {
             <h4 className="text-xs uppercase tracking-wider font-bold text-blue-300 font-sans">Help & Support</h4>
             <div className="text-xs text-slate-300 flex flex-col gap-1.5">
               <p>Email: <a href="mailto:support@caketohome.com" className="text-blue-300 hover:underline">support@caketohome.com</a></p>
+              <p>WhatsApp: <a href="https://wa.me/919567789888" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 font-mono font-semibold">+91 95677 89888</a></p>
               <p>Hours: 9:00 AM – 11:00 PM IST</p>
               <p className="text-[11px] text-slate-400 mt-1">Razorpay 256-bit SSL Encrypted Standard Checkout</p>
             </div>

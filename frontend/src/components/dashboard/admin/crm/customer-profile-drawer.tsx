@@ -806,7 +806,7 @@ export function CustomerProfileDrawer({
                     <Textarea
                       value={newNoteContent}
                       onChange={(e) => setNewNoteContent(e.target.value)}
-                      placeholder="e.g. VIP client requested extra dark chocolate shavings and midnight delivery."
+                      placeholder="e.g. VIP client requested extra dark chocolate shavings and express delivery."
                       className="text-xs"
                       rows={3}
                     />
@@ -1093,7 +1093,7 @@ export function CustomerProfileDrawer({
                             </Badge>
                           ))
                         ) : (
-                          <Text className="text-xs text-neutral-400">Birthday Celebrations, Anniversaries, Midnight Surprises</Text>
+                          <Text className="text-xs text-neutral-400">Birthday Celebrations, Anniversaries, Express Gifting</Text>
                         )}
                       </div>
                     </div>

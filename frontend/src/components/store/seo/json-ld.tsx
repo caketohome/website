@@ -33,6 +33,8 @@ export function OrganizationJsonLd() {
         "@type": "Organization",
         name: "CakeToHome",
         url: BASE_URL,
+        logo: `${BASE_URL}/assets/brand/caketo-home-logo-navy.png`,
+        image: `${BASE_URL}/assets/brand/caketo-home-logo-navy.png`,
         description: "Order premium cakes and bakery products online with delivery to your doorstep.",
         sameAs: [
             "https://www.facebook.com/caketohome",

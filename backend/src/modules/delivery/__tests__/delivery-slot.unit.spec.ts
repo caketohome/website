@@ -70,7 +70,7 @@ describe("DeliveryModuleService - Delivery Slot", () => {
         const { service } = createMockService({
             deliverySlots: [
                 { id: "delslot_1", branch_id: "res_1", slot_name: "Morning", start_time: "09:00", end_time: "12:00", max_capacity: 5, extra_charge: 0 },
-                { id: "delslot_2", branch_id: "res_1", slot_name: "Midnight", start_time: "23:00", end_time: "23:59", max_capacity: 3, extra_charge: 150 },
+                { id: "delslot_2", branch_id: "res_1", slot_name: "Late Evening", start_time: "21:00", end_time: "22:30", max_capacity: 3, extra_charge: 150 },
             ],
         });
 

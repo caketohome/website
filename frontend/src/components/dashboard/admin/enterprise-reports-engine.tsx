@@ -267,8 +267,8 @@ export function EnterpriseReportsEngine() {
 
   // ── Server-Side Report Data State ──
   const [kpis, setKpis] = useState<any[]>([]);
-  const [stats, setStats] = useState<any>({ netSalesExclTax: 0, grossProfit: 0 });
-  const [dailyData, setDailyData] = useState<any>({ stats: { totalOrders: 0, deliveredOrders: 0, grossRevenue: 0, netSalesExclTax: 0, gstCollected: 0, aov: 0 }, paymentSummary: [], branchSummary: [] });
+  const [stats, setStats] = useState<any>({ netRevenue: 0, grossProfit: 0 });
+  const [dailyData, setDailyData] = useState<any>({ stats: { totalOrders: 0, deliveredOrders: 0, grossRevenue: 0, netRevenue: 0, totalTax: 0, aov: 0 }, paymentSummary: [], branchSummary: [] });
   const [weeklyData, setWeeklyData] = useState<any>({ top3Cakes: [], leastSellingCakes: [], payments: [] });
   const [monthlyData, setMonthlyData] = useState<any>({ currentMonthSales: 0, prevMonthSales: 0, growthPctDisplay: "0%", deliverySla: { totalDeliveries: 0, slaCompliancePct: 100 }, customerRetention: { repeatPurchaseRate: 0, ltv: 0 } });
   const [products, setProducts] = useState<any[]>([]);
@@ -307,7 +307,7 @@ export function EnterpriseReportsEngine() {
 
         if (cancelled) return;
         setKpis(kpiRes?.kpis || []);
-        setStats({ netSalesExclTax: 0, grossProfit: 0, ...(statsRes?.data || statsRes || {}) });
+        setStats({ netRevenue: 0, grossProfit: 0, ...(statsRes?.data || statsRes || {}) });
 
         // Fetch section-specific data
         const sectionFetches: Promise<void>[] = [];
@@ -835,7 +835,7 @@ export function EnterpriseReportsEngine() {
 
               <div className="flex items-center justify-center gap-6 pt-2 text-xs font-semibold">
                 <span className="flex items-center gap-1.5 text-emerald-700">
-                  <span className="w-3 h-3 rounded-full bg-emerald-500" /> Net Sales ({stats?.netSalesExclTax != null ? `₹${stats.netSalesExclTax.toLocaleString("en-IN")}` : "Unavailable"})
+                  <span className="w-3 h-3 rounded-full bg-emerald-500" /> Net Sales ({stats?.netRevenue != null ? `₹${stats.netRevenue.toLocaleString("en-IN")}` : "Unavailable"})
                 </span>
                 <span className="flex items-center gap-1.5 text-rose-700">
                   <span className="w-3 h-3 rounded-full bg-rose-500" /> Contribution Profit ({stats?.grossProfit != null ? `₹${stats.grossProfit.toLocaleString("en-IN")}` : "Unavailable (No Cost Data)"})
@@ -933,8 +933,8 @@ export function EnterpriseReportsEngine() {
             </div>
             <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl shadow-sm">
               <Text className="text-[11px] font-bold text-emerald-800 uppercase">Net Sales (Excl. Tax)</Text>
-              <Heading level="h3" className="text-lg font-bold text-emerald-700 mt-1">₹{(dailyData?.stats?.netSalesExclTax ?? 0).toLocaleString("en-IN")}</Heading>
-              <Text className="text-[10px] text-emerald-600 mt-1">₹{(dailyData?.stats?.gstCollected ?? 0).toLocaleString("en-IN")} GST Collected</Text>
+              <Heading level="h3" className="text-lg font-bold text-emerald-700 mt-1">₹{(dailyData?.stats?.netRevenue ?? 0).toLocaleString("en-IN")}</Heading>
+              <Text className="text-[10px] text-emerald-600 mt-1">₹{(dailyData?.stats?.totalTax ?? 0).toLocaleString("en-IN")} GST Collected</Text>
             </div>
             <div className="p-4 bg-ui-bg-base border rounded-2xl shadow-sm">
               <Text className="text-[11px] font-bold text-ui-fg-subtle uppercase">Average Order Value</Text>

@@ -228,6 +228,14 @@ export class DeliveryHandoverService {
         );
       }
 
+      // Business rule: the delivery partner hands over the ENTIRE collected cash — no partial handovers.
+      if (declaredAmount !== expectedCash) {
+        throw new DeliveryHandoverError(
+          "PARTIAL_HANDOVER_FORBIDDEN",
+          `Declared cash ₹${declaredAmount.toFixed(2)} must equal the full collected amount ₹${expectedCash.toFixed(2)}.`
+        );
+      }
+
       const shortageAmount = declaredAmount < expectedCash ? Math.round((expectedCash - declaredAmount) * 100) / 100 : 0;
       const surplusAmount = declaredAmount > expectedCash ? Math.round((declaredAmount - expectedCash) * 100) / 100 : 0;
 
@@ -330,6 +338,13 @@ export class DeliveryHandoverService {
       }
 
       const expectedAmount = Number(handover.expected_amount || 0);
+      // Full handover only: a mismatch would mark orders settled while cash is still with the rider.
+      if (acknowledgedAmount !== Math.round(expectedAmount * 100) / 100) {
+        throw new DeliveryHandoverError(
+          "PARTIAL_HANDOVER_FORBIDDEN",
+          `Received cash ₹${acknowledgedAmount.toFixed(2)} must equal the full handover amount ₹${expectedAmount.toFixed(2)}.`
+        );
+      }
       const shortageAmount = acknowledgedAmount < expectedAmount ? Math.round((expectedAmount - acknowledgedAmount) * 100) / 100 : 0;
       const surplusAmount = acknowledgedAmount > expectedAmount ? Math.round((acknowledgedAmount - expectedAmount) * 100) / 100 : 0;
 

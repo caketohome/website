@@ -44,7 +44,7 @@ export type FulfillmentReason =
 
 export interface LateNightDeliveryConfig {
   enabled: boolean;
-  display_name: string;               // e.g. "Midnight Surprise Delivery"
+  display_name: string;               // e.g. "Scheduled Celebration Delivery"
   start_time: string;                 // "HH:MM" e.g. "23:30"
   end_time: string;                   // "HH:MM" e.g. "00:05" (crosses midnight)
   additional_charge: number;          // Surcharge in INR e.g. 199
@@ -59,7 +59,7 @@ export interface LateNightDeliveryConfig {
 
 export const DEFAULT_LATE_NIGHT_CONFIG: LateNightDeliveryConfig = {
   enabled: true,
-  display_name: "Midnight Surprise Delivery",
+  display_name: "Scheduled Celebration Delivery",
   start_time: "23:30",
   end_time: "00:05",
   additional_charge: 199,
@@ -246,7 +246,7 @@ export interface DeliverySlot {
   start_time: string;                    // "HH:MM"
   end_time: string;                      // "HH:MM"
   label: string;                         // "10:00 AM - 12:00 PM"
-  slot_name?: string;                    // e.g. "Morning Slot" or "🌙 Midnight Surprise Delivery"
+  slot_name?: string;                    // e.g. "Morning Slot" or "Express 2-Hour Slot"
   available: boolean;
   is_available?: boolean;
   status: "AVAILABLE" | "PAST_CUTOFF" | "FULL" | "CLOSED" | "PREP_TIME_EXCEEDED" | "DISABLED";

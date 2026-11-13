@@ -23,6 +23,23 @@ tmp_report_exports/
 **/tmp_report_exports/
 .isolated-pg-data/
 **/.isolated-pg-data/
+backups/
+**/backups/
+*.dump
+*.rdb
+*.tar.gz
+
+# Local checkpoints, test output, scratch and screenshots
+CHECKPOINTS/
+**/CHECKPOINTS/
+scratch/
+**/scratch/
+screenshots/
+**/screenshots/
+test-results/
+**/test-results/
+.playwright/
+
 
 backend/.env
 backend/.env.*

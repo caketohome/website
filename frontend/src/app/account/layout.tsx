@@ -1,6 +1,7 @@
 import { retrieveUser } from "@frontend/lib/data";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { CakeToHomeLogo } from "@frontend/components/common/logo";
 import { User, ShoppingBag, MapPin, Heart, LogOut, Sparkles, ChevronRight } from "lucide-react";
 import { LogoutButton } from "@frontend/components/common/logout-button";
 
@@ -33,7 +34,8 @@ export default async function AccountLayout({
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Top Breadcrumb & Welcome Banner */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800/80">
-          <div className="space-y-1">
+          <div className="space-y-2">
+            <CakeToHomeLogo variant="white" mode="full" height={34} href="/" priority />
             <div className="flex items-center gap-2 text-xs text-amber-500/80 font-medium">
               <Link href="/" className="hover:text-amber-400 transition-colors">Home</Link>
               <ChevronRight className="w-3.5 h-3.5 text-neutral-600" />
@@ -97,15 +99,15 @@ export default async function AccountLayout({
                 <Sparkles className="w-4 h-4" /> Concierge Support
               </div>
               <p className="text-xs text-neutral-300">
-                Need urgent customization, midnight delivery coordination, or custom tiered cake consultation?
+                Need urgent customization, scheduled delivery coordination, or custom tiered cake consultation?
               </p>
               <a
-                href="https://wa.me/919876543210?text=Hi%20CakeToHome%20Concierge,%20I%20need%20assistance%20with%20my%20order."
+                href="https://wa.me/919567789888?text=Hi%20CakeToHome%20Concierge,%20I%20need%20assistance%20with%20my%20order."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:text-amber-300 hover:underline pt-1"
               >
-                Chat on WhatsApp &rarr;
+                Chat on WhatsApp (+91 95677 89888) &rarr;
               </a>
             </div>
           </aside>

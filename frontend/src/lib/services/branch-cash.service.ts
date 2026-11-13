@@ -217,6 +217,7 @@ export class BranchCashService {
                   SELECT SUM(CASE WHEN vm.direction = 'IN' THEN vm.amount ELSE -vm.amount END)
                   FROM public.branch_vault_movement vm
                   WHERE vm.teller_session_id = ls.id
+                   AND vm.created_at > ls.closed_at -- only cash moved out after the count
                 ), 0)
               - COALESCE((
                   SELECT SUM(m.amount)
@@ -224,12 +225,13 @@ export class BranchCashService {
                   WHERE m.teller_session_id = ls.id
                     AND m.movement_type = 'BANK_DEPOSIT'
                     AND m.direction = 'OUT'
+                    AND m.created_at > ls.closed_at -- deposits during the shift are already out of the count
                 ), 0)
             )
           ), 0), 2) AS closed_sessions_cash
         FROM (
           SELECT DISTINCT ON (s.teller_id)
-            s.id, s.branch_id, s.teller_id, s.status, s.closing_count, s.created_at
+            s.id, s.branch_id, s.teller_id, s.status, s.closing_count, s.closed_at, s.created_at
           FROM public.teller_session s
           WHERE s.branch_id IN (SELECT id FROM branch_scope)
           ORDER BY s.teller_id, s.created_at DESC
@@ -522,6 +524,7 @@ export class BranchCashService {
                  SELECT SUM(CASE WHEN vm.direction = 'IN' THEN vm.amount ELSE -vm.amount END)
                  FROM public.branch_vault_movement vm
                  WHERE vm.teller_session_id = ls.id
+                   AND vm.created_at > ls.closed_at -- only cash moved out after the count
                ), 0)
              - COALESCE((
                  SELECT SUM(m.amount)
@@ -529,12 +532,13 @@ export class BranchCashService {
                  WHERE m.teller_session_id = ls.id
                    AND m.movement_type = 'BANK_DEPOSIT'
                    AND m.direction = 'OUT'
+                    AND m.created_at > ls.closed_at -- deposits during the shift are already out of the count
                ), 0)
            )
          ), 0), 2) AS closed_sessions_cash
        FROM (
          SELECT DISTINCT ON (s.teller_id)
-           s.id, s.branch_id, s.teller_id, s.status, s.closing_count, s.created_at
+           s.id, s.branch_id, s.teller_id, s.status, s.closing_count, s.closed_at, s.created_at
          FROM public.teller_session s
          WHERE s.branch_id = $1
          ORDER BY s.teller_id, s.created_at DESC

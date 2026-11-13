@@ -578,7 +578,7 @@ export function ProductReviewsSection({
                     maxLength={120}
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
-                    placeholder="e.g., Heavenly moist sponge and prompt midnight delivery!"
+                    placeholder="e.g., Heavenly moist sponge and prompt express delivery!"
                     className="w-full text-xs font-medium p-3 rounded-xl border border-gray-200 focus:outline-hidden focus:ring-2 focus:ring-[#D4AF37]/50"
                   />
                 </div>

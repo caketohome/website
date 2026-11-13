@@ -263,7 +263,7 @@ export class AiOrchestrator {
 
       if (deliveryRes.serviceable) {
         return {
-          message: `🚀 **Great news!** We deliver fresh artisanal cakes to **${deliveryRes.pincode}** in **${deliveryRes.city}**.\n\n• **Express Delivery**: ~${deliveryRes.estimatedMinutes} minutes (Next available slot: ${deliveryRes.nextAvailableSlot})\n• **Midnight Delivery**: Available (11:00 PM – 11:59 PM)\n• **Fulfillment Kitchen**: ${deliveryRes.branchName}`,
+          message: `🚀 **Great news!** We deliver fresh artisanal cakes to **${deliveryRes.pincode}** in **${deliveryRes.city}**.\n\n• **Express Delivery**: ~${deliveryRes.estimatedMinutes} minutes (Next available slot: ${deliveryRes.nextAvailableSlot})\n• **Scheduled Delivery**: Slots available from 9 AM to 10 PM\n• **Fulfillment Kitchen**: ${deliveryRes.branchName}`,
           delivery: deliveryRes,
           actions: [
             { type: "CHECK_PINCODE", label: `Change Pincode (Currently ${targetPin})`, payload: { pincode: targetPin } },
@@ -368,7 +368,7 @@ export class AiOrchestrator {
 
     let intro = `✨ Here are the top handcrafted artisanal cakes for you in **${session.cityName || "your area"}**:`;
     if (session.occasion === "birthday") {
-      intro = `🎉 **Handcrafted Birthday Specials** baked fresh today with optional midnight delivery in **${session.cityName || "your area"}**:`;
+      intro = `🎉 **Handcrafted Birthday Specials** baked fresh today with fast express delivery in **${session.cityName || "your area"}**:`;
     } else if (session.occasion === "anniversary") {
       intro = `💖 **Artisanal Anniversary & Romantic Cakes** crafted with Belgian chocolate and fresh berries:`;
     } else if (session.budget) {
@@ -391,7 +391,7 @@ export class AiOrchestrator {
         "🍫 View Belgian Dark Chocolate",
         "🏷️ Apply Coupon Code CAKE50",
         "🎁 Add Flowers & Birthday Card",
-        "🌙 Check Midnight Delivery Slot",
+        "⚡ Check 2-Hour Express Delivery Slot",
       ],
       intent,
       toolsUsed,

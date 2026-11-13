@@ -26,6 +26,12 @@ import {
   Monitor,
   Tablet as TabletIcon,
   Percent,
+  Link2,
+  RefreshCw,
+  Database,
+  CheckCircle2,
+  ShieldCheck,
+  AlertCircle,
 } from "lucide-react";
 
 interface PromotionalBannerEditorProps {
@@ -126,11 +132,85 @@ export function PromotionalBannerEditor({
     "content" | "offercode" | "dimensions" | "spacing" | "background" | "border" | "typography" | "cta" | "layout"
   >("content");
 
+  const [availableOffers, setAvailableOffers] = useState<any[]>([]);
+  const [loadingOffers, setLoadingOffers] = useState(false);
+  const [syncSuccessMsg, setSyncSuccessMsg] = useState<string | null>(null);
+
   const config = section.config || {};
   const currentDeviceConfig = config[sectionConfigDevice] || {};
 
   const handleUpdate = (key: string, value: any) => {
     updateSectionConfig(section.id, key, value);
+  };
+
+  // Hydrate marketing offers from PostgreSQL
+  React.useEffect(() => {
+    let isMounted = true;
+    setLoadingOffers(true);
+    fetch("/api/v1/admin/offers")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!isMounted) return;
+        const list = data?.offers || [];
+        setAvailableOffers(list);
+      })
+      .catch(() => {
+        fetch("/api/v1/offers")
+          .then((r) => r.json())
+          .then((data) => {
+            if (!isMounted) return;
+            setAvailableOffers(data?.offers || []);
+          })
+          .catch(() => {});
+      })
+      .finally(() => {
+        if (isMounted) setLoadingOffers(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const linkedOffer = availableOffers.find(
+    (o) =>
+      (config.offer_id && o.id === config.offer_id) ||
+      (config.coupon_code && o.code && o.code.toUpperCase() === config.coupon_code.toUpperCase()) ||
+      (config.offer_code && o.code && o.code.toUpperCase() === config.offer_code.toUpperCase())
+  );
+
+  const handleSelectOffer = (offerCodeOrId: string) => {
+    const selected = availableOffers.find(
+      (o) => o.code === offerCodeOrId || o.id === offerCodeOrId
+    );
+    if (!selected) return;
+
+    handleUpdate("offer_id", selected.id);
+    handleUpdate("offer_code", selected.code);
+    handleUpdate("coupon_code", selected.code);
+
+    const discVal = Number(selected.discount_value ?? selected.metadata?.discount_value ?? 0);
+    const minOrder = Number(selected.min_order_value ?? selected.min_order ?? 0);
+    const maxDisc = selected.max_discount_value ? Number(selected.max_discount_value) : null;
+
+    handleUpdate("headline", selected.name || `Special Offer — ${selected.code}`);
+    
+    let generatedSubheadline = selected.description || "";
+    if (!generatedSubheadline) {
+      if (selected.type === "percentage") {
+        generatedSubheadline = `Flat ${discVal}% OFF${maxDisc ? ` up to ₹${maxDisc}` : ""}${minOrder > 0 ? ` on orders above ₹${minOrder}` : ""}`;
+      } else if (selected.type === "flat") {
+        generatedSubheadline = `Flat ₹${discVal} OFF${minOrder > 0 ? ` on orders above ₹${minOrder}` : ""}`;
+      } else if (selected.type === "free_delivery") {
+        generatedSubheadline = `Free Doorstep Delivery${minOrder > 0 ? ` on orders above ₹${minOrder}` : ""}`;
+      } else {
+        generatedSubheadline = `Special promotional offer. Apply code ${selected.code} at checkout.`;
+      }
+    }
+    handleUpdate("subheadline", generatedSubheadline);
+    handleUpdate("cta_url", `/products?promo=${selected.code}`);
+
+    setSyncSuccessMsg(`Offer details synced from Marketing Offers: ${selected.code}`);
+    setTimeout(() => setSyncSuccessMsg(null), 3500);
   };
 
   const handleDevicePropUpdate = (prop: string, value: any) => {
@@ -219,6 +299,77 @@ export function PromotionalBannerEditor({
       {/* ────────────────────────────────────────────────────────────────────────── */}
       {activeSubTab === "content" && (
         <div className="flex flex-col gap-3">
+          {/* MARKETING OFFERS SOURCE OF TRUTH CARD */}
+          <div className="p-3.5 bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-ui-bg-subtle rounded-xl border border-amber-300 dark:border-amber-800 flex flex-col gap-2.5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Database className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <Text className="text-xs font-bold text-ui-fg-base">
+                  Marketing Offers (Single Source of Truth)
+                </Text>
+              </div>
+              <Badge color={linkedOffer ? "green" : "orange"} className="text-[10px] font-bold">
+                {linkedOffer ? "DB Linked" : "Unlinked"}
+              </Badge>
+            </div>
+
+            <Text className="text-[11px] text-ui-fg-muted">
+              Select an offer from <strong className="text-ui-fg-base">Admin Panel → Marketing → Offers</strong>. The promotional banner automatically uses the offer's real title, code, and terms, while backend promotion rules remain strictly authoritative.
+            </Text>
+
+            <div className="flex items-center gap-2">
+              <select
+                value={linkedOffer?.code || config.coupon_code || ""}
+                onChange={(e) => handleSelectOffer(e.target.value)}
+                className="w-full text-xs py-1.5 px-2.5 rounded-lg border border-ui-border-base bg-ui-bg-base text-ui-fg-base font-semibold focus:outline-none focus:ring-1 focus:ring-rose-500 cursor-pointer"
+              >
+                <option value="">-- Choose Marketing Offer to Display --</option>
+                {availableOffers.map((off) => (
+                  <option key={off.id || off.code} value={off.code}>
+                    [{off.code}] {off.name} ({off.status}, {off.type === "percentage" ? `${off.discount_value || off.metadata?.discount_value || 50}% OFF` : `₹${off.discount_value || off.metadata?.discount_value || 100} OFF`}, Min ₹{off.min_order_value || 0})
+                  </option>
+                ))}
+              </select>
+
+              {linkedOffer && (
+                <Button
+                  variant="secondary"
+                  size="small"
+                  onClick={() => handleSelectOffer(linkedOffer.code)}
+                  className="shrink-0 text-xs flex items-center gap-1"
+                  title="Re-sync headline, description and code from database record"
+                >
+                  <RefreshCw className="w-3 h-3" /> Sync
+                </Button>
+              )}
+            </div>
+
+            {syncSuccessMsg && (
+              <div className="p-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-lg flex items-center gap-1.5 text-[11px] text-emerald-800 dark:text-emerald-300 font-semibold">
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                <span>{syncSuccessMsg}</span>
+              </div>
+            )}
+
+            {linkedOffer && (
+              <div className="p-2.5 bg-ui-bg-base rounded-lg border border-ui-border-base flex flex-col gap-1 text-[11px]">
+                <div className="flex items-center justify-between font-bold text-ui-fg-base">
+                  <span>Linked: {linkedOffer.name} ({linkedOffer.code})</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 capitalize">{linkedOffer.status}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-ui-fg-muted text-[10px]">
+                  <span>Discount: <strong className="text-ui-fg-base">{linkedOffer.type === "percentage" ? `${linkedOffer.discount_value || linkedOffer.metadata?.discount_value || 50}%` : `₹${linkedOffer.discount_value || 100}`}</strong></span>
+                  <span>Max Cap: <strong className="text-ui-fg-base">{linkedOffer.max_discount_value ? `₹${linkedOffer.max_discount_value}` : "None"}</strong></span>
+                  <span>Min Order: <strong className="text-ui-fg-base">₹{linkedOffer.min_order_value || 0}</strong></span>
+                  <span>Expiry: <strong className="text-ui-fg-base">{linkedOffer.never_expires ? "Never" : linkedOffer.ends_at ? new Date(linkedOffer.ends_at).toLocaleDateString() : "Active"}</strong></span>
+                </div>
+                <div className="text-[10px] text-amber-700 dark:text-amber-400 mt-1 flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 shrink-0" />
+                  <span>Enforced at checkout by backend PostgreSQL engine.</span>
+                </div>
+              </div>
+            )}
+          </div>
           <Field label="Heading / Headline" hint="Main attention-grabbing promotion text">
             <Input
               value={config.headline || config.heading || ""}

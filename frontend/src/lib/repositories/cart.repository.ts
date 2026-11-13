@@ -42,6 +42,7 @@ export interface CartRecord {
   status?: string;
   branch_id?: string | null;
   coupon_code?: string | null;
+  promo_code?: string | null;
   currency_code: string;
   subtotal: number;
   discount_total?: number;
@@ -80,11 +81,20 @@ export class CartRepository {
              FROM "cart_line_item" cli
              WHERE cli.cart_id = c.id AND cli.deleted_at IS NULL
            ), 0),
+           discount_total = CASE WHEN COALESCE((
+             SELECT SUM(COALESCE(cli.unit_price, 0) * COALESCE(cli.quantity, 1))
+             FROM "cart_line_item" cli
+             WHERE cli.cart_id = c.id AND cli.deleted_at IS NULL
+           ), 0) = 0 THEN 0 ELSE c.discount_total END,
            total = GREATEST(0, COALESCE((
              SELECT SUM(COALESCE(cli.unit_price, 0) * COALESCE(cli.quantity, 1))
              FROM "cart_line_item" cli
              WHERE cli.cart_id = c.id AND cli.deleted_at IS NULL
-           ), 0) - COALESCE(c.discount_total, 0) + COALESCE(c.tax_total, 0)),
+           ), 0) - CASE WHEN COALESCE((
+             SELECT SUM(COALESCE(cli.unit_price, 0) * COALESCE(cli.quantity, 1))
+             FROM "cart_line_item" cli
+             WHERE cli.cart_id = c.id AND cli.deleted_at IS NULL
+           ), 0) = 0 THEN 0 ELSE COALESCE(c.discount_total, 0) END + COALESCE(c.tax_total, 0)),
            updated_at = NOW()
        WHERE c.id = $1`,
       [cartId]
@@ -218,6 +228,7 @@ export class CartRepository {
         status: rawCart.status || "ACTIVE",
         branch_id: rawCart.branch_id || meta.branch_id || null,
         coupon_code: rawCart.coupon_code || null,
+        promo_code: rawCart.coupon_code || null,
         currency_code: rawCart.currency_code || "inr",
         subtotal,
         discount_total: discountTotal,
@@ -272,7 +283,7 @@ export class CartRepository {
     const email = cart.email || cart.customer_email || null;
     const status = cart.status || "ACTIVE";
     const branchId = cart.branch_id || cart.metadata?.branch_id || null;
-    const couponCode = cart.coupon_code || cart.applied_coupon?.code || null;
+    const couponCode = cart.coupon_code || cart.promo_code || cart.applied_coupon?.code || null;
     const subtotal = Number(cart.subtotal ?? 0);
     const discountTotal = Number(cart.discount_total ?? cart.discount_amount ?? 0);
     const taxTotal = Number(cart.tax_total ?? 0);
@@ -294,11 +305,11 @@ export class CartRepository {
          status = COALESCE(EXCLUDED.status, "cart".status),
          currency_code = EXCLUDED.currency_code,
          branch_id = COALESCE(EXCLUDED.branch_id, "cart".branch_id),
-         coupon_code = COALESCE(EXCLUDED.coupon_code, "cart".coupon_code),
-         subtotal = CASE WHEN EXCLUDED.subtotal > 0 THEN EXCLUDED.subtotal ELSE "cart".subtotal END,
+         coupon_code = EXCLUDED.coupon_code,
+         subtotal = EXCLUDED.subtotal,
          discount_total = EXCLUDED.discount_total,
          tax_total = EXCLUDED.tax_total,
-         total = CASE WHEN EXCLUDED.total > 0 THEN EXCLUDED.total ELSE "cart".total END,
+         total = EXCLUDED.total,
          metadata = COALESCE("cart".metadata, '{}'::jsonb) || EXCLUDED.metadata,
          updated_at = NOW(),
          deleted_at = NULL`,
@@ -334,8 +345,13 @@ export class CartRepository {
     const rawCakeMsg = item.cake_message !== undefined ? item.cake_message : item.metadata?.cake_message;
     const normalizedCakeMessage = normalizeCakeMessage(rawCakeMsg);
 
-    // 2. Ensure the parent cart exists in DB
-    await this.saveCart({ id: cartId }, client);
+    // 2. Ensure the parent cart shell exists in DB without overwriting existing totals or coupons
+    await runner(
+      `INSERT INTO "cart" (id, region_id, sales_channel_id, status, currency_code, created_at, updated_at)
+       VALUES ($1, $2, $3, 'ACTIVE', 'inr', NOW(), NOW())
+       ON CONFLICT (id) DO NOTHING`,
+      [cartId, this.DEFAULT_REGION_ID, this.DEFAULT_SALES_CHANNEL_ID]
+    );
 
     const itemId = item.id || `cli_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const prodId = item.product_id || item.productId || "prod_unknown";
@@ -467,8 +483,6 @@ export class CartRepository {
     if (!cart || !cart.id) return null;
 
     await dbTransaction(async (client) => {
-      await this.saveCart(cart, client);
-
       const items: any[] = Array.isArray(cart.items) ? cart.items : [];
       const itemIds = items.map((it) => it.id).filter(Boolean);
 
@@ -486,7 +500,8 @@ export class CartRepository {
         await this.upsertLineItem(cart.id, item, client);
       }
 
-      await this.recalculateCartTotals(cart.id, client);
+      // Save authoritative cart totals and promotion state last so it cannot be clobbered
+      await this.saveCart(cart, client);
     });
 
     return await this.findCartById(cart.id);

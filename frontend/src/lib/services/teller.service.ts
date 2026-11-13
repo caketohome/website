@@ -74,13 +74,6 @@ export class TellerService {
         assignedUserId = `shpmgr_${branchId.replace(/^br_/, "")}`;
       }
 
-      // Ensure user exists in public."user"
-      await txClient.query(
-        `INSERT INTO public."user" (id, email, created_at, updated_at)
-         VALUES ($1, $2, NOW(), NOW())
-         ON CONFLICT (id) DO NOTHING`,
-        [assignedUserId, `${assignedUserId}@cakes2home.local`]
-      );
 
       // 4. Create canonical default station
       try {
@@ -135,13 +128,6 @@ export class TellerService {
         targetUserId = `usr_till_${params.branch_id.replace(/^br_/, "")}_${params.code.trim().toLowerCase()}`;
       }
 
-      // Ensure user exists in public."user"
-      await txClient.query(
-        `INSERT INTO public."user" (id, email, created_at, updated_at)
-         VALUES ($1, $2, NOW(), NOW())
-         ON CONFLICT (id) DO NOTHING`,
-        [targetUserId, `${targetUserId}@cakes2home.local`]
-      );
 
       // If requested status is ACTIVE, verify user has no active assignment company-wide
       const requestedStatus = params.status || "ACTIVE";

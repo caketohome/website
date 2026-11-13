@@ -754,7 +754,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               >
                 <option value="ALL">All Priorities</option>
                 <option value="EXPRESS">Express</option>
-                <option value="MIDNIGHT">Midnight</option>
+                
                 <option value="NORMAL">Normal</option>
               </select>
             </div>

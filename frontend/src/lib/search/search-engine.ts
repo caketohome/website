@@ -162,7 +162,7 @@ export const DEFAULT_TAGS: ProductTag[] = [
   { tag_id: "tag_best", name: "Bestseller", slug: "bestseller", type: "marketing", display_name: "🏆 Bestseller", search_weight: 45, status: "active" },
   { tag_id: "tag_prem", name: "Premium", slug: "premium", type: "style", display_name: "✨ Premium Artisan", search_weight: 40, status: "active" },
   { tag_id: "tag_express", name: "Express Delivery", slug: "express-delivery", type: "delivery", display_name: "⚡ 2-Hour Express", search_weight: 35, status: "active" },
-  { tag_id: "tag_mid", name: "Midnight Delivery", slug: "midnight-delivery", type: "delivery", display_name: "🌙 Midnight Delivery", search_weight: 40, status: "active" },
+  { tag_id: "tag_mid", name: "Scheduled Delivery", slug: "scheduled-delivery", type: "delivery", display_name: "📅 Scheduled Delivery", search_weight: 40, status: "archived" },
   { tag_id: "tag_eggless", name: "Eggless", slug: "eggless", type: "dietary", display_name: "🌱 100% Eggless", search_weight: 50, status: "archived" },
   { tag_id: "tag_fruit", name: "Fresh Fruit", slug: "fresh-fruit", type: "flavour", display_name: "🍓 Fresh Fruit", search_weight: 45, status: "active" },
   { tag_id: "tag_truffle", name: "Belgian Truffle", slug: "belgian-truffle", type: "flavour", display_name: "Belgian Truffle", search_weight: 50, status: "active" },

@@ -160,10 +160,10 @@ export class VaultCustodyService {
     const execute = async (txClient: PoolClient): Promise<SafeDropResult> => {
       // 1. Verify witness exists and is active
       const witnessRes = await txClient.query(
-        `SELECT id, deleted_at FROM public."user" WHERE id = $1`,
+        `SELECT id, status FROM public.profiles WHERE id::text = $1`,
         [params.witness_user_id]
       );
-      if (witnessRes.rows.length === 0 || witnessRes.rows[0].deleted_at !== null) {
+      if (witnessRes.rows.length === 0 || witnessRes.rows[0].status !== "ACTIVE") {
         throw new VaultCustodyError("WITNESS_NOT_FOUND", `Witness '${params.witness_user_id}' not found or inactive.`);
       }
 

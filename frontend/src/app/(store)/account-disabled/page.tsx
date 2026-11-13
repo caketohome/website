@@ -30,12 +30,12 @@ export default function AccountDisabledPage() {
 
         <div className="space-y-3">
           <a
-            href="https://wa.me/919988776655?text=Hello%20CakeToHome%20Support,%20my%20account%20appears%20suspended."
+            href="https://wa.me/919567789888?text=Hello%20CakeToHome%20Support,%20my%20account%20appears%20suspended."
             target="_blank"
             rel="noopener noreferrer"
             className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm transition-colors shadow-lg shadow-emerald-900/20"
           >
-            <MessageCircle className="w-4 h-4" /> Contact Customer Support
+            <MessageCircle className="w-4 h-4" /> Contact Customer Support (WhatsApp)
           </a>
 
           <Link

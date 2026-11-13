@@ -64,7 +64,7 @@ export default async function CheckoutPage() {
             </div>
             <div className="flex items-center gap-2 justify-center">
               <span>⚡</span>
-              <span>Same-Day & Midnight Slots</span>
+              <span>Same-Day & Scheduled Slots</span>
             </div>
             <div className="flex items-center gap-2 justify-center">
               <span>⭐</span>

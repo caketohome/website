@@ -22,7 +22,7 @@ const AVAILABLE_ICONS = [
   { name: "Heart", label: "Heart / Made with Love", icon: Heart },
   { name: "Star", label: "Star / 5-Star Rated", icon: Star },
   { name: "Gift", label: "Gift / Celebration Bakes", icon: Gift },
-  { name: "Zap", label: "Zap / Midnight Slots", icon: Zap },
+  { name: "Zap", label: "Zap / Express Slots", icon: Zap },
   { name: "CheckCircle2", label: "Check / Pure Ingredients", icon: CheckCircle2 },
   { name: "Tag", label: "Tag / Best Value", icon: Tag },
   { name: "Smile", label: "Smile / 100% Satisfaction", icon: Smile },

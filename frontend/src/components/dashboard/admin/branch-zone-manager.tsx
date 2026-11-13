@@ -730,7 +730,7 @@ export function BranchZoneManager() {
                             <div className="flex items-center gap-1 flex-wrap">
                               {zone.same_day_allowed && <span className="text-[9px] bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 px-1.5 py-0.5 rounded font-bold">SameDay</span>}
                               {zone.express_allowed && <span className="text-[9px] bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 px-1.5 py-0.5 rounded font-bold">Express</span>}
-                              {zone.midnight_allowed && <span className="text-[9px] bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 px-1.5 py-0.5 rounded font-bold">Midnight</span>}
+                              
                               {zone.scheduled_allowed && <span className="text-[9px] bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 px-1.5 py-0.5 rounded font-bold">Slot</span>}
                             </div>
                           </td>
@@ -861,10 +861,7 @@ export function BranchZoneManager() {
                         <div className="text-[9px] text-slate-500">Express Fee</div>
                         <div className="font-bold text-amber-700 text-sm">₹{activeZone.express_charge}</div>
                       </div>
-                      <div className="bg-indigo-50 dark:bg-indigo-950/30 rounded-lg p-2">
-                        <div className="text-[9px] text-slate-500">Midnight Fee</div>
-                        <div className="font-bold text-indigo-700 text-sm">₹{activeZone.midnight_charge}</div>
-                      </div>
+
                       <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2">
                         <div className="text-[9px] text-slate-500">Free Delivery ≥</div>
                         <div className="font-bold text-slate-700 dark:text-slate-300 text-sm">₹{activeZone.free_delivery_threshold}</div>
@@ -879,7 +876,7 @@ export function BranchZoneManager() {
                       {[
                         { label: "Same Day", val: activeZone.same_day_allowed },
                         { label: "Express", val: activeZone.express_allowed },
-                        { label: "Midnight", val: activeZone.midnight_allowed },
+                        
                         { label: "Scheduled", val: activeZone.scheduled_allowed },
                       ].map(({ label, val }) => (
                         <div key={label} className="flex items-center justify-between font-mono">
@@ -1374,10 +1371,7 @@ export function BranchZoneManager() {
                     <Label className="text-xs">Express Surcharge (₹)</Label>
                     <Input type="number" min={0} value={zoneForm.express_charge} onChange={(e) => zf("express_charge", parseFloat(e.target.value) || 0)} />
                   </div>
-                  <div>
-                    <Label className="text-xs">Midnight Surcharge (₹)</Label>
-                    <Input type="number" min={0} value={zoneForm.midnight_charge} onChange={(e) => zf("midnight_charge", parseFloat(e.target.value) || 0)} />
-                  </div>
+                  
                   <div>
                     <Label className="text-xs">Holiday Surcharge (₹)</Label>
                     <Input type="number" min={0} value={zoneForm.holiday_charge ?? 0} onChange={(e) => zf("holiday_charge", parseFloat(e.target.value) || 0)} />
@@ -1400,7 +1394,7 @@ export function BranchZoneManager() {
                   {([
                     { key: "same_day_allowed" as const, label: "Same Day Delivery" },
                     { key: "express_allowed" as const, label: "Express (45 min)" },
-                    { key: "midnight_allowed" as const, label: "Midnight Delivery" },
+                    
                     { key: "scheduled_allowed" as const, label: "Scheduled Delivery" },
                   ] as const).map(({ key, label }) => (
                     <label key={key} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800 rounded-lg px-3 py-2 cursor-pointer">

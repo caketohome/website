@@ -30,6 +30,15 @@ const serif = Playfair_Display({
 export const metadata: Metadata = {
   title: "CakeToHome",
   description: "Order premium cakes and bakery products online",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/assets/brand/caketo-home-symbol-navy.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -43,7 +52,7 @@ export default function RootLayout({
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#2563EB" />
+        <meta name="theme-color" content="#0F172A" />
         <OrganizationJsonLd />
       </head>
       <body className={`${sans.variable} ${serif.variable} font-sans min-h-screen bg-[#F8FAFC] text-[#0F172A] antialiased`}>

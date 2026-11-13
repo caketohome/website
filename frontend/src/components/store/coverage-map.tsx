@@ -262,11 +262,6 @@ export function DeliveryCoverageMap() {
                                                 <Zap className="w-3 h-3" /> ⚡ 45-Min Express Ready
                                             </Badge>
                                         )}
-                                        {result.midnight_available && (
-                                            <Badge color="purple" className="flex items-center gap-1">
-                                                <Moon className="w-3 h-3" /> 🌙 Midnight Surprise Eligible
-                                            </Badge>
-                                        )}
                                     </div>
                                 )}
                             </div>
@@ -353,7 +348,6 @@ export function DeliveryCoverageMap() {
                             <th className="text-left p-3 text-xs font-semibold text-ui-fg-subtle">Pincodes</th>
                             <th className="text-left p-3 text-xs font-semibold text-ui-fg-subtle">Status</th>
                             <th className="text-left p-3 text-xs font-semibold text-ui-fg-subtle">Express</th>
-                            <th className="text-left p-3 text-xs font-semibold text-ui-fg-subtle">Midnight</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -373,11 +367,6 @@ export function DeliveryCoverageMap() {
                                 <td className="p-3">
                                     <Badge color={area.express_available !== false ? "green" : "grey"} className="text-[10px]">
                                         {area.express_available !== false ? "⚡ Ready" : "No"}
-                                    </Badge>
-                                </td>
-                                <td className="p-3">
-                                    <Badge color={area.midnight_available !== false ? "purple" : "grey"} className="text-[10px]">
-                                        {area.midnight_available !== false ? "🌙 Eligible" : "No"}
                                     </Badge>
                                 </td>
                             </tr>

@@ -175,8 +175,8 @@ export function AnnouncementBarSection({
   const icon = config.icon || "";
   const badgeText = config.badge_text;
   const showBadge = config.badge_visible !== false && !!badgeText;
-  const badgeBg = config.badge_bg || "rgba(255, 255, 255, 0.2)";
-  const badgeTextColor = config.badge_text_color || "#FFFFFF";
+  const badgeBg = config.badge_bg || "rgba(217, 119, 6, 0.25)";
+  const badgeTextColor = config.badge_text_color || "#FDE68A";
 
   // ── Action ──
   const actionEnabled = config.action_enabled !== false;
@@ -191,26 +191,26 @@ export function AnnouncementBarSection({
   const couponCode = config.coupon_code || "";
   const copyBtnText = config.copy_button_text || "Copy Code";
   const copySuccessText = config.copy_success_text || "Copied!";
-  const couponBg = config.coupon_bg || "rgba(255, 255, 255, 0.95)";
-  const couponTextColor = config.coupon_text_color || "#991B1B";
-  const couponBorderColor = config.coupon_border_color || "rgba(255, 255, 255, 0.4)";
+  const couponBg = config.coupon_bg || "rgba(255, 255, 255, 0.15)";
+  const couponTextColor = config.coupon_text_color || "#FDE68A";
+  const couponBorderColor = config.coupon_border_color || "rgba(245, 158, 11, 0.4)";
   const couponRadius = config.coupon_border_radius ?? 8;
 
   const ctaText = config.cta_text || "";
   const ctaUrl = config.cta_url || "/products";
   const ctaTarget = config.cta_target || "_self";
-  const ctaBgColor = config.cta_bg_color || "#FFFFFF";
-  const ctaTextColor = config.cta_text_color || "#991B1B";
-  const ctaHoverBg = config.cta_hover_bg || "#FEE2E2";
-  const ctaHoverText = config.cta_hover_text || "#7F1D1D";
+  const ctaBgColor = config.cta_bg_color || "#D97706";
+  const ctaTextColor = config.cta_text_color || "#0F172A";
+  const ctaHoverBg = config.cta_hover_bg || "#B45309";
+  const ctaHoverText = config.cta_hover_text || "#FFFFFF";
   const ctaBorderColor = config.cta_border_color || "transparent";
   const ctaRadius = config.cta_border_radius ?? 8;
 
   // ── Background ──
   const bgMode = config.bg_mode || (config.gradient_start ? "gradient" : "solid");
-  const bgColor = config.bg_color || "#E11D48";
-  const gradientStart = config.gradient_start || bgColor;
-  const gradientEnd = config.gradient_end || "#BE123C";
+  const bgColor = config.bg_color || "#0F172A";
+  const gradientStart = config.gradient_start || "#0F172A";
+  const gradientEnd = config.gradient_end || "#1E293B";
   const gradientDirection = config.gradient_direction || "90deg";
   const effectiveBg = bgMode === "gradient"
     ? `linear-gradient(${gradientDirection}, ${gradientStart}, ${gradientEnd})`

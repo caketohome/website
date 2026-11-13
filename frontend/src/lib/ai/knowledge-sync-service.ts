@@ -245,7 +245,7 @@ City: ${branch.city || "—"}
 Address: ${branch.address || branch.name}
 Phone: ${branch.phone || "+91 80 4567 8900"}
 FSSAI License: ${branch.fssai_number || "11223344556677"}
-Operating Hours: 08:00 AM - 11:30 PM (Midnight delivery dispatch until 00:30 AM)
+Operating Hours: 08:00 AM - 11:00 PM (Express delivery dispatch available until 10:30 PM)
 Serviceable Pincodes: ${pincodes.slice(0, 20).join(", ")}
     `.trim();
 
@@ -389,7 +389,7 @@ ${sectionHeadlines}
 Delivery Options:
 1. Standard Delivery: Free on orders above ₹599 (₹49 for orders below ₹599). 2-hour delivery window.
 2. Express 45-Min Hyperlocal Delivery: ₹99 surcharge. Delivered directly from closest kitchen hub via bike fleet.
-3. Midnight Surprise Delivery: ₹149 surcharge. Delivered between 11:30 PM and 12:05 AM for birthday and anniversary surprises.
+3. Scheduled Celebration Delivery: Same-day & advance time slots available between 09:00 AM and 10:00 PM.
 4. Early Morning Slot: 07:00 AM – 09:00 AM.
 Packaging: Specially engineered climate-controlled shock-absorbent domes ensure cakes arrive in pristine, chilled condition without slipping or melting.
         `.trim(),

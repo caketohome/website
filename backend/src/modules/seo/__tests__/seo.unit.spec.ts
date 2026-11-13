@@ -173,8 +173,8 @@ describe("Enterprise SEO, GEO & AEO Platform Unit Tests", () => {
     test("8. AEO entry creation with auto-schema generation", async () => {
         const faq = await service.createAeoEntry({
             entry_type: "faq",
-            question: "Do you deliver cakes at midnight in Kollam?",
-            answer: "Yes! CakeToHome offers midnight cake delivery across all areas in Kollam including Polayathode, Chinnakada, Kadappakada, and Asramam. Orders placed before 8 PM qualify for midnight delivery between 11 PM and 12:30 AM.",
+            question: "Do you deliver cakes on the same day in Kollam?",
+            answer: "Yes! CakeToHome offers same-day cake delivery across all areas in Kollam including Polayathode, Chinnakada, Kadappakada, and Asramam. Orders placed before 6 PM qualify for same-day delivery.",
             entity_type: "branch",
             entity_id: "branch_kollam",
             page_url: "/cakes/kollam",

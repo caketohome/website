@@ -209,23 +209,9 @@ export class TellerMovementService {
             },
           ];
 
-      // 7. Ensure actor user identities exist in public."user" for audit foreign keys
-      const ensureUser = async (uid: string) => {
-        const ures = await txClient.query('SELECT id FROM public."user" WHERE id = $1', [uid]);
-        if (ures.rows.length === 0) {
-          await txClient.query(
-            `INSERT INTO public."user" (id, email, name, role, is_active, updated_at)
-             VALUES ($1, $2, $3, 'STAFF', true, NOW())
-             ON CONFLICT (id) DO NOTHING`,
-            [uid, `${uid}@caketohome.internal`, `Staff ${uid}`]
-          );
-        }
-      };
-      await ensureUser(actor.userId);
 
       // Segregation of Duties: maker != checker
       const voucherCreator = session.opened_by && session.opened_by !== actor.userId ? session.opened_by : "system";
-      await ensureUser(voucherCreator);
 
       // 8. Atomic Voucher Draft -> Submit -> Approve -> Post
       const draftRes = await PostingService.createVoucherDraft({

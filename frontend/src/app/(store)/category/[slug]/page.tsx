@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     entityType: "category",
     slug: `category/${slug}`,
     fallbackTitle: `${categoryName} Online in Kerala | CakeToHome`,
-    fallbackDescription: `Order ${categoryName} online from CakeToHome. Fresh, handcrafted with premium ingredients. Same-day & midnight delivery in Kerala.`,
+    fallbackDescription: `Order ${categoryName} online from CakeToHome. Fresh, handcrafted with premium ingredients. Same-day & express delivery in Kerala.`,
   });
 }
 

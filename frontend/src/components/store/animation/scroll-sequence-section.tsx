@@ -305,7 +305,7 @@ export function ScrollSequenceSection({
               <Truck className="w-3.5 h-3.5" /> Express Fleet
             </div>
             <Heading level="h2" className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white">
-              Midnight & 2-Hour <br />
+              Same-Day & 2-Hour <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37]/40 via-[#D4AF37]/40 to-amber-100">
                 Guaranteed Delivery
               </span>

@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: OccasionPageProps) {
 
   return {
     title: `${occasion.name} Cakes Online | Fresh Delivery | CakeToHome`,
-    description: occasion.description || `Order premium handcrafted cakes & accessories specially curated for ${occasion.name}. Same-day and midnight delivery available across Kerala.`,
+    description: occasion.description || `Order premium handcrafted cakes & accessories specially curated for ${occasion.name}. Same-day and express delivery available across Kerala.`,
     openGraph: {
       title: `${occasion.name} Cakes — CakeToHome`,
       description: occasion.description || `Celebrate ${occasion.name} with chef-crafted cakes.`,
@@ -78,7 +78,7 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
             <div className="flex flex-wrap gap-3 text-xs font-medium text-white/90">
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/15 shadow-sm">
                 <Clock className="w-4 h-4 text-[#D4AF37]" />
-                <span>Express 2-Hr &amp; Midnight Delivery</span>
+                <span>Express 2-Hr &amp; Scheduled Delivery</span>
               </div>
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/15 shadow-sm">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />

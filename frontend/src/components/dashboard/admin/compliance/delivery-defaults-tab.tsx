@@ -16,7 +16,7 @@ export function DeliveryDefaultsTab({
     free_delivery_threshold: deliveryDefaults?.free_delivery_threshold ?? 599,
     default_delivery_fee: deliveryDefaults?.default_delivery_fee ?? 49,
     express_delivery_fee: deliveryDefaults?.express_delivery_fee ?? 99,
-    midnight_delivery_fee: deliveryDefaults?.midnight_delivery_fee ?? 149,
+    midnight_delivery_fee: 0,
     default_prep_time_mins: deliveryDefaults?.default_prep_time_mins ?? 30,
     default_slot_duration_mins: deliveryDefaults?.default_slot_duration_mins ?? 60,
   });
@@ -117,17 +117,7 @@ export function DeliveryDefaultsTab({
               <p className="text-[11px] text-slate-400 mt-1">Priority rider surcharge for express dispatch.</p>
             </div>
 
-            <div>
-              <Label htmlFor="mid_fee" className="text-xs font-semibold">Midnight 11:30 PM Delivery Fee (₹)</Label>
-              <Input
-                id="mid_fee"
-                type="number"
-                value={String(formData.midnight_delivery_fee)}
-                onChange={(e) => setFormData({ ...formData, midnight_delivery_fee: Number(e.target.value) || 0 })}
-                className="mt-1"
-              />
-              <p className="text-[11px] text-slate-400 mt-1">Late night delivery window surcharge.</p>
-            </div>
+            
           </div>
         </Container>
 

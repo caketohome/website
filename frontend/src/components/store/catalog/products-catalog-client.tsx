@@ -233,7 +233,7 @@ export function ProductsCatalogClient({
             <Cake className="w-7 h-7 text-[#1D2F5D] dark:text-[#D4AF37]" /> Handcrafted Gourmet Cakes
           </h1>
           <p className="text-slate-600 dark:text-slate-300 text-sm mt-1">
-            Freshly baked in Kerala with 100% real ingredients • Express & Midnight Delivery Available
+            Freshly baked in Kerala with 100% real ingredients • Express & Scheduled Delivery Available
           </p>
         </div>
 
