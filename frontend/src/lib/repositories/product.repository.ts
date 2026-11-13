@@ -177,9 +177,9 @@ export class ProductRepository {
     const conditions: string[] = ["deleted_at IS NULL"];
     const values: any[] = [];
 
-    if (params.category_id) {
+    if (params.category_id && params.category_id !== "all") {
       values.push(params.category_id);
-      conditions.push(`(metadata->>'category_id' = $${values.length} OR metadata->>'category' ILIKE $${values.length} OR metadata->>'category_slug' ILIKE $${values.length})`);
+      conditions.push(`(metadata->>'primary_category_id' = $${values.length} OR metadata->>'category_id' = $${values.length} OR metadata->>'category' ILIKE $${values.length} OR metadata->>'category_slug' ILIKE $${values.length})`);
     }
 
     if (params.occasion || params.occasion_id) {

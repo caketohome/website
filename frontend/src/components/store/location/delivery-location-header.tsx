@@ -444,13 +444,9 @@ export function DeliveryLocationHeader({
               <div className="flex flex-col gap-1.5 mt-2">
                 <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Popular Delivery Hubs:</span>
                 <div className="flex flex-wrap gap-1.5">
-                  {[
-                    { name: "Indiranagar", pin: "560038" },
-                    { name: "Koramangala", pin: "560034" },
-                    { name: "Whitefield", pin: "560066" },
-                    { name: "HSR Layout", pin: "560102" },
-                    { name: "Jayanagar", pin: "560041" }
-                  ].map((area) => (
+                  {([
+                    // shortcut: no verified Kerala hubs configured yet; chips hidden until supplied
+                  ] as { name: string; pin: string }[]).map((area) => (
                     <button
                       key={area.name}
                       type="button"

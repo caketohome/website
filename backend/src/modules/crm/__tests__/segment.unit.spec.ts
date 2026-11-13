@@ -22,7 +22,7 @@ describe("CRM Module - Customer Segmentation Unit Tests", () => {
       retrieveCustomer: jest.fn().mockResolvedValue({
         id: "cust_1",
         email: "c1@test.com",
-        addresses: [{ is_default: true, city_id: "city_bangalore" }],
+        addresses: [{ is_default: true, city_id: "city_kochi" }],
         metadata: { birthday: "1990-07-18" },
         created_at: new Date("2026-01-01T00:00:00.000Z"),
       }),
@@ -55,16 +55,16 @@ describe("CRM Module - Customer Segmentation Unit Tests", () => {
   describe("Segment CRUD Actions", () => {
     test("Create Segment - valid", async () => {
       const data = {
-        name: "High Value Bangalore Customers",
+        name: "High Value Kochi Customers",
         rules: [
           { field: "total_spent", operator: "gte", value: 500000 },
-          { field: "city_id", operator: "eq", value: "city_bangalore" }
+          { field: "city_id", operator: "eq", value: "city_kochi" }
         ],
       };
 
       const result = await service.createSegment(data);
       expect(service.createSegments).toHaveBeenCalled();
-      expect(result.name).toBe("High Value Bangalore Customers");
+      expect(result.name).toBe("High Value Kochi Customers");
     });
 
     test("Create Segment - missing name", async () => {
@@ -130,7 +130,7 @@ describe("CRM Module - Customer Segmentation Unit Tests", () => {
         id: "seg_1",
         is_active: true,
         rules: JSON.stringify([
-          { field: "city_id", operator: "eq", value: "city_bangalore" },
+          { field: "city_id", operator: "eq", value: "city_kochi" },
           { field: "is_birthday", operator: "eq", value: true },
           { field: "registration_date", operator: "gte", value: "2025-01-01T00:00:00.000Z" }
         ]),

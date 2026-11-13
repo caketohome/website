@@ -93,7 +93,7 @@ export class BankReconciliationStatementService {
     }
 
     const isSuperAdmin = Boolean(
-      actorContext.isSuperAdmin || role === "SUPER_ADMIN" || actorId === "admin_01"
+      actorContext.isSuperAdmin || role === "SUPER_ADMIN"
     );
     const actorBranch = actorContext.branch_id || actorContext.branchId || null;
 

@@ -233,7 +233,7 @@ export function ProductsCatalogClient({
             <Cake className="w-7 h-7 text-[#1D2F5D] dark:text-[#D4AF37]" /> Handcrafted Gourmet Cakes
           </h1>
           <p className="text-slate-600 dark:text-slate-300 text-sm mt-1">
-            Freshly baked in Bangalore with 100% real ingredients • Express & Midnight Delivery Available
+            Freshly baked in Kerala with 100% real ingredients • Express & Midnight Delivery Available
           </p>
         </div>
 
@@ -305,7 +305,7 @@ export function ProductsCatalogClient({
                 <strong className="text-slate-900 dark:text-amber-300 font-bold">{count || results.length}</strong> artisan cakes & treats
               </span>
               <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300">
-                <MapPin className="w-3.5 h-3.5 text-[#D4AF37]" /> Serviceable in Bangalore
+                <MapPin className="w-3.5 h-3.5 text-[#D4AF37]" /> Serviceable in Kerala
               </span>
             </div>
 

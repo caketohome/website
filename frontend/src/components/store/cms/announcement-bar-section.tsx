@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Tag, Copy, Check, ArrowRight, X, Sparkles } from "lucide-react";
+import { copyText } from "@/lib/util/clipboard";
 
 export interface AnnouncementBarConfig {
   enabled?: boolean;
@@ -247,33 +248,9 @@ export function AnnouncementBarSection({
     e.preventDefault();
     e.stopPropagation();
     if (!couponCode) return;
-    try {
-      if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(couponCode).catch(() => {
-          const el = document.createElement("textarea");
-          el.value = couponCode;
-          el.style.position = "fixed";
-          el.style.left = "-9999px";
-          document.body.appendChild(el);
-          el.select();
-          document.execCommand("copy");
-          document.body.removeChild(el);
-        });
-      } else {
-        const el = document.createElement("textarea");
-        el.value = couponCode;
-        el.style.position = "fixed";
-        el.style.left = "-9999px";
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand("copy");
-        document.body.removeChild(el);
-      }
-    } catch {
-      // Ignored
-    }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    const ok = await copyText(couponCode);
+    setCopied(ok);
+    if (ok) setTimeout(() => setCopied(false), 2500);
   };
 
   const barId = `cth-announcement-${sectionId}`;

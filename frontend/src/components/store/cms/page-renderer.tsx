@@ -552,7 +552,7 @@ function InteractiveLeadForm({
  */
 function PincodeServiceabilityWidget({
   heading = "📍 Check Delivery Serviceability & Speed",
-  subheading = "Enter your 6-digit Bangalore postal code for instant cutoff calculation",
+  subheading = "Enter your 6-digit Kerala postal code for instant cutoff calculation",
   theme,
 }: {
   heading?: string;
@@ -683,15 +683,13 @@ function StoreBranchLocator({
 }: {
   heading?: string;
 }) {
-  const branches = [
-    { id: "indiranagar", name: "Indiranagar Flagship Kitchen", addr: "100ft Road, HAL 2nd Stage, Indiranagar, Bengaluru 560038", phone: "+91 98765 43210", hours: "8:00 AM – 11:30 PM", status: "Baking Fresh Now" },
-    { id: "koramangala", name: "Koramangala Artisan Studio", addr: "80ft Road, 4th Block, Koramangala, Bengaluru 560034", phone: "+91 98765 43211", hours: "8:30 AM – 11:30 PM", status: "Open for Express Dispatch" },
-    { id: "whitefield", name: "Whitefield Gourmet Hub", addr: "ITPL Main Road, Prestige Ozone, Whitefield 560066", phone: "+91 98765 43212", hours: "9:00 AM – 11:00 PM", status: "Open Now" },
-    { id: "jayanagar", name: "Jayanagar Boutique Patisserie", addr: "11th Main, 4th Block, Jayanagar, Bengaluru 560011", phone: "+91 98765 43213", hours: "8:00 AM – 11:00 PM", status: "Open Now" },
+  const branches: { id: string; name: string; addr: string; phone: string; hours: string; status: string }[] = [
+    // shortcut: no verified Kerala branches configured yet; supply via branch config
   ];
 
-  const [selectedBranch, setSelectedBranch] = useState(branches[0].id);
+  const [selectedBranch, setSelectedBranch] = useState(branches[0]?.id ?? "");
   const cur = branches.find((b) => b.id === selectedBranch) || branches[0];
+  if (!cur) return null;
 
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8 rounded-3xl bg-ui-bg-base border border-ui-border-base shadow-lg flex flex-col gap-5">
@@ -2760,11 +2758,11 @@ export function PageRenderer({
                 section.type === "contact_information" ? "📞 Contact CakeToHome Bakery Hub" :
                 section.type === "trust_badges" ? "🛡️ Our Trust & Safety Guarantee" :
                 section.type === "certifications" ? "🏆 Certified Bakery Standards" :
-                section.type === "why_choose_us" ? "🌟 Why Bangalore Chooses CakeToHome" :
+                section.type === "why_choose_us" ? "🌟 Why Kerala Chooses CakeToHome" :
                 section.type === "quality_promise" ? "✨ The Master Baker's Quality Pledge" :
                 section.type === "freshness_promise" ? "🌿 Baked Fresh Daily — Zero Preservatives" :
                 section.type === "delivery_promise" ? "🚚 Guaranteed On-Time Chilled Delivery" :
-                "Why CakeToHome is Bangalore's #1 Choice";
+                "Why CakeToHome is Kerala's #1 Choice";
 
               const heading = config.heading || defaultHeading;
 
@@ -2774,7 +2772,7 @@ export function PageRenderer({
                 { icon: "Clock", title: "NetBanking", desc: "Direct payment through 50+ leading Indian banks" },
                 { icon: "Sparkles", title: "Cash / Pay on Handover", desc: "Pay seamlessly when your fresh cake reaches your doorstep" },
               ] : section.type === "delivery_information" ? [
-                { icon: "Truck", title: "2-Hour Express Delivery", desc: "Fast-track delivery across all Bangalore localities" },
+                { icon: "Truck", title: "2-Hour Express Delivery", desc: "Fast-track delivery across all Kerala localities" },
                 { icon: "Clock", title: "Guaranteed Midnight Slot", desc: "11:30 PM to 12:05 AM surprise birthday & anniversary slots" },
                 { icon: "ShieldCheck", title: "Chiller Van Fleet", desc: "Air-conditioned cold chain transit protects delicate fondant" },
                 { icon: "Gift", title: "Free Express Delivery", desc: "Enjoy zero delivery fee on all gourmet orders above ₹499" },
@@ -2794,7 +2792,7 @@ export function PageRenderer({
                 { icon: "Clock", title: "Real-Time GPS Tracking", desc: "Live rider updates from kitchen oven to your doorstep" },
                 { icon: "Award", title: "Taste Guarantee", desc: "Loved by over 50,000+ happy celebrators across India" },
               ] : [
-                { icon: "Truck", title: "2-Hour Express Delivery", desc: "Fastest doorstep cake delivery across Bangalore" },
+                { icon: "Truck", title: "2-Hour Express Delivery", desc: "Fastest doorstep cake delivery across Kerala" },
                 { icon: "Sparkles", title: "Artisan Quality", desc: "Premium gourmet cakes crafted with Belgian chocolate and fresh fruits" },
                 { icon: "Clock", title: "Midnight Delivery", desc: "Special midnight surprise slots (11:30 PM - 12:05 AM)" },
                 { icon: "ShieldCheck", title: "Artisanal Fresh Baking", desc: "Baked fresh after order placement with zero preservatives" },
@@ -2962,7 +2960,7 @@ export function PageRenderer({
             case "accordion": {
               const heading = config.heading || "Frequently Asked Questions";
               const defaultFaqs = [
-                { q: "Do you deliver cakes at midnight in Bangalore?", a: "Yes! We offer guaranteed midnight delivery slots (11:30 PM – 12:05 AM) across all areas in Bangalore for birthdays and anniversaries." },
+                { q: "Do you deliver cakes at midnight in Kerala?", a: "Yes! We offer guaranteed midnight delivery slots (11:30 PM – 12:05 AM) across all areas in Kerala for birthdays and anniversaries." },
                 { q: "Can I customize the cake size and flavour?", a: "Absolutely! You can choose sizes from 0.5 kg to 5.0 kg, select premium flavours (Belgian Chocolate, Red Velvet, Alphonso Mango, Lotus Biscoff), and add personal custom messages." },
                 { q: "How fresh are CakeToHome cakes?", a: "Every single cake is baked fresh to order in our local kitchen hubs using premium ingredients with zero artificial preservatives." },
               ];
@@ -3027,7 +3025,7 @@ export function PageRenderer({
 
             case "delivery_availability": {
               const heading = config.heading || "⚡ Check Delivery Availability in Your Area";
-              const subheading = config.subheading || "Enter your 6-digit Bangalore postal code for instant cutoff calculation";
+              const subheading = config.subheading || "Enter your 6-digit Kerala postal code for instant cutoff calculation";
               return <PincodeServiceabilityWidget heading={heading} subheading={subheading} theme={theme} />;
             }
 
@@ -3038,10 +3036,10 @@ export function PageRenderer({
             case "midnight_delivery_info": {
               const defaultHeading =
                 section.type === "delivery_zones" ? "🗺️ Our Express Bakery Delivery Zones" :
-                section.type === "serviceability_map" ? "📍 Serviceability Hubs Across Bangalore" :
+                section.type === "serviceability_map" ? "📍 Serviceability Hubs Across Kerala" :
                 section.type === "same_day_delivery_info" ? "🚀 2-Hour Same-Day Cake Delivery" :
                 section.type === "midnight_delivery_info" ? "🌙 Midnight Surprise Delivery Slots" :
-                "📍 We Deliver Fresh Cakes Across Bangalore";
+                "📍 We Deliver Fresh Cakes Across Kerala";
 
               const defaultSubheading =
                 section.type === "midnight_delivery_info" ? "Order before 8 PM for guaranteed delivery between 11:30 PM and 12:05 AM." :
@@ -3143,7 +3141,7 @@ export function PageRenderer({
                 {
                   id: "b2",
                   title: "Why Temperature-Controlled Chiller Vans Matter for Multi-Tier Cakes",
-                  excerpt: "Learn how CakeToHome protects delicate ganache and royal floral fondants from Bangalore heat during transit.",
+                  excerpt: "Learn how CakeToHome protects delicate ganache and royal floral fondants from Kerala heat during transit.",
                   author: "Logistics Team",
                   date: "Aug 28, 2026",
                   read_time: "3 min read",
@@ -3360,7 +3358,7 @@ export function PageRenderer({
 
               const secondaryCtaText = config.secondary_cta_text || config.secondary_cta?.text;
               const secondaryCtaUrl = config.secondary_cta_url || config.secondary_cta?.url || "/products";
-              const deliveryContext = config.delivery_context || "⚡ 2-Hour Express Delivery & Midnight Slots Available Across Bangalore";
+              const deliveryContext = config.delivery_context || "⚡ 2-Hour Express Delivery & Midnight Slots Available Across Kerala";
 
               const variant = config.variant || config.style_preset || config.style || (isLuxuryTheme ? "navy" : "navy");
 
@@ -3854,7 +3852,7 @@ export function PageRenderer({
               const defaultEvents = [
                 { year: "2020", title: "The First Micro-Bakery", desc: "Started baking handcrafted Belgian chocolate cakes in a boutique kitchen in Indiranagar." },
                 { year: "2022", title: "Express 2-Hour Delivery", desc: "Engineered shock-proof cake domes and cold-chain temperature control for pristine doorstep delivery." },
-                { year: "2024", title: "50,000+ Celebrations", desc: "Expanded across all Bangalore clusters with zero preservatives and 100% fresh baking policy." },
+                { year: "2024", title: "50,000+ Celebrations", desc: "Expanded across all Kerala clusters with zero preservatives and 100% fresh baking policy." },
               ];
               const events = (config.events && config.events.length > 0) ? config.events : defaultEvents;
 
@@ -3988,7 +3986,7 @@ export function PageRenderer({
             case "pincode_checker":
             case "city_selector": {
               const heading = config.heading || "📍 Check Delivery Serviceability & Speed";
-              const subheading = config.subheading || "Enter your 6-digit Bangalore postal code for instant cutoff calculation";
+              const subheading = config.subheading || "Enter your 6-digit Kerala postal code for instant cutoff calculation";
               return <PincodeServiceabilityWidget heading={heading} subheading={subheading} theme={theme} />;
             }
 

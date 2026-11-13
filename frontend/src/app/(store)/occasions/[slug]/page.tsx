@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: OccasionPageProps) {
 
   return {
     title: `${occasion.name} Cakes Online | Fresh Delivery | CakeToHome`,
-    description: occasion.description || `Order premium handcrafted cakes & accessories specially curated for ${occasion.name}. Same-day and midnight delivery available across Bangalore & beyond.`,
+    description: occasion.description || `Order premium handcrafted cakes & accessories specially curated for ${occasion.name}. Same-day and midnight delivery available across Kerala.`,
     openGraph: {
       title: `${occasion.name} Cakes — CakeToHome`,
       description: occasion.description || `Celebrate ${occasion.name} with chef-crafted cakes.`,

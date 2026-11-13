@@ -2,6 +2,7 @@
 
 import { placeOrder } from "@frontend/lib/actions/checkout";
 import { apiClient } from "@frontend/lib/api-client";
+import { PENDING_COUPON_KEY } from "@frontend/lib/util/clipboard";
 import { HttpTypes } from "@frontend/lib/types";
 import { Badge, Button, Heading, Input, Label, Text, Textarea } from "@medusajs/ui";
 import { useFormState, useFormStatus } from "react-dom";
@@ -296,7 +297,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  .map((b: any) => ({
  id: b.id,
  name: b.name,
- address: b.address || `${b.city || "Bengaluru"} Kitchen`,
+ address: b.address || `${b.city || ""} Kitchen`.trim(),
  pincode: b.pincode || "",
  timing: b.timing || "09:00 AM - 11:00 PM",
  is_open: b.is_open !== false,
@@ -630,7 +631,35 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  }
  };
 
- // Step 1 Validation
+ // Apply a coupon claimed from a promo banner. One-shot; the backend (/cart/promo)
+  // revalidates eligibility, minimum order, cap and expiry before anything changes.
+  useEffect(() => {
+  if (!cart?.id) return;
+  let pending: string | null = null;
+  try {
+  pending = sessionStorage.getItem(PENDING_COUPON_KEY);
+  if (pending) sessionStorage.removeItem(PENDING_COUPON_KEY);
+  } catch {}
+  if (!pending) return;
+  const code = pending.trim().toUpperCase();
+  setGiftCardCodeInput(code);
+  apiClient
+  .applyPromoCode(cart.id, code)
+  .then((res: any) => {
+  if (res?.valid) {
+  setAppliedCouponCode(res.code);
+  setCouponDiscount(res.discount || 0);
+  setCouponSuccess(`🎉 Coupon ${res.code} applied! You saved ₹${res.discount}.`);
+  fetchAvailability({ coupon: res.code });
+  } else {
+  setCouponError(res?.error || "Invalid or expired coupon code.");
+  }
+  })
+  .catch((e: any) => setCouponError(e?.message || "Failed to validate promo code."));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart?.id]);
+
+  // Step 1 Validation
  const isStep1Valid = firstName.trim() !== "" && phone.trim().length >= 10 && email.includes("@");
 
  const currentSlots = availability?.available_slots || [];
@@ -658,7 +687,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  const servicingBranchObj = pickupBranches.find((b) => b.id === selectedBranchId) || {
  id: selectedBranchId,
  name: availability?.branch_name || "Flagship Hub",
- address: "Bengaluru Kitchen",
+ address: "Kitchen",
  pincode: "",
  };
 

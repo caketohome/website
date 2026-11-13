@@ -65,7 +65,7 @@ export class TaxResolverService {
   private static hasTaxMasterCache: boolean | null = null;
 
   public static async checkTaxMasterExists(client?: any): Promise<boolean> {
-    if (this.hasTaxMasterCache !== null) return this.hasTaxMasterCache;
+    if (this.hasTaxMasterCache === true) return true;
     try {
       const res = await this.executeQuery("SELECT to_regclass('public.tax_rate') as tbl", [], client);
       this.hasTaxMasterCache = Boolean(res.rows[0]?.tbl);
@@ -360,7 +360,7 @@ export class TaxResolverService {
   }
 
   /**
-   * List all canonical active tax rates from PostgreSQL tax_rate.
+   * List all canonical tax rates from PostgreSQL tax_rate.
    */
   public static async listActiveTaxRates(client?: any): Promise<any[]> {
     const res = await this.executeQuery(
@@ -379,28 +379,56 @@ export class TaxResolverService {
       client
     );
 
-    return res.rows.map((r: any) => ({
-      id: r.id,
-      name: r.name,
-      code: r.code,
-      description: r.metadata?.description || `${r.rate}% GST statutory rate`,
-      taxability: r.metadata?.taxability || (Number(r.rate) > 0 ? "Taxable" : "Exempt"),
-      gstRatePct: Number(r.rate),
-      cgstRatePct: Number(r.rate) / 2,
-      sgstRatePct: Number(r.rate) / 2,
-      igstRatePct: Number(r.rate),
-      cessRatePct: Number(r.metadata?.cess_rate || 0),
-      taxInclusive: r.metadata?.tax_inclusive !== false,
-      applicableSupplyType: r.metadata?.supply_type || "BOTH",
-      applicableCustomerType: r.metadata?.customer_type || "BOTH",
-      isActive: true,
-      effectiveFrom: r.metadata?.effective_from || "2026-04-01",
-      effectiveTo: r.metadata?.effective_to || undefined,
-      isDefault: Boolean(r.is_default),
-      countryCode: r.country_code,
-      regionId: r.tax_region_id,
-      usageCount: Number(r.usage_count || 0),
-    }));
+    return res.rows.map((r: any) => {
+      const rateNum = Number(r.rate ?? 0);
+      const supplyType = r.metadata?.supply_type || "BOTH";
+      const cgstRatePct =
+        r.metadata?.cgst_rate !== undefined && r.metadata?.cgst_rate !== null
+          ? Number(r.metadata.cgst_rate)
+          : supplyType === "INTER-STATE"
+          ? 0
+          : rateNum / 2;
+      const sgstRatePct =
+        r.metadata?.sgst_rate !== undefined && r.metadata?.sgst_rate !== null
+          ? Number(r.metadata.sgst_rate)
+          : supplyType === "INTER-STATE"
+          ? 0
+          : rateNum / 2;
+      const igstRatePct =
+        r.metadata?.igst_rate !== undefined && r.metadata?.igst_rate !== null
+          ? Number(r.metadata.igst_rate)
+          : supplyType === "INTRA-STATE"
+          ? 0
+          : rateNum;
+      const cessRatePct =
+        r.metadata?.cess_rate !== undefined && r.metadata?.cess_rate !== null
+          ? Number(r.metadata.cess_rate)
+          : 0;
+
+      return {
+        id: r.id,
+        name: r.name,
+        code: r.code,
+        description: r.metadata?.description || `${rateNum}% GST statutory rate`,
+        taxability: r.metadata?.taxability || (rateNum > 0 ? "Taxable" : "Exempt"),
+        gstRatePct: rateNum,
+        cgstRatePct,
+        sgstRatePct,
+        igstRatePct,
+        cessRatePct,
+        taxInclusive: r.metadata?.tax_inclusive !== false,
+        applicableSupplyType: supplyType,
+        applicableCustomerType: r.metadata?.customer_type || "BOTH",
+        isActive: r.metadata?.is_active !== false,
+        effectiveFrom: r.metadata?.effective_from || "2026-04-01",
+        effectiveTo: r.metadata?.effective_to || undefined,
+        isDefault: Boolean(r.is_default),
+        countryCode: r.country_code,
+        provinceCode: r.province_code || undefined,
+        regionId: r.tax_region_id,
+        usageCount: Number(r.usage_count || 0),
+      };
+    });
   }
 
   /**

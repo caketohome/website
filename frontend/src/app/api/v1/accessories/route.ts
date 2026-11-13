@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
+    await ApiEngine.ensureHydrated();
     const { searchParams } = new URL(req.url);
     const branchId = searchParams.get("branchId") || searchParams.get("branch_id") || undefined;
     const productId = searchParams.get("productId") || undefined;

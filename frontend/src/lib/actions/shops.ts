@@ -11,7 +11,7 @@ export async function setShopStatus(shopId: string, status: boolean): Promise<an
 
 export async function createProduct(prevState: any, createProductData: FormData): Promise<any> {
   revalidateTag(getCacheTag("products"));
-  const name = createProductData.get("name") as string;
+  const name = (createProductData.get("title") || createProductData.get("name")) as string;
   const price = Number(createProductData.get("price") || 599);
   return apiClient.createAdminProduct({ title: name, price }).catch(() => ({ id: `prod_${Date.now()}` }));
 }

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   ShieldCheck,
-  Sparkles,
   CheckCircle2,
   RefreshCw,
   User,
@@ -13,9 +12,18 @@ import {
   AlertCircle,
   Cake,
 } from "lucide-react";
-import { requestOtp, verifyOtp } from "@frontend/lib/data/customer";
-import { loginCustomer } from "@frontend/lib/actions/users";
+import { OtpError, requestOtp, verifyOtp } from "@frontend/lib/data/customer";
 import { useCustomer } from "@frontend/providers/customer-provider";
+
+const RESEND_SECONDS = 60;
+
+/** Same rule as the server (src/lib/auth/phone.ts); server re-validates anyway. */
+function toTenDigits(input: string): string | null {
+  let d = input.replace(/\D/g, "");
+  if (d.length === 12 && d.startsWith("91")) d = d.slice(2);
+  else if (d.length === 11 && d.startsWith("0")) d = d.slice(1);
+  return /^[6-9]\d{9}$/.test(d) ? d : null;
+}
 
 export interface OtpLoginFormProps {
   redirectUrl?: string;
@@ -35,25 +43,26 @@ export function OtpLoginForm({
   const router = useRouter();
   const { refetchCustomer } = useCustomer();
 
-  const [step, setStep] = useState<"phone" | "otp" | "new_customer">("phone");
+  const [step, setStep] = useState<"phone" | "otp" | "profile">("phone");
+  const [destination, setDestination] = useState("/account");
+  const [verifiedRole, setVerifiedRole] = useState("CUSTOMER");
   const [phone, setPhone] = useState("");
   const [otpDigits, setOtpDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [existingCustomerName, setExistingCustomerName] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState<number>(30);
+  const [countdown, setCountdown] = useState<number>(RESEND_SECONDS);
   const [canResend, setCanResend] = useState(false);
 
   const digitInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if ((step === "otp" || step === "new_customer") && countdown > 0) {
+    if (countdown > 0) {
       timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    } else if ((step === "otp" || step === "new_customer") && countdown === 0) {
+    } else if (step === "otp") {
       setCanResend(true);
     }
     return () => clearTimeout(timer);
@@ -96,121 +105,106 @@ export function OtpLoginForm({
 
   const getFullOtp = () => otpDigits.join("");
 
+  const describe = (err: unknown): string => {
+    if (err instanceof OtpError) {
+      if (err.retryAfter) {
+        setCountdown(err.retryAfter);
+        setCanResend(false);
+      }
+      return err.message;
+    }
+    return "Something went wrong. Please try again.";
+  };
+
   const handleRequestOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setError(null);
 
-    const cleanDigits = phone.replace(/\D/g, "");
-    if (cleanDigits.length < 10) {
-      setError("Please enter a valid 10-digit mobile number.");
+    const tenDigits = toTenDigits(phone);
+    if (!tenDigits) {
+      setError("Enter a valid 10-digit Indian mobile number.");
       return;
     }
+    if (step === "otp" && !canResend) return;
 
     setLoading(true);
     try {
-      const result = await requestOtp(cleanDigits);
-      setCountdown(30);
+      await requestOtp(tenDigits);
+      setCountdown(RESEND_SECONDS);
       setCanResend(false);
       setOtpDigits(["", "", "", "", "", ""]);
-
-      if (result.account_exists === false) {
-        setExistingCustomerName(null);
-        setStep("new_customer");
-      } else {
-        const rawName = (result as any).customer_name || (result as any).name;
-        if (rawName && rawName !== "Customer" && rawName !== "Valued Customer") {
-          setExistingCustomerName(rawName.split(" ")[0]);
-        } else {
-          setExistingCustomerName(null);
-        }
-        setStep("otp");
-      }
-
-      setTimeout(() => {
-        digitInputRefs.current[0]?.focus();
-      }, 100);
-    } catch (err: any) {
-      setError(err.message || "Failed to send verification OTP. Please try again.");
+      setStep("otp");
+      setTimeout(() => digitInputRefs.current[0]?.focus(), 100);
+    } catch (err) {
+      setError(describe(err));
     } finally {
       setLoading(false);
     }
+  };
+
+  const finish = async (role: string, target: string) => {
+    await refetchCustomer();
+    if (onSuccess) onSuccess({ role });
+    if (isModal && role === "CUSTOMER" && !redirectUrl) {
+      if (onClose) onClose();
+      return;
+    }
+    // Customers may return to where they were; staff go where the server's role says.
+    router.push(role === "CUSTOMER" && redirectUrl ? redirectUrl : target);
+    router.refresh();
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    const cleanCode = getFullOtp();
-    if (cleanCode.length !== 6) {
-      setError("Please enter the complete 6-digit verification code.");
-      return;
-    }
-
-    if (step === "new_customer" && !name.trim()) {
-      setError("Please enter your full name to set up your account.");
+    const code = getFullOtp();
+    const tenDigits = toTenDigits(phone);
+    if (!tenDigits || code.length !== 6) {
+      setError("Enter the complete 6-digit code.");
       return;
     }
 
     setLoading(true);
     try {
-      const cleanDigits = phone.replace(/\D/g, "");
-      const extra = step === "new_customer" ? { name: name.trim(), email: email.trim() || undefined } : undefined;
-      const result = await verifyOtp(cleanDigits, cleanCode, extra);
-
-      if (!result || !result.token) {
-        throw new Error("Invalid verification code. Please check and try again.");
-      }
-
-      const serverRole = (result.role || result.detected_role || "CUSTOMER").toUpperCase();
-      const userId = result.user?.id || result.customer_id;
-      const customerUid = result.user?.customer_uid || result.customer_uid;
-      const userPhone = result.user?.phone || cleanDigits;
-      const branchId = result.branch_id || result.user?.branch_id;
-      const partnerId = result.partner_id || result.user?.partner_id;
-
-      // Set cookies client-side
-      if (typeof document !== "undefined") {
-        document.cookie = `_cth_role=${serverRole}; path=/; SameSite=Lax;`;
-        document.cookie = `_cth_jwt=${result.token}; path=/; SameSite=Lax;`;
-        if (userId) document.cookie = `_cth_user_id=${userId}; path=/; SameSite=Lax;`;
-        if (customerUid) document.cookie = `_cth_customer_uid=${customerUid}; path=/; SameSite=Lax;`;
-        if (userPhone) document.cookie = `_cth_phone=${userPhone}; path=/; SameSite=Lax;`;
-        if (branchId) document.cookie = `_cth_branch_id=${branchId}; path=/; SameSite=Lax;`;
-        if (partnerId) document.cookie = `_cth_partner_id=${partnerId}; path=/; SameSite=Lax;`;
-
-        localStorage.setItem("cth_access_token", result.token);
-        localStorage.setItem("cth_user", JSON.stringify(result.user || {}));
-      }
-
-      // Sync server-side session cookies
-      await loginCustomer(result.token, serverRole, userId, userPhone, branchId, partnerId, customerUid).catch(() => null);
-
-      // Hydrate reactive customer context
-      await refetchCustomer();
-
-      if (onSuccess) {
-        onSuccess(result);
-      }
-
-      if (isModal && serverRole === "CUSTOMER" && !redirectUrl) {
-        setLoading(false);
-        if (onClose) onClose();
+      // Server verifies with Supabase and sets httpOnly session cookies; role comes back from the DB.
+      const result = await verifyOtp(tenDigits, code);
+      setOtpDigits(["", "", "", "", "", ""]);
+      if (result.needs_profile) {
+        setVerifiedRole(result.role);
+        setDestination(result.redirect_to);
+        setStep("profile");
         return;
       }
+      await finish(result.role, result.redirect_to);
+    } catch (err) {
+      setOtpDigits(["", "", "", "", "", ""]);
+      setError(describe(err));
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      let targetPath = redirectUrl || "/account";
-      if (serverRole === "DELIVERY_PARTNER" || serverRole === "DLP") {
-        targetPath = "/dashboard/delivery-partner";
-      } else if (serverRole === "BRANCH_MANAGER" || serverRole === "SHOP_MANAGER" || serverRole === "SHOP" || serverRole === "SHPMGR") {
-        targetPath = "/dashboard/shop";
-      } else if (serverRole === "SUPER_ADMIN" || serverRole === "ADMIN") {
-        targetPath = "/dashboard";
-      }
-
-      router.push(targetPath);
-      router.refresh();
-    } catch (err: any) {
-      setError(err.message || "OTP verification failed. Please try again.");
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (name.trim().length < 2) {
+      setError("Please enter your full name.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ name: name.trim(), email: email.trim() || undefined }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new OtpError(data?.code || "update_failed", data?.error || "Could not save your profile.");
+      await finish(verifiedRole, destination);
+    } catch (err) {
+      setError(describe(err));
     } finally {
       setLoading(false);
     }
@@ -256,7 +250,7 @@ export function OtpLoginForm({
 
           <button
             type="submit"
-            disabled={loading || phone.replace(/\D/g, "").length < 10}
+            disabled={loading || !toTenDigits(phone)}
             className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? (
@@ -275,16 +269,9 @@ export function OtpLoginForm({
       {/* STEP 2: VERIFY OTP (EXISTING CUSTOMER) */}
       {step === "otp" && (
         <form onSubmit={handleVerifyOtp} className="space-y-4">
-          {existingCustomerName ? (
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-bold flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Welcome back, {existingCustomerName}!</span>
-            </div>
-          ) : (
-            <div className="text-xs text-neutral-400">
-              Enter 6-digit code sent to <span className="font-mono text-amber-400 font-bold">+91 {phone}</span>
-            </div>
-          )}
+          <div className="text-xs text-neutral-400">
+            Enter the 6-digit code sent to <span className="font-mono text-amber-400 font-bold">+91 {toTenDigits(phone)}</span>
+          </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -305,7 +292,7 @@ export function OtpLoginForm({
             </div>
 
             {/* 6 Individual Numeric Boxes */}
-            <div className="grid grid-cols-6 gap-2">
+            <div className="grid grid-cols-6 gap-2" role="group" aria-label="One-time code">
               {otpDigits.map((digit, idx) => (
                 <input
                   key={idx}
@@ -314,9 +301,15 @@ export function OtpLoginForm({
                   }}
                   type="text"
                   inputMode="numeric"
-                  maxLength={1}
+                  autoComplete={idx === 0 ? "one-time-code" : "off"}
+                  aria-label={`Digit ${idx + 1} of 6`}
+                  maxLength={idx === 0 ? 6 : 1}
                   value={digit}
                   onChange={(e) => handleDigitChange(idx, e.target.value)}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    handleDigitChange(idx, e.clipboardData.getData("text"));
+                  }}
                   onKeyDown={(e) => handleDigitKeyDown(idx, e)}
                   className="w-full aspect-square bg-neutral-950 border border-neutral-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-xl text-center text-lg font-mono font-bold text-white transition-all select-none"
                   autoFocus={idx === 0}
@@ -345,7 +338,8 @@ export function OtpLoginForm({
             {canResend ? (
               <button
                 type="button"
-                onClick={handleRequestOtp}
+                onClick={() => handleRequestOtp()}
+                disabled={loading}
                 className="text-xs font-bold text-amber-400 hover:underline cursor-pointer"
               >
                 Didn&apos;t receive code? Resend OTP
@@ -359,55 +353,15 @@ export function OtpLoginForm({
         </form>
       )}
 
-      {/* STEP 3: REGISTRATION ONBOARDING FOR NEW CUSTOMER */}
-      {step === "new_customer" && (
-        <form onSubmit={handleVerifyOtp} className="space-y-4">
+      {/* STEP 3: PROFILE COMPLETION (phone already verified by Supabase) */}
+      {step === "profile" && (
+        <form onSubmit={handleSaveProfile} className="space-y-4">
           <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1">
             <h3 className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
               <Cake className="w-3.5 h-3.5 text-amber-400" />
-              Create your CakeToHome account
+              Number verified — finish your CakeToHome profile
             </h3>
-            <p className="text-[11px] text-neutral-300 leading-tight">
-              Enter the code sent to <span className="font-mono text-amber-300">+91 {phone}</span> and set your name.
-            </p>
-          </div>
-
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-300">
-                6-Digit Verification Code
-              </label>
-              <button
-                type="button"
-                onClick={() => {
-                  setStep("phone");
-                  setOtpDigits(["", "", "", "", "", ""]);
-                  setError(null);
-                }}
-                className="text-[11px] text-amber-400 hover:underline"
-              >
-                Change Number
-              </button>
-            </div>
-            {/* 6 Individual Numeric Boxes */}
-            <div className="grid grid-cols-6 gap-2">
-              {otpDigits.map((digit, idx) => (
-                <input
-                  key={idx}
-                  ref={(el) => {
-                    digitInputRefs.current[idx] = el;
-                  }}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleDigitChange(idx, e.target.value)}
-                  onKeyDown={(e) => handleDigitKeyDown(idx, e)}
-                  className="w-full aspect-square bg-neutral-950 border border-neutral-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-xl text-center text-lg font-mono font-bold text-white transition-all"
-                  autoFocus={idx === 0}
-                />
-              ))}
-            </div>
+            <p className="text-[11px] text-neutral-300 leading-tight">Tell us what to call you.</p>
           </div>
 
           <div className="space-y-1">
@@ -445,10 +399,10 @@ export function OtpLoginForm({
 
           <button
             type="submit"
-            disabled={loading || !name.trim() || getFullOtp().length !== 6}
+            disabled={loading || name.trim().length < 2}
             className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
-            {loading ? "Creating Account..." : "Complete Registration & Enter"}
+            {loading ? "Saving..." : "Save & Continue"}
           </button>
         </form>
       )}
@@ -456,7 +410,7 @@ export function OtpLoginForm({
       {/* Trust Footnote */}
       <div className="pt-2 text-center flex items-center justify-center gap-1.5 text-[11px] text-neutral-400 select-none">
         <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-        <span>End-to-End Encrypted &bull; Instant OTP Login</span>
+        <span>Secure SMS verification</span>
       </div>
     </div>
   );

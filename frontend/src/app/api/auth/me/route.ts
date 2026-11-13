@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { retrieveUser } from "@/lib/data/users";
 import { resolveServerSession } from "@frontend/lib/security/auth-session";
+import { clearSessionCookies, mintToken, revalidateClaims, setSessionCookies } from "@frontend/lib/auth/phone-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,17 @@ export async function GET(req: NextRequest) {
       return response;
     }
 
-    const { customerUid, userId, phone, role } = session;
+    // Re-check the DB on every /me: suspension or role change ends/updates the session now,
+    // not when the 8h app token expires.
+    const fresh = await revalidateClaims(session.userId, (session.phone || "").slice(-10)).catch(() => undefined);
+    if (fresh === null) {
+      const gone = NextResponse.json({ success: true, data: { user: null }, message: "Session revoked." }, { status: 200 });
+      clearSessionCookies(gone);
+      gone.headers.set("Cache-Control", "no-store");
+      return gone;
+    }
+    const { customerUid, userId, phone, role } = fresh || session;
+    const reissue = fresh && fresh.role !== session.role ? mintToken(fresh) : null;
 
     const { ApiEngine } = await import("@/lib/api-engine");
     const user = ApiEngine.resolveUserAccount({ userId, phone, role, customerUid }) || (await retrieveUser());
@@ -71,6 +82,7 @@ export async function GET(req: NextRequest) {
       { status: 200 }
     );
 
+    if (reissue) setSessionCookies(response, { token: reissue });
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     response.headers.set("Pragma", "no-cache");
     response.headers.set("Expires", "0");

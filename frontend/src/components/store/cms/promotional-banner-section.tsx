@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Copy, Check, Sparkles, Tag, ArrowRight } from "lucide-react";
+import { apiClient } from "@/lib/api-client";
+import { copyText, PENDING_COUPON_KEY } from "@/lib/util/clipboard";
 
 export interface PromotionalBannerConfig {
   headline?: string;
@@ -92,7 +94,13 @@ export function PromotionalBannerSection({
   isSelected = false,
   onSectionClick,
 }: PromotionalBannerSectionProps) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
+  const [claimState, setClaimState] = useState<{
+    status: "idle" | "loading" | "applied" | "saved" | "error";
+    message?: string;
+  }>({ status: "idle" });
 
   // Content Extraction
   const headline = config.headline || config.heading || "🎉 Monsoon Special — Flat 50% OFF";
@@ -213,13 +221,54 @@ export function PromotionalBannerSection({
   const mbTextAlign = mobileConfig.text_alignment || "center";
   const mbCtaWidthMode = mobileConfig.cta_width_mode || "full";
 
-  const handleCopyCode = (e: React.MouseEvent) => {
+  const handleCopyCode = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!couponCode) return;
-    navigator.clipboard.writeText(couponCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    const ok = await copyText(couponCode);
+    setCopyFailed(!ok);
+    setCopied(ok);
+    if (ok) setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Claim Offer: validate through the existing cart promo endpoint (backend owns
+  // eligibility, min order, cap, expiry). Only navigate on a valid result.
+  const handleClaimOffer = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isPreview) return;
+    if (!couponCode) {
+      router.push(ctaUrl);
+      return;
+    }
+    setClaimState({ status: "loading" });
+    try {
+      const cartRes: any = await apiClient.getCart();
+      const cartId = cartRes?.cart?.id || cartRes?.id;
+      const items = cartRes?.cart?.items || cartRes?.items || [];
+      if (!cartId || items.length === 0) {
+        // Nothing to discount yet: remember the code so checkout applies it, then shop.
+        try { sessionStorage.setItem(PENDING_COUPON_KEY, couponCode); } catch {}
+        setClaimState({
+          status: "saved",
+          message: `Code ${couponCode} saved. Add a cake to your bag and it will be applied at checkout.`,
+        });
+        router.push(ctaUrl);
+        return;
+      }
+      const res: any = await apiClient.applyPromoCode(cartId, couponCode);
+      if (res?.valid) {
+        try { sessionStorage.setItem(PENDING_COUPON_KEY, res.code || couponCode); } catch {}
+        setClaimState({
+          status: "applied",
+          message: `${res.code || couponCode} applied. You save ₹${res.discount ?? 0}.`,
+        });
+        router.push("/checkout");
+      } else {
+        setClaimState({ status: "error", message: res?.error || "This offer cannot be applied to your bag." });
+      }
+    } catch (err: any) {
+      setClaimState({ status: "error", message: err?.message || "Could not claim the offer. Please try again." });
+    }
   };
 
   const bannerClassName = `cth-promo-card-${sectionId}`;
@@ -400,16 +449,28 @@ export function PromotionalBannerSection({
                     padding: `${couponPadY}px ${couponPadX}px`,
                   }}
                   title="Click to copy coupon code"
+                  aria-label={`Copy coupon code ${couponCode}`}
                 >
                   <Tag className="w-3 h-3 group-hover:rotate-12 transition-transform opacity-75" />
                   {couponLabel && <span className="opacity-80 font-semibold">{couponLabel}</span>}
-                  <span className="font-mono tracking-wide font-black">{couponCode}</span>
+                  <span className={`font-mono tracking-wide font-black ${copyFailed ? "select-all" : ""}`}>{couponCode}</span>
                   {copied ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-600 font-black animate-in zoom-in" />
+                    <span className="inline-flex items-center gap-1 text-emerald-700 font-black">
+                      <Check className="w-3.5 h-3.5" />
+                      Copied
+                    </span>
                   ) : (
                     <Copy className="w-3 h-3 opacity-60 group-hover:opacity-100 transition-opacity" />
                   )}
                 </button>
+              )}
+              <span role="status" aria-live="polite" className="sr-only">
+                {copied ? `Coupon code ${couponCode} copied` : ""}
+              </span>
+              {copyFailed && (
+                <span role="alert" className="text-xs font-semibold" style={{ color: subtitleColor }}>
+                  Could not copy automatically. Select the code and copy it manually.
+                </span>
               )}
             </div>
           </div>
@@ -427,25 +488,28 @@ export function PromotionalBannerSection({
 
           {/* Right Column / CTA Action Button */}
           {ctaText && (
-            <div className="shrink-0 z-10 flex items-center">
-              <Link href={ctaUrl} className="w-full sm:w-auto">
-                <button
-                  type="button"
-                  className={`${ctaBtnClassName} inline-flex items-center gap-2 font-bold transition-all shadow-md active:scale-95`}
-                  style={{
-                    backgroundColor: ctaBgColor,
-                    color: ctaTextColor,
-                    borderRadius: `${ctaBorderRadius}px`,
-                    padding: `${ctaPaddingY}px ${ctaPaddingX}px`,
-                    fontWeight: ctaFontWeight,
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  <span>{ctaText}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </Link>
+            <div className="shrink-0 z-10 flex flex-col items-stretch gap-1">
+              <button
+                type="button"
+                onClick={handleClaimOffer}
+                disabled={claimState.status === "loading"}
+                className={`${ctaBtnClassName} inline-flex items-center gap-2 font-bold transition-all shadow-md active:scale-95 disabled:opacity-70`}
+                style={{
+                  backgroundColor: ctaBgColor,
+                  color: ctaTextColor,
+                  borderRadius: `${ctaBorderRadius}px`,
+                  padding: `${ctaPaddingY}px ${ctaPaddingX}px`,
+                  fontWeight: ctaFontWeight,
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                <span>{claimState.status === "loading" ? "Applying…" : ctaText}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <span role="status" aria-live="polite" className="text-xs font-semibold max-w-[260px]" style={{ color: claimState.status === "error" ? "#B42318" : subtitleColor }}>
+                {claimState.message || ""}
+              </span>
             </div>
           )}
         </div>

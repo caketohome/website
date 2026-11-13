@@ -68,7 +68,7 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
   const sellerGstin = invoice.seller_gstin || "32PENDINGREG001";
   const customerName = invoice.customer_name || invoice.ord_customer_name || "Valued Customer";
   const customerPhone = invoice.customer_phone || invoice.ord_customer_phone || "";
-  const deliveryAddress = invoice.delivery_address || invoice.ord_delivery_address || metadata.delivery_address || "Indiranagar, Bengaluru, Karnataka 560038";
+  const deliveryAddress = invoice.delivery_address || invoice.ord_delivery_address || metadata.delivery_address || "";
 
   const subtotal = Number(invoice.subtotal || 0);
   const taxTotal = Number(invoice.tax_total || 0);
@@ -178,7 +178,7 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
                 Payment Gateway: <strong>{invoice.payment_provider ? (invoice.payment_provider.toLowerCase() === "cashfree" ? "Cashfree Payments India (Historical)" : "Razorpay Standard Checkout") : "Razorpay Standard Checkout"}</strong>
               </p>
               <p className="text-slate-600 dark:text-slate-400">
-                Fulfillment Kitchen: <strong>{invoice.branch_name || "Indiranagar Kitchen Hub"}</strong>
+                Fulfillment Kitchen: <strong>{invoice.branch_name || ""}</strong>
               </p>
               <p className="text-slate-500">
                 Supply Type: <strong>Intra-State Supply (CGST + SGST)</strong>

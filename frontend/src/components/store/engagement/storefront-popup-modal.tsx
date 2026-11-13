@@ -5,7 +5,6 @@ import { X, Copy, Check, Sparkles, ArrowRight, Phone, ShieldCheck, RefreshCw, Ta
 import { PopupCampaign, EngagementContext } from "@frontend/lib/engagement/types";
 import { renderTemplate } from "@frontend/lib/engagement/template-renderer";
 import { requestOtp, verifyOtp } from "@frontend/lib/data/customer";
-import { loginCustomer } from "@frontend/lib/actions/users";
 
 interface StorefrontPopupModalProps {
   campaign: PopupCampaign;
@@ -32,7 +31,7 @@ export function StorefrontPopupModal({
   const [authStep, setAuthStep] = useState<"idle" | "phone" | "otp" | "new_customer" | "success">("idle");
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [devOtp, setDevOtp] = useState<string | null>(null);
+  const [verified, setVerified] = useState<{ role: string; redirect_to: string } | null>(null);
   const [resendSeconds, setResendSeconds] = useState(30);
 
   const otpInputsRef = useRef<(HTMLInputElement | null)[]>([]);
@@ -160,18 +159,9 @@ export function StorefrontPopupModal({
       const fullNumber = `+91${cleanDigits}`;
       const res = await requestOtp(fullNumber);
 
-      if (res?.dev_otp) {
-        setDevOtp(res.dev_otp);
-      }
-
-      if (res.account_exists === false) {
-        setIsNewCustomer(true);
-      } else {
-        setIsNewCustomer(false);
-      }
-
+      setIsNewCustomer(false);
       setAuthStep("otp");
-      setResendSeconds(30);
+      setResendSeconds(res.resend_after || 60);
 
       // Focus first OTP input after DOM renders
       setTimeout(() => {
@@ -224,32 +214,9 @@ export function StorefrontPopupModal({
     res: any,
     fullNumber: string
   ) => {
-    const token = res.token || res.accessToken;
-    if (!token) {
-      throw new Error("Authentication failed: No access token returned.");
-    }
-
-    const serverRole = (res.role || res.detected_role || "CUSTOMER").toUpperCase();
-    const userId = res.user?.id || res.customer_id;
-    const userPhone = res.user?.phone || fullNumber;
-    const branchId = res.branch_id || res.user?.branch_id || res.user?.shop_id;
-    const partnerId = res.partner_id || res.user?.partner_id;
-
-    // 1. Immediate client cookies for instant hydration & middleware
-    document.cookie = `_cth_role=${serverRole}; path=/;`;
-    document.cookie = `_cth_jwt=${token}; path=/; SameSite=Lax;`;
-    if (userId) document.cookie = `_cth_user_id=${userId}; path=/; SameSite=Lax;`;
-    if (userPhone) document.cookie = `_cth_phone=${userPhone}; path=/; SameSite=Lax;`;
-    if (branchId) document.cookie = `_cth_branch_id=${branchId}; path=/; SameSite=Lax;`;
-    if (partnerId) document.cookie = `_cth_partner_id=${partnerId}; path=/; SameSite=Lax;`;
-
-    // 2. Server session persistence via existing Server Action
-    await loginCustomer(token, serverRole, userId, userPhone, branchId, partnerId).catch(() => null);
-
-    // 3. Local storage token persistence
+    // Session cookies are httpOnly and set by the server; role comes from the DB, not the client.
+    const serverRole = (res.role || "CUSTOMER").toUpperCase();
     try {
-      localStorage.setItem("cth_access_token", token);
-      localStorage.setItem("cth_user", JSON.stringify(res.user || { id: userId, phone: userPhone, role: serverRole }));
       if (resolvedCouponCode) {
         localStorage.setItem("applied_discount_code", resolvedCouponCode);
         localStorage.setItem("_cth_pending_coupon", resolvedCouponCode);
@@ -263,7 +230,6 @@ export function StorefrontPopupModal({
     if (onCtaAction) {
       onCtaAction("LOGIN_SUCCESS", {
         phone: fullNumber,
-        user: res.user,
         role: serverRole,
         couponCode: resolvedCouponCode,
       });
@@ -271,19 +237,12 @@ export function StorefrontPopupModal({
 
     // Dispatch global auth change event so header / cart updates live
     if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("cth_auth_changed", { detail: { role: serverRole, user: res.user } }));
+      window.dispatchEvent(new CustomEvent("cth_auth_changed", { detail: { role: serverRole } }));
     }
 
-    // 4. Server-Authoritative Destination Resolution
-    let destination: string | null = null;
-    if (serverRole === "DELIVERY_PARTNER" || serverRole === "DLP") {
-      destination = "/dashboard/delivery-partner";
-    } else if (serverRole === "BRANCH_MANAGER" || serverRole === "SHOP_MANAGER" || serverRole === "SHOP" || serverRole === "SHPMGR") {
-      destination = "/dashboard/shop";
-    } else if (serverRole === "SUPER_ADMIN" || serverRole === "ADMIN") {
-      destination = "/dashboard";
-    } else {
-      // Customer: check if popup or context requested a specific redirection
+    // Staff/admin go where the server says; customers may follow the popup's redirect.
+    let destination: string | null = serverRole === "CUSTOMER" ? null : res.redirect_to || null;
+    if (serverRole === "CUSTOMER") {
       if (phoneConfig?.action === "LOGIN_REDIRECT" && phoneConfig?.redirectUrl) {
         destination = phoneConfig.redirectUrl;
       } else if (context?.redirectUrl) {
@@ -308,26 +267,18 @@ export function StorefrontPopupModal({
       return;
     }
 
-    // If known new customer, proceed to Step 3 to collect name
-    if (isNewCustomer && authStep === "otp") {
-      setAuthStep("new_customer");
-      return;
-    }
-
     setLoading(true);
     setAuthError(null);
 
     try {
       const cleanDigits = phone.replace(/\D/g, "").slice(-10);
       const fullNumber = `+91${cleanDigits}`;
-      const res: any = await verifyOtp(fullNumber, otpCode);
+      const res = await verifyOtp(fullNumber, otpCode);
+      setOtp(["", "", "", "", "", ""]);
 
-      if (!res || (!res.token && !res.accessToken)) {
-        throw new Error("Invalid OTP. Please try again.");
-      }
-
-      // If the server tells us this is a new customer and we haven't asked for name yet
-      if (res.is_new_customer && authStep !== "new_customer") {
+      // Verified; profile has no name yet -> collect it (Step 3) before finishing.
+      if (res.needs_profile) {
+        setVerified(res);
         setIsNewCustomer(true);
         setAuthStep("new_customer");
         setLoading(false);
@@ -350,9 +301,7 @@ export function StorefrontPopupModal({
       return;
     }
 
-    const otpCode = otp.join("").replace(/\D/g, "");
-    if (otpCode.length !== 6) {
-      setAuthError("Please enter the 6-digit OTP.");
+    if (!verified) {
       setAuthStep("otp");
       return;
     }
@@ -361,18 +310,17 @@ export function StorefrontPopupModal({
     setAuthError(null);
 
     try {
-      const cleanDigits = phone.replace(/\D/g, "").slice(-10);
-      const fullNumber = `+91${cleanDigits}`;
-      const extra = { name: name.trim(), email: email.trim() || undefined };
-      const res: any = await verifyOtp(fullNumber, otpCode, extra);
-
-      if (!res || (!res.token && !res.accessToken)) {
-        throw new Error("Account creation failed. Please try again.");
-      }
-
-      await completeAuthSession(res, fullNumber);
+      const r = await fetch("/api/auth/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ name: name.trim(), email: email.trim() || undefined }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data?.error || "Could not save your profile.");
+      await completeAuthSession(verified, `+91${phone.replace(/\D/g, "").slice(-10)}`);
     } catch (err: any) {
-      setAuthError(err.message || "Account creation failed. Please try again.");
+      setAuthError(err.message || "Could not save your profile. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -619,23 +567,6 @@ export function StorefrontPopupModal({
                       <span className="text-[11px] text-neutral-500">
                         Sent to +91 {phone.slice(0, 5)} {phone.slice(5)}
                       </span>
-                      {devOtp && (
-                        <div className="flex items-center justify-center gap-2 mt-1">
-                          <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
-                            🔑 Dev OTP: <strong>{devOtp}</strong>
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const digits = devOtp.slice(0, 6).split("");
-                              setOtp(digits);
-                            }}
-                            className="text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white py-0.5 px-2 rounded font-medium transition-colors cursor-pointer"
-                          >
-                            Auto-fill
-                          </button>
-                        </div>
-                      )}
                     </div>
 
                     {/* 6 OTP input boxes */}

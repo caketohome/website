@@ -10,6 +10,13 @@ const nextConfig = {
   staticPageGenerationTimeout: 180,
   experimental: {
     serverComponentsExternalPackages: ["exceljs", "pg"],
+    optimizePackageImports: [
+      "lucide-react",
+      "@medusajs/ui",
+      "@medusajs/icons",
+      "recharts",
+      "date-fns",
+    ],
   },
   webpack: (config) => {
     config.watchOptions = {

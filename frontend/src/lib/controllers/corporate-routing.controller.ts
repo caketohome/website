@@ -62,7 +62,7 @@ export class CorporateRoutingController {
       const role = (userCtx.role || "").toUpperCase();
       const userId = userCtx.userId || "";
       const isSuperAdmin = Boolean(
-        userCtx.isSuperAdmin || role === "SUPER_ADMIN" || userId === "admin_01"
+        userCtx.isSuperAdmin || role === "SUPER_ADMIN"
       );
       return {
         userId,
@@ -79,7 +79,7 @@ export class CorporateRoutingController {
       const role = (session.role || "").toUpperCase();
       const userId = session.userId || "";
       const isSuperAdmin = Boolean(
-        session.isSuperAdmin || role === "SUPER_ADMIN" || userId === "admin_01"
+        session.isSuperAdmin || role === "SUPER_ADMIN"
       );
       const permissions = Array.isArray(session.permissions)
         ? session.permissions
@@ -135,7 +135,7 @@ export class CorporateRoutingController {
       );
     }
 
-    if (actor.isSuperAdmin || actor.role === "SUPER_ADMIN" || actor.userId === "admin_01") {
+    if (actor.isSuperAdmin || actor.role === "SUPER_ADMIN") {
       return null; // Global authority
     }
 
@@ -186,7 +186,7 @@ export class CorporateRoutingController {
     actor: CorporateRoutingActor,
     targetBranchId: string | null
   ): NextResponse | null {
-    if (actor.isSuperAdmin || actor.role === "SUPER_ADMIN" || actor.userId === "admin_01") {
+    if (actor.isSuperAdmin || actor.role === "SUPER_ADMIN") {
       return null;
     }
     if (

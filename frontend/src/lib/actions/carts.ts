@@ -2,7 +2,6 @@
 
 import { revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
-import { apiClient } from "../api-client";
 import { getCacheTag } from "../data/cookies";
 
 export async function getActiveCartId(): Promise<string | null> {
@@ -33,19 +32,19 @@ export async function createCart(data?: any, shop_id: string = "default_shop"): 
     ...(data || {}),
   };
 
-  try {
-    const { ApiEngine } = await import("../api-engine");
-    ApiEngine.saveCart(cartPayload);
-  } catch (err: any) {
-    console.warn("[createCart] ApiEngine warning:", err.message);
-  }
+  const { ApiEngine } = await import("../api-engine");
+  await ApiEngine.ensureHydrated();
+  ApiEngine.saveCart(cartPayload);
 
-  try {
-    const { CartRepository } = await import("../repositories/cart.repository");
-    await CartRepository.saveCart({ id: newCartId, currency_code: "inr", metadata: { shop_id } });
-  } catch (err: any) {
-    console.warn("[createCart] CartRepository warning:", err.message);
-  }
+  const { CartRepository } = await import("../repositories/cart.repository");
+  await CartRepository.saveCart({
+    id: newCartId,
+    branch_id: shop_id,
+    currency_code: "inr",
+    subtotal: 0,
+    total: 0,
+    metadata: { shop_id, ...(data?.metadata || {}) },
+  });
 
   cookieStore.set("_cth_cart_id", newCartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
   cookieStore.set("_medusa_cart_id", newCartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
@@ -53,7 +52,11 @@ export async function createCart(data?: any, shop_id: string = "default_shop"): 
   return cartPayload;
 }
 
-export async function addToCart(variantId: string, shopId: string = "default_shop", metadata?: Record<string, any>): Promise<any> {
+export async function addToCart(
+  variantId: string,
+  shopId: string = "default_shop",
+  metadata?: Record<string, any>
+): Promise<any> {
   let cartId = await getActiveCartId();
   if (!cartId) {
     const cart = await createCart({}, shopId);
@@ -62,10 +65,19 @@ export async function addToCart(variantId: string, shopId: string = "default_sho
 
   try {
     const { ApiEngine } = await import("../api-engine");
+    const { CartRepository } = await import("../repositories/cart.repository");
+    await ApiEngine.ensureHydrated();
+
+    // Load authoritative cart from PostgreSQL into ApiEngine before mutating
+    const existingDbCart = await CartRepository.findCartById(cartId!);
+    if (existingDbCart) {
+      ApiEngine.syncCartFromDb(existingDbCart);
+    }
+
     const itemPayload = {
       cartId: cartId!,
-      productId: metadata?.productId || variantId,
-      product_id: metadata?.productId || variantId,
+      productId: metadata?.productId || metadata?.product_id || variantId,
+      product_id: metadata?.productId || metadata?.product_id || variantId,
       variantId,
       variant_id: variantId,
       quantity: Math.max(1, Number(metadata?.quantity || 1)),
@@ -74,38 +86,31 @@ export async function addToCart(variantId: string, shopId: string = "default_sho
       ...metadata,
     };
 
-    const cart = ApiEngine.addToCart(cartId!, itemPayload);
+    const mutatedCart = ApiEngine.addToCart(cartId!, itemPayload);
 
-    // Authoritative PostgreSQL persistence
-    try {
-      const { CartRepository } = await import("../repositories/cart.repository");
-      await CartRepository.saveCart({
-        id: cartId!,
-        currency_code: cart.currency_code || "inr",
-        metadata: { shop_id: shopId, subtotal: cart.subtotal, total: cart.total },
-      });
+    // Atomically persist cart + all line items in PostgreSQL
+    const persistedCart = await CartRepository.saveCartWithItems({
+      ...mutatedCart,
+      id: cartId!,
+      branch_id: shopId || mutatedCart.branch_id,
+      currency_code: mutatedCart.currency_code || "inr",
+      metadata: {
+        ...(mutatedCart.metadata || {}),
+        shop_id: shopId,
+        subtotal: mutatedCart.subtotal,
+        total: mutatedCart.total,
+      },
+    });
 
-      if (cart && Array.isArray(cart.items)) {
-        const addedItem = cart.items.find(
-          (i: any) =>
-            i.variant_id === variantId ||
-            i.product_id === (metadata?.productId || variantId) ||
-            i.id === variantId
-        ) || cart.items[cart.items.length - 1];
-
-        if (addedItem) {
-          await CartRepository.upsertLineItem(cartId!, addedItem);
-        }
-      }
-    } catch (pgErr: any) {
-      console.warn("[addToCart] PostgreSQL persistence warning:", pgErr.message);
-    }
+    const authoritativeCart = persistedCart
+      ? ApiEngine.syncCartFromDb(persistedCart)
+      : mutatedCart;
 
     const cookieStore = cookies();
     cookieStore.set("_cth_cart_id", cartId!, { path: "/", maxAge: 60 * 60 * 24 * 30 });
     cookieStore.set("_medusa_cart_id", cartId!, { path: "/", maxAge: 60 * 60 * 24 * 30 });
     revalidateTag(getCacheTag("carts"));
-    return { success: true, cart, cartId };
+    return { success: true, cart: authoritativeCart, cartId };
   } catch (e: any) {
     console.error("[addToCart Action Failed]:", e.message || e);
     revalidateTag(getCacheTag("carts"));
@@ -123,20 +128,61 @@ export async function updateCartItemQuantity(lineItemId: string, quantity: numbe
   }
   try {
     const { ApiEngine } = await import("../api-engine");
-    const cart = ApiEngine.updateCartItem(cartId, lineItemId, quantity);
+    const { CartRepository } = await import("../repositories/cart.repository");
+    await ApiEngine.ensureHydrated();
 
-    try {
-      const { CartRepository } = await import("../repositories/cart.repository");
-      await CartRepository.updateLineItemQuantity(cartId, lineItemId, quantity);
-    } catch (pgErr: any) {
-      console.warn("[updateCartItemQuantity] PostgreSQL update warning:", pgErr.message);
+    const existingDbCart = await CartRepository.findCartById(cartId);
+    if (existingDbCart) {
+      ApiEngine.syncCartFromDb(existingDbCart);
     }
 
+    ApiEngine.updateCartItem(cartId, lineItemId, quantity);
+    await CartRepository.updateLineItemQuantity(cartId, lineItemId, quantity);
+
+    const updatedDbCart = await CartRepository.findCartById(cartId);
+    const authoritativeCart = updatedDbCart
+      ? ApiEngine.syncCartFromDb(updatedDbCart)
+      : ApiEngine.getCart(cartId);
+
     revalidateTag(getCacheTag("carts"));
-    return { success: true, cart };
+    return { success: true, cart: authoritativeCart };
   } catch (e: any) {
     console.error("[updateCartItemQuantity Action Failed]:", e.message || e);
     throw new Error(e.message || "Failed to update item quantity");
+  }
+}
+
+export async function updateCartItemMessage(
+  lineItemId: string,
+  cakeMessage: string | null
+): Promise<any> {
+  const cartId = await getActiveCartId();
+  if (!cartId || !lineItemId) {
+    throw new Error("Invalid cart or item reference");
+  }
+  try {
+    const { ApiEngine } = await import("../api-engine");
+    const { CartRepository } = await import("../repositories/cart.repository");
+    await ApiEngine.ensureHydrated();
+
+    const existingDbCart = await CartRepository.findCartById(cartId);
+    if (existingDbCart) {
+      ApiEngine.syncCartFromDb(existingDbCart);
+    }
+
+    ApiEngine.updateCartItemMessage(cartId, lineItemId, cakeMessage);
+    await CartRepository.updateLineItemMessage(cartId, lineItemId, cakeMessage);
+
+    const updatedDbCart = await CartRepository.findCartById(cartId);
+    const authoritativeCart = updatedDbCart
+      ? ApiEngine.syncCartFromDb(updatedDbCart)
+      : ApiEngine.getCart(cartId);
+
+    revalidateTag(getCacheTag("carts"));
+    return { success: true, cart: authoritativeCart };
+  } catch (e: any) {
+    console.error("[updateCartItemMessage Action Failed]:", e.message || e);
+    throw new Error(e.message || "Failed to update cake message");
   }
 }
 
@@ -147,17 +193,24 @@ export async function removeItemFromCart(lineItemId: string): Promise<any> {
   }
   try {
     const { ApiEngine } = await import("../api-engine");
-    const cart = ApiEngine.deleteLineItem(cartId, lineItemId);
+    const { CartRepository } = await import("../repositories/cart.repository");
+    await ApiEngine.ensureHydrated();
 
-    try {
-      const { CartRepository } = await import("../repositories/cart.repository");
-      await CartRepository.removeLineItem(cartId, lineItemId);
-    } catch (pgErr: any) {
-      console.warn("[removeItemFromCart] PostgreSQL delete warning:", pgErr.message);
+    const existingDbCart = await CartRepository.findCartById(cartId);
+    if (existingDbCart) {
+      ApiEngine.syncCartFromDb(existingDbCart);
     }
 
+    ApiEngine.removeCartItem(cartId, lineItemId);
+    await CartRepository.removeLineItem(cartId, lineItemId);
+
+    const updatedDbCart = await CartRepository.findCartById(cartId);
+    const authoritativeCart = updatedDbCart
+      ? ApiEngine.syncCartFromDb(updatedDbCart)
+      : ApiEngine.getCart(cartId);
+
     revalidateTag(getCacheTag("carts"));
-    return { success: true, cart };
+    return { success: true, cart: authoritativeCart };
   } catch (e: any) {
     console.error("[removeItemFromCart Action Failed]:", e.message || e);
     throw new Error(e.message || "Failed to remove item from cart");
@@ -169,6 +222,7 @@ export async function clearCartAction(): Promise<void> {
   if (cartId) {
     try {
       const { ApiEngine } = await import("../api-engine");
+      await ApiEngine.ensureHydrated();
       ApiEngine.clearCart(cartId);
 
       const { CartRepository } = await import("../repositories/cart.repository");
@@ -182,7 +236,6 @@ export async function clearCartAction(): Promise<void> {
   revalidateTag(getCacheTag("carts"));
 }
 
-
 export async function getSavedItems(): Promise<any[]> {
   const cookieVal = cookies().get("_cth_saved_items")?.value;
   if (!cookieVal) return [];
@@ -193,12 +246,22 @@ export async function getSavedItems(): Promise<any[]> {
   }
 }
 
-export async function saveItemForLater(lineItemId: string, variantId: string, shopId: string, title: string, thumbnail: string | null, price: number | null): Promise<void> {
+export async function saveItemForLater(
+  lineItemId: string,
+  variantId: string,
+  shopId: string,
+  title: string,
+  thumbnail: string | null,
+  price: number | null
+): Promise<void> {
   await removeItemFromCart(lineItemId);
   const savedItems = await getSavedItems();
   if (!savedItems.some((item) => item.variant_id === variantId)) {
     savedItems.push({ variant_id: variantId, shop_id: shopId, title, thumbnail, price });
-    cookies().set("_cth_saved_items", JSON.stringify(savedItems), { path: "/", maxAge: 60 * 60 * 24 * 30 });
+    cookies().set("_cth_saved_items", JSON.stringify(savedItems), {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    });
   }
 }
 
@@ -206,5 +269,8 @@ export async function moveToCartFromSaved(variantId: string, shopId: string): Pr
   await addToCart(variantId, shopId);
   const savedItems = await getSavedItems();
   const filtered = savedItems.filter((item) => item.variant_id !== variantId);
-  cookies().set("_cth_saved_items", JSON.stringify(filtered), { path: "/", maxAge: 60 * 60 * 24 * 30 });
+  cookies().set("_cth_saved_items", JSON.stringify(filtered), {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30,
+  });
 }

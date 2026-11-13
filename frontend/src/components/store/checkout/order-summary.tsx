@@ -71,7 +71,7 @@ export function OrderSummary({
                 {deliveryType === "pickup" ? "Pickup Store" : "Servicing Hub"}
               </p>
               <p className="text-[11px] text-slate-500 truncate max-w-[200px]">
-                {servicingBranch.name || servicingBranch.linked_store_name || "Bengaluru Kitchen"}
+                {servicingBranch.name || servicingBranch.linked_store_name || "Kitchen"}
               </p>
             </div>
           </div>

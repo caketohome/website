@@ -69,7 +69,7 @@ export class AccountsReceivableService {
       // SUPER_ADMIN has enterprise scope (may query enterprise aggregate or specific branch).
       // Non-super-admin staff MUST have a verified branch assignment and are strictly locked to it.
       // A null/absent branch context NEVER grants enterprise access.
-      const isSuperAdmin = actorRole === "SUPER_ADMIN" || filters.actorContext.userId === "admin_01" || filters.actorContext.isSuperAdmin === true;
+      const isSuperAdmin = actorRole === "SUPER_ADMIN" || filters.actorContext.isSuperAdmin === true;
       if (actorRole !== "CUSTOMER" && !isSuperAdmin) {
         const actorBranch = filters.actorContext.branch_id || filters.actorContext.branchId;
         if (!actorBranch) {
@@ -228,7 +228,7 @@ export class AccountsReceivableService {
       // Non-super-admin staff MUST have a verified branch assignment and are strictly locked to it.
       // A null/absent branch context NEVER grants enterprise access.
       const actorRole = (filters.actorContext.role || "").toUpperCase();
-      const isSuperAdmin = actorRole === "SUPER_ADMIN" || filters.actorContext.userId === "admin_01" || filters.actorContext.isSuperAdmin === true;
+      const isSuperAdmin = actorRole === "SUPER_ADMIN" || filters.actorContext.isSuperAdmin === true;
       if (!isSuperAdmin) {
         const actorBranch = filters.actorContext.branch_id || filters.actorContext.branchId;
         if (!actorBranch) {
@@ -438,7 +438,6 @@ export class AccountsReceivableService {
       const actorBranch = filters.actorContext.branch_id || filters.actorContext.branchId;
       const isSuperAdmin =
         filters.actorContext.role === "SUPER_ADMIN" ||
-        filters.actorContext.userId === "admin_01" ||
         filters.actorContext.isSuperAdmin === true;
 
       if (!isSuperAdmin) {

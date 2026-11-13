@@ -7,22 +7,23 @@ import { apiClient } from "../api-client";
 
 export interface OtpRequestResponse {
   sent: boolean;
-  dev_otp?: string;
   message: string;
-  account_exists?: boolean;
-  role?: string;
+  resend_after?: number;
 }
 
+/** Session cookies are set httpOnly by the server; no token ever reaches client JS. */
 export interface OtpVerifyResponse {
-  customer_id: string;
-  customer_uid?: string;
+  role: string;
+  redirect_to: string;
   is_new_customer: boolean;
-  token?: string;
-  detected_role?: string;
-  role?: string;
-  user?: any;
-  branch_id?: string;
-  partner_id?: string;
+  needs_profile: boolean;
+}
+
+/** Error carrying the server's machine-readable code (otp_invalid, rate_limited, sms_unavailable, ...). */
+export class OtpError extends Error {
+  constructor(public code: string, message: string, public retryAfter?: number) {
+    super(message);
+  }
 }
 
 export interface CustomerAddress {
@@ -61,119 +62,33 @@ export interface AddressInput {
   is_default_billing?: boolean;
 }
 
-/**
- * Smart automatic role detection based on input mobile number or username/email.
- * Real role verification is ALWAYS server-authoritative upon OTP verification.
- */
-export function detectUserRole(phoneOrEmail: string): { role: string; label: string; redirectPath: string } {
-  const clean = (phoneOrEmail || "").trim().toLowerCase().replace(/\s+/g, "");
-  const cleanDigits = clean.replace(/\D/g, "");
-
-  // Explicit demo keywords for testing (non-numeric) or delivery partner phones
-  if (clean === "driver" || clean === "dlp" || clean === "delivery" || cleanDigits === "9900011111" || cleanDigits === "9900022222") {
-    return {
-      role: "delivery_partner",
-      label: "🛵 Delivery Partner Fleet",
-      redirectPath: "/dashboard/delivery-partner",
-    };
+async function postAuth<T>(path: string, body: object): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new OtpError("network", "Network error. Check your connection and try again.");
   }
-
-  // Explicit admin keywords or super admin phones
-  if (clean === "admin" || clean === "superadmin" || clean === "owner" || cleanDigits === "9999999999" || cleanDigits === "9876500000") {
-    return {
-      role: "admin",
-      label: "🛡️ Super Admin Control",
-      redirectPath: "/dashboard",
-    };
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data?.success === false) {
+    const retry = Number(res.headers.get("Retry-After")) || undefined;
+    throw new OtpError(data?.code || "auth_failed", data?.error || "Something went wrong. Please try again.", retry);
   }
-
-  // Branch manager keywords or branch manager phone
-  if (clean === "shop" || clean === "shpmgr" || clean === "manager" || clean === "branch" || cleanDigits === "9876500001") {
-    return {
-      role: "shop",
-      label: "🏪 Branch & Shop Manager Control Center",
-      redirectPath: "/dashboard/shop",
-    };
-  }
-
-  // All other phone numbers default to Customer Profile; backend OTP verification provides server-authoritative role
-  return {
-    role: "customer",
-    label: "👤 Customer Profile",
-    redirectPath: "/account",
-  };
+  return data as T;
 }
 
 export async function requestOtp(phone: string): Promise<OtpRequestResponse> {
-  const isDev = process.env.NODE_ENV !== "production";
-  try {
-    const res: any = await Promise.race([
-      apiClient.requestOtp(phone),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 30000))
-    ]);
-
-    return {
-      sent: true,
-      dev_otp: (isDev && res?.dev_otp) ? res.dev_otp : undefined,
-      message: res.message || "OTP sent successfully",
-      account_exists: res.account_exists,
-      role: res.role,
-    };
-  } catch (err: any) {
-    if (!isDev) {
-      throw new Error(err.message || "Failed to send OTP. Please try again.");
-    }
-    const detected = detectUserRole(phone);
-    return {
-      sent: true,
-      dev_otp: "123456",
-      message: "Development fallback: OTP service unavailable",
-      account_exists: true,
-      role: detected.role === "admin" ? "SUPER_ADMIN" : (detected.role === "shop" ? "BRANCH_MANAGER" : (detected.role === "delivery_partner" ? "DELIVERY_PARTNER" : "CUSTOMER")),
-    };
-  }
+  const data = await postAuth<any>("/api/v1/auth/request-otp", { phone });
+  return { sent: true, message: data.message, resend_after: data.resend_after };
 }
 
-export async function verifyOtp(phone: string, otp: string, extra?: { name?: string; email?: string }): Promise<OtpVerifyResponse> {
-  const isDev = process.env.NODE_ENV !== "production";
-  const detected = detectUserRole(phone);
-  try {
-    const res: any = await Promise.race([
-      apiClient.verifyOtp(phone, otp, extra),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 30000))
-    ]);
-
-    const token = res.accessToken || res.token;
-    if (!res || !token) {
-      throw new Error("Verification failed: no token received");
-    }
-
-    return {
-      customer_id: res.user?.customer_id || res.user?.id || res.customer_id || `cus_${phone.replace(/\D/g, "").slice(-10)}`,
-      customer_uid: res.user?.customer_uid || res.customer_uid || `cth_cus_${phone.replace(/\D/g, "").slice(-10)}`,
-      is_new_customer: res.is_new_customer ?? false,
-      token,
-      detected_role: res.role || detected.role,
-      role: res.role || (detected.role === "admin" ? "SUPER_ADMIN" : (detected.role === "shop" ? "BRANCH_MANAGER" : (detected.role === "delivery_partner" ? "DELIVERY_PARTNER" : "CUSTOMER"))),
-      user: res.user,
-      branch_id: res.branch_id || res.user?.branch_id,
-      partner_id: res.partner_id || res.user?.partner_id,
-    };
-  } catch (err: any) {
-    if (!isDev) {
-      throw new Error(err.message || "OTP verification failed. Please try again.");
-    }
-    // Development fallback only
-    const fallbackRole = detected.role === "admin" ? "SUPER_ADMIN" : (detected.role === "shop" ? "BRANCH_MANAGER" : (detected.role === "delivery_partner" ? "DELIVERY_PARTNER" : "CUSTOMER"));
-    return {
-      customer_id: `cus_${phone.replace(/\D/g, "").slice(-10)}`,
-      customer_uid: `cth_cus_${phone.replace(/\D/g, "").slice(-10)}`,
-      is_new_customer: false,
-      token: "mock_jwt_token_for_dev",
-      detected_role: detected.role,
-      role: fallbackRole,
-    };
-  }
+export async function verifyOtp(phone: string, code: string): Promise<OtpVerifyResponse> {
+  return postAuth<OtpVerifyResponse>("/api/v1/auth/verify-otp", { phone, code });
 }
 
 export async function fetchCurrentCustomer(): Promise<any> {

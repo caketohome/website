@@ -4,21 +4,15 @@ import { resolveServerSession } from "@/lib/security/auth-session";
 
 export const dynamic = "force-dynamic";
 
-function requireAdmin(req: NextRequest): NextResponse | null {
+function requireAdmin(req: NextRequest): { error: NextResponse } | { userId: string } {
   const session = resolveServerSession(req);
   if (!session || !session.userId) {
-    return NextResponse.json(
-      { success: false, error: "UNAUTHORIZED", message: "Admin authentication required." },
-      { status: 401 }
-    );
+    return { error: NextResponse.json({ success: false, error: "UNAUTHORIZED", message: "Admin authentication required." }, { status: 401 }) };
   }
   if (session.role !== "SUPER_ADMIN" && session.role !== "ADMIN") {
-    return NextResponse.json(
-      { success: false, error: "FORBIDDEN", message: "Admin privileges required." },
-      { status: 403 }
-    );
+    return { error: NextResponse.json({ success: false, error: "FORBIDDEN", message: "Admin privileges required." }, { status: 403 }) };
   }
-  return null;
+  return { userId: session.userId };
 }
 
 /**
@@ -26,37 +20,29 @@ function requireAdmin(req: NextRequest): NextResponse | null {
  * Hardened Diagnostic Connection Probe (SSRF Prevention, 5s timeout, manual redirect)
  */
 export async function POST(req: NextRequest) {
-  const authErr = requireAdmin(req);
-  if (authErr) return authErr;
+  const auth = requireAdmin(req);
+  if ("error" in auth) return auth.error;
+
+  let environment: "TEST" | "LIVE" | undefined;
+  try {
+    const body = await req.json();
+    const raw = String(body?.environment || "").toUpperCase();
+    if (raw === "TEST" || raw === "LIVE") environment = raw;
+  } catch {
+    // empty body: probe the active environment
+  }
 
   try {
-    let body: any = {};
-    try {
-      body = await req.json();
-    } catch (e) {
-      // Body may be empty if testing saved credentials
-    }
-
-    const result = await PaymentGatewayConfigService.testConnection({
-      key_id: body.key_id,
-      key_secret: body.key_secret,
-      environment: body.environment
+    // Only STORED credentials are probed; secrets are never accepted from or returned to the browser.
+    const result = await PaymentGatewayConfigService.testConnection({ key_id: "", environment });
+    await PaymentGatewayConfigService.recordAudit({
+      actor: auth.userId, action: "PROBE", status: result.success ? "SUCCESS" : "FAILURE", environment: result.environment, code: result.category
     });
-
     return NextResponse.json(result, { status: 200 });
-  } catch (err: any) {
-    console.error("[RazorpayTestConnectionAPI] Error:", err.message);
+  } catch {
     return NextResponse.json(
-      {
-        success: false,
-        status_code: 500,
-        environment: "TEST",
-        category: "NETWORK_FAILURE",
-        message: err.message || "Failed to execute diagnostic connection probe",
-        tested_at: new Date().toISOString()
-      },
+      { success: false, status_code: 500, environment: environment || "TEST", category: "NETWORK_FAILURE", message: "The diagnostic probe could not be executed.", tested_at: new Date().toISOString() },
       { status: 500 }
     );
   }
 }
-

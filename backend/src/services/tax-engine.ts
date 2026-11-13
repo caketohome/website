@@ -116,8 +116,8 @@ export interface TaxCalculationInput {
   cessRatePct?: number; // e.g. 0
   taxability?: "Taxable" | "Exempt" | "Nil Rated" | "Non-GST";
   customerGstin?: string;
-  customerStateCode?: string; // e.g. "29" for Karnataka
-  sellerStateCode?: string; // e.g. "29" for Karnataka
+  customerStateCode?: string; // e.g. "32" for Kerala
+  sellerStateCode?: string; // e.g. "32" for Kerala
   sellerGstin?: string; // default "29AAAAA0000A1Z5"
   taxInclusive?: boolean;
 }
@@ -152,8 +152,8 @@ export interface TaxCalculationOutput {
 
 export class TaxEngine {
   public static DEFAULT_SELLER_GSTIN = "29AAAAA0000A1Z5";
-  public static DEFAULT_SELLER_STATE_CODE = "29"; // Karnataka
-  public static DEFAULT_SELLER_STATE_NAME = "Karnataka";
+  public static DEFAULT_SELLER_STATE_CODE = "32"; // Kerala
+  public static DEFAULT_SELLER_STATE_NAME = "Kerala";
 
   public static STATE_CODE_MAP: Record<string, string> = {
     "01": "Jammu & Kashmir",

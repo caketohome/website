@@ -33,6 +33,14 @@ export async function getCheckoutAvailabilityAction(payload: {
 
   try {
     const { ApiEngine } = await import("../api-engine");
+    const { CartRepository } = await import("../repositories/cart.repository");
+    await ApiEngine.ensureHydrated();
+    if (cartId && cartId !== "cart_guest") {
+      const pgCart = await CartRepository.findCartById(cartId);
+      if (pgCart) {
+        ApiEngine.syncCartFromDb(pgCart);
+      }
+    }
     return ApiEngine.getCheckoutAvailability({
       ...payload,
       cart_id: cartId,

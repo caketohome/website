@@ -468,6 +468,11 @@ export class OrderRepository {
     status?: string;
     branch_id?: string;
     customer_id?: string;
+    q?: string;
+    city?: string;
+    payment_status?: string;
+    from_date?: string;
+    to_date?: string;
   } = {}): Promise<{
     items: OrderDomain[];
     total: number;
@@ -477,9 +482,9 @@ export class OrderRepository {
     hasNextPage: boolean;
     hasPreviousPage: boolean;
   }> {
-    const page = Math.max(1, params.page || 1);
     const pageSize = Math.min(Math.max(1, params.pageSize || params.limit || 20), 100);
-    const offset = params.offset !== undefined ? Math.max(0, params.offset) : (page - 1) * pageSize;
+    const offset = params.offset !== undefined ? Math.max(0, params.offset) : (Math.max(1, params.page || 1) - 1) * pageSize;
+    const page = params.offset !== undefined ? Math.floor(offset / pageSize) + 1 : Math.max(1, params.page || 1);
 
     const conditions: string[] = ["o.deleted_at IS NULL"];
     const values: any[] = [];
@@ -497,6 +502,46 @@ export class OrderRepository {
     if (params.customer_id) {
       values.push(params.customer_id);
       conditions.push(`(o.customer_id = $${values.length} OR o.metadata->>'customer_uid' = $${values.length})`);
+    }
+
+    if (params.q && params.q.trim()) {
+      values.push(`%${params.q.trim().toLowerCase()}%`);
+      conditions.push(`(
+        LOWER(COALESCE(o.id, '')) LIKE $${values.length}
+        OR LOWER(COALESCE(o.order_number, '')) LIKE $${values.length}
+        OR LOWER(COALESCE(o.display_id::text, '')) LIKE $${values.length}
+        OR LOWER(COALESCE(o.customer_name, o.metadata->>'customer_name', '')) LIKE $${values.length}
+        OR LOWER(COALESCE(o.customer_phone, o.metadata->>'customer_phone', '')) LIKE $${values.length}
+        OR LOWER(COALESCE(o.metadata->>'order_number', '')) LIKE $${values.length}
+      )`);
+    }
+
+    if (params.city && params.city !== "all") {
+      values.push(`%${params.city.trim().toLowerCase()}%`);
+      conditions.push(`(
+        LOWER(COALESCE(o.metadata->>'delivery_city', '')) LIKE $${values.length}
+        OR LOWER(COALESCE(o.metadata->>'city', '')) LIKE $${values.length}
+      )`);
+    }
+
+    if (params.payment_status && params.payment_status !== "all") {
+      const ps = params.payment_status.trim().toLowerCase();
+      if (ps === "paid" || ps === "captured") {
+        conditions.push(`LOWER(COALESCE(o.payment_status, o.metadata->>'payment_status', '')) IN ('paid', 'captured')`);
+      } else {
+        values.push(ps);
+        conditions.push(`LOWER(COALESCE(o.payment_status, o.metadata->>'payment_status', '')) = $${values.length}`);
+      }
+    }
+
+    if (params.from_date && params.from_date.trim()) {
+      values.push(params.from_date.trim());
+      conditions.push(`o.created_at >= ($${values.length}::date)`);
+    }
+
+    if (params.to_date && params.to_date.trim()) {
+      values.push(params.to_date.trim());
+      conditions.push(`o.created_at < ($${values.length}::date + INTERVAL '1 day')`);
     }
 
     const whereClause = conditions.join(" AND ");

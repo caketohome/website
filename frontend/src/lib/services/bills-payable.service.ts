@@ -239,8 +239,7 @@ export class BillsPayableService {
     if (!actorContext) return requestedBranchId;
     const isSuperAdmin =
       actorContext.role === "SUPER_ADMIN" ||
-      actorContext.isSuperAdmin ||
-      actorContext.userId === "admin_01";
+      actorContext.isSuperAdmin;
     const actorBranch = actorContext.branch_id || actorContext.branchId;
 
     if (!isSuperAdmin && actorBranch) {

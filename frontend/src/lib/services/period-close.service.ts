@@ -2696,15 +2696,29 @@ export class PeriodCloseService {
     const compareDates = deriveIndianFiscalYearDates(params.compare_fiscal_year);
 
     // Fetch Trial Balance for both periods, excluding closing vouchers
-    const [currentTB, compareTB, allAccounts] = await Promise.all([
-      AccountingJournalRepository.getTrialBalance(
+    // Serialize when sharing an existing PoolClient to avoid concurrent client.query() calls
+    let currentTB: TrialBalanceRow[];
+    let compareTB: TrialBalanceRow[];
+    let allAccounts: AccountingAccountRow[];
+    if (existingClient) {
+      currentTB = await AccountingJournalRepository.getTrialBalance(
         params.branch_id, currentDates.startDate, currentDates.endDate, true, existingClient
-      ),
-      AccountingJournalRepository.getTrialBalance(
+      );
+      compareTB = await AccountingJournalRepository.getTrialBalance(
         params.branch_id, compareDates.startDate, compareDates.endDate, true, existingClient
-      ),
-      AccountingAccountRepository.listAccounts({ is_active: true }, existingClient),
-    ]);
+      );
+      allAccounts = await AccountingAccountRepository.listAccounts({ is_active: true }, existingClient);
+    } else {
+      [currentTB, compareTB, allAccounts] = await Promise.all([
+        AccountingJournalRepository.getTrialBalance(
+          params.branch_id, currentDates.startDate, currentDates.endDate, true
+        ),
+        AccountingJournalRepository.getTrialBalance(
+          params.branch_id, compareDates.startDate, compareDates.endDate, true
+        ),
+        AccountingAccountRepository.listAccounts({ is_active: true }),
+      ]);
+    }
 
     // Build lookup maps
     const accountById = new Map<string, AccountingAccountRow>();

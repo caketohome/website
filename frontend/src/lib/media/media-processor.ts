@@ -8,7 +8,7 @@
 import sharp from "sharp";
 import crypto from "crypto";
 import path from "path";
-import fs from "fs";
+import { putMediaObject } from "./media-storage";
 
 export interface ProcessedImageResult {
   filename: string;
@@ -32,18 +32,6 @@ export interface ProcessedImageResult {
 }
 
 export class MediaProcessor {
-  private static getUploadsDir(): string {
-    let root = process.cwd();
-    if (!root.endsWith("frontend") && fs.existsSync(path.join(root, "frontend"))) {
-      root = path.join(root, "frontend");
-    }
-    const uploadsDir = path.join(root, "public", "uploads");
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-    return uploadsDir;
-  }
-
   /**
    * Process an image buffer: optimize, generate WebP, AVIF, responsive sizes, and blur placeholder.
    */
@@ -52,7 +40,7 @@ export class MediaProcessor {
     originalFilename: string,
     options?: { folder?: string; alt?: string }
   ): Promise<ProcessedImageResult> {
-    const uploadsDir = this.getUploadsDir();
+    const folder = options?.folder || "uploads";
 
     // Compute content hash
     const content_hash = crypto.createHash("sha256").update(buffer).digest("hex").slice(0, 16);
@@ -80,21 +68,18 @@ export class MediaProcessor {
 
     // 2. Save optimized original (strip EXIF metadata for privacy)
     const mainFileName = `${baseName}_${uniqueId}.${ext}`;
-    const mainFilePath = path.join(uploadsDir, mainFileName);
     const mainBuffer = await sharp(buffer).rotate().toBuffer();
-    fs.writeFileSync(mainFilePath, mainBuffer);
-    const mainUrl = `/uploads/${mainFileName}`;
+    const mainUrl = await putMediaObject(folder, mainFileName, mainBuffer, `image/${ext === "jpg" ? "jpeg" : ext}`);
 
     // 3. Generate WebP variant
     let is_webp_generated = false;
     let webpVariant: { url: string; size: number } | undefined;
     try {
       const webpFileName = `${baseName}_${uniqueId}.webp`;
-      const webpFilePath = path.join(uploadsDir, webpFileName);
       const webpBuffer = await sharp(buffer).rotate().webp({ quality: 85, effort: 4 }).toBuffer();
-      fs.writeFileSync(webpFilePath, webpBuffer);
+      const webpUrl = await putMediaObject(folder, webpFileName, webpBuffer, "image/webp");
       is_webp_generated = true;
-      webpVariant = { url: `/uploads/${webpFileName}`, size: webpBuffer.length };
+      webpVariant = { url: webpUrl, size: webpBuffer.length };
     } catch (e) {
       console.warn("[MediaProcessor] Failed to generate WebP:", e);
     }
@@ -104,11 +89,10 @@ export class MediaProcessor {
     let avifVariant: { url: string; size: number } | undefined;
     try {
       const avifFileName = `${baseName}_${uniqueId}.avif`;
-      const avifFilePath = path.join(uploadsDir, avifFileName);
       const avifBuffer = await sharp(buffer).rotate().avif({ quality: 75, effort: 4 }).toBuffer();
-      fs.writeFileSync(avifFilePath, avifBuffer);
+      const avifUrl = await putMediaObject(folder, avifFileName, avifBuffer, "image/avif");
       is_avif_generated = true;
-      avifVariant = { url: `/uploads/${avifFileName}`, size: avifBuffer.length };
+      avifVariant = { url: avifUrl, size: avifBuffer.length };
     } catch (e) {
       console.warn("[MediaProcessor] Failed to generate AVIF:", e);
     }
@@ -118,14 +102,12 @@ export class MediaProcessor {
     let thumbVariant: { url: string; width: number; height: number; size: number } | undefined;
     try {
       const thumbFileName = `${baseName}_${uniqueId}_thumb.webp`;
-      const thumbFilePath = path.join(uploadsDir, thumbFileName);
       const thumbBuffer = await sharp(buffer)
         .rotate()
         .resize(300, 300, { fit: "cover", position: "center" })
         .webp({ quality: 80 })
         .toBuffer();
-      fs.writeFileSync(thumbFilePath, thumbBuffer);
-      thumbnail_url = `/uploads/${thumbFileName}`;
+      thumbnail_url = await putMediaObject(folder, thumbFileName, thumbBuffer, "image/webp");
       thumbVariant = { url: thumbnail_url, width: 300, height: 300, size: thumbBuffer.length };
     } catch (e) {
       console.warn("[MediaProcessor] Failed to generate thumbnail:", e);
@@ -136,14 +118,13 @@ export class MediaProcessor {
     if (originalWidth > 600) {
       try {
         const medFileName = `${baseName}_${uniqueId}_med.webp`;
-        const medFilePath = path.join(uploadsDir, medFileName);
         const medBuffer = await sharp(buffer)
           .rotate()
           .resize(600, Math.round(600 * (originalHeight / originalWidth)), { fit: "inside" })
           .webp({ quality: 85 })
           .toBuffer();
-        fs.writeFileSync(medFilePath, medBuffer);
-        mediumVariant = { url: `/uploads/${medFileName}`, width: 600, height: Math.round(600 * (originalHeight / originalWidth)), size: medBuffer.length };
+        const medUrl = await putMediaObject(folder, medFileName, medBuffer, "image/webp");
+        mediumVariant = { url: medUrl, width: 600, height: Math.round(600 * (originalHeight / originalWidth)), size: medBuffer.length };
       } catch (e) {
         console.warn("[MediaProcessor] Failed to generate medium variant:", e);
       }

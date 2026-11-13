@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdminShell } from "@frontend/components/admin/AdminShell";
 import { AdminSidebar } from "@frontend/components/admin/AdminSidebar";
@@ -10,6 +10,36 @@ import { DashboardErrorBoundary } from "@frontend/components/dashboard/admin/err
 
 export default function AdminOrdersPage() {
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => {
+        if (!active) return;
+        const sessionUser = json?.data?.user;
+        if (!sessionUser) {
+          router.replace("/login");
+          return;
+        }
+        setUser({
+          role: (sessionUser.role || "").toUpperCase(),
+          userId: sessionUser.id || "",
+          id: sessionUser.id || "",
+          phone: sessionUser.phone || "",
+          permissions: sessionUser.permissions || [],
+        });
+        setAuthChecked(true);
+      })
+      .catch(() => {
+        if (active) router.replace("/login");
+      });
+    return () => {
+      active = false;
+    };
+  }, [router]);
 
   const handleNavigate = (tabId: string) => {
     if (tabId === "orders") {
@@ -19,11 +49,20 @@ export default function AdminOrdersPage() {
     }
   };
 
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 text-xs text-slate-500">
+        Verifying administrator session...
+      </div>
+    );
+  }
+
   return (
     <AdminShell
-      sidebar={<AdminSidebar activeTabId="orders" onNavigate={handleNavigate} />}
+      sidebar={<AdminSidebar activeTabId="orders" onNavigate={handleNavigate} user={user} />}
       topbar={
         <AdminTopbar
+          user={user}
           breadcrumbs={[
             { label: "Admin ERP", href: "/dashboard" },
             { label: "Orders Register", href: "/admin/orders" },
@@ -39,4 +78,3 @@ export default function AdminOrdersPage() {
     </AdminShell>
   );
 }
-

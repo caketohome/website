@@ -10,9 +10,7 @@ export class AuthService {
     }
 
     const cleanPhone = phone.replace(/\D/g, "").slice(-10);
-    const code = process.env.NODE_ENV === "production"
-      ? String(Math.floor(100000 + Math.random() * 900000))
-      : "123456";
+    const code = String(Math.floor(100000 + Math.random() * 900000)); // no fixed dev codes
 
     AuthService.otpStore.set(cleanPhone, {
       code,
@@ -33,18 +31,16 @@ export class AuthService {
   }> {
     const cleanPhone = phone.replace(/\D/g, "").slice(-10);
     const record = AuthService.otpStore.get(cleanPhone);
-    const isDev = process.env.NODE_ENV !== "production";
-
-    if (!record && !(isDev && code === "123456")) {
+    if (!record) {
       throw new BadRequestException("No active OTP request found for this phone number");
     }
 
-    if (record && record.expiresAt < Date.now()) {
+    if (record.expiresAt < Date.now()) {
       AuthService.otpStore.delete(cleanPhone);
       throw new BadRequestException("OTP has expired. Please request a new one.");
     }
 
-    if (record && record.code !== code && !(isDev && code === "123456")) {
+    if (record.code !== code) {
       throw new BadRequestException("Invalid OTP code");
     }
 

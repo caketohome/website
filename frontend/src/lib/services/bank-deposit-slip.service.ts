@@ -95,7 +95,7 @@ export class BankDepositSlipService {
 
     const role = (actorContext.role || "").toUpperCase();
     const actorId = actorContext.id || actorContext.user_id || "";
-    const isSuperAdmin = role === "SUPER_ADMIN" || actorId === "admin_01";
+    const isSuperAdmin = role === "SUPER_ADMIN";
     const actorBranch = actorContext.branch_id || actorContext.branchId || null;
 
     return { isSuperAdmin, actorBranch, actorId };

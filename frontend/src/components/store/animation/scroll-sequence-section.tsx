@@ -27,7 +27,7 @@ export interface ScrollSequenceSectionProps {
 export function ScrollSequenceSection({
   config: userConfig,
   headline = "Freshly Baked Happiness",
-  subheadline = "Handcrafted artisanal cakes baked fresh daily across Bangalore with 2-hour express delivery.",
+  subheadline = "Handcrafted artisanal cakes baked fresh daily across Kerala with 2-hour express delivery.",
   badgeText = "100% Fresh & Artisanal • Express 2-Hour Delivery",
   onSearch,
   className = "",

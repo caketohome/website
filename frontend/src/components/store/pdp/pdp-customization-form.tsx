@@ -200,7 +200,7 @@ export function PdpCustomizationForm({
                 <span className="text-[11px] text-slate-400 font-normal tracking-normal lowercase">(optional)</span>
               )}
             </label>
-            <span className={`text-[11px] font-medium ${cakeMessage.length === 30 ? "text-rose-600 font-bold" : "text-slate-400"}`}>
+            <span data-testid="pdp-cake-message-counter" className={`text-[11px] font-medium ${cakeMessage.length === 30 ? "text-rose-600 font-bold" : "text-slate-400"}`}>
               {cakeMessage.length} / 30 chars
             </span>
           </div>

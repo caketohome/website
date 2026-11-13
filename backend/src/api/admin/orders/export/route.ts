@@ -33,15 +33,15 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         customer_name: meta.customer_name || [shipping.first_name, shipping.last_name].filter(Boolean).join(" ") || o.email?.split("@")[0] || "Guest Customer",
         customer_phone: meta.customer_phone || shipping.phone || "+91 98765 43210",
         customer_email: o.email || "customer@cakes2home.com",
-        branch: meta.branch_name || "Indiranagar Flagship Kitchen",
+        branch: meta.branch_name || "Unassigned",
         status: o.status || "pending",
         payment_status: meta.payment_status || "paid",
         total_amount: o.total || 649,
         created_at: o.created_at || new Date().toISOString(),
         delivery_date: meta.delivery_date || new Date().toISOString().slice(0, 10),
         delivery_slot: meta.delivery_slot || "07:00 PM - 09:00 PM",
-        city: shipping.city || meta.city || "Bengaluru",
-        pincode: shipping.postal_code || meta.pincode || "560038",
+        city: shipping.city || meta.city || "",
+        pincode: shipping.postal_code || meta.pincode || "",
       };
     });
 

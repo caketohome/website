@@ -125,7 +125,7 @@ function resolveUserContext(req: NextRequest) {
   const role = (session.role || "").toUpperCase();
   const userId = session.userId || "";
   const phone = session.phone || "";
-  const isSuperAdmin = role === "SUPER_ADMIN" || userId === "admin_01";
+  const isSuperAdmin = role === "SUPER_ADMIN";
 
   const directPerms = (session as any).permissions;
   const permissions = Array.isArray(directPerms) && directPerms.length > 0
@@ -152,6 +152,485 @@ function toAuthenticatedActor(userCtx: ReturnType<typeof resolveUserContext>): A
     partnerId: userCtx.partnerId || null,
     permissions: userCtx.permissions,
   };
+}
+
+function authorizeTaxMasterAccess(req: NextRequest, mode: "READ" | "WRITE") {
+  const userCtx = resolveUserContext(req);
+  if (!userCtx.userId && !userCtx.role) {
+    return {
+      authorized: false,
+      userCtx,
+      response: NextResponse.json(
+        { success: false, error: "UNAUTHORIZED", message: "Authentication required for Tax Master access." },
+        { status: 401 }
+      ),
+    };
+  }
+  const role = (userCtx.role || "").toUpperCase();
+  if (role === "CUSTOMER" || role === "DELIVERY_PARTNER" || role === "DLP") {
+    return {
+      authorized: false,
+      userCtx,
+      response: NextResponse.json(
+        { success: false, error: "FORBIDDEN", message: "Forbidden: Staff role required for Tax Master access." },
+        { status: 403 }
+      ),
+    };
+  }
+  if (mode === "WRITE") {
+    const allowedRoles = ["SUPER_ADMIN", "ADMIN", "ACCOUNTANT", "FINANCE_MANAGER", "OPERATIONS_MANAGER", "BRANCH_MANAGER", "CATALOG_MANAGER"];
+    const hasPerm =
+      userCtx.isSuperAdmin ||
+      allowedRoles.includes(role) ||
+      StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "CREATE") ||
+      StaffAccessControl.hasPermission(userCtx, "ACCOUNTING", "EDIT") ||
+      StaffAccessControl.hasPermission(userCtx, "PRODUCTS", "EDIT") ||
+      StaffAccessControl.hasPermission(userCtx, "SETTINGS", "EDIT");
+    if (!hasPerm) {
+      return {
+        authorized: false,
+        userCtx,
+        response: NextResponse.json(
+          { success: false, error: "FORBIDDEN", message: "Forbidden: Insufficient permissions to modify Tax Master configurations." },
+          { status: 403 }
+        ),
+      };
+    }
+  }
+  return { authorized: true, userCtx };
+}
+
+function parseStrictTaxRateField(
+  val: any,
+  fieldLabel: string,
+  defaultIfUndefined?: number
+): { ok: true; value: number } | { ok: false; error: string } {
+  if (val === undefined) {
+    if (defaultIfUndefined !== undefined) {
+      return { ok: true, value: defaultIfUndefined };
+    }
+    return { ok: false, error: `${fieldLabel} is required (enter 0 for zero-rated components).` };
+  }
+  if (val === null || (typeof val === "string" && val.trim() === "")) {
+    return { ok: false, error: `${fieldLabel} cannot be empty (enter 0 for zero-rated components).` };
+  }
+  if (typeof val === "boolean" || Array.isArray(val) || typeof val === "object") {
+    return { ok: false, error: `${fieldLabel} must be a valid numeric percentage.` };
+  }
+  if (typeof val === "string") {
+    const trimmed = val.trim();
+    if (!/^[+-]?(\d+(\.\d+)?|\.\d+)$/.test(trimmed)) {
+      return { ok: false, error: `${fieldLabel} must be a valid numeric value.` };
+    }
+  }
+  const num = Number(val);
+  if (!Number.isFinite(num) || Number.isNaN(num)) {
+    return { ok: false, error: `${fieldLabel} must be a finite numeric value.` };
+  }
+  if (num < 0) {
+    return { ok: false, error: `${fieldLabel} cannot be negative (received ${num}%).` };
+  }
+  if (num > 100) {
+    return { ok: false, error: `${fieldLabel} cannot exceed 100% (received ${num}%).` };
+  }
+  return { ok: true, value: Number(num.toFixed(4)) };
+}
+
+async function handleSaveTaxMasterConfiguration(req: NextRequest, body: any, idOverride?: string) {
+  const authCheck = authorizeTaxMasterAccess(req, "WRITE");
+  if (!authCheck.authorized) return authCheck.response!;
+
+  try {
+    const payload = body && typeof body === "object" ? body : {};
+    const meta = payload.metadata && typeof payload.metadata === "object" ? payload.metadata : {};
+
+    const id = idOverride || (payload.id ? String(payload.id).trim() : "");
+    const name =
+      typeof payload.name === "string"
+        ? payload.name.trim()
+        : typeof payload.name === "number"
+        ? String(payload.name).trim()
+        : "";
+    if (!name) {
+      return NextResponse.json({ success: false, error: "Tax Configuration Name is required." }, { status: 400 });
+    }
+
+    const rawCode = typeof payload.code === "string" ? payload.code.trim() : "";
+    if (!rawCode) {
+      return NextResponse.json({ success: false, error: "Tax Configuration Code is required." }, { status: 400 });
+    }
+    const code = rawCode.toUpperCase().replace(/\s+/g, "_");
+    if (!/^[A-Z0-9_-]{2,64}$/.test(code)) {
+      return NextResponse.json(
+        { success: false, error: "Tax Configuration Code must be 2–64 alphanumeric characters, underscores, or hyphens." },
+        { status: 400 }
+      );
+    }
+
+    const taxability = String(payload.taxability ?? meta.taxability ?? "Taxable").trim();
+    const validTaxabilities = ["Taxable", "Exempt", "Nil Rated", "Non-GST"];
+    if (!validTaxabilities.includes(taxability)) {
+      return NextResponse.json(
+        { success: false, error: `Invalid taxability '${taxability}'. Allowed: ${validTaxabilities.join(", ")}.` },
+        { status: 400 }
+      );
+    }
+
+    const rawSupply = String(payload.applicableSupplyType ?? payload.supply_type ?? meta.supply_type ?? "BOTH")
+      .trim()
+      .toUpperCase();
+    const supplyType =
+      rawSupply === "INTRA_STATE" || rawSupply === "INTRA-STATE ONLY"
+        ? "INTRA-STATE"
+        : rawSupply === "INTER_STATE" || rawSupply === "INTER-STATE ONLY"
+        ? "INTER-STATE"
+        : rawSupply;
+    if (!["INTRA-STATE", "INTER-STATE", "BOTH"].includes(supplyType)) {
+      return NextResponse.json(
+        { success: false, error: `Invalid applicable supply type '${supplyType}'. Allowed: INTRA-STATE, INTER-STATE, BOTH.` },
+        { status: 400 }
+      );
+    }
+
+    const customerType = String(payload.applicableCustomerType ?? payload.customer_type ?? meta.customer_type ?? "BOTH")
+      .trim()
+      .toUpperCase();
+    if (!["B2B", "B2C", "BOTH"].includes(customerType)) {
+      return NextResponse.json(
+        { success: false, error: `Invalid applicable customer type '${customerType}'. Allowed: B2B, B2C, BOTH.` },
+        { status: 400 }
+      );
+    }
+
+    // Parse Total GST Rate
+    const rawGst = payload.gstRatePct !== undefined ? payload.gstRatePct : payload.rate;
+    const gstParsed = parseStrictTaxRateField(rawGst, "Total GST Rate (%)", taxability === "Taxable" ? undefined : 0);
+    if (!gstParsed.ok) {
+      return NextResponse.json({ success: false, error: gstParsed.error }, { status: 400 });
+    }
+    const gstRate = gstParsed.value;
+
+    // Parse CGST, SGST, IGST, CESS
+    const rawCgst = payload.cgstRatePct !== undefined ? payload.cgstRatePct : meta.cgst_rate;
+    const rawSgst = payload.sgstRatePct !== undefined ? payload.sgstRatePct : meta.sgst_rate;
+    const rawIgst = payload.igstRatePct !== undefined ? payload.igstRatePct : meta.igst_rate;
+    const rawCess = payload.cessRatePct !== undefined ? payload.cessRatePct : meta.cess_rate;
+
+    const defaultCgst =
+      rawCgst === undefined && rawSgst === undefined && rawIgst === undefined
+        ? supplyType === "INTER-STATE" || taxability !== "Taxable"
+          ? 0
+          : Number((gstRate / 2).toFixed(4))
+        : undefined;
+    const defaultSgst =
+      rawCgst === undefined && rawSgst === undefined && rawIgst === undefined
+        ? supplyType === "INTER-STATE" || taxability !== "Taxable"
+          ? 0
+          : Number((gstRate / 2).toFixed(4))
+        : undefined;
+    const defaultIgst =
+      rawCgst === undefined && rawSgst === undefined && rawIgst === undefined
+        ? supplyType === "INTRA-STATE" || taxability !== "Taxable"
+          ? 0
+          : gstRate
+        : undefined;
+
+    const cgstParsed = parseStrictTaxRateField(rawCgst, "CGST Rate (%)", defaultCgst);
+    if (!cgstParsed.ok) return NextResponse.json({ success: false, error: cgstParsed.error }, { status: 400 });
+    const sgstParsed = parseStrictTaxRateField(rawSgst, "SGST Rate (%)", defaultSgst);
+    if (!sgstParsed.ok) return NextResponse.json({ success: false, error: sgstParsed.error }, { status: 400 });
+    const igstParsed = parseStrictTaxRateField(rawIgst, "IGST Rate (%)", defaultIgst);
+    if (!igstParsed.ok) return NextResponse.json({ success: false, error: igstParsed.error }, { status: 400 });
+    const cessParsed = parseStrictTaxRateField(rawCess, "CESS Rate (%)", 0);
+    if (!cessParsed.ok) return NextResponse.json({ success: false, error: cessParsed.error }, { status: 400 });
+
+    const cgstRate = cgstParsed.value;
+    const sgstRate = sgstParsed.value;
+    const igstRate = igstParsed.value;
+    const cessRate = cessParsed.value;
+
+    // Statutory GST Component Validation
+    if (taxability !== "Taxable") {
+      if (gstRate !== 0 || cgstRate !== 0 || sgstRate !== 0 || igstRate !== 0 || cessRate !== 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `${taxability} configurations must have 0% for Total GST, CGST, SGST, IGST, and CESS.`,
+          },
+          { status: 400 }
+        );
+      }
+    } else {
+      if (supplyType === "INTRA-STATE") {
+        if (Math.abs(cgstRate + sgstRate - gstRate) > 0.01) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `For Intra-State supplies, CGST (${cgstRate}%) + SGST (${sgstRate}%) must equal Total GST (${gstRate}%).`,
+            },
+            { status: 400 }
+          );
+        }
+        if (Math.abs(igstRate) > 0.0001) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `For Intra-State Only supplies, IGST must be 0% (received ${igstRate}%).`,
+            },
+            { status: 400 }
+          );
+        }
+      } else if (supplyType === "INTER-STATE") {
+        if (Math.abs(igstRate - gstRate) > 0.01) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `For Inter-State supplies, IGST (${igstRate}%) must equal Total GST (${gstRate}%).`,
+            },
+            { status: 400 }
+          );
+        }
+        if (Math.abs(cgstRate) > 0.0001 || Math.abs(sgstRate) > 0.0001) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `For Inter-State Only supplies, CGST and SGST must be 0% (received CGST=${cgstRate}%, SGST=${sgstRate}%).`,
+            },
+            { status: 400 }
+          );
+        }
+      } else {
+        // BOTH (Intra-State & Inter-State): allow (CGST + SGST == Total GST && (IGST == Total GST || IGST == 0)) OR (IGST == Total GST && CGST == 0 && SGST == 0)
+        const validIntraSplit =
+          Math.abs(cgstRate + sgstRate - gstRate) <= 0.01 &&
+          (Math.abs(igstRate - gstRate) <= 0.01 || Math.abs(igstRate) <= 0.0001);
+        const validInterOnly =
+          Math.abs(igstRate - gstRate) <= 0.01 &&
+          Math.abs(cgstRate) <= 0.0001 &&
+          Math.abs(sgstRate) <= 0.0001;
+        if (!validIntraSplit && !validInterOnly) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Invalid GST component breakdown: CGST (${cgstRate}%) + SGST (${sgstRate}%) or IGST (${igstRate}%) must equal Total GST (${gstRate}%).`,
+            },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
+    // Effective Date Validation
+    const effectiveFrom = String(payload.effectiveFrom ?? payload.effective_from ?? meta.effective_from ?? "2026-04-01").trim();
+    if (!effectiveFrom || !/^\d{4}-\d{2}-\d{2}$/.test(effectiveFrom) || Number.isNaN(Date.parse(effectiveFrom))) {
+      return NextResponse.json(
+        { success: false, error: "Effective From date is required in YYYY-MM-DD format." },
+        { status: 400 }
+      );
+    }
+    const rawEffectiveTo = payload.effectiveTo ?? payload.effective_to ?? meta.effective_to;
+    const effectiveTo =
+      rawEffectiveTo !== undefined && rawEffectiveTo !== null && String(rawEffectiveTo).trim() !== ""
+        ? String(rawEffectiveTo).trim()
+        : null;
+    if (effectiveTo !== null) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(effectiveTo) || Number.isNaN(Date.parse(effectiveTo))) {
+        return NextResponse.json(
+          { success: false, error: "Effective To date must be a valid YYYY-MM-DD date." },
+          { status: 400 }
+        );
+      }
+      if (effectiveTo < effectiveFrom) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Effective To date (${effectiveTo}) cannot be earlier than Effective From date (${effectiveFrom}).`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    const isDefault = Boolean(payload.is_default ?? payload.isDefault ?? false);
+    const isActive = (payload.isActive ?? payload.is_active ?? meta.is_active) !== false;
+    const taxInclusive = (payload.taxInclusive ?? payload.tax_inclusive ?? meta.tax_inclusive) !== false;
+    const description =
+      typeof (payload.description ?? meta.description) === "string" && String(payload.description ?? meta.description).trim()
+        ? String(payload.description ?? meta.description).trim()
+        : `${gstRate}% GST (${taxability})`;
+    const requestedRegionId = payload.tax_region_id || payload.regionId || meta.region_id || null;
+
+    const canonicalMetadata = {
+      ...meta,
+      description,
+      taxability,
+      cgst_rate: cgstRate,
+      sgst_rate: sgstRate,
+      igst_rate: igstRate,
+      cess_rate: cessRate,
+      tax_inclusive: taxInclusive,
+      supply_type: supplyType,
+      customer_type: customerType,
+      effective_from: effectiveFrom,
+      effective_to: effectiveTo,
+      is_active: isActive,
+    };
+
+    const txResult = await dbTransaction(async (client) => {
+      // 1. Resolve and validate tax_region_id in public.tax_region
+      let regionRow: any = null;
+      if (requestedRegionId) {
+        const regRes = await client.query(
+          `SELECT id, country_code, province_code FROM public.tax_region WHERE id = $1 AND deleted_at IS NULL LIMIT 1`,
+          [requestedRegionId]
+        );
+        regionRow = regRes.rows[0] || null;
+        if (!regionRow) {
+          const err: any = new Error(`Tax region '${requestedRegionId}' does not exist in public.tax_region.`);
+          err.statusCode = 400;
+          throw err;
+        }
+      } else {
+        const regRes = await client.query(
+          `SELECT id, country_code, province_code
+           FROM public.tax_region
+           WHERE country_code = 'in' AND deleted_at IS NULL
+           ORDER BY province_code NULLS FIRST, created_at ASC
+           LIMIT 1`
+        );
+        regionRow = regRes.rows[0] || null;
+        if (!regionRow) {
+          const err: any = new Error(`No active Indian tax_region ('in') found in public.tax_region.`);
+          err.statusCode = 500;
+          throw err;
+        }
+      }
+      const regionId = regionRow.id;
+
+      // 2. Check duplicate code (case-insensitive) across active tax_rate rows
+      const dupRes = await client.query(
+        `SELECT id, code FROM public.tax_rate
+         WHERE UPPER(code) = $1 AND deleted_at IS NULL AND ($2 = '' OR id <> $2)
+         LIMIT 1`,
+        [code, id || ""]
+      );
+      if (dupRes.rows.length > 0) {
+        const err: any = new Error(`Tax Configuration Code '${code}' already exists (${dupRes.rows[0].id}). Tax codes must be unique.`);
+        err.statusCode = 409;
+        throw err;
+      }
+
+      // 3. If setting is_default = true, unset previous default in the same tax_region_id to satisfy IDX_single_default_region
+      if (isDefault) {
+        await client.query(
+          `UPDATE public.tax_rate
+           SET is_default = false, updated_at = NOW()
+           WHERE tax_region_id = $1 AND is_default = true AND deleted_at IS NULL AND ($2 = '' OR id <> $2)`,
+          [regionId, id || ""]
+        );
+      }
+
+      // 4. Check if updating existing configuration or inserting new
+      let existingRow: any = null;
+      if (id) {
+        const checkRes = await client.query(
+          `SELECT id FROM public.tax_rate WHERE id = $1 AND deleted_at IS NULL LIMIT 1`,
+          [id]
+        );
+        existingRow = checkRes.rows[0] || null;
+      }
+
+      let savedRow: any;
+      let isCreated = false;
+      if (existingRow) {
+        const updRes = await client.query(
+          `UPDATE public.tax_rate
+           SET name = $1,
+               code = $2,
+               rate = $3,
+               is_default = $4,
+               tax_region_id = $5,
+               metadata = $6::jsonb,
+               updated_at = NOW()
+           WHERE id = $7 AND deleted_at IS NULL
+           RETURNING *`,
+          [name, code, gstRate, isDefault, regionId, JSON.stringify(canonicalMetadata), id]
+        );
+        savedRow = updRes.rows[0];
+      } else {
+        isCreated = true;
+        const newId = id || `txr_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        const insRes = await client.query(
+          `INSERT INTO public.tax_rate (
+             id, name, code, rate, is_default, is_combinable, tax_region_id, metadata, created_by, created_at, updated_at
+           )
+           VALUES ($1, $2, $3, $4, $5, false, $6, $7::jsonb, $8, NOW(), NOW())
+           RETURNING *`,
+          [
+            newId,
+            name,
+            code,
+            gstRate,
+            isDefault,
+            regionId,
+            JSON.stringify(canonicalMetadata),
+            authCheck.userCtx?.userId || "admin_01",
+          ]
+        );
+        savedRow = insRes.rows[0];
+      }
+
+      return {
+        isCreated,
+        savedRow,
+        regionRow,
+      };
+    });
+
+    const r = txResult.savedRow;
+    const configuration = {
+      id: r.id,
+      name: r.name,
+      code: r.code,
+      description: r.metadata?.description || description,
+      taxability: r.metadata?.taxability || taxability,
+      gstRatePct: Number(r.rate ?? gstRate),
+      cgstRatePct: Number(r.metadata?.cgst_rate ?? cgstRate),
+      sgstRatePct: Number(r.metadata?.sgst_rate ?? sgstRate),
+      igstRatePct: Number(r.metadata?.igst_rate ?? igstRate),
+      cessRatePct: Number(r.metadata?.cess_rate ?? cessRate),
+      taxInclusive: r.metadata?.tax_inclusive !== false,
+      applicableSupplyType: r.metadata?.supply_type || supplyType,
+      applicableCustomerType: r.metadata?.customer_type || customerType,
+      isActive: r.metadata?.is_active !== false,
+      effectiveFrom: r.metadata?.effective_from || effectiveFrom,
+      effectiveTo: r.metadata?.effective_to || undefined,
+      isDefault: Boolean(r.is_default),
+      countryCode: txResult.regionRow.country_code,
+      provinceCode: txResult.regionRow.province_code || undefined,
+      regionId: r.tax_region_id,
+      usageCount: 0,
+    };
+
+    return jsonWithDataSource(
+      {
+        success: true,
+        id: r.id,
+        configuration,
+      },
+      "postgres",
+      txResult.isCreated ? 201 : 200
+    );
+  } catch (err: any) {
+    const status = err?.statusCode || (err?.code === "23505" ? 409 : 500);
+    return NextResponse.json(
+      {
+        success: false,
+        error: err?.message || "Failed to save tax configuration.",
+      },
+      { status }
+    );
+  }
 }
 
 function mapCompanyToBusinessProfile(c: any) {
@@ -734,7 +1213,7 @@ function resolveManagerSession(req: NextRequest) {
 
   const sessionRole = (session.role || "").toLowerCase();
   const sessionUserId = session.userId || "";
-  const isSuperAdmin = sessionRole === "super_admin" || sessionUserId === "admin_01";
+  const isSuperAdmin = sessionRole === "super_admin";
   const isManagerRole = isSuperAdmin || ["branch_manager", "shop_manager", "shpmgr", "shop", "manager"].includes(sessionRole);
   const isManagerId = isSuperAdmin || sessionUserId.startsWith("shpmgr_") || sessionUserId.startsWith("usr_mgr_");
 
@@ -1153,10 +1632,6 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         const suiteResults: any[] = [];
 
       // ── Domain 1: Authentication & Role Isolation ──
-      const newCust = ApiEngine.verifyOtp("+91 91234 56789", "123456");
-      const hasCusId = Boolean(newCust.user?.customer_id?.startsWith("cus_") || newCust.user?.id?.startsWith("cus_"));
-      suiteResults.push({ id: "1.1", name: "New Customer Registration (Role: CUSTOMER)", status: (newCust.role === "CUSTOMER" && hasCusId) ? "PASS" : "FAIL" });
-
       const existCust = ApiEngine.resolveUserAccount({ phone: "+91 98765 43210" });
       suiteResults.push({ id: "1.2", name: "Existing Customer Resolution", status: (existCust && existCust.role === "CUSTOMER") ? "PASS" : "FAIL" });
 
@@ -1176,15 +1651,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       suiteResults.push({ id: "1.7", name: "Role Isolation (Driver phone in customer mode creates customer persona)", status: (driverCross && driverCross.role === "CUSTOMER") ? "PASS" : "FAIL" });
 
       // ── Domain 2: Phone Number Identity (No Substring Hijacking) ──
-      const r1 = ApiEngine.verifyOtp("+91 98123 45670", "123456");
-      suiteResults.push({ id: "2.1", name: "Phone containing 12345 resolves as CUSTOMER (not driver)", status: r1.role === "CUSTOMER" ? "PASS" : "FAIL" });
-
-      const r2 = ApiEngine.verifyOtp("+91 98000 00123", "123456");
-      suiteResults.push({ id: "2.2", name: "Phone containing 00000 resolves as CUSTOMER (not admin)", status: r2.role === "CUSTOMER" ? "PASS" : "FAIL" });
-
-      const r3 = ApiEngine.verifyOtp("+91 98999 99456", "123456");
-      suiteResults.push({ id: "2.3", name: "Phone containing 99999 resolves as CUSTOMER (not shop manager)", status: r3.role === "CUSTOMER" ? "PASS" : "FAIL" });
-
+      // 1.1 / 2.1-2.3 (fixed-OTP mock logins) removed with the legacy OTP engine.
       const r4 = ApiEngine.resolveUserAccount({ phone: "098765-43210" });
       suiteResults.push({ id: "2.4", name: "Normalized Exact 10-Digit Phone Lookup", status: (r4 && r4.id) ? "PASS" : "FAIL" });
 
@@ -4535,20 +5002,34 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const urlCartId = rawUrlCartId && rawUrlCartId !== "items" && !rawUrlCartId.startsWith("items/") && rawUrlCartId !== "clear" ? rawUrlCartId : null;
       const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
       const validCookieCartId = cookieCartId && cookieCartId !== "items" ? cookieCartId : null;
-      const cartId = url.searchParams.get("cartId") || url.searchParams.get("cart_id") || validCookieCartId || urlCartId || "cart_guest_100";
+      const cartId = url.searchParams.get("cartId") || url.searchParams.get("cart_id") || urlCartId || validCookieCartId || "cart_guest_100";
       try {
         const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
         const dbCart = await CartRepository.findCartById(cartId);
         if (dbCart) {
-          return jsonWithDataSource({ cart: dbCart, success: true }, "postgres");
+          const syncedCart = ApiEngine.syncCartFromDb(dbCart) || dbCart;
+          const res = jsonWithDataSource({ cart: syncedCart, success: true }, "postgres");
+          if (cartId && cartId !== "cart_guest_100" && cartId !== "cart_default") {
+            res.cookies.set("_cth_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
+            res.cookies.set("_medusa_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
+          }
+          return res;
         }
-      } catch (_e) {}
+      } catch (err: any) {
+        console.warn("[GET /api/v1/cart] CartRepository lookup warning:", err?.message);
+      }
       const cart = ApiEngine.getCart(cartId);
-      return jsonWithDataSource({ cart, success: true }, "postgres");
+      const res = jsonWithDataSource({ cart, success: true }, "postgres");
+      if (cartId && cartId !== "cart_guest_100" && cartId !== "cart_default") {
+        res.cookies.set("_cth_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
+        res.cookies.set("_medusa_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
+      }
+      return res;
     }
 
     if (path === "customers/addresses" || path === "store/customers/addresses") {
-      const customerId = url.searchParams.get("customer_id") || req.cookies.get("_cth_user_id")?.value || "cus_guest";
+      const customerId = resolveVerifiedCustomer(req)?.customerUid;
+      if (!customerId) return jsonWithDataSource({ addresses: [], success: true }, "postgres");
       const addresses = ApiEngine.getCustomerAddresses(customerId);
       return jsonWithDataSource({ addresses, success: true }, "postgres");
     }
@@ -4581,8 +5062,16 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const lngStr = url.searchParams.get("lng") || url.searchParams.get("longitude");
       const lat = latStr ? parseFloat(latStr) : undefined;
       const lng = lngStr ? parseFloat(lngStr) : undefined;
+      const targetCartId = url.searchParams.get("cart_id") || req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
+      if (targetCartId) {
+        try {
+          const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
+          const pgCart = await CartRepository.findCartById(targetCartId);
+          if (pgCart) ApiEngine.syncCartFromDb(pgCart);
+        } catch (_e) {}
+      }
       const result = ApiEngine.getCheckoutAvailability({
-        cart_id: url.searchParams.get("cart_id") || req.cookies.get("_cth_cart_id")?.value,
+        cart_id: targetCartId,
         delivery_type: (url.searchParams.get("delivery_type") as any) || "delivery",
         pincode: url.searchParams.get("pincode") || undefined,
         latitude: lat,
@@ -4705,12 +5194,17 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
     if (path === "orders" || path === "store/orders") {
       const userCtx = resolveUserContext(req);
-      const customerUid = url.searchParams.get("customer_uid") || req.cookies.get("_cth_customer_uid")?.value;
-      const phone = url.searchParams.get("phone") || req.cookies.get("_cth_phone")?.value || userCtx.phone;
-      const customerId = url.searchParams.get("customer_id") || req.cookies.get("_cth_user_id")?.value;
-
-      const isCustomerOnly = userCtx.role === "CUSTOMER" || (!userCtx.role && (customerUid || phone || customerId));
-      const targetCustomer = isCustomerOnly ? (customerUid || customerId || phone) : (url.searchParams.get("customer_uid") || url.searchParams.get("customer_id") || undefined);
+      if (!userCtx.role) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED" }, "postgres", 401);
+      }
+      // Customers only ever see their own orders (identity from the verified session, never query/cookies).
+      const isCustomerOnly = userCtx.role === "CUSTOMER";
+      const targetCustomer = isCustomerOnly
+        ? resolveVerifiedCustomer(req)?.customerUid
+        : (url.searchParams.get("customer_uid") || url.searchParams.get("customer_id") || undefined);
+      if (isCustomerOnly && !targetCustomer) {
+        return jsonWithDataSource({ success: false, error: "UNAUTHORIZED" }, "postgres", 401);
+      }
 
       const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
       const pageSize = Math.min(Math.max(1, Number(url.searchParams.get("pageSize") || url.searchParams.get("limit")) || 20), 100);
@@ -4798,7 +5292,11 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
 
     // Admin Controls & Marketing Subroutes
-    if (path === "admin/orders/export" || path === "admin/order-lifecycle/export") return jsonWithDataSource(ApiEngine.exportAdminOrders(Object.fromEntries(url.searchParams)), "postgres");
+    if (path === "admin/orders/export" || path === "admin/order-lifecycle/export") {
+      const permErr = verifyApiPermission(req, "ORDERS", "EXPORT");
+      if (permErr) return permErr;
+      return jsonWithDataSource(ApiEngine.exportAdminOrders(Object.fromEntries(url.searchParams)), "postgres");
+    }
     if (path.startsWith("admin/delivery/partners/") && path.endsWith("/effective-coverage")) {
       const partnerId = path.replace("admin/delivery/partners/", "").replace("/effective-coverage", "");
       return jsonWithDataSource(ApiEngine.getPartnerEffectiveCoverage(partnerId), "postgres");
@@ -5216,23 +5714,50 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/orders" || path === "admin/order-lifecycle" || path === "order-lifecycle") {
       const permErr = verifyApiPermission(req, "ORDERS", "VIEW");
       if (permErr) return permErr;
+      const callerCtx = resolveUserContext(req);
+      const isBranchScopedRole =
+        !callerCtx.isSuperAdmin &&
+        Boolean(callerCtx.branchId) &&
+        ["BRANCH_MANAGER", "STORE_MANAGER", "SHOP_MANAGER", "STORE_STAFF"].includes(callerCtx.role);
+
       const qParams = Object.fromEntries(url.searchParams);
       if (qParams.id || qParams.order_id) {
         const targetId = (qParams.id || qParams.order_id) as string;
         const dbOrder = await OrderRepository.findById(targetId);
-        if (dbOrder) return jsonWithDataSource({ order: dbOrder, success: true }, "postgres");
+        if (dbOrder) {
+          if (isBranchScopedRole && dbOrder.branch_id && dbOrder.branch_id !== callerCtx.branchId) {
+            return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Forbidden: Order belongs to another branch." }, "postgres", 403);
+          }
+          return jsonWithDataSource({ order: dbOrder, success: true }, "postgres");
+        }
         return jsonWithDataSource({ error: "Order not found", success: false }, "postgres", 404);
       }
-      const page = Math.max(1, Number(qParams.page) || 1);
+
+      const requestedBranchId = qParams.branch_id as string | undefined;
+      if (isBranchScopedRole && requestedBranchId && requestedBranchId !== "all" && requestedBranchId !== callerCtx.branchId) {
+        return jsonWithDataSource(
+          { success: false, error: "FORBIDDEN", message: "Forbidden: You are not authorized to view orders for another branch." },
+          "postgres",
+          403
+        );
+      }
+
       const pageSize = Math.min(Math.max(1, Number(qParams.pageSize || qParams.limit) || 20), 100);
-      const offset = qParams.offset !== undefined ? Math.max(0, Number(qParams.offset)) : (page - 1) * pageSize;
+      const offset = qParams.offset !== undefined ? Math.max(0, Number(qParams.offset)) : undefined;
+      const page = Math.max(1, Number(qParams.page) || (offset !== undefined ? Math.floor(offset / pageSize) + 1 : 1));
 
       const paginatedResult = await OrderRepository.listOrders({
         page,
         pageSize,
+        offset,
         status: qParams.status as string,
-        branch_id: qParams.branch_id as string,
+        branch_id: isBranchScopedRole ? callerCtx.branchId : requestedBranchId,
         customer_id: qParams.customer_id as string,
+        q: qParams.q as string,
+        city: qParams.city as string,
+        payment_status: qParams.payment_status as string,
+        from_date: qParams.from_date as string,
+        to_date: qParams.to_date as string,
       });
 
       return jsonWithDataSource({
@@ -5397,8 +5922,20 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
         return jsonWithDataSource({ success: true, invoice: authoritativeInvoice }, "postgres", 200);
       }
+      const permErr = verifyApiPermission(req, "ORDERS", "VIEW");
+      if (permErr) return permErr;
+      const callerCtx = resolveUserContext(req);
+      const isBranchScopedRole =
+        !callerCtx.isSuperAdmin &&
+        Boolean(callerCtx.branchId) &&
+        ["BRANCH_MANAGER", "STORE_MANAGER", "SHOP_MANAGER", "STORE_STAFF"].includes(callerCtx.role);
       const dbOrder = await OrderRepository.findById(orderId);
-      if (dbOrder) return jsonWithDataSource({ order: dbOrder, success: true }, "postgres");
+      if (dbOrder) {
+        if (isBranchScopedRole && dbOrder.branch_id && dbOrder.branch_id !== callerCtx.branchId) {
+          return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Forbidden: Order belongs to another branch." }, "postgres", 403);
+        }
+        return jsonWithDataSource({ order: dbOrder, success: true }, "postgres");
+      }
       return jsonWithDataSource({ message: "Order not found", success: false }, "postgres", 404);
     }
     if (path === "admin/delivery/reports") {
@@ -5559,34 +6096,6 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const result = ApiEngine.migrateExistingDataToMultiCity();
       return jsonWithDataSource({ ...result, success: true }, "postgres");
     }
-    if (path === "cart" || path.startsWith("cart/") || path.startsWith("store/cart")) {
-      const rawPathId = path.replace(/^store\//, "").replace(/^cart\/?/, "");
-      const cleanPathId = rawPathId && rawPathId !== "items" ? rawPathId : null;
-      const paramCartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId");
-      const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
-      const validCookieCartId = cookieCartId && cookieCartId !== "items" ? cookieCartId : null;
-      const cartId = cleanPathId || paramCartId || validCookieCartId || "cart_default";
-
-      let cart = ApiEngine.getCart(cartId);
-      if ((!cart.items || cart.items.length === 0) && cartId && cartId !== "cart_default") {
-        try {
-          const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
-          const pgCart = await CartRepository.findCartById(cartId);
-          if (pgCart && Array.isArray(pgCart.items) && pgCart.items.length > 0) {
-            ApiEngine.saveCart(pgCart);
-            cart = pgCart as any;
-          }
-        } catch (e: any) {
-          console.warn("[GET /cart] PG fallback warning:", e.message);
-        }
-      }
-
-      const res = jsonWithDataSource({ cart, success: true }, "postgres");
-      if (cartId && cartId !== "cart_default") {
-        res.cookies.set("_cth_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
-      }
-      return res;
-    }
     if (path === "admin/regions") return jsonWithDataSource({ regions: ApiEngine.getAdminRegions() }, "postgres");
     if (path === "admin/categories" || path === "categories" || path === "admin/cms/categories") return jsonWithDataSource({ categories: ApiEngine.listPimCategories() }, "postgres");
     if (path === "admin/occasions" || path === "occasions") return jsonWithDataSource({ occasions: ApiEngine.listOccasions(url.searchParams.get("status") || undefined), success: true }, "postgres");
@@ -5615,12 +6124,19 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ weight_prices: ApiEngine.getProductWeightPrices(prodId) }, "postgres");
     }
     if (path === "admin/catalog/products" || path === "admin/products" || path === "catalog/products" || path === "products") {
-      const permErr = verifyApiPermission(req, "CATALOG", "VIEW");
-      if (permErr) return permErr;
+      if (path.startsWith("admin/")) {
+        const permErr = verifyApiPermission(req, "PRODUCTS", "VIEW");
+        if (permErr) return permErr;
+      }
       const qParams = Object.fromEntries(url.searchParams);
       const page = Math.max(1, Number(qParams.page) || 1);
-      const pageSize = Math.min(Math.max(1, Number(qParams.pageSize || qParams.limit) || 20), 100);
-      const prodRes = await ProductRepository.listProducts({ page, pageSize, category_id: qParams.category_id as string });
+      const pageSize = Math.min(Math.max(1, Number(qParams.pageSize || qParams.limit) || 100), 100);
+      const prodRes = await ProductRepository.listProducts({
+        page,
+        pageSize,
+        category_id: qParams.category_id as string,
+        q: (qParams.q || qParams.search) as string,
+      });
       return jsonWithDataSource({
         products: prodRes.items,
         total: prodRes.total,
@@ -5641,6 +6157,10 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }, "postgres");
     }
     if ((path.startsWith("admin/catalog/products/") || path.startsWith("admin/products/") || path.startsWith("catalog/products/") || path.startsWith("products/")) && !path.includes("/weight-prices")) {
+      if (path.startsWith("admin/")) {
+        const permErr = verifyApiPermission(req, "PRODUCTS", "VIEW");
+        if (permErr) return permErr;
+      }
       const id = extractProductIdFromPath(path);
       const dbProd = (await ProductRepository.findById(id)) || (await ProductRepository.findBySlug(id));
       if (dbProd) return jsonWithDataSource({ product: dbProd, success: true }, "postgres");
@@ -5796,22 +6316,32 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
     // ── Tax Master Configuration GET Endpoints ──
     if (path === "admin/tax/configurations" || path === "tax/configurations" || path === "tax-master" || path === "admin/tax-master") {
+      if (path.startsWith("admin/")) {
+        const authCheck = authorizeTaxMasterAccess(req, "READ");
+        if (!authCheck.authorized) return authCheck.response!;
+      }
       try {
         const configurations = await TaxResolverService.listActiveTaxRates();
-        return jsonWithDataSource({ configurations, total: configurations.length }, "postgres");
+        return jsonWithDataSource({ success: true, configurations, total: configurations.length }, "postgres");
       } catch (err: any) {
-        return NextResponse.json({ error: err.message, configurations: [] }, { status: 500 });
+        return NextResponse.json({ success: false, error: err.message || "Failed to load tax configurations" }, { status: 500 });
       }
     }
     if (path === "admin/tax/regions" || path === "tax/regions") {
+      if (path.startsWith("admin/")) {
+        const authCheck = authorizeTaxMasterAccess(req, "READ");
+        if (!authCheck.authorized) return authCheck.response!;
+      }
       try {
         const result = await dbQuery(
-          `SELECT id, country_code, province_code, provider_id, metadata
-           FROM tax_region WHERE deleted_at IS NULL ORDER BY country_code`
+          `SELECT id, country_code, province_code, parent_id, provider_id, metadata, created_at, updated_at
+           FROM public.tax_region
+           WHERE deleted_at IS NULL
+           ORDER BY province_code NULLS FIRST, country_code ASC, id ASC`
         );
-        return jsonWithDataSource({ regions: result.rows }, "postgres");
+        return jsonWithDataSource({ success: true, regions: result.rows }, "postgres");
       } catch (err: any) {
-        return NextResponse.json({ error: err.message, regions: [] }, { status: 500 });
+        return NextResponse.json({ success: false, error: err.message || "Failed to load tax regions" }, { status: 500 });
       }
     }
     // ── Enterprise SEO Platform GET Endpoints ──
@@ -9086,17 +9616,28 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           } catch (_e) {}
         }
 
-        const cart = ApiEngine.addToCart(cartId, { ...body, branchId, pincode });
-        try {
-          const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
-          await CartRepository.saveCart(cart);
-          if (cart && Array.isArray(cart.items)) {
-            for (const it of cart.items) {
-              await CartRepository.upsertLineItem(cart.id, it);
-            }
-          }
-        } catch (_e) {}
-        const res = jsonWithDataSource({ cart, success: true }, "postgres");
+        const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
+        const existingDbCart = await CartRepository.findCartById(cartId);
+        if (existingDbCart) {
+          ApiEngine.syncCartFromDb(existingDbCart);
+        }
+
+        const mutatedCart = ApiEngine.addToCart(cartId, { ...body, branchId, pincode });
+        const persistedCart = await CartRepository.saveCartWithItems({
+          ...mutatedCart,
+          id: cartId,
+          branch_id: branchId || mutatedCart.branch_id,
+          currency_code: mutatedCart.currency_code || "inr",
+          metadata: {
+            ...(mutatedCart.metadata || {}),
+            branch_id: branchId,
+            pincode,
+          },
+        });
+        const authoritativeCart = persistedCart
+          ? ApiEngine.syncCartFromDb(persistedCart) || persistedCart
+          : mutatedCart;
+        const res = jsonWithDataSource({ cart: authoritativeCart, success: true }, "postgres");
         res.cookies.set("_cth_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
         res.cookies.set("_medusa_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
         return res;
@@ -9111,92 +9652,22 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
     // 2. Fallback Route: Disk-Backed ApiEngine
     if (path === "auth/logout" || path === "user/logout" || path === "admin/logout" || path === "store/auth/logout") {
-      const res = jsonWithDataSource({ success: true, message: "Logged out successfully" }, "postgres");
-      const cookieNames = ["_cth_jwt", "_medusa_jwt", "_cth_role", "_cth_user_id", "_cth_phone", "_cth_branch_id", "_cth_shop_id", "_cth_partner_id", "_cth_cart_id", "_medusa_cart_id"];
-      cookieNames.forEach((n) => {
-        res.cookies.set(n, "", { path: "/", maxAge: 0, expires: new Date(0) });
-      });
-      return res;
+      const { POST: logout } = await import("@frontend/app/api/auth/logout/route");
+      return logout(req);
     }
 
-    if (path === "auth/user/emailpass" || path === "auth/login") {
+    // Legacy mock login / fixed-OTP aliases removed. Supabase phone OTP only:
+    // POST /api/v1/auth/request-otp, POST /api/v1/auth/verify-otp.
+    if (
+      path === "auth/user/emailpass" || path === "auth/login" ||
+      path === "auth/otp/request" || path === "store/auth/request-otp" ||
+      path === "auth/otp/verify" || path === "store/auth/verify-otp"
+    ) {
       return jsonWithDataSource(
-        {
-          success: true,
-          token: "mock_admin_jwt_token_super_admin_2026",
-          access_token: "mock_admin_jwt_token_super_admin_2026",
-          user: { id: "admin_01", email: body.email || "admin@email.com", role: "SUPER_ADMIN", name: "Super Admin" },
-        },
-        "postgres"
+        { success: false, error: "GONE", message: "Use /api/v1/auth/request-otp and /api/v1/auth/verify-otp." },
+        "postgres",
+        410
       );
-    }
-
-    if (path === "auth/request-otp" || path === "auth/otp/request" || path === "store/auth/request-otp") {
-      const phone = body.phone || body.mobile;
-      const method = body.method || "OTP_SMS";
-      const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
-      const userAgent = req.headers.get("user-agent") || "Web-Browser";
-      if (!phone) return jsonWithDataSource({ error: "Phone number is required" }, "postgres", 400);
-      try {
-        return jsonWithDataSource(ApiEngine.requestAuthOtp(phone, method, ip, userAgent), "postgres");
-      } catch (err: any) {
-        return jsonWithDataSource({ error: err.message || "Failed to request OTP" }, "postgres", 400);
-      }
-    }
-    if (path === "auth/verify-otp" || path === "auth/otp/verify" || path === "store/auth/verify-otp") {
-      const phone = body.phone || body.mobile;
-      const code = body.code || body.otp || body.verificationCode;
-      const name = body.name || body.full_name || body.first_name;
-      const email = body.email;
-      const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
-      const userAgent = req.headers.get("user-agent") || "Web-Browser";
-      if (!phone) return jsonWithDataSource({ error: "Phone number is required" }, "postgres", 400);
-      try {
-        const result = ApiEngine.verifyAuthOtp(phone, code, { name, email }, ip, userAgent);
-        
-        // Synchronize with PostgreSQL auth schema and audit events
-        try {
-          const { syncAuthUserToDatabase } = await import("@frontend/lib/supabase/db-sync");
-          const syncRes = await syncAuthUserToDatabase({
-            phone,
-            role: result.role || "CUSTOMER",
-            name: name || result.user?.name,
-            email: email || result.user?.email,
-            branchId: result.branch_id,
-            partnerId: result.partner_id,
-            ipAddress: ip,
-            userAgent,
-            eventType: "LOGIN_SUCCESS",
-          });
-          if (syncRes.userId) {
-            result.customer_id = syncRes.userId;
-            if (result.user) result.user.id = syncRes.userId;
-          }
-        } catch (syncErr: any) {
-          console.warn("[Auth API] DB sync warning:", syncErr.message);
-        }
-
-        const res = jsonWithDataSource(result, "postgres");
-        if (result.token) {
-          res.cookies.set("_cth_jwt", result.token, { path: "/", maxAge: 60 * 60 * 24 * 30 });
-          res.cookies.set("_cth_role", result.role || "CUSTOMER", { path: "/", maxAge: 60 * 60 * 24 * 30 });
-          res.cookies.set("_cth_user_id", result.customer_id || result.user?.id || "", { path: "/", maxAge: 60 * 60 * 24 * 30 });
-          if (result.customer_uid) {
-            res.cookies.set("_cth_customer_uid", result.customer_uid, { path: "/", maxAge: 60 * 60 * 24 * 30 });
-            // Merge existing guest cart if present
-            const guestCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
-            if (guestCartId) {
-              ApiEngine.mergeGuestCartToCustomer(guestCartId, result.customer_uid);
-            }
-          }
-          res.cookies.set("_cth_phone", phone, { path: "/", maxAge: 60 * 60 * 24 * 30 });
-          if (result.branch_id) res.cookies.set("_cth_branch_id", result.branch_id, { path: "/", maxAge: 60 * 60 * 24 * 30 });
-          if (result.partner_id) res.cookies.set("_cth_partner_id", result.partner_id, { path: "/", maxAge: 60 * 60 * 24 * 30 });
-        }
-        return res;
-      } catch (err: any) {
-        return jsonWithDataSource({ error: err.message || "OTP verification failed" }, "postgres", 400);
-      }
     }
 
     if (path === "customer/me" || path === "customer/profile" || path === "store/customer/me") {
@@ -9798,12 +10269,32 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     if (path === "checkout/validate" || path === "store/checkout/validate") {
-      const result = ApiEngine.validateCheckout(body);
+      const targetCartId = body.cart_id || body.cartId || req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
+      if (targetCartId) {
+        try {
+          const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
+          const pgCart = await CartRepository.findCartById(targetCartId);
+          if (pgCart) {
+            ApiEngine.syncCartFromDb(pgCart);
+          }
+        } catch (_e) {}
+      }
+      const result = ApiEngine.validateCheckout({ ...body, cart_id: targetCartId || body.cart_id });
       return jsonWithDataSource(result, "postgres", result.valid ? 200 : 400);
     }
 
     if (path === "checkout/confirm" || path === "store/checkout/confirm") {
       try {
+        const targetCartId = body.cart_id || body.cartId || req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
+        if (targetCartId) {
+          try {
+            const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
+            const pgCart = await CartRepository.findCartById(targetCartId);
+            if (pgCart) {
+              ApiEngine.syncCartFromDb(pgCart);
+            }
+          } catch (_e) {}
+        }
         let items = body.items;
         let branchId = body.branch_id;
         const custUid = body.customer_id || body.customer_uid || req.cookies.get("_cth_user_id")?.value || "guest";
@@ -9812,7 +10303,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         const customerPhone = body.customer_phone || body.address?.phone;
 
         if (!items || items.length === 0) {
-          const validation = ApiEngine.validateCheckout(body);
+          const validation = ApiEngine.validateCheckout({ ...body, cart_id: targetCartId || body.cart_id });
           if (!validation.valid) {
             return jsonWithDataSource({ success: false, error: validation.errors?.[0]?.message || "Checkout validation failed", errors: validation.errors }, "postgres", 400);
           }
@@ -9821,7 +10312,17 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
             quantity: it.quantity || 1,
             weight: it.weight || "1 kg",
             variant_name: it.weight || "1 kg",
-            customization: it.customization || {},
+            cake_message: it.cake_message || it.metadata?.cake_message || null,
+            shape: it.shape || it.metadata?.shape || null,
+            flavour: it.flavour || it.metadata?.flavour || null,
+            selected_addons: it.selected_addons || it.metadata?.selected_addons || [],
+            customization: {
+              ...(it.customization || {}),
+              cake_message: it.cake_message || it.metadata?.cake_message || null,
+              shape: it.shape || it.metadata?.shape || null,
+              flavour: it.flavour || it.metadata?.flavour || null,
+              selected_addons: it.selected_addons || it.metadata?.selected_addons || [],
+            },
           }));
           if (!branchId) {
             branchId = validation.branch?.id;
@@ -9911,8 +10412,13 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           } catch {}
         }
 
-        if (body.cart_id) {
-          try { ApiEngine.clearCart(body.cart_id); } catch {}
+        if (targetCartId || body.cart_id) {
+          const cid = targetCartId || body.cart_id;
+          try { ApiEngine.clearCart(cid); } catch {}
+          try {
+            const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
+            await CartRepository.clearCart(cid);
+          } catch {}
         }
 
         return jsonWithDataSource({
@@ -9937,18 +10443,13 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource({ address, success: true }, "postgres", 201);
     }
 
-    if (path === "cart/items" || path === "store/cart/items") {
-      const cartId = body.cart_id || body.cartId || req.cookies.get("_cth_cart_id")?.value || "cart_default";
-      const cart = ApiEngine.addItemToCart(cartId, body);
-      return jsonWithDataSource({ cart, success: true }, "postgres", 200);
-    }
-    if (path === "cart" || path === "store/cart") {
-      const cart = ApiEngine.saveCart(body);
-      return jsonWithDataSource({ cart, success: true }, "postgres");
-    }
-
     if (path === "cart/promo") {
-      const cartId = body.cartId || req.cookies.get("_cth_cart_id")?.value || "cart_guest_100";
+      const cartId = body.cartId || body.cart_id || req.cookies.get("_cth_cart_id")?.value || "cart_guest_100";
+      try {
+        const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
+        const pgCart = await CartRepository.findCartById(cartId);
+        if (pgCart) ApiEngine.syncCartFromDb(pgCart);
+      } catch (_e) {}
       const result = ApiEngine.applyPromoCode(cartId, body.promoCode || body.code || "", body.context);
       return jsonWithDataSource(result, "postgres");
     }
@@ -10269,6 +10770,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource({ weight_prices: await ApiEngine.saveProductWeightPrices(prodId, body.weight_prices || body) }, "postgres");
     }
     if (path === "admin/catalog/products" || path === "admin/products") {
+      const permErr = verifyApiPermission(req, "PRODUCTS", "CREATE");
+      if (permErr) return permErr;
       return jsonWithDataSource({ product: await ApiEngine.createAdminProduct(body), success: true }, "postgres");
     }
     if (path === "admin/offers") {
@@ -10523,52 +11026,45 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
     // ── Tax Master Configuration POST/PUT Endpoints ──
     if (path === "admin/tax/configurations" || path === "tax/configurations" || path === "tax-master" || path === "admin/tax-master") {
-      try {
-        const { id, name, code, rate, is_default, metadata } = body;
-        if (id) {
-          // Update existing
-          await dbQuery(
-            `UPDATE tax_rate SET name = $1, code = $2, rate = $3, is_default = $4, metadata = $5, updated_at = NOW()
-             WHERE id = $6 AND deleted_at IS NULL`,
-            [name || "", code || "", rate ?? 5, is_default ?? false, JSON.stringify(metadata || {}), id]
-          );
-          return jsonWithDataSource({ success: true, id }, "postgres");
-        } else {
-          // Create new
-          const newId = `txr_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-          const regionId = body.tax_region_id || (await dbQuery("SELECT id FROM tax_region WHERE country_code = 'in' LIMIT 1")).rows[0]?.id;
-          await dbQuery(
-            `INSERT INTO tax_rate (id, name, code, rate, is_default, is_combinable, tax_region_id, metadata, created_at, updated_at)
-             VALUES ($1, $2, $3, $4, $5, false, $6, $7, NOW(), NOW())`,
-            [newId, name || "", code || "", rate ?? 5, is_default ?? false, regionId, JSON.stringify(metadata || {})]
-          );
-          return jsonWithDataSource({ success: true, id: newId }, "postgres", 201);
-        }
-      } catch (err: any) {
-        return NextResponse.json({ error: err.message, success: false }, { status: 500 });
-      }
+      return handleSaveTaxMasterConfiguration(req, body);
     }
     if (path === "admin/tax/configurations/toggle" || path === "tax/configurations/toggle" || path === "tax-master/toggle" || path === "admin/tax-master/toggle") {
+      const authCheck = authorizeTaxMasterAccess(req, "WRITE");
+      if (!authCheck.authorized) return authCheck.response!;
       try {
-        const { id, is_active } = body;
-        // Soft-delete to deactivate, restore to activate
-        if (is_active === false) {
-          await dbQuery("UPDATE tax_rate SET deleted_at = NOW() WHERE id = $1", [id]);
-        } else {
-          await dbQuery("UPDATE tax_rate SET deleted_at = NULL, updated_at = NOW() WHERE id = $1", [id]);
+        const { id, is_active } = body || {};
+        if (!id || typeof id !== "string") {
+          return NextResponse.json({ success: false, error: "Tax configuration id is required." }, { status: 400 });
         }
-        return jsonWithDataSource({ success: true }, "postgres");
+        if (typeof is_active !== "boolean") {
+          return NextResponse.json({ success: false, error: "Boolean is_active flag is required." }, { status: 400 });
+        }
+        const updateRes = await dbQuery(
+          `UPDATE public.tax_rate
+           SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{is_active}', to_jsonb($2::boolean), true),
+               deleted_at = NULL,
+               updated_at = NOW()
+           WHERE id = $1
+           RETURNING id, code, name, metadata`,
+          [id, is_active]
+        );
+        if (updateRes.rows.length === 0) {
+          return NextResponse.json({ success: false, error: `Tax configuration '${id}' not found.` }, { status: 404 });
+        }
+        return jsonWithDataSource({ success: true, id, is_active }, "postgres");
       } catch (err: any) {
         return NextResponse.json({ error: err.message, success: false }, { status: 500 });
       }
     }
     if (path === "admin/tax/assign-product" || path === "tax/assign-product" || path === "tax-master/assign-product") {
+      const authCheck = authorizeTaxMasterAccess(req, "WRITE");
+      if (!authCheck.authorized) return authCheck.response!;
       try {
-        const { productId, taxRateId } = body;
+        const { productId, taxRateId } = body || {};
         if (!productId || !taxRateId) {
           return NextResponse.json({ success: false, error: "Both productId and taxRateId are required." }, { status: 400 });
         }
-        const staffUser = resolveCustomerUidFromReq(req) || "admin_staff";
+        const staffUser = authCheck.userCtx?.userId || resolveCustomerUidFromReq(req) || "admin_staff";
         const result = await TaxResolverService.assignProductTax(productId, taxRateId, staffUser);
         return jsonWithDataSource(result, "postgres");
       } catch (err: any) {
@@ -11081,7 +11577,9 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
             mediaUrl = processedResult.url;
           }
         } catch (procErr: any) {
-          console.error("[Media Upload] Sharp processing failed, falling back:", procErr.message);
+          // Don't silently store multi-MB base64 in the DB when processing/S3 upload fails.
+          console.error("[Media Upload] processing/storage failed:", procErr.message);
+          return jsonWithDataSource({ error: "Image upload failed. Please try again." }, "postgres", 502);
         }
       }
 
@@ -11749,6 +12247,15 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     const backendRes = await forwardToPostgresBackend("PUT", path, body, undefined, req.headers);
     if (backendRes) return backendRes;
 
+    // ── Tax Master Configuration PUT Endpoints ───────────────────────────────
+    if (path === "admin/tax/configurations" || path === "tax/configurations" || path === "tax-master" || path === "admin/tax-master") {
+      return handleSaveTaxMasterConfiguration(req, body);
+    }
+    const taxConfigPutMatch = path.match(/^(admin\/)?tax\/configurations\/([^/]+)$/);
+    if (taxConfigPutMatch) {
+      return handleSaveTaxMasterConfiguration(req, body, taxConfigPutMatch[2]);
+    }
+
     // ── Phase C7.6 Step 4D: Cost Allocation Subsystem PUT Endpoints ──────────
     if (path.startsWith("admin/accounting/cost-allocations") || path.startsWith("admin/cost-allocations")) {
       const userCtx = resolveUserContext(req);
@@ -11984,16 +12491,37 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource(result, "postgres", result.success ? 200 : 404);
     }
 
-    // Cart Item Update
-    if (path === "cart/items" || path.startsWith("cart/items/")) {
-      const lineItemIdFromPath = path.startsWith("cart/items/") ? path.replace("cart/items/", "") : null;
+    // Cart Item Update (PUT)
+    if (path === "cart/items" || path.startsWith("cart/items/") || path === "store/cart/items" || path.startsWith("store/cart/items/")) {
+      const lineItemIdFromPath = path.startsWith("cart/items/")
+        ? path.replace("cart/items/", "")
+        : path.startsWith("store/cart/items/")
+          ? path.replace("store/cart/items/", "")
+          : null;
       const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
       const validCookieCartId = cookieCartId && cookieCartId !== "items" ? cookieCartId : null;
       const cartId = body.cartId || body.cart_id || validCookieCartId || "cart_guest_100";
       const lineItemId = lineItemIdFromPath || body.lineItemId || body.line_item_id || body.itemId || body.item_id;
-      const quantity = body.quantity !== undefined ? Number(body.quantity) : 1;
-      const cart = ApiEngine.updateCartItem(cartId, lineItemId, quantity);
-      return jsonWithDataSource({ cart, success: true }, "postgres");
+      try {
+        const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
+        const existingDbCart = await CartRepository.findCartById(cartId);
+        if (existingDbCart) ApiEngine.syncCartFromDb(existingDbCart);
+
+        if (body.cake_message !== undefined) {
+          ApiEngine.updateCartItemMessage(cartId, lineItemId, body.cake_message);
+          await CartRepository.updateLineItemMessage(cartId, lineItemId, body.cake_message);
+        }
+        if (body.quantity !== undefined) {
+          const quantity = Number(body.quantity);
+          ApiEngine.updateCartItem(cartId, lineItemId, quantity);
+          await CartRepository.updateLineItemQuantity(cartId, lineItemId, quantity);
+        }
+        const updatedDbCart = await CartRepository.findCartById(cartId);
+        const cart = updatedDbCart ? ApiEngine.syncCartFromDb(updatedDbCart) || updatedDbCart : ApiEngine.getCart(cartId);
+        return jsonWithDataSource({ cart, success: true }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ error: err.message || "Failed to update cart item", success: false }, "postgres", 400);
+      }
     }
 
     if (path.startsWith("customers/addresses/")) {
@@ -12084,6 +12612,8 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ weight_prices: await ApiEngine.saveProductWeightPrices(prodId, body.weight_prices || body), success: true }, "postgres");
     }
     if (path.startsWith("admin/catalog/products/") || path.startsWith("admin/products/")) {
+      const permErr = verifyApiPermission(req, "PRODUCTS", "EDIT");
+      if (permErr) return permErr;
       const id = extractProductIdFromPath(path);
       return jsonWithDataSource({ product: await ApiEngine.updateAdminProduct(id, body), success: true }, "postgres");
     }
@@ -12671,12 +13201,19 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     if (path.startsWith("cart/items/") || path.startsWith("store/cart/items/")) {
       const lineItemId = path.split("/").pop() || "";
       const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
-      const urlCartId = req.nextUrl.searchParams.get("cartId");
-      const cartId = urlCartId || cookieCartId;
+      const urlCartId = req.nextUrl.searchParams.get("cartId") || req.nextUrl.searchParams.get("cart_id");
+      const cartId = urlCartId || body?.cartId || body?.cart_id || cookieCartId;
       if (!cartId || !lineItemId) {
         return jsonWithDataSource({ error: "Missing cart or item ID", success: false }, "postgres", 400);
       }
-      const cart = ApiEngine.removeCartItem(cartId, lineItemId);
+      const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
+      const existingDbCart = await CartRepository.findCartById(cartId);
+      if (existingDbCart) ApiEngine.syncCartFromDb(existingDbCart);
+
+      ApiEngine.removeCartItem(cartId, lineItemId);
+      await CartRepository.removeLineItem(cartId, lineItemId);
+      const updatedDbCart = await CartRepository.findCartById(cartId);
+      const cart = updatedDbCart ? ApiEngine.syncCartFromDb(updatedDbCart) || updatedDbCart : ApiEngine.getCart(cartId);
       return jsonWithDataSource({ cart, success: true }, "postgres", 200);
     }
 
@@ -12920,29 +13457,41 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     }
 
     // 2. Fallback Route: Disk-Backed ApiEngine
-    if (path === "cart") {
+    if (path === "cart" || path === "store/cart") {
       const url = new URL(req.url);
       const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
       const validCookieCartId = cookieCartId && cookieCartId !== "items" ? cookieCartId : null;
-      const cartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId") || validCookieCartId || "cart_guest_100";
+      const cartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId") || body?.cart_id || body?.cartId || validCookieCartId || "cart_guest_100";
       const cart = ApiEngine.clearCart(cartId);
+      try {
+        const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
+        await CartRepository.clearCart(cartId);
+      } catch (_e) {}
       return jsonWithDataSource({ cart, success: true }, "postgres");
     }
 
-    if (path === "cart/items" || path.startsWith("cart/items/")) {
+    if (path === "cart/items" || path.startsWith("cart/items/") || path === "store/cart/items" || path.startsWith("store/cart/items/")) {
       const url = new URL(req.url);
-      const itemId = path.replace("cart/items/", "").replace("cart/items", "") || url.searchParams.get("item_id") || url.searchParams.get("itemId") || body.lineItemId || body.itemId;
+      const itemId = path.replace("store/cart/items/", "").replace("cart/items/", "").replace("store/cart/items", "").replace("cart/items", "") || url.searchParams.get("item_id") || url.searchParams.get("itemId") || body.lineItemId || body.itemId;
       const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
       const validCookieCartId = cookieCartId && cookieCartId !== "items" ? cookieCartId : null;
-      const cartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId") || validCookieCartId || "cart_guest_100";
-      const cart = ApiEngine.deleteLineItem(cartId, itemId);
+      const cartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId") || body?.cart_id || body?.cartId || validCookieCartId || "cart_guest_100";
+      const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
+      const existingDbCart = await CartRepository.findCartById(cartId);
+      if (existingDbCart) ApiEngine.syncCartFromDb(existingDbCart);
+
+      ApiEngine.removeCartItem(cartId, itemId);
+      await CartRepository.removeLineItem(cartId, itemId);
+      const updatedDbCart = await CartRepository.findCartById(cartId);
+      const cart = updatedDbCart ? ApiEngine.syncCartFromDb(updatedDbCart) || updatedDbCart : ApiEngine.getCart(cartId);
       return jsonWithDataSource({ cart, success: true }, "postgres");
     }
 
     if (path.startsWith("customers/addresses/")) {
       const addressId = path.replace("customers/addresses/", "").replace("store/customers/addresses/", "");
       const url = new URL(req.url);
-      const customerId = url.searchParams.get("customer_id") || req.cookies.get("_cth_user_id")?.value || "cus_guest";
+      const customerId = resolveVerifiedCustomer(req)?.customerUid;
+      if (!customerId) return jsonWithDataSource({ success: false, error: "UNAUTHORIZED" }, "postgres", 401);
       const deleted = ApiEngine.deleteCustomerAddress(addressId, customerId);
       return jsonWithDataSource({ deleted, success: true }, "postgres");
     }
@@ -12970,6 +13519,8 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     }
 
     if (path.startsWith("admin/catalog/products/")) {
+      const permErr = verifyApiPermission(req, "PRODUCTS", "EDIT");
+      if (permErr) return permErr;
       const id = path.replace("admin/catalog/products/", "");
       return jsonWithDataSource({ deleted: await ApiEngine.deleteAdminProduct(id), success: true }, "postgres");
     }
@@ -13153,14 +13704,31 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
       if (!cartId || !lineItemId) {
         return jsonWithDataSource({ error: "Missing cart or item ID", success: false }, "postgres", 400);
       }
-      const qty = Math.max(0, Number(body.quantity || 1));
-      let cart: any;
-      if (qty <= 0) {
-        cart = ApiEngine.removeCartItem(cartId, lineItemId);
-      } else {
-        cart = ApiEngine.updateCartItem(cartId, lineItemId, qty);
+      try {
+        const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
+        const existingDbCart = await CartRepository.findCartById(cartId);
+        if (existingDbCart) ApiEngine.syncCartFromDb(existingDbCart);
+
+        if (body.cake_message !== undefined) {
+          ApiEngine.updateCartItemMessage(cartId, lineItemId, body.cake_message);
+          await CartRepository.updateLineItemMessage(cartId, lineItemId, body.cake_message);
+        }
+        if (body.quantity !== undefined) {
+          const qty = Math.max(0, Number(body.quantity));
+          if (qty <= 0) {
+            ApiEngine.removeCartItem(cartId, lineItemId);
+            await CartRepository.removeLineItem(cartId, lineItemId);
+          } else {
+            ApiEngine.updateCartItem(cartId, lineItemId, qty);
+            await CartRepository.updateLineItemQuantity(cartId, lineItemId, qty);
+          }
+        }
+        const updatedDbCart = await CartRepository.findCartById(cartId);
+        const cart = updatedDbCart ? ApiEngine.syncCartFromDb(updatedDbCart) || updatedDbCart : ApiEngine.getCart(cartId);
+        return jsonWithDataSource({ cart, success: true }, "postgres", 200);
+      } catch (err: any) {
+        return jsonWithDataSource({ error: err.message || "Failed to update cart item", success: false }, "postgres", 400);
       }
-      return jsonWithDataSource({ cart, success: true }, "postgres", 200);
     }
 
     // ── Customer Review Edit (PATCH) ──

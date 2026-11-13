@@ -3,8 +3,23 @@
  * Manages statutory GST tax configurations via the Admin API → PostgreSQL.
  *
  * IMPORTANT: All data is fetched from and persisted to PostgreSQL via /api/v1/admin/tax/*
- * No in-memory storage or hardcoded business data.
+ * No in-memory storage or hardcoded business data. Database errors are propagated explicitly.
  */
+
+export interface TaxRegionRecord {
+  id: string;
+  country_code: string;
+  province_code?: string | null;
+  parent_id?: string | null;
+  provider_id?: string | null;
+  metadata?: {
+    name?: string;
+    state_name?: string;
+    state_code?: string;
+    jurisdiction?: string;
+    [key: string]: any;
+  } | null;
+}
 
 export interface TaxConfigurationRecord {
   id: string;
@@ -26,31 +41,51 @@ export interface TaxConfigurationRecord {
   usageCount?: number;
   isDefault?: boolean;
   countryCode?: string;
+  provinceCode?: string;
   regionId?: string;
 }
 
 const API_BASE = "/api/v1";
 
+function buildHeaders(extra?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = { ...(extra || {}) };
+  if (typeof window !== "undefined") {
+    try {
+      const token =
+        window.localStorage.getItem("cth_auth_token") ||
+        window.localStorage.getItem("auth_token") ||
+        window.localStorage.getItem("admin_token");
+      if (token && !headers["Authorization"]) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    } catch {
+      // Ignore storage access errors in restricted contexts
+    }
+  }
+  return headers;
+}
+
 export class TaxMasterService {
   private static cachedConfigurations: TaxConfigurationRecord[] = [];
+  private static cachedRegions: TaxRegionRecord[] = [];
 
   /**
    * Fetch all tax configurations from PostgreSQL via the API.
+   * Throws an explicit Error if the API or database returns an error.
    */
   public static async fetchTaxConfigurations(): Promise<TaxConfigurationRecord[]> {
-    try {
-      const res = await fetch(`${API_BASE}/admin/tax/configurations`, {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      const configs = data?.configurations || [];
-      TaxMasterService.cachedConfigurations = configs;
-      return configs;
-    } catch (err) {
-      console.error("[TaxMasterService] Failed to fetch tax configurations:", err);
-      return TaxMasterService.cachedConfigurations;
+    const res = await fetch(`${API_BASE}/admin/tax/configurations`, {
+      credentials: "include",
+      headers: buildHeaders(),
+      cache: "no-store",
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data?.success === false) {
+      throw new Error(data?.error || data?.message || `Failed to load tax configurations (HTTP ${res.status})`);
     }
+    const configs: TaxConfigurationRecord[] = Array.isArray(data?.configurations) ? data.configurations : [];
+    TaxMasterService.cachedConfigurations = configs;
+    return configs;
   }
 
   /**
@@ -58,39 +93,64 @@ export class TaxMasterService {
    */
   public static async saveTaxConfiguration(
     record: Partial<TaxConfigurationRecord>
-  ): Promise<{ success: boolean; id?: string; error?: string }> {
+  ): Promise<{ success: boolean; id?: string; configuration?: TaxConfigurationRecord; error?: string }> {
     try {
+      const method = record.id ? "PUT" : "POST";
       const res = await fetch(`${API_BASE}/admin/tax/configurations`, {
-        method: "POST",
+        method,
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: buildHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           id: record.id || undefined,
           name: record.name,
           code: record.code,
           rate: record.gstRatePct,
+          gstRatePct: record.gstRatePct,
+          cgstRatePct: record.cgstRatePct,
+          sgstRatePct: record.sgstRatePct,
+          igstRatePct: record.igstRatePct,
+          cessRatePct: record.cessRatePct ?? 0,
+          taxability: record.taxability,
+          applicableSupplyType: record.applicableSupplyType || "BOTH",
+          applicableCustomerType: record.applicableCustomerType || "BOTH",
+          taxInclusive: record.taxInclusive !== false,
+          isActive: record.isActive !== false,
+          effectiveFrom: record.effectiveFrom,
+          effectiveTo: record.effectiveTo || null,
           is_default: record.isDefault ?? false,
-          tax_region_id: record.regionId,
+          tax_region_id: record.regionId || undefined,
           metadata: {
             description: record.description,
+            taxability: record.taxability,
+            cgst_rate: record.cgstRatePct,
+            sgst_rate: record.sgstRatePct,
+            igst_rate: record.igstRatePct,
             cess_rate: record.cessRatePct ?? 0,
             tax_inclusive: record.taxInclusive !== false,
             supply_type: record.applicableSupplyType || "BOTH",
             customer_type: record.applicableCustomerType || "BOTH",
             effective_from: record.effectiveFrom,
-            effective_to: record.effectiveTo,
-            taxability: record.taxability,
+            effective_to: record.effectiveTo || null,
+            is_active: record.isActive !== false,
           },
         }),
       });
-      const data = await res.json();
-      if (data?.success) {
-        await TaxMasterService.fetchTaxConfigurations();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data?.success !== true) {
+        return {
+          success: false,
+          error: data?.error || data?.message || `Failed to save tax configuration (HTTP ${res.status})`,
+        };
       }
-      return { success: data?.success === true, id: data?.id, error: data?.error };
+      await TaxMasterService.fetchTaxConfigurations();
+      return {
+        success: true,
+        id: data?.id,
+        configuration: data?.configuration,
+      };
     } catch (err: any) {
       console.error("[TaxMasterService] Failed to save tax configuration:", err);
-      return { success: false, error: err.message };
+      return { success: false, error: err?.message || "Network error while saving tax configuration." };
     }
   }
 
@@ -105,17 +165,21 @@ export class TaxMasterService {
       const res = await fetch(`${API_BASE}/admin/tax/configurations/toggle`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: buildHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ id, is_active: isActive }),
       });
-      const data = await res.json();
-      if (data?.success) {
-        await TaxMasterService.fetchTaxConfigurations();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data?.success !== true) {
+        return {
+          success: false,
+          error: data?.error || data?.message || `Failed to toggle tax configuration (HTTP ${res.status})`,
+        };
       }
-      return { success: data?.success === true, error: data?.error };
+      await TaxMasterService.fetchTaxConfigurations();
+      return { success: true };
     } catch (err: any) {
       console.error("[TaxMasterService] Failed to toggle tax configuration:", err);
-      return { success: false, error: err.message };
+      return { success: false, error: err?.message || "Failed to toggle tax configuration." };
     }
   }
 
@@ -130,32 +194,40 @@ export class TaxMasterService {
       const res = await fetch(`${API_BASE}/admin/tax/assign-product`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: buildHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ productId, taxRateId }),
       });
-      const data = await res.json();
-      return { success: data?.success === true, error: data?.error };
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data?.success !== true) {
+        return {
+          success: false,
+          error: data?.error || data?.message || `Failed to assign product tax (HTTP ${res.status})`,
+        };
+      }
+      return { success: true };
     } catch (err: any) {
       console.error("[TaxMasterService] Failed to assign product tax:", err);
-      return { success: false, error: err.message };
+      return { success: false, error: err?.message || "Failed to assign product tax." };
     }
   }
 
   /**
    * Fetch tax regions from PostgreSQL.
+   * Throws an explicit Error if the API or database returns an error.
    */
-  public static async fetchTaxRegions(): Promise<any[]> {
-    try {
-      const res = await fetch(`${API_BASE}/admin/tax/regions`, {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      return data?.regions || [];
-    } catch (err) {
-      console.error("[TaxMasterService] Failed to fetch tax regions:", err);
-      return [];
+  public static async fetchTaxRegions(): Promise<TaxRegionRecord[]> {
+    const res = await fetch(`${API_BASE}/admin/tax/regions`, {
+      credentials: "include",
+      headers: buildHeaders(),
+      cache: "no-store",
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data?.success === false) {
+      throw new Error(data?.error || data?.message || `Failed to load tax regions (HTTP ${res.status})`);
     }
+    const regions: TaxRegionRecord[] = Array.isArray(data?.regions) ? data.regions : [];
+    TaxMasterService.cachedRegions = regions;
+    return regions;
   }
 
   /**
@@ -163,6 +235,10 @@ export class TaxMasterService {
    */
   public static listTaxConfigurations(): TaxConfigurationRecord[] {
     return TaxMasterService.cachedConfigurations;
+  }
+
+  public static listTaxRegions(): TaxRegionRecord[] {
+    return TaxMasterService.cachedRegions;
   }
 
   public static getTaxConfigurationById(id: string): TaxConfigurationRecord | undefined {
@@ -173,4 +249,3 @@ export class TaxMasterService {
     return TaxMasterService.cachedConfigurations.find((c) => c.code === code);
   }
 }
-

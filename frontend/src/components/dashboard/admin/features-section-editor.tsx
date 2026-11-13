@@ -139,7 +139,7 @@ export function FeaturesSectionEditor({ config, onChange }: FeaturesSectionEdito
           <Input
             value={config.heading || ""}
             onChange={(e) => onChange("heading", e.target.value)}
-            placeholder="Why CakeToHome is Bangalore's #1 Choice"
+            placeholder="Why CakeToHome is Kerala's #1 Choice"
           />
         </Field>
 

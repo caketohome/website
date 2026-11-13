@@ -233,10 +233,10 @@ describe("Enterprise Coupon & Promotion Engine Unit Tests", () => {
             metadata: { discount_value: 20 },
         });
 
-        // Test with unauthorized branch (Bangalore)
+        // Test with unauthorized branch (other city)
         const rejectedContext: EvaluationContext = {
             subtotal: 700,
-            branch_id: "br_bangalore_01",
+            branch_id: "br_unauthorized_01",
             code: "KOLLAM20",
             items: [{ product_id: "prod_01", quantity: 1, unit_price: 700 }],
         };

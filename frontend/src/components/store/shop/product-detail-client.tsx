@@ -21,8 +21,6 @@ import {
   PdpPurchaseActions,
   PdpStickyBar,
   PdpDeliveryChecker,
-  PdpHighlights,
-  PdpInfoTabs,
   PdpRelatedProducts,
   PdpFaqSection,
   PdpEmptyMessageModal,
@@ -86,33 +84,44 @@ export default function ProductDetailClient({
   const messageInputRef = useRef<HTMLInputElement>(null);
   const reviewsRef = useRef<HTMLDivElement>(null);
   const [showEmptyMessageConfirm, setShowEmptyMessageConfirm] = useState(false);
+  const [pendingRedirectToCheckout, setPendingRedirectToCheckout] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [addedCartSuccess, setAddedCartSuccess] = useState(false);
   const [cartError, setCartError] = useState<string | null>(null);
 
   // Active PIM requirement and visibility configuration
   const activePimConfig = useMemo(() => {
+    const isNonCakeProduct =
+      (product?.merchandise_type || "").toUpperCase() === "ACCESSORY" ||
+      String(product?.id || "").startsWith("acc_") ||
+      String(product?.id || "").includes("bouquet") ||
+      String(product?.slug || "").includes("bouquet") ||
+      String(product?.category_slug || "").toLowerCase().includes("accessor") ||
+      String(product?.category_slug || "").toLowerCase().includes("bouquet") ||
+      String(product?.category || "").toLowerCase().includes("accessor") ||
+      String(product?.category || "").toLowerCase().includes("bouquet");
+
     const defaults = {
-      show_weight: true,
-      required_weight: true,
-      show_shape: true,
+      show_weight: !isNonCakeProduct,
+      required_weight: !isNonCakeProduct,
+      show_shape: !isNonCakeProduct,
       required_shape: false,
-      show_flavour: true,
+      show_flavour: !isNonCakeProduct,
       required_flavour: false,
-      show_filling: true,
+      show_filling: !isNonCakeProduct,
       required_filling: false,
-      show_cream: true,
+      show_cream: !isNonCakeProduct,
       required_cream: false,
-      show_dietary: true,
+      show_dietary: !isNonCakeProduct,
       required_dietary: false,
-      show_photo_cake: true,
+      show_photo_cake: !isNonCakeProduct,
       required_photo_cake: false,
-      show_cake_message: true,
+      show_cake_message: !isNonCakeProduct,
       required_cake_message: false,
-      show_candles: true,
+      show_candles: !isNonCakeProduct,
       show_greeting_card: true,
-      show_balloons: true,
-      show_knife: true,
+      show_balloons: !isNonCakeProduct,
+      show_knife: !isNonCakeProduct,
       show_premium_packaging: true,
       show_customer_notes: true,
     };
@@ -506,7 +515,7 @@ export default function ProductDetailClient({
     }
   };
 
-  const executeAddToCart = async (redirectToCheckout = false) => {
+  const executeAddToCart = async (redirectToCheckout = false, overrideCakeMessage?: string) => {
     console.log("[PDP Client] executeAddToCart invoked, variantId:", variantId, "shopId:", shopId);
     if (isSubmittingRef.current || cartLoading) {
       console.log("[PDP Client] executeAddToCart skipped due to isSubmittingRef or cartLoading");
@@ -535,6 +544,12 @@ export default function ProductDetailClient({
           quantity: 1,
         }));
 
+      const rawMsg = overrideCakeMessage !== undefined ? overrideCakeMessage : cakeMessage;
+      const normalizedCakeMsg =
+        activePimConfig.show_cake_message !== false && rawMsg
+          ? rawMsg.trim().slice(0, 30) || null
+          : null;
+
       const metadata = {
         productId: product.id,
         variantId: variantId,
@@ -545,7 +560,7 @@ export default function ProductDetailClient({
         gluten_free: hasGlutenFree ? isGlutenFree : false,
         vegan: hasVegan ? isVegan : false,
         photo_cake: activePimConfig.show_photo_cake && isPhotoCake ? photoUrl || "Uploaded Photo" : null,
-        cake_message: activePimConfig.show_cake_message !== false ? cakeMessage.trim() || null : null,
+        cake_message: normalizedCakeMsg,
         greeting_card_text: greetingCardText,
         selected_addons: chosenAddons,
         selected_addons_detail: chosenAddonsDetail,
@@ -555,14 +570,18 @@ export default function ProductDetailClient({
 
       const res = await addToCart(variantId, targetShopId, metadata);
 
+      // Reset cake message input after adding so subsequent cakes get their own message or reminder
+      setCakeMessage("");
+
+      if (res?.cart) {
+        cartBus.emitCartUpdated(res.cart);
+      }
+
       if (redirectToCheckout) {
         router.push("/checkout");
         return;
       }
 
-      if (res?.cart) {
-        cartBus.emitCartUpdated(res.cart);
-      }
       cartBus.emitOpenCart();
       setAddedCartSuccess(true);
       setTimeout(() => setAddedCartSuccess(false), 5000);
@@ -618,12 +637,13 @@ export default function ProductDetailClient({
 
     setValidationError(null);
 
-    // Optional cake message decision confirmation
+    // Optional cake message decision confirmation (for both Add to Bag and Buy Now)
     const isMessageEmpty = !cakeMessage.trim();
     const isCakeMessageOptional =
       activePimConfig.show_cake_message !== false && !activePimConfig.required_cake_message;
 
-    if (isCakeMessageOptional && isMessageEmpty && !redirectToCheckout) {
+    if (isCakeMessageOptional && isMessageEmpty) {
+      setPendingRedirectToCheckout(redirectToCheckout);
       setShowEmptyMessageConfirm(true);
       return;
     }
@@ -811,23 +831,6 @@ export default function ProductDetailClient({
         </div>
       </div>
 
-      {/* 3. Artisanal Trust Badges */}
-      <PdpHighlights
-        fssaiLicense={meta?.fssai_license}
-        showTrustBadges={pdpConfig?.show_trust_badges !== false}
-      />
-
-      {/* 4. Structured Tabs / Accordions */}
-      <PdpInfoTabs
-        description={product.description}
-        ingredients={meta?.ingredients}
-        allergens={meta?.allergens}
-        storageInstructions={meta?.storage_instructions}
-        shelfLife={meta?.shelf_life}
-        showIngredients={pdpConfig?.show_ingredients !== false}
-        showAllergens={pdpConfig?.show_allergens !== false}
-      />
-
       {/* 5. Related Products Recommendations */}
       <PdpRelatedProducts
         products={relatedProducts}
@@ -869,9 +872,9 @@ export default function ProductDetailClient({
       <PdpEmptyMessageModal
         isOpen={showEmptyMessageConfirm}
         onClose={() => setShowEmptyMessageConfirm(false)}
-        onConfirm={() => {
+        onConfirm={(customMsg) => {
           setShowEmptyMessageConfirm(false);
-          executeAddToCart(false);
+          executeAddToCart(pendingRedirectToCheckout, customMsg);
         }}
         onAddMessageClick={() => {
           setShowEmptyMessageConfirm(false);
@@ -883,6 +886,8 @@ export default function ProductDetailClient({
           }
         }}
         cartLoading={cartLoading}
+        cakeMessage={cakeMessage}
+        onCakeMessageChange={setCakeMessage}
       />
     </div>
   );

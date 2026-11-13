@@ -31,18 +31,16 @@ export const CatalogPanel = memo(function CatalogPanel() {
     setLoading(true);
     setError(null);
     Promise.all([
-      apiClient.getAdminProducts().then((r: any) => setProducts(r?.products || r?.data || [])).catch((err) => {
-        console.error("[Catalog Panel Error] Failed to fetch products:", err);
-        return [];
-      }),
+      apiClient.getAdminProducts().then((r: any) => setProducts(r?.products || r?.data || [])),
       apiClient.getAdminCategories().then((r: any) => setCategories(r?.categories || r?.data || [])).catch((err) => {
         console.error("[Catalog Panel Error] Failed to fetch categories:", err);
-        return [];
+        setCategories([]);
       }),
     ])
       .catch((err) => {
         console.error("[Catalog Panel Error] Failed to fetch catalog data:", err);
-        setError(err.message || "Failed to load catalog");
+        setProducts([]);
+        setError(err?.message || "Failed to load catalog");
       })
       .finally(() => setLoading(false));
   }, []);
@@ -233,6 +231,14 @@ export const CatalogPanel = memo(function CatalogPanel() {
 
               {loading ? (
                 <GridSkeleton count={6} />
+              ) : error && filtered.length === 0 ? (
+                <div className="text-center py-8 text-rose-600 flex flex-col items-center gap-2" data-testid="catalog-error-state">
+                  <Cake className="w-8 h-8 opacity-60" />
+                  <Text className="font-semibold text-rose-700">{error}</Text>
+                  <Button size="small" variant="secondary" onClick={fetchCatalog} className="mt-2 text-xs">
+                    <RefreshCw className="w-3 h-3 mr-1" /> Retry Catalog
+                  </Button>
+                </div>
               ) : filtered.length === 0 ? (
                 <div className="text-center py-8 text-ui-fg-subtle flex flex-col items-center gap-2">
                   <Cake className="w-8 h-8 opacity-50" />

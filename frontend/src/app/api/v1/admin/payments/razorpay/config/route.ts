@@ -4,92 +4,89 @@ import { resolveServerSession } from "@/lib/security/auth-session";
 
 export const dynamic = "force-dynamic";
 
-function requireAdmin(req: NextRequest): NextResponse | null {
+function requireAdmin(req: NextRequest): { error: NextResponse } | { userId: string } {
   const session = resolveServerSession(req);
   if (!session || !session.userId) {
-    return NextResponse.json(
-      { success: false, error: "UNAUTHORIZED", message: "Admin authentication required." },
-      { status: 401 }
-    );
+    return { error: NextResponse.json({ success: false, error: "UNAUTHORIZED", message: "Admin authentication required." }, { status: 401 }) };
   }
   if (session.role !== "SUPER_ADMIN" && session.role !== "ADMIN") {
-    return NextResponse.json(
-      { success: false, error: "FORBIDDEN", message: "Admin privileges required." },
-      { status: 403 }
-    );
+    return { error: NextResponse.json({ success: false, error: "FORBIDDEN", message: "Admin privileges required." }, { status: 403 }) };
   }
-  return null;
+  return { userId: session.userId };
+}
+
+// Only these codes are shown to the admin; anything else becomes a generic message so internals/secrets never leak.
+const SAFE_ERRORS: Record<string, number> = {
+  INVALID_KEY_ID_FORMAT: 400, KEY_ID_REQUIRED: 400, KEY_SECRET_REQUIRED: 400,
+  ENVIRONMENT_NOT_CONFIGURED: 409, STALE_CONFIG: 409, INVALID_ENVIRONMENT: 400, INVALID_ACTION: 400
+};
+function safeError(err: any) {
+  const msg = String(err?.message || "");
+  const code = msg.split(":")[0];
+  if (code in SAFE_ERRORS) return { code, message: msg.slice(code.length + 1).trim() || code, status: SAFE_ERRORS[code] };
+  return { code: "CONFIG_FAILED", message: "The payment configuration could not be saved.", status: 500 };
 }
 
 /**
  * GET /api/v1/admin/payments/razorpay/config
- * Retrieves Sanitized Gateway Config (Secrets Redacted)
+ * Safe metadata for BOTH environments. Secrets are never returned.
  */
 export async function GET(req: NextRequest) {
-  const authErr = requireAdmin(req);
-  if (authErr) return authErr;
-
+  const auth = requireAdmin(req);
+  if ("error" in auth) return auth.error;
   try {
-    const config = await PaymentGatewayConfigService.getAdminConfig("razorpay");
+    const config = await PaymentGatewayConfigService.getAdminConfigAll("razorpay");
     return NextResponse.json({ success: true, config }, { status: 200 });
-  } catch (err: any) {
-    console.error("[RazorpayConfigAPI GET] Error:", err.message);
-    return NextResponse.json(
-      { success: false, error: "FAILED_TO_LOAD_CONFIG", message: err.message },
-      { status: 500 }
-    );
+  } catch {
+    return NextResponse.json({ success: false, error: "FAILED_TO_LOAD_CONFIG", message: "Payment configuration could not be loaded." }, { status: 500 });
   }
 }
 
 /**
  * POST /api/v1/admin/payments/razorpay/config
- * Saves Gateway Config with Versioned AES-256-GCM Authenticated Encryption
+ *  { action: "save", environment, key_id?, key_secret?, webhook_secret?, expected_updated_at? }
+ *  { action: "activate", environment }
+ * Empty secrets keep the stored value. The other environment is never modified by "save".
  */
 export async function POST(req: NextRequest) {
-  const authErr = requireAdmin(req);
-  if (authErr) return authErr;
+  const auth = requireAdmin(req);
+  if ("error" in auth) return auth.error;
 
+  let body: any;
   try {
-    const body = await req.json();
-    const { provider, environment, key_id, key_secret, webhook_secret, is_active } = body;
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ success: false, error: "INVALID_BODY", message: "Request body must be JSON." }, { status: 400 });
+  }
 
-    if (!key_id || !key_id.trim()) {
-      return NextResponse.json(
-        { success: false, error: "KEY_ID_REQUIRED", message: "Razorpay Key ID is required." },
-        { status: 400 }
-      );
+  const environment = String(body?.environment || "").toUpperCase();
+  const action = String(body?.action || "save");
+  try {
+    if (environment !== "TEST" && environment !== "LIVE") throw new Error("INVALID_ENVIRONMENT: Environment must be TEST or LIVE.");
+
+    if (action === "activate") {
+      await PaymentGatewayConfigService.setActiveEnvironment("razorpay", environment, auth.userId);
+      await PaymentGatewayConfigService.recordAudit({ actor: auth.userId, action: "ACTIVATE", status: "SUCCESS", environment });
+    } else if (action === "save") {
+      const fields = ["key_id", "key_secret", "webhook_secret"].filter((f) => typeof body[f] === "string" && body[f].trim());
+      await PaymentGatewayConfigService.saveEnvironmentCredentials({
+        environment,
+        key_id: body.key_id,
+        key_secret: body.key_secret,
+        webhook_secret: body.webhook_secret,
+        expected_updated_at: body.expected_updated_at || null,
+        updated_by: auth.userId
+      });
+      await PaymentGatewayConfigService.recordAudit({ actor: auth.userId, action: "SAVE", status: "SUCCESS", environment, fields });
+    } else {
+      throw new Error("INVALID_ACTION: Unknown action.");
     }
 
-    // Gate E: Block Live Mode Activation pending formal Merchant KYC & Legal Entity Alignment
-    if (environment?.toUpperCase() === "LIVE" && process.env.MERCHANT_KYC_APPROVED !== "true") {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "LIVE_PAYMENT_ACTIVATION_BLOCKED",
-          message: "Live payment activation is strictly blocked pending formal merchant KYC approval with Razorpay, settlement bank verification, and CFO signoff for the approved Kerala Sole Proprietorship entity (CakeToHome / Baked Cakes & Pastries). Gateway must remain in TEST mode.",
-          release_gate: "GATE_E_BLOCKED"
-        },
-        { status: 403 }
-      );
-    }
-
-    const result = await PaymentGatewayConfigService.saveAdminConfig({
-      provider: provider || "razorpay",
-      environment: (environment?.toUpperCase() === "LIVE" ? "LIVE" : "TEST"),
-      key_id: key_id.trim(),
-      key_secret: key_secret ? key_secret.trim() : undefined,
-      webhook_secret: webhook_secret ? webhook_secret.trim() : undefined,
-      is_active: is_active ?? true,
-      updated_by: "admin_user"
-    });
-
-    return NextResponse.json({ success: true, message: "Configuration saved securely.", id: result.id }, { status: 200 });
+    const config = await PaymentGatewayConfigService.getAdminConfigAll("razorpay");
+    return NextResponse.json({ success: true, config }, { status: 200 });
   } catch (err: any) {
-    console.error("[RazorpayConfigAPI POST] Error:", err.message);
-    return NextResponse.json(
-      { success: false, error: "FAILED_TO_SAVE_CONFIG", message: err.message },
-      { status: 500 }
-    );
+    const e = safeError(err);
+    await PaymentGatewayConfigService.recordAudit({ actor: auth.userId, action: action === "activate" ? "ACTIVATE" : "SAVE", status: "FAILURE", environment, code: e.code });
+    return NextResponse.json({ success: false, error: e.code, message: e.message }, { status: e.status });
   }
 }
-

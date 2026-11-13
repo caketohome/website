@@ -42,11 +42,11 @@ export const OrdersPanel = memo(function OrdersPanel() {
     apiClient.getAdminBranches().then((res: any) => {
       const list = res?.branches || (Array.isArray(res) ? res : []);
       if (Array.isArray(list) && list.length > 0) setBranches(list);
-    });
+    }).catch(() => {});
     apiClient.getAdminCities().then((res: any) => {
       const list = res?.cities || (Array.isArray(res) ? res : []);
       if (Array.isArray(list) && list.length > 0) setCities(list);
-    });
+    }).catch(() => {});
   }, []);
 
   // Synchronize URL with active filter state
@@ -578,6 +578,16 @@ export const OrdersPanel = memo(function OrdersPanel() {
       <WidgetErrorBoundary moduleName="Orders Table Grid" onRetry={fetchOrders} compact>
         {loading ? (
           <TableSkeleton rows={8} cols={7} />
+        ) : error && orders.length === 0 ? (
+          <Container className="p-12 text-center flex flex-col gap-2 items-center border rounded-2xl bg-white dark:bg-slate-900" data-testid="orders-error-state">
+            <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-2xl">⚠️</div>
+            <Text className="font-bold text-rose-700 dark:text-rose-400">
+              {error}
+            </Text>
+            <Button size="small" variant="secondary" onClick={fetchOrders} className="mt-2 text-xs">
+              <RefreshCw className="w-3 h-3 mr-1" /> Retry Loading Orders
+            </Button>
+          </Container>
         ) : orders.length === 0 ? (
           <Container className="p-12 text-center flex flex-col gap-2 items-center border rounded-2xl bg-white dark:bg-slate-900" data-testid="orders-empty-state">
             <div className="w-12 h-12 rounded-full bg-[#1D2F5D]/10 dark:bg-[#1D2F5D]/30 flex items-center justify-center text-2xl">🎂</div>

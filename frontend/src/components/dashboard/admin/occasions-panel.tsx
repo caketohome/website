@@ -228,8 +228,8 @@ export function OccasionsPanel() {
       show_in_grid: showInGrid,
       show_in_nav: showInNav,
       show_in_search: showInSearch,
-      seo_title: seoTitle.trim() || `${name.trim()} Cakes Online Bangalore | CakeToHome`,
-      seo_description: seoDescription.trim() || `Order handcrafted ${name.trim()} cakes delivered in 2 hours across Bangalore.`,
+      seo_title: seoTitle.trim() || `${name.trim()} Cakes Online Kerala | CakeToHome`,
+      seo_description: seoDescription.trim() || `Order handcrafted ${name.trim()} cakes delivered in 2 hours across Kerala.`,
       seo_keywords: seoKeywords.trim(),
       og_image: (ogImage || coverImage).trim(),
       canonical_url: canonicalUrl.trim() || `https://cakes2home.com/occasions/${cleanSlug}`,
@@ -854,7 +854,7 @@ export function OccasionsPanel() {
                     id="occ_seo_title"
                     value={seoTitle}
                     onChange={(e) => setSeoTitle(e.target.value)}
-                    placeholder={`e.g. Order ${name || "Celebration"} Cakes Online in Bangalore | CakeToHome`}
+                    placeholder={`e.g. Order ${name || "Celebration"} Cakes Online in Kerala | CakeToHome`}
                     className="mt-1 text-xs"
                   />
                 </div>
@@ -865,7 +865,7 @@ export function OccasionsPanel() {
                     id="occ_seo_desc"
                     value={seoDescription}
                     onChange={(e) => setSeoDescription(e.target.value)}
-                    placeholder={`Handcrafted ${name || "celebration"} cakes delivered fresh across Bangalore with 2-hour express delivery...`}
+                    placeholder={`Handcrafted ${name || "celebration"} cakes delivered fresh across Kerala with 2-hour express delivery...`}
                     rows={2}
                     className="mt-1 text-xs"
                   />
@@ -878,7 +878,7 @@ export function OccasionsPanel() {
                       id="occ_seo_keys"
                       value={seoKeywords}
                       onChange={(e) => setSeoKeywords(e.target.value)}
-                      placeholder="birthday cake online, cake delivery bangalore"
+                      placeholder="birthday cake online, cake delivery kerala"
                       className="mt-1 text-xs"
                     />
                   </div>

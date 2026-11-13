@@ -10,7 +10,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return SeoMetadataBuilder.buildMetadata({
     entityType: "category",
     slug: "categories",
-    fallbackTitle: "Cake Categories & Occasions | CakeToHome Bangalore",
+    fallbackTitle: "Cake Categories & Occasions | CakeToHome Kerala",
     fallbackDescription: "Explore all handcrafted cake categories: Chocolate Truffle, Red Velvet, Fruit Cakes, Wedding Cakes, and Birthday Specials with fast 2-hour delivery.",
   });
 }

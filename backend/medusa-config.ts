@@ -30,7 +30,7 @@ module.exports = defineConfig({
       },
       pool: {
         min: 2,
-        max: 30,
+        max: 10,
         acquireTimeoutMillis: 30000,
         createTimeoutMillis: 30000,
         destroyTimeoutMillis: 5000,

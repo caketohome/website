@@ -62,7 +62,6 @@ const BRANCH_OPTIONS = [
   { id: "br_kochi_01", name: "Kochi Marine Drive", city: "Kochi" },
   { id: "br_trivandrum_01", name: "Trivandrum City", city: "Trivandrum" },
   { id: "br_calicut_01", name: "Calicut Beach Road", city: "Kozhikode" },
-  { id: "br_bangalore_01", name: "Bangalore Indiranagar", city: "Bangalore" },
 ];
 
 const FLAVORS = ["Belgian Chocolate Truffle", "Red Velvet Cream Cheese", "Alphonso Mango Mousse", "Black Forest Deluxe", "Butterscotch Crunch", "Pineapple Blossom"];
@@ -888,7 +887,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
 
                     {!allCities && (
                       <div className="flex flex-wrap gap-2 pt-2">
-                        {["Kollam", "Kochi", "Trivandrum", "Kozhikode", "Bangalore", "Thrissur"].map((cityName) => {
+                        {["Kollam", "Kochi", "Trivandrum", "Kozhikode", "Thrissur"].map((cityName) => {
                           const isSel = selectedCities.includes(cityName);
                           return (
                             <button

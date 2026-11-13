@@ -940,7 +940,6 @@ export class CorporateGiftingService {
       const role = (actorContext.role || "").toUpperCase();
       const isSuperAdmin =
         role === "SUPER_ADMIN" ||
-        actorContext.userId === "admin_01" ||
         actorContext.userId === "user_01KY29WECB2VKDVVAT8J6FH90F" ||
         actorContext.isSuperAdmin === true;
 

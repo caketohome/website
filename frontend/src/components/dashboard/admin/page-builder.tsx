@@ -29,7 +29,7 @@ export function VisualPageBuilder() {
       id: "b1",
       type: "hero",
       title: "🎂 Handcrafted Gourmet Cakes Delivered in 2 Hours",
-      subtitle: "Order fresh artisanal cakes online in Bangalore. Midnight surprise delivery available!",
+      subtitle: "Order fresh artisanal cakes online in Kerala. Midnight surprise delivery available!",
       cta_text: "Browse Cake Catalog →",
       cta_link: "/products",
     },
@@ -52,7 +52,7 @@ export function VisualPageBuilder() {
       type: "faq",
       title: "❓ Frequently Asked Questions",
       items: [
-        { q: "Do you deliver cakes at midnight?", a: "Yes! We offer midnight delivery slots between 11:30 PM and 12:05 AM across Bangalore." },
+        { q: "Do you deliver cakes at midnight?", a: "Yes! We offer midnight delivery slots between 11:30 PM and 12:05 AM across Kerala." },
         { q: "Can I customize the cake message and flavor?", a: "Absolutly! You can select size (0.5kg, 1kg, 2kg), artisan option, flavor, and add a custom name message during checkout." },
       ],
     },

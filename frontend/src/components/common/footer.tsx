@@ -43,11 +43,11 @@ export default function Footer() {
               🎂 CakeToHome
             </Link>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-sm">
-              Artisanal bakery crafted with passion in Bengaluru. We bake happiness fresh to order, delivering gourmet cakes, desserts, and savory treats with unmatched quality and punctuality.
+              Artisanal bakery crafted with passion in Kerala. We bake happiness fresh to order, delivering gourmet cakes, desserts, and savory treats with unmatched quality and punctuality.
             </p>
             <div className="flex items-center gap-2 pt-2 text-xs text-blue-200">
               <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Kitchens active & dispatching across Bengaluru
+              Kitchens active & dispatching across Kerala
             </div>
           </div>
 
@@ -117,7 +117,7 @@ export default function Footer() {
             © {new Date().getFullYear()} CakeToHome India Private Limited. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-xs text-slate-300">
-            <span className="flex items-center gap-1">Made with <Heart className="w-3 h-3 text-rose-400 fill-rose-400" /> in Bengaluru</span>
+            <span className="flex items-center gap-1">Made with <Heart className="w-3 h-3 text-rose-400 fill-rose-400" /> in Kerala</span>
           </div>
         </div>
       </div>

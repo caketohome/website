@@ -106,7 +106,7 @@ describe("CRM Module - Segments API Route Handlers Unit Tests", () => {
     beforeEach(() => {
       mockReq = {
         params: { id: "seg_1" },
-        body: { name: "VIP Bangalore", rules: [] },
+        body: { name: "VIP Kochi", rules: [] },
         filterableFields: {},
         listConfig: {},
         scope: {
@@ -199,7 +199,7 @@ describe("CRM Module - Segments API Route Handlers Unit Tests", () => {
     });
 
     test("GET /segments/:id/customers lists matched users", async () => {
-      segmentStore.push({ id: "seg_1", name: "Bangalore", rules: "[]" });
+      segmentStore.push({ id: "seg_1", name: "Kochi", rules: "[]" });
       mappingStore.push({ id: "cseg_1", segment_id: "seg_1", customer_id: "cust_1" });
 
       await getSegmentCustomersApi(mockReq, mockRes);

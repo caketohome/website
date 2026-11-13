@@ -53,7 +53,6 @@ class CakeToHomeApiClient {
 
   private getToken(): string | null {
     if (this.token) return this.token;
-    if (this.tokenChecked) return null;
     if (typeof window !== "undefined") {
       const t = localStorage.getItem("cth_access_token")
         || localStorage.getItem("cth_admin_token")
@@ -254,17 +253,12 @@ class CakeToHomeApiClient {
     });
   }
 
-  async verifyOtp(phone: string, code: string, extra?: { name?: string; email?: string }) {
-    const res = await this.request<{ accessToken: string; token?: string; user: any; role?: string; is_new_customer?: boolean }>("/auth/verify-otp", {
+  async verifyOtp(phone: string, code: string) {
+    // Server sets httpOnly session cookies; no bearer token is returned.
+    return this.request<{ role: string; redirect_to: string; is_new_customer: boolean }>("/auth/verify-otp", {
       method: "POST",
-      body: JSON.stringify({ phone, code, ...(extra || {}) }),
+      body: JSON.stringify({ phone, code }),
     });
-
-    const token = res.accessToken || res.token;
-    if (token) {
-      this.setToken(token);
-    }
-    return res;
   }
 
   async logout(reason: string = "user_initiated") {
@@ -467,11 +461,20 @@ class CakeToHomeApiClient {
   }
 
   // ── Admin: Catalog ──
-  async getAdminProducts() {
-    return this.request("/admin/catalog/products").catch(() => ({ products: [] }));
+  async getAdminProducts(params?: Record<string, string | number | undefined>) {
+    const query = new URLSearchParams();
+    query.set("limit", String(params?.limit ?? 100));
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        if (k !== "limit" && v !== undefined && v !== null && v !== "") {
+          query.set(k, String(v));
+        }
+      });
+    }
+    return this.request(`/admin/catalog/products?${query.toString()}`);
   }
   async getAdminProduct(id: string) {
-    return this.request(`/admin/catalog/products/${id}`).catch(() => null);
+    return this.request(`/admin/catalog/products/${id}`);
   }
   async getAdminCakeOptions() {
     return this.request("/admin/catalog/cake-options").catch(() => ({ options: [] }));
@@ -488,7 +491,7 @@ class CakeToHomeApiClient {
 
   // ── Admin: Categories ──
   async getAdminCategories() {
-    return this.request("/admin/categories").catch(() => ({ categories: [] }));
+    return this.request("/admin/categories");
   }
   async createAdminCategory(data: any) {
     return this.request("/admin/categories", { method: "POST", body: JSON.stringify(data) });

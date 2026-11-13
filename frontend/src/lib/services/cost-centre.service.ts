@@ -46,8 +46,7 @@ export class CostCentreService {
   private static isSuperAdmin(actor: CostCentreActor): boolean {
     return (
       actor.isSuperAdmin === true ||
-      actor.role === "SUPER_ADMIN" ||
-      actor.userId === "admin_01"
+      actor.role === "SUPER_ADMIN"
     );
   }
 

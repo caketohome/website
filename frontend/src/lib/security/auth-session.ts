@@ -47,7 +47,7 @@ export function registerServerSession(token: string, payload: AuthUserPayload, t
   registry.set(token, {
     payload: {
       ...payload,
-      isSuperAdmin: payload.role === "SUPER_ADMIN" || payload.userId === "admin_01",
+      isSuperAdmin: (payload.role || "").toUpperCase() === "SUPER_ADMIN",
     },
     expiresAt,
   });
@@ -70,11 +70,8 @@ export function getActiveServerSession(token: string): AuthUserPayload | null {
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("FATAL: JWT_SECRET environment variable is required in production.");
-    }
-    return "supersecret"; // Development and local test fallback only
+  if (!secret || secret.length < 32) {
+    throw new Error("FATAL: JWT_SECRET must be set (>= 32 chars). No fallback secret is allowed.");
   }
   return secret;
 }
@@ -107,7 +104,7 @@ export function signAuthToken(payload: Partial<AuthUserPayload>, expiresInSecond
     name: payload.name || "",
     email: payload.email || "",
     permissions: Array.isArray(payload.permissions) ? payload.permissions : undefined,
-    isSuperAdmin: payload.role === "SUPER_ADMIN" || payload.userId === "admin_01",
+    isSuperAdmin: (payload.role || "").toUpperCase() === "SUPER_ADMIN",
     iat: now,
     exp,
   };
@@ -183,7 +180,7 @@ export function verifyAuthToken(token: string | null | undefined): AuthUserPaylo
         name: decodedPayload.name || "",
         email: decodedPayload.email || "",
         permissions: Array.isArray(decodedPayload.permissions) ? decodedPayload.permissions : undefined,
-        isSuperAdmin: role === "SUPER_ADMIN" || userId === "admin_01",
+        isSuperAdmin: role === "SUPER_ADMIN",
         exp: decodedPayload.exp,
         iat: decodedPayload.iat,
       };
@@ -208,34 +205,40 @@ export function resolveServerSession(req: NextRequest | Request | any): AuthUser
   const cookieHeader = (typeof req.headers?.get === "function" ? req.headers.get("cookie") : "") || "";
   const authHeader = (typeof req.headers?.get === "function" ? req.headers.get("authorization") : "") || "";
 
-  let token: string | null = null;
+  let bearerToken: string | null = null;
+  let cookieToken: string | null = null;
 
   // 1. Extract from Authorization header
   if (authHeader.toLowerCase().startsWith("bearer ")) {
-    token = authHeader.replace(/^Bearer\s+/i, "").trim();
+    bearerToken = authHeader.replace(/^Bearer\s+/i, "").trim();
   }
 
   // 2. Extract from req.cookies (NextRequest)
-  if (!token && req.cookies && typeof req.cookies.get === "function") {
-    token = req.cookies.get("_cth_jwt")?.value || req.cookies.get("_medusa_jwt")?.value || null;
+  if (req.cookies && typeof req.cookies.get === "function") {
+    cookieToken = req.cookies.get("_cth_jwt")?.value || null;
   }
 
   // 3. Extract from raw Cookie header
-  if (!token && cookieHeader) {
+  if (!cookieToken && cookieHeader) {
     const cookiesObj: Record<string, string> = {};
     cookieHeader.split(";").forEach((c: string) => {
       const [k, ...v] = c.trim().split("=");
       if (k) cookiesObj[k] = decodeURIComponent(v.join("="));
     });
 
-    token = cookiesObj["_cth_jwt"] || cookiesObj["_medusa_jwt"] || null;
+    cookieToken = cookiesObj["_cth_jwt"] || null;
   }
 
-  if (!token) {
-    return null;
+  if (bearerToken) {
+    const verifiedBearer = verifyAuthToken(bearerToken);
+    if (verifiedBearer) return verifiedBearer;
   }
 
-  return verifyAuthToken(token);
+  if (cookieToken) {
+    return verifyAuthToken(cookieToken);
+  }
+
+  return null;
 }
 
 /**

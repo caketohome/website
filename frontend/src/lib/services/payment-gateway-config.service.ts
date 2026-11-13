@@ -37,6 +37,19 @@ export interface DiagnosticProbeResult {
   tested_at: string;
 }
 
+export interface GatewayEnvView {
+  environment: "TEST" | "LIVE";
+  configured: boolean;
+  key_id: string;
+  has_key_secret: boolean;
+  has_webhook_secret: boolean;
+  status: "NOT_CONFIGURED" | "UNTESTED" | "VERIFIED" | "FAILED";
+  last_tested_at: string | null;
+  last_test_result: any;
+  updated_at: string | null;
+  is_active: boolean;
+}
+
 export class GatewaySecretEncryptionService {
   private static readonly ALGORITHM = "aes-256-gcm";
   private static readonly CURRENT_VERSION = "v1";
@@ -123,15 +136,19 @@ export class PaymentGatewayConfigService {
   }> {
     try {
       const res = await dbQuery(
-        `SELECT id, provider, environment, key_id, key_secret_enc, webhook_secret_enc, is_active 
-         FROM public.payment_gateway_config 
-         WHERE provider = $1 AND is_active = true 
+        `SELECT id, provider, environment, key_id, key_secret_enc, webhook_secret_enc, is_active, last_test_result
+         FROM public.payment_gateway_config
+         WHERE provider = $1 AND is_active = true
          ORDER BY updated_at DESC LIMIT 1`,
         [provider]
       );
 
       if (res.rows.length > 0) {
         const row = res.rows[0];
+        // Live payments stay non-operational until a real authenticated Razorpay probe has passed for the stored Live credentials.
+        if (String(row.environment).toUpperCase() === "LIVE" && row.last_test_result?.success !== true) {
+          throw new Error("LIVE_NOT_VERIFIED: Live credentials have not passed a Razorpay connection test.");
+        }
         const key_secret = GatewaySecretEncryptionService.decryptSecret(row.key_secret_enc);
         let webhook_secret: string | undefined;
         if (row.webhook_secret_enc) {
@@ -151,6 +168,7 @@ export class PaymentGatewayConfigService {
         };
       }
     } catch (dbErr: any) {
+      if (String(dbErr?.message || "").startsWith("LIVE_NOT_VERIFIED")) throw dbErr;
       console.warn("[PaymentGatewayConfig] Could not query database config, checking env vars:", dbErr.message);
     }
 
@@ -170,14 +188,7 @@ export class PaymentGatewayConfigService {
       };
     }
 
-    // Default development test sandbox credentials
-    return {
-      key_id: "rzp_test_placeholder_key_id",
-      key_secret: "rzp_test_placeholder_secret",
-      webhook_secret: "rzp_test_placeholder_webhook_secret",
-      environment: "TEST",
-      source: "ENVIRONMENT"
-    };
+    throw new Error("GATEWAY_NOT_CONFIGURED: No Razorpay credentials are configured. Add them in Admin > Payment Settings.");
   }
 
   /**
@@ -287,6 +298,179 @@ export class PaymentGatewayConfigService {
     }
   }
 
+  private static readonly KEY_ID_PATTERN: Record<"TEST" | "LIVE", RegExp> = {
+    TEST: /^rzp_test_[A-Za-z0-9]{6,40}$/,
+    LIVE: /^rzp_live_[A-Za-z0-9]{6,40}$/
+  };
+
+  /**
+   * Safe, secret-free view of BOTH environments plus the single active environment.
+   * Live is only "operational" after a real authenticated probe succeeded.
+   * KYC and settlement-bank status cannot be verified by the application and are reported as such.
+   */
+  public static async getAdminConfigAll(provider: string = "razorpay"): Promise<{
+    provider: string;
+    active_environment: "TEST" | "LIVE" | null;
+    live_operational: boolean;
+    kyc_status: "NOT_VERIFIED_BY_APPLICATION";
+    settlement_status: "NOT_VERIFIED_BY_APPLICATION";
+    environments: Record<"TEST" | "LIVE", GatewayEnvView>;
+  }> {
+    const res = await dbQuery(
+      `SELECT environment, key_id, key_secret_enc, webhook_secret_enc, is_active, last_tested_at, last_test_result, updated_at
+       FROM public.payment_gateway_config WHERE provider = $1`,
+      [provider]
+    );
+    const blank = (environment: "TEST" | "LIVE"): GatewayEnvView => ({
+      environment, configured: false, key_id: "", has_key_secret: false, has_webhook_secret: false,
+      status: "NOT_CONFIGURED", last_tested_at: null, last_test_result: null, updated_at: null, is_active: false
+    });
+    const environments: Record<"TEST" | "LIVE", GatewayEnvView> = { TEST: blank("TEST"), LIVE: blank("LIVE") };
+    for (const row of res.rows) {
+      const env: "TEST" | "LIVE" = String(row.environment).toUpperCase() === "LIVE" ? "LIVE" : "TEST";
+      const result = row.last_test_result;
+      environments[env] = {
+        environment: env,
+        configured: Boolean(row.key_id && row.key_secret_enc),
+        key_id: row.key_id || "",
+        has_key_secret: Boolean(row.key_secret_enc),
+        has_webhook_secret: Boolean(row.webhook_secret_enc),
+        status: result ? (result.success ? "VERIFIED" : "FAILED") : "UNTESTED",
+        last_tested_at: row.last_tested_at ? new Date(row.last_tested_at).toISOString() : null,
+        last_test_result: result ? { success: Boolean(result.success), category: result.category, message: result.message } : null,
+        updated_at: row.updated_at ? new Date(row.updated_at).toISOString() : null,
+        is_active: Boolean(row.is_active)
+      };
+    }
+    const active = environments.LIVE.is_active ? "LIVE" : environments.TEST.is_active ? "TEST" : null;
+    return {
+      provider,
+      active_environment: active,
+      live_operational: active === "LIVE" && environments.LIVE.status === "VERIFIED",
+      kyc_status: "NOT_VERIFIED_BY_APPLICATION",
+      settlement_status: "NOT_VERIFIED_BY_APPLICATION",
+      environments
+    };
+  }
+
+  /** Server-only. Loads one environment's stored credentials without the Live-verification gate (used by the diagnostic probe). */
+  public static async getEnvironmentCredentials(provider: string, environment: "TEST" | "LIVE"): Promise<{ key_id: string; key_secret: string; webhook_secret?: string } | null> {
+    const res = await dbQuery(
+      `SELECT key_id, key_secret_enc, webhook_secret_enc FROM public.payment_gateway_config WHERE provider = $1 AND environment = $2`,
+      [provider, environment]
+    );
+    if (res.rows.length === 0 || !res.rows[0].key_secret_enc) return null;
+    const row = res.rows[0];
+    return {
+      key_id: row.key_id,
+      key_secret: GatewaySecretEncryptionService.decryptSecret(row.key_secret_enc),
+      webhook_secret: row.webhook_secret_enc ? GatewaySecretEncryptionService.decryptSecret(row.webhook_secret_enc) : undefined
+    };
+  }
+
+  /**
+   * Partial, optimistic-concurrency update of ONE environment's credentials.
+   * Omitted/empty secrets keep the stored value. Changing key id or secret invalidates the previous probe result.
+   * Never touches the other environment and never changes which environment is active.
+   */
+  public static async saveEnvironmentCredentials(dto: {
+    provider?: string;
+    environment: "TEST" | "LIVE";
+    key_id?: string;
+    key_secret?: string;
+    webhook_secret?: string;
+    expected_updated_at?: string | null;
+    updated_by: string;
+  }): Promise<void> {
+    const provider = dto.provider || "razorpay";
+    const environment = dto.environment;
+    const keyId = dto.key_id?.trim() || "";
+    const keySecret = dto.key_secret?.trim() || "";
+    const webhookSecret = dto.webhook_secret?.trim() || "";
+
+    if (keyId && !this.KEY_ID_PATTERN[environment].test(keyId)) {
+      throw new Error(`INVALID_KEY_ID_FORMAT: ${environment === "LIVE" ? "Live" : "Test"} Key ID must start with rzp_${environment.toLowerCase()}_.`);
+    }
+
+    const existing = await dbQuery(
+      `SELECT id, key_id, key_secret_enc, updated_at FROM public.payment_gateway_config WHERE provider = $1 AND environment = $2`,
+      [provider, environment]
+    );
+
+    if (existing.rows.length === 0) {
+      if (!keyId) throw new Error("KEY_ID_REQUIRED: Key ID is required.");
+      if (!keySecret) throw new Error("KEY_SECRET_REQUIRED: Key Secret is required.");
+      try {
+        await dbQuery(
+          `INSERT INTO public.payment_gateway_config
+           (provider, environment, key_id, key_secret_enc, webhook_secret_enc, is_active, created_by, updated_by)
+           VALUES ($1, $2, $3, $4, $5, false, $6, $6)`,
+          [provider, environment, keyId,
+           GatewaySecretEncryptionService.encryptSecret(keySecret),
+           webhookSecret ? GatewaySecretEncryptionService.encryptSecret(webhookSecret) : null,
+           dto.updated_by]
+        );
+      } catch (e: any) {
+        if (e?.code === "23505") throw new Error("STALE_CONFIG: Configuration was changed by another administrator. Reload and retry.");
+        throw e;
+      }
+      return;
+    }
+
+    const row = existing.rows[0];
+    const credentialsChanged = (keyId && keyId !== row.key_id) || Boolean(keySecret);
+    const res = await dbQuery(
+      `UPDATE public.payment_gateway_config
+       SET key_id = COALESCE($1, key_id),
+           key_secret_enc = COALESCE($2, key_secret_enc),
+           webhook_secret_enc = COALESCE($3, webhook_secret_enc),
+           last_tested_at = CASE WHEN $4 THEN NULL ELSE last_tested_at END,
+           last_test_result = CASE WHEN $4 THEN NULL ELSE last_test_result END,
+           updated_by = $5, updated_at = NOW()
+       WHERE id = $6
+         AND ($7::timestamptz IS NULL OR date_trunc('milliseconds', updated_at) = date_trunc('milliseconds', $7::timestamptz))`,
+      [keyId || null,
+       keySecret ? GatewaySecretEncryptionService.encryptSecret(keySecret) : null,
+       webhookSecret ? GatewaySecretEncryptionService.encryptSecret(webhookSecret) : null,
+       credentialsChanged, dto.updated_by, row.id, dto.expected_updated_at || null]
+    );
+    if (res.rowCount === 0) throw new Error("STALE_CONFIG: Configuration was changed by another administrator. Reload and retry.");
+  }
+
+  /**
+   * Atomically makes exactly one environment active (single UPDATE statement).
+   * Refuses to activate an environment that has no stored credentials.
+   */
+  public static async setActiveEnvironment(provider: string, environment: "TEST" | "LIVE", updatedBy: string): Promise<void> {
+    const target = await dbQuery(
+      `SELECT key_id, key_secret_enc FROM public.payment_gateway_config WHERE provider = $1 AND environment = $2`,
+      [provider, environment]
+    );
+    if (target.rows.length === 0 || !target.rows[0].key_secret_enc || !target.rows[0].key_id) {
+      throw new Error(`ENVIRONMENT_NOT_CONFIGURED: ${environment === "LIVE" ? "Live" : "Test"} credentials are not configured.`);
+    }
+    await dbQuery(
+      `UPDATE public.payment_gateway_config
+       SET is_active = (environment = $2), updated_by = $3, updated_at = NOW()
+       WHERE provider = $1 AND is_active IS DISTINCT FROM (environment = $2)`,
+      [provider, environment, updatedBy]
+    );
+  }
+
+  /** Best-effort audit trail in the existing auth_audit_events table. Never receives secret values. */
+  public static async recordAudit(event: { actor: string; action: string; status: "SUCCESS" | "FAILURE"; environment?: string; fields?: string[]; code?: string }): Promise<void> {
+    try {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(event.actor);
+      await dbQuery(
+        `INSERT INTO public.auth_audit_events (user_id, event_type, status, metadata) VALUES ($1, $2, $3, $4)`,
+        [isUuid ? event.actor : null, `PAYMENT_GATEWAY_${event.action}`.slice(0, 50), event.status,
+         JSON.stringify({ actor: event.actor, provider: "razorpay", environment: event.environment, changed_fields: event.fields, code: event.code })]
+      );
+    } catch {
+      console.warn("[PaymentGatewayConfig] audit write failed");
+    }
+  }
+
   /**
    * Non-mutating Diagnostic Connection Probe (CTH-P9-005)
    * Enforces hardcoded Razorpay endpoint, SSRF prevention, 5s timeout, manual redirect.
@@ -305,10 +489,26 @@ export class PaymentGatewayConfigService {
       key_id = credentials.key_id.trim();
       key_secret = credentials.key_secret.trim();
     } else {
-      const active = await this.getActiveCredentials("razorpay");
-      key_id = active.key_id;
-      key_secret = active.key_secret;
-      environment = active.environment;
+      // Probe the STORED credentials of the requested environment (or the active one) - never another environment's.
+      let target = credentials?.environment;
+      if (!target) {
+        const cfg = await this.getAdminConfigAll("razorpay");
+        target = cfg.active_environment || "TEST";
+      }
+      const stored = await this.getEnvironmentCredentials("razorpay", target);
+      if (!stored) {
+        return {
+          success: false,
+          status_code: 400,
+          environment: target,
+          category: "INVALID_KEY_ID",
+          message: `${target === "LIVE" ? "Live" : "Test"} credentials are not configured.`,
+          tested_at
+        };
+      }
+      key_id = stored.key_id;
+      key_secret = stored.key_secret;
+      environment = target;
     }
 
     // Invariant: Verify key format against selected environment
@@ -361,7 +561,7 @@ export class PaymentGatewayConfigService {
           status_code: 200,
           environment,
           category: "SUCCESS",
-          message: "Connection established successfully. Key ID and Key Secret verified with Razorpay API.",
+          message: "Authenticated with the Razorpay API using the stored Key ID and Key Secret. This does not confirm merchant KYC, live-payment approval or settlement-bank verification.",
           tested_at
         };
       } else if (statusCode === 401) {
