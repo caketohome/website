@@ -1096,7 +1096,7 @@ const DEFAULT_DELIVERY_DEFAULTS: DeliveryDefaultsSettings = {
 };
 
 const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
-  supported_methods: ["cod", "cashfree", "test_mode", "wallet"],
+  supported_methods: ["cod", "razorpay", "test_mode", "wallet"],
   cashfree_app_id: "TEST_CF_APP_ID",
   cod_max_limit: 5000,
   cod_surcharge: 0,
@@ -1390,7 +1390,7 @@ const DEFAULT_CMS_PAGES = [
     sitemap_changefreq: "daily",
     nav_location: "none",
     visibility_rules: { audience: "public", devices: "all", locations: "all" },
-    announcement_bar: { enabled: true, text: "⚡ Monsoon Special — 50% OFF Up to ₹150 on All Cakes", cta_text: "Shop Now", cta_url: "/products", bg_color: "#e11d48" },
+    announcement_bar: { enabled: true, text: "⚡ Festive Celebration Offer — Up to 50% OFF with Code CAKE50", cta_text: "Shop Now", cta_url: "/products", bg_color: "#2563EB" },
     header_config: { show_header: true, style: "transparent" },
     sections: [
       {
@@ -1400,9 +1400,9 @@ const DEFAULT_CMS_PAGES = [
         enabled: true,
         order: 1,
         config: {
-          headline: "Handcrafted Gourmet Cakes Delivered in 2 Hours",
-          subheadline: "Fresh, artisanal birthday & wedding cakes across Bangalore. Midnight delivery available!",
-          badge_text: "100% Fresh & Artisanal • Express 2-Hour Delivery",
+          headline: "Handcrafted Gourmet Cakes Fresh from Our Kitchen",
+          subheadline: "Fresh, artisanal celebration cakes baked to order. Scheduled delivery based on branch serviceability.",
+          badge_text: "100% Fresh & Artisanal • Pure Vegetarian & Eggless Options",
           cta_primary_text: "Order a Cake",
           cta_primary_url: "/products",
           cta_secondary_text: "View Collections",
@@ -1474,10 +1474,10 @@ const DEFAULT_CMS_PAGES = [
       },
       { id: "sec_home_cats", type: "category_grid", name: "Shop by Category", enabled: true, order: 2, config: { heading: "Shop by Occasion", subheading: "Find the perfect cake for every celebration", layout: "grid", columns: 3, category_ids: ["pcat_01", "pcat_02", "pcat_03"] } },
       { id: "sec_home_bestsellers", type: "product_grid", name: "Best Sellers", enabled: true, order: 3, config: { heading: "🏆 Best-Selling Cakes", subheading: "Freshly baked fan favourites", mode: "best_sellers", layout: "grid", columns: 4, show_ratings: true, show_price: true, product_ids: [] } },
-      { id: "sec_home_promo", type: "promotional_banner", name: "Monsoon Sale Banner", enabled: true, order: 4, config: { headline: "🎉 Monsoon Special — Flat 50% OFF", subheadline: "Use Code: CAKE50. Valid on all birthday & anniversary cakes above ₹299", cta_text: "Claim Offer", cta_url: "/products?promo=CAKE50", bg_color: "#fef3c7", text_color: "#92400e" } },
+      { id: "sec_home_promo", type: "promotional_banner", name: "Festive Celebration Banner", enabled: true, order: 4, config: { headline: "🎉 Special Celebration Offer — Flat 50% OFF", subheadline: "Use Code: CAKE50. Valid on eligible cakes above ₹299", cta_text: "Claim Offer", cta_url: "/products?promo=CAKE50", bg_color: "#fef3c7", text_color: "#92400e" } },
       { id: "sec_home_new", type: "product_grid", name: "New Arrivals", enabled: true, order: 5, config: { heading: "✨ New Arrivals", subheading: "Freshly added to the menu", mode: "new_arrivals", layout: "carousel", columns: 4, product_ids: [] } },
-      { id: "sec_home_locations", type: "location_coverage", name: "Delivery Locations", enabled: true, order: 6, config: { heading: "📍 We Deliver Across Bangalore", subheading: "Same-day & 2-hour delivery slots available", show_map: false, show_pincodes: true } },
-      { id: "sec_home_faq", type: "faq", name: "FAQ Section", enabled: true, order: 7, config: { heading: "❓ Frequently Asked Questions", faqs: [ { q: "Do you deliver at midnight?", a: "Yes! We offer midnight delivery slots (11:30 PM – 12:05 AM) across Bangalore for birthday surprises." }, { q: "Can I customize the cake?", a: "Absolutely! Choose size (0.5–5 kg), flavor, and add a custom message or photo." }, { q: "What is the minimum order value?", a: "The minimum order value is ₹299. Free delivery on orders above ₹599." } ] } },
+      { id: "sec_home_locations", type: "location_coverage", name: "Delivery Locations", enabled: true, order: 6, config: { heading: "📍 Fresh Bakery Hubs & Service Areas", subheading: "Scheduled delivery and store pickup available across serviceable locations", show_map: false, show_pincodes: true } },
+      { id: "sec_home_faq", type: "faq", name: "FAQ Section", enabled: true, order: 7, config: { heading: "❓ Frequently Asked Questions", faqs: [ { q: "Do you offer scheduled delivery?", a: "Yes! We offer convenient scheduled delivery slots based on kitchen readiness and branch operating hours." }, { q: "Can I customize the cake?", a: "Absolutely! Choose size (0.5–5 kg), flavor, and add a custom message or photo." }, { q: "What is the minimum order value?", a: "The minimum order value is ₹299. Free delivery on orders above ₹599." } ] } },
     ],
     draft_config: { sections: [], banners: [], products_mode: "best_sellers", product_ids: [], category_ids: [] },
     published_config: {
@@ -1563,13 +1563,13 @@ const DEFAULT_CMS_PAGES = [
         },
         { id: "sec_home_cats", type: "category_grid", name: "Shop by Category", enabled: true, order: 2, config: { heading: "Shop by Occasion", subheading: "Find the perfect cake for every celebration", layout: "grid", columns: 3, category_ids: ["pcat_01", "pcat_02", "pcat_03"] } },
         { id: "sec_home_bestsellers", type: "product_grid", name: "Best Sellers", enabled: true, order: 3, config: { heading: "🏆 Best-Selling Cakes", subheading: "Freshly baked fan favourites", mode: "best_sellers", layout: "grid", columns: 4, show_ratings: true, show_price: true, product_ids: [] } },
-        { id: "sec_home_promo", type: "promotional_banner", name: "Monsoon Sale Banner", enabled: true, order: 4, config: { headline: "🎉 Monsoon Special — Flat 50% OFF", subheadline: "Use Code: CAKE50. Valid on all birthday & anniversary cakes above ₹299", cta_text: "Claim Offer", cta_url: "/products?promo=CAKE50", bg_color: "#fef3c7", text_color: "#92400e" } },
+        { id: "sec_home_promo", type: "promotional_banner", name: "Festive Celebration Banner", enabled: true, order: 4, config: { headline: "🎉 Special Celebration Offer — Flat 50% OFF", subheadline: "Use Code: CAKE50. Valid on eligible cakes above ₹299", cta_text: "Claim Offer", cta_url: "/products?promo=CAKE50", bg_color: "#fef3c7", text_color: "#92400e" } },
         { id: "sec_home_new", type: "product_grid", name: "New Arrivals", enabled: true, order: 5, config: { heading: "✨ New Arrivals", subheading: "Freshly added to the menu", mode: "new_arrivals", layout: "carousel", columns: 4, product_ids: [] } },
-        { id: "sec_home_locations", type: "location_coverage", name: "Delivery Locations", enabled: true, order: 6, config: { heading: "📍 We Deliver Across Bangalore", subheading: "Same-day & 2-hour delivery slots available", show_map: false, show_pincodes: true } },
-        { id: "sec_home_faq", type: "faq", name: "FAQ Section", enabled: true, order: 7, config: { heading: "❓ Frequently Asked Questions", faqs: [ { q: "Do you deliver at midnight?", a: "Yes! We offer midnight delivery slots (11:30 PM – 12:05 AM) across Bangalore for birthday surprises." }, { q: "Can I customize the cake?", a: "Absolutely! Choose size (0.5–5 kg), flavor, and add a custom message or photo." }, { q: "What is the minimum order value?", a: "The minimum order value is ₹299. Free delivery on orders above ₹599." } ] } },
+        { id: "sec_home_locations", type: "location_coverage", name: "Delivery Locations", enabled: true, order: 6, config: { heading: "📍 Fresh Bakery Hubs & Service Areas", subheading: "Scheduled delivery and store pickup available across serviceable locations", show_map: false, show_pincodes: true } },
+        { id: "sec_home_faq", type: "faq", name: "FAQ Section", enabled: true, order: 7, config: { heading: "❓ Frequently Asked Questions", faqs: [ { q: "Do you offer scheduled delivery?", a: "Yes! We offer convenient scheduled delivery slots based on kitchen readiness and branch operating hours." }, { q: "Can I customize the cake?", a: "Absolutely! Choose size (0.5–5 kg), flavor, and add a custom message or photo." }, { q: "What is the minimum order value?", a: "The minimum order value is ₹299. Free delivery on orders above ₹599." } ] } },
       ],
       banners: [],
-      announcement_bar: { enabled: true, text: "⚡ Monsoon Special — 50% OFF Up to ₹150 on All Cakes", cta_text: "Shop Now", cta_url: "/products", bg_color: "#e11d48" },
+      announcement_bar: { enabled: true, text: "⚡ Festive Celebration Offer — Up to 50% OFF with Code CAKE50", cta_text: "Shop Now", cta_url: "/products", bg_color: "#2563EB" },
       header_config: { show_header: true, style: "transparent" },
     },
     version_history: [],
@@ -5761,7 +5761,7 @@ export class ApiEngine {
         branch_id: resolvedStaff.branch_id || null,
         branch_name: resolvedStaff.branch_name || null,
         delivery_partner_id: resolvedStaff.delivery_partner_id || null,
-        permissions: (resolvedStaff.role === "SUPER_ADMIN" || resolvedStaff.id === "admin_01" || resolvedStaff.user_id === "admin_01") ? ["ALL"] : StaffAccessControl.getEffectivePermissions(resolvedStaff),
+        permissions: (resolvedStaff.role === "SUPER_ADMIN") ? ["ALL"] : StaffAccessControl.getEffectivePermissions(resolvedStaff),
         created_at: resolvedStaff.created_at || new Date().toISOString(),
       };
     }
@@ -5836,7 +5836,7 @@ export class ApiEngine {
 
     // 4. Role Fallbacks (Only when no phone provided or phone explicitly verified for role)
     if (normRole === "SUPER_ADMIN" || normRole === "ADMIN" || (userId && userId.startsWith("admin_"))) {
-      if (!phone || cleanPhone === "9876500000" || cleanPhone === "9999999999" || userId === "admin_01") {
+      if (normRole === "SUPER_ADMIN" || normRole === "ADMIN") { // role comes from a verified session
         return {
           id: userId || "admin_01",
           name: "Super Admin",
@@ -5920,7 +5920,7 @@ export class ApiEngine {
         email: customer.email || "",
         phone: customer.phone || phone || "",
         role: customer.role || (normRole === "SUPER_ADMIN" ? "SUPER_ADMIN" : "CUSTOMER"),
-        permissions: (customer.role === "SUPER_ADMIN" || normRole === "SUPER_ADMIN" || customer.id === "admin_01") ? ["ALL"] : undefined,
+        permissions: (customer.role === "SUPER_ADMIN" || normRole === "SUPER_ADMIN") ? ["ALL"] : undefined,
         date_of_birth: customer.date_of_birth || null,
         preferences: customer.preferences || {},
         stats: {
@@ -17799,15 +17799,6 @@ export class ApiEngine {
     const raw = phone.trim().toLowerCase();
     const cleanDigits = normalizePhone(raw);
 
-    // 1. Explicit admin check
-    if (raw === "admin" || raw === "superadmin" || cleanDigits === "9999999999" || cleanDigits === "9876500000") {
-      return {
-        exists: true,
-        role: "SUPER_ADMIN",
-        user: { id: "admin_01", name: "Super Admin", role: "SUPER_ADMIN", phone: "+91 98765 00000" },
-      };
-    }
-
     // 2. Authoritative StaffAccessControl lookup (Covers explicit staff, branch managers, delivery partners)
     const staffMember = StaffAccessControl.getStaffMemberByPhone(cleanDigits);
     if (staffMember) {
@@ -17901,232 +17892,28 @@ export class ApiEngine {
     };
   }
 
-  static requestAuthOtp(phone: string, method: string = "OTP_SMS", ip: string = "127.0.0.1", userAgent: string = "Web-Browser") {
-    const cleanPhone = normalizePhone(phone);
-    if (!cleanPhone && phone.trim().length < 3) {
-      throw new Error("Valid mobile number is required.");
-    }
-    const check = ApiEngine.checkAccountByPhone(phone);
-    const displayPhone = formatDisplayPhone(cleanPhone);
-
-    // Record login activity
-    if (!Array.isArray(memoryStore.login_events)) memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
-    memoryStore.login_events.unshift({
-      id: `log_${Date.now()}_req`,
-      identifier: phone,
-      phone: displayPhone,
-      normalized_phone: cleanPhone,
-      role: check.role,
-      user_id: check.user?.id || (check.role === "SUPER_ADMIN" ? "admin_01" : `cus_${cleanPhone}`),
-      user_name: check.user?.name || (check.role === "SUPER_ADMIN" ? "Super Admin" : "Guest"),
-      status: "OTP_SENT",
-      authentication_method: (method as any) || "OTP_SMS",
-      event_type: "OTP_REQUESTED",
-      ip_address: ip,
-      user_agent: userAgent,
-      created_at: new Date().toISOString(),
-    });
-
-    if (check.exists && check.user?.customer_uid) {
-      ApiEngine.recordCustomerActivity({
-        customer_uid: check.user.customer_uid,
-        event_type: "OTP_REQUESTED",
-        title: "Login OTP Requested",
-        description: `OTP requested for ${displayPhone} via ${method}.`,
-        source: "STOREFRONT",
-      });
-    }
-
-    return {
-      success: true,
-      message: check.exists ? `OTP sent to ${displayPhone}` : `Verification code sent to ${displayPhone}`,
-      phone: displayPhone,
-      otp: "123456",
-      dev_otp: "123456",
-      expiresIn: 300,
-      account_exists: check.exists,
-      role: check.role,
-    };
+  // Legacy in-memory OTP (fixed codes 123456/000000) removed. Phone login is
+  // Supabase Auth only: see src/lib/auth/phone-auth.ts and /api/v1/auth/{request,verify}-otp.
+  static requestAuthOtp(..._args: any[]): never {
+    throw new Error("Legacy OTP login is disabled. Use Supabase phone authentication.");
   }
 
-  static requestOtp(phone: string) {
-    return ApiEngine.requestAuthOtp(phone);
+  static requestOtp(..._args: any[]): never {
+    return ApiEngine.requestAuthOtp();
   }
 
-  static verifyAuthOtp(
-    phone: string,
-    code: string,
-    extra?: { name?: string; email?: string },
-    ip: string = "127.0.0.1",
-    userAgent: string = "Web-Browser"
-  ) {
-    const cleanPhone = normalizePhone(phone);
+  static verifyAuthOtp(..._args: any[]): never {
+    throw new Error("Legacy OTP login is disabled. Use Supabase phone authentication.");
+  }
+
+  /**
+   * Ensures the storefront customer record (orders/addresses/loyalty key: cth_cus_<10 digits>)
+   * exists for a phone that Supabase Auth has ALREADY verified. Called only from
+   * src/lib/auth/phone-auth.ts after verifyOtp succeeds — never with client-supplied phones.
+   */
+  static ensureCustomerForVerifiedPhone(verifiedPhone: string, extra?: { name?: string; email?: string }): { customer_uid: string; is_new: boolean } {
+    const cleanPhone = normalizePhone(verifiedPhone);
     const displayPhone = formatDisplayPhone(cleanPhone);
-    const cleanCode = (code || "").replace(/\D/g, "");
-
-    if (cleanCode !== "123456" && cleanCode !== "000000") {
-      ApiEngine.fireWebhookEvent(
-        "customer.login.failed",
-        {
-          phone: displayPhone,
-          attempted_code_length: (code || "").length,
-          reason: "INVALID_OTP_CODE",
-          failed_at: new Date().toISOString(),
-        },
-        { ip, userAgent },
-        { phone: displayPhone }
-      );
-      throw new Error("Invalid verification code. Please enter 123456.");
-    }
-
-    const check = ApiEngine.checkAccountByPhone(phone);
-
-    if (check.role === "SUPER_ADMIN") {
-      const adminPayload = {
-        userId: "admin_01",
-        role: "SUPER_ADMIN",
-        phone: cleanPhone,
-        customerUid: `cth_cus_${cleanPhone}`,
-      };
-      const token = signAuthToken(adminPayload);
-      registerServerSession(token, adminPayload);
-
-      if (!Array.isArray(memoryStore.login_events)) memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
-      memoryStore.login_events.unshift({
-        id: `log_${Date.now()}_admin`,
-        identifier: phone,
-        phone,
-        email: "admin@caketohome.com",
-        role: "SUPER_ADMIN",
-        user_id: "admin_01",
-        user_name: "Super Admin",
-        status: "SUCCESS",
-        authentication_method: "OTP_SMS",
-        event_type: "OTP_VERIFIED",
-        ip_address: ip,
-        user_agent: userAgent,
-        created_at: new Date().toISOString(),
-      });
-      return {
-        success: true,
-        token,
-        accessToken: token,
-        role: "SUPER_ADMIN",
-        user: { id: "admin_01", name: "Super Admin", role: "SUPER_ADMIN" },
-      };
-    }
-
-    if (check.role === "BRANCH_MANAGER") {
-      const mgrUserId = (check.user as any)?.id || check.branch_id || "mgr_01";
-      const mgrPayload = {
-        userId: mgrUserId,
-        role: "BRANCH_MANAGER",
-        phone: cleanPhone,
-        branchId: check.branch_id,
-      };
-      const token = signAuthToken(mgrPayload);
-      registerServerSession(token, mgrPayload);
-
-      if (!Array.isArray(memoryStore.login_events)) memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
-      memoryStore.login_events.unshift({
-        id: `log_${Date.now()}_mgr`,
-        identifier: phone,
-        phone,
-        email: (check.user as any)?.email || "manager@caketohome.com",
-        role: "BRANCH_MANAGER",
-        user_id: mgrUserId,
-        user_name: (check.user as any)?.name || "Branch Manager",
-        status: "SUCCESS",
-        authentication_method: "OTP_SMS",
-        event_type: "OTP_VERIFIED",
-        ip_address: ip,
-        user_agent: userAgent,
-        created_at: new Date().toISOString(),
-      });
-      return {
-        success: true,
-        token,
-        accessToken: token,
-        role: "BRANCH_MANAGER",
-        branch_id: check.branch_id,
-        user: check.user,
-      };
-    }
-
-    if (check.role === "DELIVERY_PARTNER") {
-      const dlpUserId = check.partner_id || (check.user as any)?.id || "dlp_01";
-      const dlpPayload = {
-        userId: dlpUserId,
-        role: "DELIVERY_PARTNER",
-        phone: cleanPhone,
-        partnerId: check.partner_id,
-      };
-      const token = signAuthToken(dlpPayload);
-      registerServerSession(token, dlpPayload);
-
-      if (!Array.isArray(memoryStore.login_events)) memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
-      memoryStore.login_events.unshift({
-        id: `log_${Date.now()}_partner`,
-        identifier: phone,
-        phone,
-        email: (check.user as any)?.email || "partner@caketohome.com",
-        role: "DELIVERY_PARTNER",
-        user_id: dlpUserId,
-        user_name: (check.user as any)?.name || "Delivery Partner",
-        status: "SUCCESS",
-        authentication_method: "OTP_SMS",
-        event_type: "OTP_VERIFIED",
-        ip_address: ip,
-        user_agent: userAgent,
-        created_at: new Date().toISOString(),
-      });
-      return {
-        success: true,
-        token,
-        accessToken: token,
-        role: "DELIVERY_PARTNER",
-        partner_id: check.partner_id,
-        user: check.user,
-      };
-    }
-
-    if (check.role === "STAFF") {
-      const staffUserId = (check.user as any)?.id || "staff_01";
-      const staffPayload = {
-        userId: staffUserId,
-        role: "STAFF",
-        phone: cleanPhone,
-        branchId: check.branch_id,
-      };
-      const token = signAuthToken(staffPayload);
-      registerServerSession(token, staffPayload);
-
-      if (!Array.isArray(memoryStore.login_events)) memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
-      memoryStore.login_events.unshift({
-        id: `log_${Date.now()}_staff`,
-        identifier: phone,
-        phone,
-        email: (check.user as any)?.email || "staff@caketohome.com",
-        role: "STAFF",
-        user_id: staffUserId,
-        user_name: (check.user as any)?.name || "Staff Member",
-        status: "SUCCESS",
-        authentication_method: "OTP_SMS",
-        event_type: "OTP_VERIFIED",
-        ip_address: ip,
-        user_agent: userAgent,
-        created_at: new Date().toISOString(),
-      });
-      return {
-        success: true,
-        token,
-        accessToken: token,
-        role: "STAFF",
-        branch_id: check.branch_id,
-        user: check.user,
-      };
-    }
-
     // Customer flow
     ApiEngine.ensureCustomersStore();
     let customer = (memoryStore.customers as CustomerRecord[]).find(
@@ -18273,38 +18060,9 @@ export class ApiEngine {
       { type: "customer", id: resolvedCustomer.id, city_id: resolvedCustomer.city_id, branch_id: resolvedCustomer.branch_id }
     );
 
-    const customerPayload = {
-      userId: resolvedCustomer.id,
-      role: "CUSTOMER" as const,
-      phone: cleanPhone,
-      customerUid: resolvedCustomer.customer_uid,
-      customerId: resolvedCustomer.id,
-    };
-    const token = signAuthToken(customerPayload);
-    registerServerSession(token, customerPayload);
-
-    ApiEngine.persist();
-
-    return {
-      success: true,
-      token,
-      accessToken: token,
-      role: "CUSTOMER",
-      customer_id: resolvedCustomer.id,
-      customer_uid: resolvedCustomer.customer_uid,
-      is_new_customer: isNewCustomer,
-      user: {
-        id: resolvedCustomer.id,
-        customer_id: resolvedCustomer.id,
-        customer_uid: resolvedCustomer.customer_uid,
-        name: resolvedCustomer.name,
-        phone: resolvedCustomer.phone,
-        email: resolvedCustomer.email,
-        role: "CUSTOMER",
-        tier: resolvedCustomer.tier,
-      },
-    };
+    return { customer_uid: customer!.customer_uid, is_new: isNewCustomer };
   }
+
 
   static verifyOtp(phone: string, code: string, extra?: { name?: string; email?: string }) {
     return ApiEngine.verifyAuthOtp(phone, code, extra);
@@ -18589,12 +18347,78 @@ export class ApiEngine {
     return cart;
   }
 
+  static syncCartFromDb(dbCart: any) {
+    if (!dbCart || !dbCart.id) return null;
+    ApiEngine.ensureCartsStore();
+    const carts: any[] = Array.isArray(memoryStore.carts) ? memoryStore.carts : (memoryStore.carts = []);
+    const normalizedItems = Array.isArray(dbCart.items)
+      ? dbCart.items.map((it: any) => {
+          const uPrice = Number(it.unit_price ?? it.price ?? 0);
+          const qty = Math.max(1, Number(it.quantity || 1));
+          const sub = uPrice * qty;
+          const cakeMsg = it.cake_message ?? it.metadata?.cake_message ?? null;
+          const weight = it.weight ?? it.metadata?.weight ?? null;
+          const shape = it.shape ?? it.metadata?.shape ?? null;
+          const flavour = it.flavour ?? it.metadata?.flavour ?? null;
+          return {
+            ...it,
+            unit_price: uPrice,
+            price: uPrice,
+            quantity: qty,
+            subtotal: sub,
+            total_price: sub,
+            weight,
+            shape,
+            flavour,
+            cake_message: cakeMsg,
+            metadata: {
+              ...(typeof it.metadata === "object" && it.metadata !== null ? it.metadata : {}),
+              weight,
+              shape,
+              flavour,
+              cake_message: cakeMsg,
+            },
+          };
+        })
+      : [];
+    const subtotal = normalizedItems.reduce((sum: number, i: any) => sum + (Number(i.total_price || i.subtotal) || 0), 0);
+    const syncedCart = {
+      ...dbCart,
+      id: dbCart.id,
+      cart_uid: dbCart.id,
+      customer_uid: dbCart.customer_id || dbCart.customer_uid || null,
+      items: normalizedItems,
+      subtotal,
+      total: Number(dbCart.total ?? subtotal),
+      status: dbCart.status || "ACTIVE",
+      updated_at: dbCart.updated_at || new Date().toISOString(),
+    };
+    const idx = carts.findIndex((c) => c.id === dbCart.id || c.cart_id === dbCart.id || c.cart_uid === dbCart.id);
+    if (idx >= 0) {
+      carts[idx] = { ...carts[idx], ...syncedCart };
+    } else {
+      carts.unshift(syncedCart);
+    }
+    return syncedCart;
+  }
+
   static addToCart(cartId: string, item: any, customerUid?: string) {
     ApiEngine.ensureCartsStore();
     const cart = ApiEngine.getCart(cartId, customerUid);
     if (!Array.isArray(cart.items)) cart.items = [];
 
-    const targetProdId = item.productId || item.product_id || (item.id && !String(item.id).startsWith("cart_") && !String(item.id).startsWith("line_") ? item.id : undefined);
+    // Validate & normalize optional cake message (<= 30 characters)
+    const rawCakeMsg = item.cake_message !== undefined ? item.cake_message : item.metadata?.cake_message;
+    let normalizedCakeMessage: string | null = null;
+    if (rawCakeMsg !== undefined && rawCakeMsg !== null) {
+      const trimmedMsg = String(rawCakeMsg).trim();
+      if (trimmedMsg.length > 30) {
+        throw new Error("Cake message cannot exceed 30 characters.");
+      }
+      normalizedCakeMessage = trimmedMsg || null;
+    }
+
+    const targetProdId = item.productId || item.product_id || (item.id && !String(item.id).startsWith("cart_") && !String(item.id).startsWith("line_") && !String(item.id).startsWith("item_") && !String(item.id).startsWith("cli_") ? item.id : undefined);
     const targetBranchId = item.branchId || item.branch_id || cart.branch_id;
     const targetPincode = item.pincode || cart.delivery_pincode;
 
@@ -18639,6 +18463,10 @@ export class ApiEngine {
     if (!resolvedTitle) {
       throw new Error(`Unable to add item to cart: Product title is missing and could not be resolved.`);
     }
+
+    const addonsUnitTotal = Number(item.addons_unit_total ?? item.metadata?.addons_unit_total ?? 0);
+    const isPhotoCake = Boolean(item.photo_cake ?? item.metadata?.photo_cake ?? false);
+    const photoCakeSurcharge = isPhotoCake ? 200 : 0;
 
     const accItem = !canonicalProduct && targetProdId ? ApiEngine.getAccessoryById(targetProdId) : null;
     let unitPrice = 0;
@@ -18690,6 +18518,8 @@ export class ApiEngine {
           if (flvPriceMod > 0) unitPrice += flvPriceMod;
         }
       }
+
+      unitPrice += addonsUnitTotal + photoCakeSurcharge;
     } else if (Number(item.unit_price || item.price || 0) > 0) {
       unitPrice = Number(item.unit_price || item.price);
     }
@@ -18698,65 +18528,118 @@ export class ApiEngine {
       throw new Error(`Unable to add item to cart: Price for "${resolvedTitle}" must be greater than zero.`);
     }
 
-    const isWeightEligible = canonicalProduct
+    const isAccessoryOrBouquet = Boolean(
+      accItem ||
+      String(targetProdId || "").startsWith("acc_") ||
+      String(canonicalProduct?.id || "").startsWith("acc_") ||
+      String((canonicalProduct as any)?.category_slug || "").toLowerCase().includes("accessor") ||
+      String((canonicalProduct as any)?.category_slug || "").toLowerCase().includes("bouquet") ||
+      String((canonicalProduct as any)?.category || "").toLowerCase().includes("accessor") ||
+      String((canonicalProduct as any)?.category || "").toLowerCase().includes("bouquet")
+    );
+
+    const isWeightEligible = canonicalProduct && !isAccessoryOrBouquet
       ? (canonicalProduct as any)?.pim_config?.show_weight !== false &&
         (canonicalProduct as any)?.metadata?.pim_config?.show_weight !== false &&
         (canonicalProduct as any)?.category_slug !== "pastries" &&
         (canonicalProduct as any)?.category !== "Pastries"
-      : true;
+      : false;
 
     let itemWeight = isWeightEligible
       ? (item.weight || (canonicalProduct as any)?.weight || "1 kg")
-      : null;
-    if (itemWeight === "1 pc" || itemWeight === "1 piece" || itemWeight === "1pc") {
+      : (item.weight || null);
+    if (itemWeight === "1 pc" || itemWeight === "1 piece" || itemWeight === "1pc" || itemWeight === "Standard") {
       itemWeight = null;
     }
     const canonicalProdId = canonicalProduct?.id || item.product_id || item.productId || targetProdId;
     const variantId = item.variant_id || (canonicalProdId ? `var_${canonicalProdId}` : undefined);
+    const itemShape = item.shape || item.metadata?.shape || null;
+    const itemFlavour = item.flavour || item.flavor || item.metadata?.flavour || null;
+    const itemAddons = Array.isArray(item.selected_addons) ? item.selected_addons : (Array.isArray(item.metadata?.selected_addons) ? item.metadata.selected_addons : []);
+    const itemAddonsDetail = Array.isArray(item.selected_addons_detail) ? item.selected_addons_detail : (Array.isArray(item.metadata?.selected_addons_detail) ? item.metadata.selected_addons_detail : []);
+    const sortedItemAddonsKey = JSON.stringify([...itemAddons].map(String).sort());
 
     const existingItemIdx = cart.items.findIndex((i: any) => {
       const sameProd = (i.product_id === canonicalProdId || i.id === canonicalProdId);
-      const sameVariant = (item.variant_id && i.variant_id === item.variant_id);
-      const sameWeight = (!item.variant_id && (
+      if (!sameProd) return false;
+
+      const sameWeight =
         i.weight === itemWeight ||
         (i.weight && itemWeight && parseAndNormalizeWeight(i.weight).normalized_grams === parseAndNormalizeWeight(itemWeight).normalized_grams) ||
-        (!i.weight && !itemWeight)
-      ));
-      return sameProd && (sameVariant || sameWeight);
+        (!i.weight && !itemWeight && (!item.variant_id || i.variant_id === item.variant_id));
+
+      const existingMsg = (i.cake_message ?? i.metadata?.cake_message ?? null) || null;
+      const sameCakeMessage = existingMsg === normalizedCakeMessage;
+      const sameShape = (i.shape || null) === itemShape;
+      const sameFlavour = (i.flavour || null) === itemFlavour;
+      const sameDietary =
+        Boolean(i.sugar_free) === Boolean(item.sugar_free) &&
+        Boolean(i.gluten_free) === Boolean(item.gluten_free) &&
+        Boolean(i.vegan) === Boolean(item.vegan) &&
+        Boolean(i.photo_cake) === isPhotoCake;
+      const existingAddons = Array.isArray(i.selected_addons) ? i.selected_addons : [];
+      const sameAddons = JSON.stringify([...existingAddons].map(String).sort()) === sortedItemAddonsKey;
+
+      return sameWeight && sameCakeMessage && sameShape && sameFlavour && sameDietary && sameAddons;
     });
 
     if (existingItemIdx >= 0) {
-      cart.items[existingItemIdx].quantity += item.quantity || 1;
+      cart.items[existingItemIdx].quantity += Math.max(1, Number(item.quantity || 1));
       cart.items[existingItemIdx].unit_price = unitPrice;
       cart.items[existingItemIdx].price = unitPrice;
       cart.items[existingItemIdx].total_price = cart.items[existingItemIdx].quantity * unitPrice;
       cart.items[existingItemIdx].subtotal = cart.items[existingItemIdx].total_price;
     } else {
-      const qty = Number(item.quantity || 1);
+      const qty = Math.max(1, Number(item.quantity || 1));
       const itemSubtotal = unitPrice * qty;
+      const newLineId = item.id && (String(item.id).startsWith("item_") || String(item.id).startsWith("cli_") || String(item.id).startsWith("line_"))
+        ? item.id
+        : `item_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      const lineMetadata = {
+        ...(typeof item.metadata === "object" && item.metadata !== null ? item.metadata : {}),
+        weight: itemWeight,
+        shape: itemShape,
+        flavour: itemFlavour,
+        cake_message: normalizedCakeMessage,
+        selected_addons: itemAddons,
+        selected_addons_detail: itemAddonsDetail,
+        greeting_card_text: item.greeting_card_text || null,
+        photo_cake: isPhotoCake,
+        photo_cake_file_name: item.photo_cake_file_name || item.metadata?.photo_cake_file_name || null,
+        sugar_free: Boolean(item.sugar_free),
+        gluten_free: Boolean(item.gluten_free),
+        vegan: Boolean(item.vegan),
+        addons_unit_total: addonsUnitTotal,
+      };
       cart.items.push({
-        id: item.id || `item_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        id: newLineId,
         product_id: canonicalProdId,
         variant_id: variantId,
         title: resolvedTitle,
-        thumbnail: canonicalProduct?.thumbnail || canonicalProduct?.images?.[0]?.url || item.thumbnail || "",
+        product_title: resolvedTitle,
+        thumbnail: canonicalProduct?.thumbnail || canonicalProduct?.images?.[0]?.url || (accItem as any)?.thumbnail || (accItem as any)?.image || item.thumbnail || "",
         unit_price: unitPrice,
         price: unitPrice,
         quantity: qty,
         total_price: itemSubtotal,
         subtotal: itemSubtotal,
         weight: itemWeight,
-        shape: item.shape || null,
-        flavour: item.flavour || null,
+        shape: itemShape,
+        flavour: itemFlavour,
         artisan: item.artisan ?? false,
-        cake_message: item.cake_message || null,
-        sugar_free: item.sugar_free ?? false,
-        gluten_free: item.gluten_free ?? false,
-        vegan: item.vegan ?? false,
+        cake_message: normalizedCakeMessage,
+        sugar_free: Boolean(item.sugar_free),
+        gluten_free: Boolean(item.gluten_free),
+        vegan: Boolean(item.vegan),
+        photo_cake: isPhotoCake,
+        photo_cake_file_name: item.photo_cake_file_name || item.metadata?.photo_cake_file_name || null,
+        addons_unit_total: addonsUnitTotal,
         greeting_card_text: item.greeting_card_text || null,
-        selected_addons: item.selected_addons || [],
+        selected_addons: itemAddons,
+        selected_addons_detail: itemAddonsDetail,
         occasion: item.occasion || null,
         special_instructions: item.special_instructions || null,
+        metadata: lineMetadata,
       });
     }
 
@@ -18797,10 +18680,20 @@ export class ApiEngine {
     }
     if (!cart) throw new Error("Cart not found");
 
+    const items: any[] = Array.isArray(cart.items) ? cart.items : (cart.items = []);
+    const hasExactIdMatch = items.some((i: any) => i.id === lineItemId);
+
     if (quantity <= 0) {
-      cart.items = (cart.items || []).filter((i: any) => i.id !== lineItemId && i.product_id !== lineItemId);
+      if (hasExactIdMatch) {
+        cart.items = items.filter((i: any) => i.id !== lineItemId);
+      } else {
+        const idx = items.findIndex((i: any) => i.product_id === lineItemId || i.variant_id === lineItemId);
+        if (idx >= 0) items.splice(idx, 1);
+      }
     } else {
-      const item = (cart.items || []).find((i: any) => i.id === lineItemId || i.product_id === lineItemId);
+      const item = hasExactIdMatch
+        ? items.find((i: any) => i.id === lineItemId)
+        : items.find((i: any) => i.product_id === lineItemId || i.variant_id === lineItemId);
       if (item) {
         item.quantity = quantity;
         item.total_price = item.quantity * (item.unit_price || item.price || 0);
@@ -18813,6 +18706,40 @@ export class ApiEngine {
     cart.updated_at = new Date().toISOString();
     cart.last_activity_at = new Date().toISOString();
 
+    ApiEngine.persist();
+    return cart;
+  }
+
+  static updateCartItemMessage(cartId: string, lineItemId: string, cakeMessage: string | null | undefined) {
+    ApiEngine.ensureCartsStore();
+    const cart = ApiEngine.getCart(cartId);
+    if (!cart) throw new Error("Cart not found");
+
+    let normalizedMsg: string | null = null;
+    if (cakeMessage !== undefined && cakeMessage !== null) {
+      const trimmed = String(cakeMessage).trim();
+      if (trimmed.length > 30) {
+        throw new Error("Cake message cannot exceed 30 characters.");
+      }
+      normalizedMsg = trimmed || null;
+    }
+
+    const items: any[] = Array.isArray(cart.items) ? cart.items : [];
+    const hasExactIdMatch = items.some((i: any) => i.id === lineItemId);
+    const targetItem = hasExactIdMatch
+      ? items.find((i: any) => i.id === lineItemId)
+      : items.find((i: any) => i.product_id === lineItemId || i.variant_id === lineItemId);
+
+    if (targetItem) {
+      targetItem.cake_message = normalizedMsg;
+      targetItem.metadata = {
+        ...(typeof targetItem.metadata === "object" && targetItem.metadata !== null ? targetItem.metadata : {}),
+        cake_message: normalizedMsg,
+      };
+    }
+
+    cart.updated_at = new Date().toISOString();
+    cart.last_activity_at = new Date().toISOString();
     ApiEngine.persist();
     return cart;
   }
@@ -23026,6 +22953,10 @@ export class ApiEngine {
             if (flvPriceMod > 0) unitPrice += flvPriceMod;
           }
         }
+
+        const itemAddonsUnitTotal = Number(item.addons_unit_total ?? item.metadata?.addons_unit_total ?? 0);
+        const itemPhotoCakeSurcharge = Boolean(item.photo_cake ?? item.metadata?.photo_cake ?? false) ? 200 : 0;
+        unitPrice += itemAddonsUnitTotal + itemPhotoCakeSurcharge;
       } else if (Number(item.unit_price || item.price || 0) > 0) {
         unitPrice = Number(item.unit_price || item.price);
       }
@@ -23702,12 +23633,8 @@ export class ApiEngine {
     is_surprise_delivery?: boolean;
     special_instructions?: string;
   }) {
-    if ((payload.payment_method as string) === "razorpay") {
-      return {
-        success: false,
-        statusCode: 410,
-        error: "Razorpay has been decommissioned. Cashfree is the sole active payment gateway.",
-      };
+    if ((payload.payment_method as string) === "cashfree") {
+      payload.payment_method = "razorpay";
     }
 
     // 1. Revalidate everything authoritatively on server
@@ -23915,8 +23842,8 @@ export class ApiEngine {
       status: "confirmed",
       delivery_status: "shop_accepted",
       payment_status: payload.payment_method === "cod" ? "pending" : "captured",
-      payment_method: payload.payment_method === "cod" ? "Cash on Delivery (COD)" : (payload.payment_method === "cashfree" ? "Cashfree PG (Cards/UPI)" : "Online Verified"),
-      transaction_id: payload.payment_details?.cf_payment_id || payload.payment_details?.payment_id || `TXN_CF_${Date.now()}`,
+      payment_method: payload.payment_method === "cod" ? "Cash on Delivery (COD)" : (payload.payment_method === "razorpay" ? "Razorpay Standard Checkout" : (payload.payment_method === "cashfree" ? "Cashfree PG (Cards/UPI)" : "Online Verified")),
+      transaction_id: payload.payment_details?.razorpay_payment_id || payload.payment_details?.cf_payment_id || payload.payment_details?.payment_id || `TXN_RZP_${Date.now()}`,
       delivery_type: payload.delivery_type || "delivery",
       delivery_date: validation.delivery.date,
       delivery_slot: validation.delivery.slot?.slot_name || "Evening Slot",
@@ -25093,7 +25020,7 @@ export class ApiEngine {
   }
 
   static createCustomerAccount(payload: any) {
-    return ApiEngine.verifyAuthOtp(payload.phone || "9876543210", "123456", { name: payload.name, email: payload.email });
+    return ApiEngine.verifyAuthOtp(payload);
   }
 
   static getAdminDeliveries(params?: any) {

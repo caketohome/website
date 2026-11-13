@@ -225,10 +225,6 @@ const MarketplacePanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/marketplace-panel").then((mod) => ({ default: mod.MarketplacePanel })),
   "MarketplacePanel"
 );
-const SharedInventoryPanel = createDynamicPanel(
-  () => import("@frontend/components/dashboard/admin/shared-inventory-panel").then((mod) => ({ default: mod.SharedInventoryPanel })),
-  "SharedInventoryPanel"
-);
 const FeatureFlagsPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/feature-flags-panel").then((mod) => ({ default: mod.FeatureFlagsPanel })),
   "FeatureFlagsPanel"
@@ -248,7 +244,7 @@ type AdminTabId =
   | "crm" | "login_activity" | "marketing" | "popups" | "seo"
   | "automation" | "webhooks" | "cms" | "media" | "analytics" | "ai_concierge"
   | "staff_profiles" | "notifications" | "settings"
-  | "marketplace" | "shared_inventory" | "feature_flags" | "operational_closures";
+  | "marketplace" | "feature_flags" | "operational_closures";
 
 const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   orders: OrdersPanel,
@@ -298,7 +294,6 @@ const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   notifications: NotificationsPanel,
   settings: SettingsPanel,
   marketplace: MarketplacePanel,
-  shared_inventory: SharedInventoryPanel,
   feature_flags: FeatureFlagsPanel,
   operational_closures: OperationalClosuresPanel,
 };
@@ -313,38 +308,58 @@ export default function SuperAdminDashboardPage() {
   const [accessDeniedMessage, setAccessDeniedMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      // Resolve user from cookies
-      const cookies = document.cookie.split(";").reduce((acc: any, c) => {
-        const [k, ...v] = c.trim().split("=");
-        if (k) acc[k] = decodeURIComponent(v.join("="));
-        return acc;
-      }, {});
+    let active = true;
+    async function verifyAndInitDashboard() {
+      try {
+        const res = await fetch("/api/auth/me", { cache: "no-store" });
+        const json = await res.json().catch(() => null);
+        const sessionUser = json?.data?.user;
 
-      const role = (cookies["_cth_role"] || "SUPER_ADMIN").toUpperCase();
-      const userId = cookies["_cth_user_id"] || "admin_01";
-      const phone = cookies["_cth_phone"] || "";
-      const userObj = { role, userId, id: userId, phone };
-      setUser(userObj);
+        if (!active) return;
 
-      const p = new URLSearchParams(window.location.search).get("tab") as AdminTabId;
-      if (p && PANEL_MAP[p]) {
-        try {
-          const { StaffAccessControl } = require("@frontend/lib/staff-access-control");
-          if (!StaffAccessControl.isTabPermitted(userObj, p)) {
-            setAccessDeniedMessage(`Access Denied: Your profile does not have permission for "${p}". Showing permitted default.`);
-            const permittedTab = (role === "STAFF" || role === "TELECALLER") ? "telemarketing" : "orders";
-            setActiveTab(permittedTab as AdminTabId);
-            return;
-          }
-        } catch {
-          // ignore
+        if (!sessionUser) {
+          window.location.href = "/login";
+          return;
         }
-        setActiveTab(p);
-      } else if (role === "TELECALLER" || (role === "STAFF" && phone.includes("9876543210"))) {
-        setActiveTab("telemarketing");
+
+        const role = (sessionUser.role || "").toUpperCase();
+        const userId = sessionUser.id || "";
+        const phone = sessionUser.phone || "";
+        const userObj = {
+          role,
+          userId,
+          id: userId,
+          phone,
+          branchId: sessionUser.branch_id || null,
+          permissions: sessionUser.permissions || [],
+        };
+        setUser(userObj);
+
+        const p = new URLSearchParams(window.location.search).get("tab") as AdminTabId;
+        if (p && PANEL_MAP[p]) {
+          try {
+            const { StaffAccessControl } = require("@frontend/lib/staff-access-control");
+            if (!StaffAccessControl.isTabPermitted(userObj, p)) {
+              setAccessDeniedMessage(`Access Denied: Your profile does not have permission for "${p}". Showing permitted default.`);
+              const permittedTab = role === "STAFF" || role === "TELECALLER" ? "telemarketing" : "orders";
+              setActiveTab(permittedTab as AdminTabId);
+              return;
+            }
+          } catch {
+            // ignore
+          }
+          setActiveTab(p);
+        } else if (role === "TELECALLER" || (role === "STAFF" && phone.includes("9876543210"))) {
+          setActiveTab("telemarketing");
+        }
+      } catch {
+        if (active) window.location.href = "/login";
       }
     }
+    verifyAndInitDashboard();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleTabChange = (tabId: string) => {
@@ -372,6 +387,14 @@ export default function SuperAdminDashboardPage() {
   };
 
   const ActivePanel = PANEL_MAP[activeTab] || OrdersPanel;
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 text-xs text-slate-500">
+        Verifying administrator session...
+      </div>
+    );
+  }
 
   return (
     <AdminShell

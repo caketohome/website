@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { OrganizationJsonLd } from "@frontend/components/store/seo/json-ld";
 import { AuthProvider } from "@/providers/auth-provider";
 import { CustomerProvider } from "@frontend/providers/customer-provider";
 import { FavoritesProvider } from "@/providers/favorites-provider";
+import { MetaPixel } from "@/components/marketing/meta-pixel";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +47,9 @@ export default function RootLayout({
         <OrganizationJsonLd />
       </head>
       <body className={`${sans.variable} ${serif.variable} font-sans min-h-screen bg-[#F8FAFC] text-[#0F172A] antialiased`}>
+        <Suspense fallback={null}>
+          <MetaPixel />
+        </Suspense>
         <AuthProvider>
           <CustomerProvider>
             <FavoritesProvider>

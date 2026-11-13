@@ -274,7 +274,7 @@ export class AiOrchestrator {
         };
       } else {
         return {
-          message: `⚠️ Pincode **${targetPin}** is currently outside our direct kitchen express zone. We deliver to major pincodes across Bengaluru, Mumbai, Delhi-NCR, Hyderabad, and Chennai.`,
+          message: `⚠️ Pincode **${targetPin}** is currently outside our direct kitchen express zone. We deliver only within Kerala.`,
           followUpQuestions: ["Check another pincode", "Browse available cities"],
           intent,
           toolsUsed,

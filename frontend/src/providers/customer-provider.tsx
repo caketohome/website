@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import type { CustomerProfileDTO } from "@frontend/lib/crm/types";
+import { apiClient } from "@frontend/lib/api-client";
 
 interface CustomerContextType {
   customer: CustomerProfileDTO | null;
@@ -154,6 +155,7 @@ export function CustomerProvider({ children }: { children: React.ReactNode }) {
         cookiesToClear.forEach((c) => {
           document.cookie = `${c}=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
         });
+        apiClient.clearToken();
         localStorage.removeItem("cth_access_token");
         localStorage.removeItem("cth_user");
       }

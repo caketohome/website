@@ -36,10 +36,10 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     subCell.value = `Reporting Period: ${fromDate} to ${toDate} | Generated: ${new Date().toLocaleString("en-IN")}`;
     subCell.font = { name: "Calibri", size: 11, italic: true, color: { argb: "FF475569" } };
 
-    s1.getCell("A4").value = "GSTIN:"; s1.getCell("B4").value = "29AAAAA0000A1Z5";
-    s1.getCell("A5").value = "State:"; s1.getCell("B5").value = "Karnataka (29)";
+    s1.getCell("A4").value = "GSTIN:"; s1.getCell("B4").value = "32PENDINGREG001";
+    s1.getCell("A5").value = "State:"; s1.getCell("B5").value = "Kerala (32)";
     s1.getCell("A6").value = "Registration Type:"; s1.getCell("B6").value = "Regular GST Taxpayer";
-    s1.getCell("D4").value = "Organization:"; s1.getCell("E4").value = "CakeToHome India Pvt Ltd";
+    s1.getCell("D4").value = "Organization:"; s1.getCell("E4").value = "Baked Cakes & Pastries (CakeToHome)";
     s1.getCell("D5").value = "Kitchen Hubs Filtered:"; s1.getCell("E5").value = branch_ids.join(", ");
 
     ["A4", "A5", "A6", "D4", "D5"].forEach((ref) => {

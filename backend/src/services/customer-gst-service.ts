@@ -83,8 +83,8 @@ export class CustomerGstService {
 
     const isB2b = data.customerType === "B2B" || valResult.isValid;
     const customerType = isB2b ? "B2B" : data.customerType || "B2C";
-    const stateCode = valResult.stateCode || data.stateCode || "29";
-    const stateName = this.STATE_CODE_NAME_MAP[stateCode] || "Karnataka";
+    const stateCode = valResult.stateCode || data.stateCode || "32";
+    const stateName = this.STATE_CODE_NAME_MAP[stateCode] || "Kerala";
 
     return {
       id: data.id || "cust_guest",

@@ -1007,7 +1007,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
               <Textarea
                 value={currentDeviceConfig.subheadline || config.subheadline || ""}
                 onChange={(e) => updateCurrentDeviceConfig({ subheadline: e.target.value })}
-                placeholder="Fresh, artisanal birthday & wedding cakes across Bangalore..."
+                placeholder="Fresh, artisanal birthday & wedding cakes across Kerala..."
                 rows={2}
               />
             </Field>

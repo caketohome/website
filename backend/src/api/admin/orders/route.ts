@@ -83,7 +83,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         const customerPhone = meta.customer_phone || shipping.phone || "+91 98765 43210";
         const customerEmail = o.email || meta.customer_email || "customer@cakes2home.com";
 
-        const branchName = meta.branch_name || meta.branch || "Indiranagar Flagship Kitchen";
+        const branchName = meta.branch_name || meta.branch || "Unassigned";
         const branchCode = meta.branch_code || "HUB-BLR-01";
 
         const kotNumber = meta.kot_number || `KOT-${dateStr.slice(4)}-${String(idx + 1).padStart(4, "0")}`;
@@ -131,11 +131,11 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
           customer_email: customerEmail,
 
           shipping_address: {
-            address_1: shipping.address_1 || meta.address || "100 Feet Road, Indiranagar",
+            address_1: shipping.address_1 || meta.address || "",
             address_2: shipping.address_2 || "",
-            city: shipping.city || meta.city || "Bengaluru",
-            area: shipping.area || meta.area || "Indiranagar",
-            pincode: shipping.postal_code || meta.pincode || "560038",
+            city: shipping.city || meta.city || "",
+            area: shipping.area || meta.area || "",
+            pincode: shipping.postal_code || meta.pincode || "",
             landmark: meta.landmark || "Near Metro Station",
             delivery_instructions: meta.delivery_instructions || "Call customer upon arrival at gate.",
           },
@@ -145,7 +145,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
             name: branchName,
             code: branchCode,
             phone: meta.branch_phone || "+91 80 4912 8800",
-            city: "Bengaluru",
+            city: meta.branch_city || "",
           },
 
           kitchen: {

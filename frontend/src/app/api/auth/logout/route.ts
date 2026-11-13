@@ -1,62 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { REFRESH_COOKIE, clearSessionCookies, revokeSupabaseSession } from "@frontend/lib/auth/phone-auth";
 
 export const dynamic = "force-dynamic";
 
-const AUTH_COOKIE_NAMES = [
-  "_cth_jwt",
-  "_medusa_jwt",
-  "_cth_customer_uid",
-  "_cth_auth_token",
-  "_cth_role",
-  "_cth_user_id",
-  "_cth_phone",
-  "_cth_customer_phone",
-  "_cth_email",
-  "_cth_branch_id",
-  "_cth_shop_id",
-  "_cth_partner_id",
-  "_cth_cart_id",
-  "_medusa_cart_id",
-  "_cth_session_expiry",
-  "_cth_device_fp",
-  "admin_session",
-  "caketohome_customer_phone",
-  "caketohome_customer_name",
-  "cth_customer_uid",
+const EXTRA_CLIENT_COOKIES = [
+  "_cth_cart_id", "_medusa_cart_id", "_cth_customer_phone", "_cth_email", "_cth_session_expiry",
+  "_cth_device_fp", "caketohome_customer_phone", "caketohome_customer_name", "cth_customer_uid",
 ];
 
+/** Revokes the Supabase session and clears every auth cookie. */
 export async function POST(req: NextRequest) {
-  const response = NextResponse.json(
-    {
-      success: true,
-      message: "Logged out successfully. All sessions and credentials invalidated.",
-      timestamp: new Date().toISOString(),
-    },
-    { status: 200 }
-  );
+  await revokeSupabaseSession(req.cookies.get(REFRESH_COOKIE)?.value);
 
-  const canonicalPaths = ["/", "/dashboard", "/account"];
-
-  // 2. Explicitly expire auth cookies on the response
-  AUTH_COOKIE_NAMES.forEach((name) => {
-    canonicalPaths.forEach((path) => {
-      response.cookies.set(name, "", {
-        path,
-        maxAge: 0,
-        expires: new Date(0),
-        httpOnly: false,
-        sameSite: "lax",
-      });
-    });
-  });
-
-  response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-  response.headers.set("Pragma", "no-cache");
-  response.headers.set("Expires", "0");
-
-  return response;
-}
-
-export async function GET(req: NextRequest) {
-  return POST(req);
+  const res = NextResponse.json({ success: true, message: "Logged out." });
+  clearSessionCookies(res);
+  for (const name of EXTRA_CLIENT_COOKIES) res.cookies.set(name, "", { path: "/", maxAge: 0 });
+  res.headers.set("Cache-Control", "no-store");
+  return res;
 }

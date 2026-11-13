@@ -8,7 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return SeoMetadataBuilder.buildMetadata({
     entityType: "category",
     slug: "products",
-    fallbackTitle: "Gourmet Cakes & Sweets Catalog | CakeToHome Bangalore",
+    fallbackTitle: "Gourmet Cakes & Sweets Catalog | CakeToHome Kerala",
     fallbackDescription: "Explore our full range of handcrafted chocolate, vanilla, artisan, fruit, and custom celebration cakes online with same-day and midnight delivery.",
   });
 }

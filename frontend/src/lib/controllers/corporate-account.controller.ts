@@ -72,7 +72,7 @@ function applyPiiMasking(employee: CorporateEmployeeRow): CorporateEmployeeRow {
 
 function buildActorContext(userCtx: UserContext, scopedAccountId?: string): CorporateActorContext {
   const role = (userCtx.role || "").toUpperCase();
-  const isSuperAdmin = userCtx.isSuperAdmin || role === "SUPER_ADMIN" || userCtx.userId === "admin_01";
+  const isSuperAdmin = userCtx.isSuperAdmin || role === "SUPER_ADMIN";
   return {
     userId: userCtx.userId || "system",
     role: userCtx.role,

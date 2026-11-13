@@ -2,6 +2,7 @@
 
 import { placeOrder } from "@frontend/lib/actions/checkout";
 import { apiClient } from "@frontend/lib/api-client";
+import { PENDING_COUPON_KEY } from "@frontend/lib/util/clipboard";
 import { HttpTypes } from "@frontend/lib/types";
 import { Badge, Button, Heading, Input, Label, Text, Textarea } from "@medusajs/ui";
 import { useFormState, useFormStatus } from "react-dom";
@@ -55,8 +56,8 @@ function Submit({ disabled, paymentMethod }: { disabled?: boolean; paymentMethod
   disabled={disabled}
   aria-label="Confirm and place your cake order"
   >
-  {paymentMethod === "cashfree"
-    ? "Proceed to Cashfree Payment 💳"
+  {paymentMethod === "razorpay" || (paymentMethod === "razorpay" || paymentMethod === "cashfree")
+    ? "Proceed to Razorpay Payment 💳"
     : paymentMethod === "cod"
     ? "Confirm Cash on Delivery 💵"
     : "Place Order Now 🎂"}
@@ -147,7 +148,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  const [couponDiscount, setCouponDiscount] = useState<number>(0);
  const [couponError, setCouponError] = useState<string>("");
  const [couponSuccess, setCouponSuccess] = useState<string>("");
- const [paymentMethod, setPaymentMethod] = useState<"cod" | "cashfree" | "test_mode">("cashfree");
+ const [paymentMethod, setPaymentMethod] = useState<"cod" | "razorpay" | "cashfree" | "test_mode">("razorpay");
 
  // Availability, Dates, Slots & Real-time Pricing State
  const [availability, setAvailability] = useState<{
@@ -296,7 +297,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  .map((b: any) => ({
  id: b.id,
  name: b.name,
- address: b.address || `${b.city || "Bengaluru"} Kitchen`,
+ address: b.address || `${b.city || ""} Kitchen`.trim(),
  pincode: b.pincode || "",
  timing: b.timing || "09:00 AM - 11:00 PM",
  is_open: b.is_open !== false,
@@ -630,7 +631,35 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  }
  };
 
- // Step 1 Validation
+ // Apply a coupon claimed from a promo banner. One-shot; the backend (/cart/promo)
+  // revalidates eligibility, minimum order, cap and expiry before anything changes.
+  useEffect(() => {
+  if (!cart?.id) return;
+  let pending: string | null = null;
+  try {
+  pending = sessionStorage.getItem(PENDING_COUPON_KEY);
+  if (pending) sessionStorage.removeItem(PENDING_COUPON_KEY);
+  } catch {}
+  if (!pending) return;
+  const code = pending.trim().toUpperCase();
+  setGiftCardCodeInput(code);
+  apiClient
+  .applyPromoCode(cart.id, code)
+  .then((res: any) => {
+  if (res?.valid) {
+  setAppliedCouponCode(res.code);
+  setCouponDiscount(res.discount || 0);
+  setCouponSuccess(`🎉 Coupon ${res.code} applied! You saved ₹${res.discount}.`);
+  fetchAvailability({ coupon: res.code });
+  } else {
+  setCouponError(res?.error || "Invalid or expired coupon code.");
+  }
+  })
+  .catch((e: any) => setCouponError(e?.message || "Failed to validate promo code."));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart?.id]);
+
+  // Step 1 Validation
  const isStep1Valid = firstName.trim() !== "" && phone.trim().length >= 10 && email.includes("@");
 
  const currentSlots = availability?.available_slots || [];
@@ -658,7 +687,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  const servicingBranchObj = pickupBranches.find((b) => b.id === selectedBranchId) || {
  id: selectedBranchId,
  name: availability?.branch_name || "Flagship Hub",
- address: "Bengaluru Kitchen",
+ address: "Kitchen",
  pincode: "",
  };
 
@@ -1613,9 +1642,9 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
  <button
  type="button"
- onClick={() => setPaymentMethod("cashfree")}
+ onClick={() => setPaymentMethod("razorpay")}
  className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all ${
- paymentMethod === "cashfree"
+ (paymentMethod === "razorpay" || paymentMethod === "cashfree")
  ? "border-[#2563EB] bg-blue-50/60 ring-2 ring-blue-500/20"
  : "border-slate-200 hover:border-blue-300"
  }`}
@@ -1623,13 +1652,13 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <div className="flex justify-between items-center">
  <span className="text-2xl">💳</span>
  <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
- paymentMethod === "cashfree" ? "border-[#2563EB] bg-[#2563EB] text-[#2563EB] text-[10px]" : "border-stone/70"
+ (paymentMethod === "razorpay" || paymentMethod === "cashfree") ? "border-[#2563EB] bg-[#2563EB] text-[#2563EB] text-[10px]" : "border-stone/70"
  }`}>
- {paymentMethod === "cashfree" && "✓"}
+ {(paymentMethod === "razorpay" || paymentMethod === "cashfree") && "✓"}
  </span>
  </div>
  <div>
- <h4 className="font-bold text-xs md:text-sm text-slate-900 ">Online UPI / Card</h4>
+ <h4 className="font-bold text-xs md:text-sm text-slate-900 ">Online Payment (Razorpay)</h4>
  <p className="text-[11px] text-slate-500 mt-0.5">Google Pay, PhonePe, Cards, NetBanking</p>
  </div>
  </button>

@@ -192,7 +192,7 @@ export const SPLIT_HERO_SCHEMA: SectionSchema = {
   defaults: {
     eyebrow: "Artisanal Bakery & Confectionery",
     headline: "Baked Fresh Daily With Pure Ingredients",
-    subheadline: "Handcrafted cakes, artisan croissants, and celebratory bakes delivered across Bangalore.",
+    subheadline: "Handcrafted cakes, artisan croissants, and celebratory bakes delivered across Kerala.",
     description: "Every celebration deserves a showstopper. Choose from our curated collection of chocolate truffles, red velvets, and signature patisserie delicacies.",
     badge_text: "Freshly Baked",
     content_position: "left",

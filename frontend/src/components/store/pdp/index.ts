@@ -6,8 +6,6 @@ export * from "./pdp-customization-form";
 export * from "./pdp-purchase-actions";
 export * from "./pdp-sticky-bar";
 export * from "./pdp-delivery-checker";
-export * from "./pdp-highlights";
-export * from "./pdp-info-tabs";
 export * from "./pdp-related-products";
 export * from "./pdp-faq-section";
 export * from "./pdp-empty-message-modal";

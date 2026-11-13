@@ -77,7 +77,6 @@ export class CustomerService {
     const otp = input.otp.trim();
     const phoneRecord = await this.repository.findPhoneRecord(phone);
 
-    const isDev = process.env.NODE_ENV !== "production";
     let isValid = false;
 
     if (phoneRecord && phoneRecord.otp_hash) {
@@ -87,11 +86,6 @@ export class CustomerService {
       } catch {
         isValid = false;
       }
-    }
-
-    // In dev mode, allow standard dev code fallback
-    if (!isValid && isDev && (otp === "123456" || otp === "000000")) {
-      isValid = true;
     }
 
     if (!isValid) {

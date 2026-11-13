@@ -25,7 +25,7 @@ export interface DatabaseUserProfile {
 }
 
 function getJwtSecretBytes(): Uint8Array {
-  const secret = process.env.JWT_SECRET || (process.env.NODE_ENV === "production" ? "" : "supersecret");
+  const secret = process.env.JWT_SECRET;
   if (!secret) {
     throw new Error("FATAL: JWT_SECRET environment variable is missing.");
   }

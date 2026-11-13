@@ -1,13 +1,16 @@
 /**
  * CakeToHome Storefront Cart Data Layer
- * Connects cart operations to custom /api/v1/cart endpoint.
+ * Connects cart operations to authoritative PostgreSQL CartRepository and /api/v1/cart endpoint.
  */
 
 import { cookies } from "next/headers";
 import { apiClient } from "../api-client";
 
 export async function retrieveCart(cartId?: string) {
-  const resolvedCartId = cartId || cookies().get("_cth_cart_id")?.value || cookies().get("_medusa_cart_id")?.value;
+  const resolvedCartId =
+    cartId ||
+    cookies().get("_cth_cart_id")?.value ||
+    cookies().get("_medusa_cart_id")?.value;
   if (!resolvedCartId) {
     return {
       id: "",
@@ -17,23 +20,22 @@ export async function retrieveCart(cartId?: string) {
       currency_code: "inr",
     };
   }
-  
+
   if (typeof window === "undefined") {
     try {
       const { ApiEngine } = await import("../api-engine");
-      const cart = ApiEngine.getCart(resolvedCartId);
-      if (cart && Array.isArray(cart.items) && cart.items.length > 0) {
-        return cart;
-      }
-
-      // Check authoritative PostgreSQL database
       const { CartRepository } = await import("../repositories/cart.repository");
+      await ApiEngine.ensureHydrated();
+
+      // 1. Check authoritative PostgreSQL database first
       const pgCart = await CartRepository.findCartById(resolvedCartId);
-      if (pgCart && Array.isArray(pgCart.items) && pgCart.items.length > 0) {
-        ApiEngine.saveCart(pgCart);
-        return pgCart;
+      if (pgCart) {
+        const synced = ApiEngine.syncCartFromDb(pgCart);
+        return synced || pgCart;
       }
 
+      // 2. Fallback to in-memory ApiEngine cart if not yet in PostgreSQL
+      const cart = ApiEngine.getCart(resolvedCartId);
       if (cart) {
         return cart;
       }
@@ -55,4 +57,3 @@ export async function retrieveCart(cartId?: string) {
     };
   }
 }
-

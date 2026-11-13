@@ -77,7 +77,7 @@ export class BankAccountService {
     const role = (actorContext.role || "").toUpperCase();
     const actorId = actorContext.id || actorContext.user_id || "system";
     const isSuperAdmin =
-      role === "SUPER_ADMIN" || role === "ADMIN" || role === "FINANCE" || actorId === "admin_01";
+      role === "SUPER_ADMIN" || role === "ADMIN" || role === "FINANCE";
 
     return { isSuperAdmin, actorId };
   }

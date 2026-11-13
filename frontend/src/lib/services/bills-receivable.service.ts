@@ -437,7 +437,6 @@ export class BillsReceivableService {
     const role = (actorContext.role || "").toUpperCase();
     const isSuperAdmin =
       role === "SUPER_ADMIN" ||
-      actorContext.userId === "admin_01" ||
       actorContext.isSuperAdmin === true;
 
     if (isSuperAdmin) {

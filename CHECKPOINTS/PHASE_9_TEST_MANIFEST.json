@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0.0",
+  "phase": "Phase 9 — CMS, Legal Policies & Razorpay Gateway Migration",
+  "generated_at": "2026-11-11T04:27:33.318Z",
+  "test_suites": [
+    {
+      "suite_id": "SUITE_P9_EXHAUSTIVE_MATRIX",
+      "file": "scratch/test_phase9_exhaustive_matrix.cjs",
+      "total_tests": 20,
+      "passed": 20,
+      "failed": 0,
+      "status": "PASSED",
+      "tests": [
+        "Razorpay Order Creation via internal order_id -> 200 OK",
+        "Razorpay Order Creation resolves human-readable order_number -> 200 OK (zero ORDER_NOT_FOUND)",
+        "Nonexistent order ID returns 404 ORDER_NOT_FOUND safely without crash",
+        "Cancelled order cannot initiate payment session (CANNOT_PAY_CANCELLED_ORDER)",
+        "Status polling returns pending status and total amount 699.00",
+        "Invalid/forged signature is rejected with HTTP 400 INVALID_SIGNATURE",
+        "Authentic HMAC-SHA256 signature confirms payment with status \"paid\"",
+        "Database order record transitioned to status=\"confirmed\", payment_status=\"paid\", payment_method=\"RAZORPAY\"",
+        "Duplicate payment verification is idempotent (returns already_processed, idempotent=true)",
+        "Signed Razorpay webhook processes with HTTP 200 OK",
+        "Duplicate webhook delivery is deduplicated (returns ignored_duplicate)",
+        "Diagnostic test connection probe executes non-mutating basic auth without secret leakage",
+        "Gate E blocker strictly returns HTTP 403 LIVE_PAYMENT_ACTIVATION_BLOCKED when live mode is attempted",
+        "Admin config save in TEST mode succeeds with AES-256-GCM envelope encryption",
+        "Admin config read masks key_secret and webhook_secret (has_key_secret: true, plaintext absent)",
+        "Admin refund processes successfully with status=\"processed\"",
+        "Order payment status in PostgreSQL transitioned to \"refunded\"",
+        "Cashfree create-order endpoint permanently returns HTTP 410 CASHFREE_DECOMMISSIONED",
+        "Double-entry general ledger equilibrium verified: Sum(Dr) = Sum(Cr), Net Diff = 0.00",
+        "Cashfree historical transaction rows preserved immutable in cth_rehearsal_phase5 (exactly 35 rows)"
+      ]
+    },
+    {
+      "suite_id": "SUITE_P9_LEGAL_POLICIES",
+      "file": "scratch/test_all_12_policies.cjs",
+      "total_tests": 12,
+      "passed": 12,
+      "failed": 0,
+      "status": "PASSED",
+      "tests": [
+        "/privacy-policy -> 200 OK, verbatim text verified",
+        "/terms-and-conditions -> 200 OK, verbatim text verified",
+        "/refund-policy -> 200 OK, verbatim text verified",
+        "/cancellation-policy -> 200 OK, verbatim text verified",
+        "/shipping-and-delivery-policy -> 200 OK, verbatim text verified",
+        "/return-replacement-policy -> 200 OK, verbatim text verified",
+        "/cookie-policy -> 200 OK, verbatim text verified",
+        "/allergen-food-safety-disclaimer -> 200 OK, verbatim text verified",
+        "/grievance-redressal -> 200 OK, verbatim text verified",
+        "/intellectual-property -> 200 OK, verbatim text verified",
+        "/general-disclaimers -> 200 OK, verbatim text verified",
+        "/contact-information -> 200 OK, verbatim text verified"
+      ]
+    },
+    {
+      "suite_id": "SUITE_P9_PLAYWRIGHT_BROWSER",
+      "file": "scratch/run_phase9_real_e2e_suite.cjs",
+      "total_tests": 16,
+      "passed": 16,
+      "failed": 0,
+      "status": "PASSED",
+      "viewports": [
+        "Desktop (1920x1080)",
+        "Tablet (768x1024)",
+        "Mobile (390x844)"
+      ],
+      "screenshots_captured": 16
+    }
+  ],
+  "summary": {
+    "total_suites": 3,
+    "total_assertions": 48,
+    "passed_assertions": 48,
+    "failed_assertions": 0,
+    "overall_status": "100% PASSED"
+  }
+}

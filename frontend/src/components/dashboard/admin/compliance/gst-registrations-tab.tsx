@@ -26,8 +26,8 @@ export function GstRegistrationsTab({
   const [formGstin, setFormGstin] = useState("");
   const [formLegalName, setFormLegalName] = useState("");
   const [formTradeName, setFormTradeName] = useState("");
-  const [formState, setFormState] = useState("Karnataka");
-  const [formStateCode, setFormStateCode] = useState("29");
+  const [formState, setFormState] = useState("Kerala");
+  const [formStateCode, setFormStateCode] = useState("32");
   const [formType, setFormType] = useState<"REGULAR" | "COMPOSITION" | "OTHER">("REGULAR");
   const [formAddressLine, setFormAddressLine] = useState("");
   const [formCity, setFormCity] = useState("");
@@ -37,14 +37,14 @@ export function GstRegistrationsTab({
   const openCreateModal = () => {
     setEditingReg(null);
     setFormGstin("");
-    setFormLegalName("CakeToHome India Private Limited");
+    setFormLegalName("Baked Cakes & Pastries (CakeToHome)");
     setFormTradeName("CakeToHome");
-    setFormState("Karnataka");
-    setFormStateCode("29");
+    setFormState("Kerala");
+    setFormStateCode("32");
     setFormType("REGULAR");
     setFormAddressLine("Branch Premises Address");
-    setFormCity("Bengaluru");
-    setFormPincode("560038");
+    setFormCity("");
+    setFormPincode("");
     setFormStatus("active");
     setErrorMsg(null);
     setModalOpen(true);
@@ -53,7 +53,7 @@ export function GstRegistrationsTab({
   const openEditModal = (reg: any) => {
     setEditingReg(reg);
     setFormGstin(reg.gstin || "");
-    setFormLegalName(reg.legal_name || "CakeToHome India Private Limited");
+    setFormLegalName(reg.legal_name || "Baked Cakes & Pastries (CakeToHome)");
     setFormTradeName(reg.trade_name || "CakeToHome");
     setFormState(reg.state || "");
     setFormStateCode(reg.state_code || "");

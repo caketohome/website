@@ -53,7 +53,6 @@ class CakeToHomeApiClient {
 
   private getToken(): string | null {
     if (this.token) return this.token;
-    if (this.tokenChecked) return null;
     if (typeof window !== "undefined") {
       const t = localStorage.getItem("cth_access_token")
         || localStorage.getItem("cth_admin_token")
@@ -155,7 +154,7 @@ class CakeToHomeApiClient {
     const serverPort = process.env.PORT || "3000";
     const primaryUrl = typeof window !== "undefined"
       ? `/api/v1${cleanEndpoint}`
-      : `http://localhost:${serverPort}/api/v1${cleanEndpoint}`;
+      : `http://127.0.0.1:${serverPort}/api/v1${cleanEndpoint}`;
 
     // 1. Metadata Cache Resolution for low-churn GET endpoints
     if (method === "GET" && this.isCacheableEndpoint(cleanEndpoint, method)) {
@@ -254,17 +253,12 @@ class CakeToHomeApiClient {
     });
   }
 
-  async verifyOtp(phone: string, code: string, extra?: { name?: string; email?: string }) {
-    const res = await this.request<{ accessToken: string; token?: string; user: any; role?: string; is_new_customer?: boolean }>("/auth/verify-otp", {
+  async verifyOtp(phone: string, code: string) {
+    // Server sets httpOnly session cookies; no bearer token is returned.
+    return this.request<{ role: string; redirect_to: string; is_new_customer: boolean }>("/auth/verify-otp", {
       method: "POST",
-      body: JSON.stringify({ phone, code, ...(extra || {}) }),
+      body: JSON.stringify({ phone, code }),
     });
-
-    const token = res.accessToken || res.token;
-    if (token) {
-      this.setToken(token);
-    }
-    return res;
   }
 
   async logout(reason: string = "user_initiated") {
@@ -467,11 +461,20 @@ class CakeToHomeApiClient {
   }
 
   // ── Admin: Catalog ──
-  async getAdminProducts() {
-    return this.request("/admin/catalog/products").catch(() => ({ products: [] }));
+  async getAdminProducts(params?: Record<string, string | number | undefined>) {
+    const query = new URLSearchParams();
+    query.set("limit", String(params?.limit ?? 100));
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        if (k !== "limit" && v !== undefined && v !== null && v !== "") {
+          query.set(k, String(v));
+        }
+      });
+    }
+    return this.request(`/admin/catalog/products?${query.toString()}`);
   }
   async getAdminProduct(id: string) {
-    return this.request(`/admin/catalog/products/${id}`).catch(() => null);
+    return this.request(`/admin/catalog/products/${id}`);
   }
   async getAdminCakeOptions() {
     return this.request("/admin/catalog/cake-options").catch(() => ({ options: [] }));
@@ -488,7 +491,7 @@ class CakeToHomeApiClient {
 
   // ── Admin: Categories ──
   async getAdminCategories() {
-    return this.request("/admin/categories").catch(() => ({ categories: [] }));
+    return this.request("/admin/categories");
   }
   async createAdminCategory(data: any) {
     return this.request("/admin/categories", { method: "POST", body: JSON.stringify(data) });
@@ -1442,7 +1445,7 @@ class CakeToHomeApiClient {
     delivery_slot_id: string;
     delivery_type?: string;
     coupon_code?: string;
-    payment_method: "cod" | "cashfree" | "test_mode" | "wallet";
+    payment_method: "cod" | "razorpay" | "cashfree" | "test_mode" | "wallet";
     payment_details?: any;
     occasion?: string;
     ordered_for_self?: boolean;
@@ -1482,7 +1485,7 @@ class CakeToHomeApiClient {
 
   // ── Order Details API ──
   async getOrder(orderId: string) {
-    return this.request(`/orders/${orderId}`).catch(() => ({ order: null }));
+    return this.request(`/orders/${orderId}`).catch(() => ({ order: null, success: false }));
   }
 
   // ── Delivery Eligibility ──
@@ -1505,29 +1508,37 @@ class CakeToHomeApiClient {
     });
   }
 
-  // ── Cashfree Payment APIs (Sole Active Online Gateway) ──
-  async createCashfreeOrder(payload: {
+  // ── Razorpay Payment APIs (Sole Active Online Gateway) ──
+  async createRazorpayOrder(payload: {
     order_id: string;
-    amount: number;
-    currency?: string;
-    customer_id?: string;
-    customer_phone?: string;
-    customer_name?: string;
-    customer_email?: string;
   }) {
-    return this.request("/payments/cashfree/create-order", {
+    return this.request("/payments/razorpay/order", {
       method: "POST",
       body: JSON.stringify(payload),
     });
   }
 
-  // Legacy decommission stubs
-  async createRazorpayOrder() {
-    throw new Error("Razorpay has been decommissioned. Cashfree is the sole active payment gateway.");
+  async verifyRazorpayPayment(payload: {
+    order_id: string;
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+  }) {
+    return this.request("/payments/razorpay/verify", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   }
 
-  async verifyRazorpaySignature() {
-    throw new Error("Razorpay has been decommissioned. Cashfree is the sole active payment gateway.");
+  async getRazorpayStatus(orderId: string) {
+    return this.request(`/payments/razorpay/status/${encodeURIComponent(orderId)}`, {
+      method: "GET",
+    });
+  }
+
+  // Cashfree Decommissioned Stub
+  async createCashfreeOrder() {
+    throw new Error("Cashfree has been decommissioned. Razorpay Standard Checkout is the sole active payment gateway for CakeToHome.");
   }
 
   // ── Checkout & Availability Engine ──

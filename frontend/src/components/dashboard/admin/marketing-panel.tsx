@@ -419,7 +419,6 @@ export const MarketingPanel = memo(function MarketingPanel() {
                 <option value="Kollam">Kollam</option>
                 <option value="Kochi">Kochi</option>
                 <option value="Trivandrum">Trivandrum</option>
-                <option value="Bangalore">Bangalore</option>
               </select>
             </div>
           </div>

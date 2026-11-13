@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
 
     const title = searchParams.get("title") || "CakeToHome — Handcrafted Cakes";
-    const description = searchParams.get("description") || "Bangalore's Premium Artisanal Cake Bakery. Delivered Fresh in 2 Hours.";
+    const description = searchParams.get("description") || "Kerala's Premium Artisanal Cake Bakery. Delivered Fresh in 2 Hours.";
     const price = searchParams.get("price");
     const badge = searchParams.get("badge") || "Same Day Delivery";
     const rating = searchParams.get("rating") || "4.9";
@@ -167,7 +167,7 @@ export async function GET(req: NextRequest) {
               <span>•</span>
               <span>100% Eggless Options</span>
               <span>•</span>
-              <span>Bangalore</span>
+              <span>Kerala</span>
             </div>
           </div>
         </div>

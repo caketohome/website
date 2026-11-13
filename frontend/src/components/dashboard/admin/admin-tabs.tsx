@@ -14,7 +14,6 @@ const TABS = [
   { id: "catalog", label: "Catalog", icon: Package },
   { id: "search_engine", label: "🔍 Search & Mapping", icon: Search },
   { id: "branches", label: "Branches", icon: Building2 },
-  { id: "shared_inventory", label: "🎂 Shared Inventory", icon: Package },
   { id: "operational_closures", label: "📅 Holiday Scheduling", icon: Clock },
   { id: "marketplace", label: "🏪 Partner Marketplace", icon: Building },
   { id: "delivery", label: "Delivery", icon: Truck },

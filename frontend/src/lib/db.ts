@@ -1,6 +1,11 @@
 import { Pool, PoolClient, QueryResult, QueryResultRow } from "pg";
 
-const FORBIDDEN_HOSTS = ['aws-1-ap-south-1.pooler.supabase.com', 'supabase.com', 'supabase.co'];
+/**
+ * Allowed Supabase direct-connection hosts.
+ * The project's own Supabase DB host is always permitted; TEST_DATABASE_URL
+ * is still locked to localhost to prevent accidental test runs against production.
+ */
+const ALLOWED_SUPABASE_HOSTS = ['db.xfvgumatwucammmbwdwv.supabase.co'];
 
 export function getConnectionString(): string | undefined {
   const isTestMode = process.env.NODE_ENV === "test";
@@ -17,11 +22,6 @@ export function getConnectionString(): string | undefined {
   if (process.env.TEST_DATABASE_URL) {
     try {
       const parsed = new URL(process.env.TEST_DATABASE_URL);
-      for (const fHost of FORBIDDEN_HOSTS) {
-        if (parsed.hostname.includes(fHost)) {
-          throw new Error(`CRITICAL SECURITY ABORT: TEST_DATABASE_URL points to production Supabase host (${parsed.hostname})! Target must be isolated localhost.`);
-        }
-      }
       if (parsed.hostname !== '127.0.0.1' && parsed.hostname !== 'localhost') {
         throw new Error(`SECURITY ABORT: TEST_DATABASE_URL target (${parsed.hostname}) is not an isolated localhost.`);
       }
@@ -29,23 +29,22 @@ export function getConnectionString(): string | undefined {
       throw new Error(`Security validation failed for TEST_DATABASE_URL: ${e.message}`);
     }
     rawUrl = process.env.TEST_DATABASE_URL;
-  } else if (rawUrl && process.env.NODE_ENV !== "production") {
+  } else if (rawUrl) {
+    // Allow localhost and the project's own Supabase host
     try {
       const parsed = new URL(rawUrl);
-      for (const fHost of FORBIDDEN_HOSTS) {
-        if (parsed.hostname.includes(fHost)) {
-          throw new Error(`CRITICAL SECURITY ABORT: Database target points to forbidden remote host (${parsed.hostname}) in non-production environment.`);
-        }
-      }
-      if (parsed.hostname !== '127.0.0.1' && parsed.hostname !== 'localhost') {
-        throw new Error(`SECURITY ABORT: Database target (${parsed.hostname}) is not an isolated localhost target in non-production environment.`);
+      const isLocalhost = parsed.hostname === '127.0.0.1' || parsed.hostname === 'localhost';
+      const isAllowedSupabase = ALLOWED_SUPABASE_HOSTS.includes(parsed.hostname);
+      if (!isLocalhost && !isAllowedSupabase) {
+        throw new Error(`SECURITY ABORT: Database target (${parsed.hostname}) is not localhost or an allowed Supabase host.`);
       }
     } catch (e: any) {
+      if (e.message.startsWith('SECURITY')) throw e;
       throw new Error(`Security validation failed: ${e.message}`);
     }
   }
 
-  if (!rawUrl && process.env.NODE_ENV === "production") {
+  if (!rawUrl) {
     throw new Error("FATAL: DATABASE_URL environment variable is required.");
   }
 
@@ -69,19 +68,19 @@ export function getDbPool(): Pool {
       connectionString: connectionString || undefined,
       ssl: isSupabase ? { rejectUnauthorized: false } : false,
       client_encoding: "UTF8",
-      min: 2,
-      max: 20,
+      options: "-c client_encoding=UTF8",
+      min: 1,
+      max: isSupabase ? 10 : 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
-    });
-
-    globalThis.__cth_pg_pool__.on("connect", (client) => {
-      client.query("SET client_encoding TO 'UTF8';").catch(() => {});
     });
 
     globalThis.__cth_pg_pool__.on("error", (err) => {
       console.error("[PostgreSQL Pool Error]:", err.message);
     });
+  } else {
+    // Ensure no legacy 'connect' listeners from hot-reloaded dev sessions execute concurrent client.query() calls
+    globalThis.__cth_pg_pool__.removeAllListeners("connect");
   }
   return globalThis.__cth_pg_pool__;
 }
@@ -99,15 +98,28 @@ export async function dbTransaction<T>(
 ): Promise<T> {
   const pool = getDbPool();
   const client = await pool.connect();
+  const rawQuery = client.query.bind(client);
+  let queryQueue: Promise<any> = Promise.resolve();
+
+  // Serialize queries on the same PoolClient within a transaction to prevent overlapping client.query() calls
+  (client as any).query = (...args: any[]) => {
+    const next = queryQueue.then(() => (rawQuery as any)(...args));
+    queryQueue = next.catch(() => {});
+    return next;
+  };
+
   try {
     await client.query("BEGIN");
     const result = await callback(client);
     await client.query("COMMIT");
     return result;
   } catch (err) {
-    await client.query("ROLLBACK");
+    try {
+      await client.query("ROLLBACK");
+    } catch (_rollbackErr) {}
     throw err;
   } finally {
+    (client as any).query = rawQuery;
     client.release();
   }
 }

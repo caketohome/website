@@ -365,7 +365,7 @@ export function PopupEditorDrawer({
       setCustomerStatuses(["all"]);
       setEyebrow("FRESH FROM THE OVEN");
       setHeadline("Handcrafted Artisanal Cakes Delivered in 2 Hours");
-      setContentDesc("Explore Bangalore's finest cakes, baked fresh with 100% pure vegetarian ingredients.");
+      setContentDesc("Explore Kerala's finest cakes, baked fresh with 100% pure vegetarian ingredients.");
       setBadge("FRESH TODAY");
       setPrimaryLabel("Explore Cakes");
       setPrimaryAction("VIEW_CATEGORY");

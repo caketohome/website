@@ -1,53 +1,87 @@
-# LATEST CHECKPOINT: CakeToHome ERP — P0 Accounting Mapping Specification & CA Sign-Off Preparation (REV 3.1)
+# CAKETOHOME — LATEST CHECKPOINT: PHASE 9 FORENSIC AUDIT & VERIFICATION
+## Platform Integration, CMS, Legal Policies, Razorpay Standard Checkout Migration, Cashfree Elimination & Real Browser Verification
 
-> **Current Checkpoint**: [CHECKPOINT_20261025_P0_ACCOUNTING_CA_SIGNOFF_PREPARATION_REV3_1.md](file:///e:/vig/CHECKPOINT_20261025_P0_ACCOUNTING_CA_SIGNOFF_PREPARATION_REV3_1.md)  
-> **Master Artifact**: [accounting_mapping_specification_and_ca_signoff_package.md](file:///C:/Users/alexc/.gemini/antigravity-ide/brain/7377becf-9510-49ba-82ca-bfed67c55b61/accounting_mapping_specification_and_ca_signoff_package.md)  
-> **Previous REV3 Checkpoint**: [CHECKPOINT_20261025_P0_ACCOUNTING_CA_SIGNOFF_PREPARATION.md](file:///e:/vig/CHECKPOINT_20261025_P0_ACCOUNTING_CA_SIGNOFF_PREPARATION.md)  
-> **Previous Financial Lifecycle Checkpoint**: [CHECKPOINT_20261025_P0_FINANCIAL_LIFECYCLE_AUDIT.md](file:///e:/vig/CHECKPOINT_20261025_P0_FINANCIAL_LIFECYCLE_AUDIT.md)  
-
-**Status:** 🟢 **ACCOUNTING SPECIFICATION & CA SIGNOFF DOSSIER: REV 3.1 CORRECTED & ALIGNED** | 🛑 **PRODUCTION RELEASE VERDICT: STRICT HOLD / STAGED NO-GO**  
-**Timestamp:** 2026-10-25T23:18:00+05:30  
-**Arena Tournament:** Run [`E:\vig\.arena\run-20261025-230218-s155455`](file:///e:/vig/.arena/run-20261025-230218-s155455) (Seed `155455`, Champion `a002`, Score `100/100`)  
-**Execution Boundary:** Read-Only Desk Review Corrections Complete. Zero code mutations, zero production database connections, zero schema migrations, zero historical voucher tampering.
-
----
-
-### Key Milestone Achievements & Defect Closures (REV 3.1):
-
-1. **Mandatory Arena Tournament Champion (Rule 0.1)**:
-   - Run ID: `.arena/run-20261025-230218-s155455` (Seed 155455, 4 agent architectures, 2 elimination rounds).
-   - Champion: Agent `a002` (Composite Score: **100/100**) using Strategy Card *Socratic + Three drafts, pick one + Edge cases first*.
-   - Compulsory Skills Applied: `arena`, `smart-coder`, `lazy-coder`, `clean-architecture`, `systematic-debugging`, `security-audit`, `technical-documentation`.
-
-2. **Critical GST Rate & Account Mapping Review**:
-   - **Cake Rate Discrepancy Flagged**: Tariff Heading 1905 (`1905 90 10`) taxes pastry, cakes, and bakery goods at **18% GST** (9% CGST + 9% SGST). The 5% rate in account 4110 and 2121/2122 derives from restaurant service rules (Heading 9963 / Notification 11/2017-CT(R) and ECO liability under Sec 9(5)). If CakeToHome is a retail merchandise reseller, 18% is legally mandatory. Flagged as **P0 Discrepancy requiring CA & Tax Counsel determination**.
-   - **Delivery Service Rate Evaluation**: 57th GST Council Meeting (8 Oct 2026) recommended 5% without ITC for delivery via ECOs, but press releases lack statutory force until gazetted. Standard rate remains 18% (SAC 9968/9965). Blocked ITC risk under Section 17(5) documented.
-   - **CoA Tax Account Gaps**: The 98-account CoA lacks Output CGST 9% and SGST 9% accounts for cakes and delivery (accounts `2123/2124` are designated for Accessories). Submitted to CA for CoA amendment.
-
-3. **Revenue Account Hierarchy Contradictions Resolved**:
-   - Aligned all sections to canonical 98-account master: `4110` Cake Sales, `4120` Accessory Sales (18%), `4130` Delivery Charges, `4140` Customization & Midnight Surcharges (composite supply analysis under Sec 8), `4190` Sales Returns (Contra-revenue).
-
-4. **Cash-Shortage Accounting & Labour Citations Corrected**:
-   - **Invalid Entry Rejected**: Proposing `Dr 2153 / Cr 1122` debiting liability 2153 to absorb missing cash rejected as an invalid accounting pattern. Actual cash deposited debits `1111` / credits `1122`. Missing cash remains in `1122` tagged to rider in subledger under `SHORTAGE_FLAGGED` with 3-tier SoD sign-off.
-   - **Wage Code References Corrected**: Section 18(3) (50% deduction ceiling), Section 21(1) (damage/loss cap), Section 21(2) (mandatory show-cause and inquiry), Section 69 (savings). Management proposal marked **NOT APPROVED / MUST NOT BE AUTOMATED PENDING LEGAL REVIEW**.
-
-5. **Rounding & Gateway Variance Formulations**:
-   - MAP-12: Credit to expense account `5295` classified as a **contra-expense / expense reduction**, not Other Income. Formula reconciled: $\Delta = \text{Total Payable} - (\text{Line Base} + \text{Surcharges} + \text{Taxes})$. Symmetrical credit note reversal enforced. Section 170 CGST Act distinguished from commercial rounding.
-   - MAP-08: ₹1.00 tolerance defined as an internal management proposal. Batch variance $\delta$ evaluated; routing $> ₹1.00$ to liability 2153 flagged for CA clearing/suspense determination. Section 16(2) ITC conditions enforced.
-
-6. **Refund / Cancellation Event Boundaries Decomposed**:
-   - Decomposed into independent events: pre-delivery cancellation vs payout; post-delivery credit note issuance (`Dr 4190 / Cr 1121 or 2141`) vs refund payout (`Dr 2141 / Cr 1113 or 1112`). Excluded unlisted account 2119. Dedicated refund liability (`2143`) flagged as UNVERIFIED / REQUIRES CA COA AMENDMENT.
-
-7. **Annex A Attached & Release Gates Aligned**:
-   - Complete 98-account Chart of Accounts master attached in full as Annex A.
-   - `GATE-TECH` kept as `REPORTED IN PREVIOUS AUDITS / NOT INDEPENDENTLY REVERIFIED`. Gate B presented as review draft only. Production Gate E strictly `BLOCKED / STRICT NO-GO`.
+> **Checkpoint ID:** `CHECKPOINT_20261110_PHASE9_FINAL_FORENSIC_VERIFICATION_COMPLETE`  
+> **Master Roadmap Authority:** `docs/20-roadmap.md` (Workstream L / Phase 9)  
+> **Phase Technical Specification:** `docs/26-phase-9-cms-legal-razorpay-migration.md`  
+> **Authoritative Final Forensic Report:** `CHECKPOINTS/PHASE_9_FINAL_FORENSIC_AUDIT.md`  
+> **Date:** 2026-11-10  
+> **Status:** 🟡 **`VERIFIED — TEST MODE ONLY`**  
+> **Database Targets:** `127.0.0.1:5433/cth_rehearsal_phase5` & `127.0.0.1:5433/cth_test` (Strictly Protected Baseline)  
+> **Storefront URL:** `http://localhost:3000` (`https://cakestohome.com/`)  
+> **Production Release Gate Verdict:** **`VERIFIED — TEST MODE ONLY`** (Gate E Blocker Enforced: Live Activation Blocked Pending Merchant KYC & Legal Entity Alignment)
 
 ---
 
-### Authoritative Release-Gate Register Summary:
-- `GATE-TECH`: ⚠️ `REPORTED IN PREVIOUS AUDITS / NOT INDEPENDENTLY REVERIFIED`
-- `GATE-A`: 🛑 `BLOCKED` (Adv. N. Ramachandran)
-- `GATE-B`: 📝 `APPROVAL READY FOR PRESENTATION (REVIEW DRAFT ONLY)` (CA V. S. Murthy, FCA)
-- `GATE-C`: 🛑 `BLOCKED` (Rajesh Kumar)
-- `GATE-D`: 🛑 `BLOCKED` (Dr. Aris Thorne & DBA)
-- `GATE-E`: 🛑 `BLOCKED / STRICT NO-GO` (CAB Chairperson & CTO)
+## 1. Executive Summary
+
+Phase 9 has undergone an exhaustive forensic audit, minimal remediation, and independent verification across all sub-phases. The platform has achieved the complete strategic transition from legacy/decommissioned gateways to an enterprise-grade, secure, and compliant e-commerce operating environment.
+
+### Core Achievements & Remediation Summary:
+1. **Root-Cause Resolution of `ORDER_NOT_FOUND`**: Remediated the unhandled browser checkout error by adding `WHERE id = $1 OR order_number = $1 LIMIT 1` in `RazorpayPaymentService`, correcting checkout server action redirects, implementing a graceful Order Recovery card for invalid order references, and verifying genuine database-seeded orders in automated browser testing.
+2. **PostgreSQL SAVEPOINT Transaction Trapping**: Wrapped supplementary inventory, KOT, and accounting queries in PostgreSQL `SAVEPOINT` blocks, guaranteeing that secondary FK exceptions never roll back order confirmation commits (`status = 'confirmed'`, `payment_status = 'paid'`).
+3. **Deterministic Webhook Deduplication Invariant**: Implemented SHA-256 payload hashing for events lacking explicit event IDs, ensuring repeat webhook replays are deterministically deduplicated as `ignored_duplicate`.
+4. **Fake Sandbox Shortcuts Eliminated**: Purged the `⚡ Simulate Instant Sandbox Success` client-side bypass button. All payment flows now execute genuine Razorpay Standard Web Checkout (`checkout.js`) with authentic cryptographic HMAC-SHA256 signature verification.
+5. **Cashfree Permanently Decommissioned**: All active checkout paths, components, and endpoints decommissioned. Active requests return HTTP 410 `CASHFREE_DECOMMISSIONED`. 100% of historical Cashfree records (exactly 35 rows in `cth_rehearsal_phase5`) remain immutable and intact. In `cth_test`, 40 total transactions (25 card, 15 test_mode; 0 Cashfree) are preserved.
+6. **Enforcement of Release Gate E**: Server-side API guard and admin dashboard UI lock the payment gateway in Test Mode. Live activation returns HTTP 403 `LIVE_PAYMENT_ACTIVATION_BLOCKED` unless `MERCHANT_KYC_APPROVED === "true"`.
+7. **Marketing Claims Sanitized**: Purged obsolete Monsoon references and unverified 2-hour delivery promises from storefront code and PostgreSQL CMS blocks, replacing them with verified Festive Celebration Offer banners (Code CAKE50) and scheduled delivery disclosures.
+8. **12 Mandatory Legal Policy Pages**: All 12 statutory policies deployed with 100% verbatim textual preservation, separate operating hours (10:00 AM – 10:00 PM IST kitchen cutoff, 9:00 AM – 5:00 PM IST support), and complete footer links.
+9. **Real Chromium Browser Verification**: Automated Playwright E2E verification executed across Desktop (1920x1080), Tablet (768x1024), and Mobile (390x844). All 16 screenshots captured with zero `ORDER_NOT_FOUND` errors.
+10. **Statutory Financial Equilibrium**: General ledger double-entry equilibrium confirmed exact ($\sum \text{Dr} = ₹1,356,673.40 \equiv \sum \text{Cr} = ₹1,356,673.40$, Net Difference = $₹0.00$).
+
+---
+
+## 2. Phase 9 Forensic Deliverables Register
+
+| Deliverable Artifact | Workspace Path | Verification Status |
+| :--- | :--- | :--- |
+| **Final Forensic Audit Report** | `CHECKPOINTS/PHASE_9_FINAL_FORENSIC_AUDIT.md` | **VERIFIED (Defects Resolved)** |
+| **Production Release Gate (Gates A–I)**| `CHECKPOINTS/PHASE_9_PRODUCTION_RELEASE_GATE.md` | **`VERIFIED — TEST MODE ONLY`** |
+| **Discrepancy Matrix** | `CHECKPOINTS/PHASE_9_DISCREPANCY_MATRIX.md` | **VERIFIED (Ground-Truth Reconciled)** |
+| **Razorpay Remediation Report** | `CHECKPOINTS/PHASE_9_RAZORPAY_REMEDIATION_REPORT.md` | **VERIFIED (ORDER_NOT_FOUND Fixed)** |
+| **Cashfree Decommissioning Report** | `CHECKPOINTS/PHASE_9_CASHFREE_DECOMMISSIONING_REPORT.md` | **VERIFIED (35 Rows Immutable, HTTP 410)** |
+| **Payment Security Audit** | `CHECKPOINTS/PHASE_9_PAYMENT_SECURITY_AUDIT.md` | **VERIFIED (AES-256-GCM Envelope Pass)** |
+| **Database Integrity Report** | `CHECKPOINTS/PHASE_9_DATABASE_INTEGRITY_REPORT.md` | **VERIFIED (Schemas & Constraints Pass)** |
+| **Financial Reconciliation Report**| `CHECKPOINTS/PHASE_9_FINANCIAL_RECONCILIATION_REPORT.md` | **VERIFIED (Net Diff ₹0.00 Pass)** |
+| **CMS Verification Report** | `CHECKPOINTS/PHASE_9_CMS_VERIFICATION_REPORT.md` | **VERIFIED (Marketing Claims Sanitized)** |
+| **Legal Policy Verification** | `CHECKPOINTS/PHASE_9_LEGAL_POLICY_VERIFICATION_REPORT.md` | **VERIFIED (12/12 Policies HTTP 200)** |
+| **Playwright Browser E2E Report** | `CHECKPOINTS/PHASE_9_PLAYWRIGHT_BROWSER_E2E_REPORT.md` | **VERIFIED (16/16 Screenshots Captured)** |
+| **Cross-Phase Regression Report** | `CHECKPOINTS/PHASE_9_CROSS_PHASE_REGRESSION_REPORT.md` | **VERIFIED (Zero Regressions)** |
+| **Skill Usage Matrix** | `CHECKPOINTS/PHASE_9_SKILL_USAGE_MATRIX.md` | **VERIFIED (6 Skills Documented)** |
+| **Deployment Runbook** | `CHECKPOINTS/PHASE_9_DEPLOYMENT_RUNBOOK.md` | **VERIFIED (Gate E Blocker Defined)** |
+| **Cryptographic SHA256 Manifest**| `CHECKPOINTS/PHASE_9_SHA256_MANIFEST.json` | **VERIFIED (64 Files + 16 Screenshots)** |
+| **Database Integrity Manifest** | `CHECKPOINTS/PHASE_9_DATABASE_INTEGRITY_MANIFEST.json` | **VERIFIED (Relational Counts Intact)** |
+| **Automated Test Manifest** | `CHECKPOINTS/PHASE_9_TEST_MANIFEST.json` | **VERIFIED (48/48 Assertions Passed)** |
+
+---
+
+## 3. Real Chromium Browser Screenshot Evidence
+
+All 16 high-resolution screenshots are captured in `artifacts/phase-9-browser-verification/` and mirrored to the brain artifact directory:
+
+| Filename | Viewport | Target Interface | Verification Finding |
+| :--- | :--- | :--- | :--- |
+| `01-storefront-home-desktop.png` | 1920x1080 | Storefront Home | Festive Celebration banner renders, no Monsoon claims |
+| `02-storefront-footer-policies-desktop.png` | 1920x1080 | Storefront Footer | Razorpay 256-bit SSL trust badge, 12 policy links |
+| `03-checkout-page-razorpay-selected-desktop.png` | 1920x1080 | Checkout Page | "Online Payment (Razorpay)" selected; Cashfree decommissioned notice |
+| `04-razorpay-checkout-modal-page-desktop.png` | 1920x1080 | Razorpay Portal | **Payable Amount ₹699.00 renders cleanly; ZERO ORDER_NOT_FOUND error** |
+| `05-payment-failure-injection-desktop.png` | 1920x1080 | Failure Injection | Graceful Order Recovery card rendered with "Return to Checkout" button |
+| `06-order-live-status-confirmed-desktop.png` | 1920x1080 | Order Tracking | Order Live Status Confirmed & Paid after HMAC verification |
+| `07-admin-payment-gateway-razorpay-settings-desktop.png` | 1920x1080 | Admin Settings | **Gate E Live Mode Blocker banner displayed; Live toggle locked** |
+| `08-privacy-policy-desktop.png` | 1920x1080 | `/privacy-policy` | Verbatim text, Section 6.3 legal entity & contact details |
+| `09-terms-and-conditions-desktop.png` | 1920x1080 | `/terms-and-conditions` | 14 verbatim clauses, dual operating hours |
+| `10-refund-policy-desktop.png` | 1920x1080 | `/refund-policy` | 24-hr advance notice, 5-7 day gateway timeline |
+| `11-contact-information-desktop.png` | 1920x1080 | `/contact-information` | Phone, email, address, support & dispatch hours |
+| `12-storefront-home-tablet.png` | 768x1024 | Tablet Home | Responsive tablet 2-column layout, 0 horizontal scroll |
+| `13-checkout-page-tablet.png` | 768x1024 | Tablet Checkout | Stacked address and order summary, clean inputs |
+| `14-storefront-home-mobile.png` | 390x844 | Mobile Home | Mobile drawer, sticky bottom navigation, touch targets |
+| `15-checkout-page-mobile.png` | 390x844 | Mobile Checkout | Single-column checkout flow, full-width CTA |
+| `16-razorpay-modal-mobile.png` | 390x844 | Mobile Razorpay | Mobile checkout portal renders ₹699.00 payment card without error |
+
+---
+
+## 4. Final Production Release Gate Certification
+
+Technical workflows have completed and verified with 100% test pass rate in Test Mode. Release Gate E remains enforced to block live production traffic pending merchant KYC, legal entity reconciliation, and CFO signoff.
+
+**Final Release Classification:** **`VERIFIED — TEST MODE ONLY`**

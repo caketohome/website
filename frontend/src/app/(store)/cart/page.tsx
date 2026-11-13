@@ -121,16 +121,34 @@ export default async function CartPage() {
                   <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-100">
                     {item.title || item.name}
                   </h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    {item.weight && (
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                    {(item.weight || item.metadata?.weight) && (
                       <span className="text-xs bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-zinc-600 dark:text-zinc-300 font-medium">
-                        {item.weight}
+                        {item.weight || item.metadata?.weight}
+                      </span>
+                    )}
+                    {(item.flavour || item.metadata?.flavour) && (
+                      <span className="text-xs bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-zinc-600 dark:text-zinc-300">
+                        {item.flavour || item.metadata?.flavour}
+                      </span>
+                    )}
+                    {(item.shape || item.metadata?.shape) && (
+                      <span className="text-xs bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-zinc-600 dark:text-zinc-300">
+                        {item.shape || item.metadata?.shape}
                       </span>
                     )}
                     <span className="text-xs text-zinc-500">
                       Qty: {item.quantity || 1}
                     </span>
                   </div>
+                  {(item.cake_message || item.metadata?.cake_message) && (
+                    <p
+                      data-testid="cart-page-item-cake-message"
+                      className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-0.5 mt-1.5 inline-block italic"
+                    >
+                      🎂 Message on Cake: &ldquo;{item.cake_message || item.metadata?.cake_message}&rdquo;
+                    </p>
+                  )}
                   {item.unit_price && Number(item.quantity || 1) > 1 && (
                     <p className="text-xs text-zinc-400 mt-0.5">
                       ₹{Number(item.unit_price).toLocaleString("en-IN")} each

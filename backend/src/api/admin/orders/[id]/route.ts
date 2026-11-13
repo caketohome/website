@@ -62,7 +62,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     const customerPhone = meta.customer_phone || shipping.phone || "+91 98765 43210";
     const customerEmail = o.email || meta.customer_email || "customer@cakes2home.com";
 
-    const branchName = meta.branch_name || meta.branch || "Indiranagar Flagship Kitchen";
+    const branchName = meta.branch_name || meta.branch || "Unassigned";
     const branchCode = meta.branch_code || "HUB-BLR-01";
     const chefAssigned = meta.chef_assigned || "Master Pastry Chef";
 
@@ -107,14 +107,14 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         name: customerName,
         phone: customerPhone,
         email: customerEmail,
-        address: shipping.address_1 || meta.address || "100 Feet Road, Indiranagar",
+        address: shipping.address_1 || meta.address || "",
         address_2: shipping.address_2 || "",
-        city: shipping.city || meta.city || "Bengaluru",
-        area: shipping.area || meta.area || "Indiranagar",
-        pincode: shipping.postal_code || meta.pincode || "560038",
+        city: shipping.city || meta.city || "",
+        area: shipping.area || meta.area || "",
+        pincode: shipping.postal_code || meta.pincode || "",
         landmark: meta.landmark || "Opposite Metro Pillar 124",
         delivery_instructions: meta.delivery_instructions || "Ring bell twice, fragile cake package.",
-        map_url: meta.map_url || `https://maps.google.com/?q=${encodeURIComponent(shipping.city || "Bengaluru")}`,
+        map_url: meta.map_url || (shipping.city ? `https://maps.google.com/?q=${encodeURIComponent(shipping.city)}` : ""),
       },
 
       // Section 3: Branch Information
@@ -122,7 +122,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         id: meta.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
         name: branchName,
         code: branchCode,
-        address: meta.branch_address || "Plot 42, 100 Feet Rd, Indiranagar, Bengaluru - 560038",
+        address: meta.branch_address || "",
         phone: meta.branch_phone || "+91 80 4912 8800",
         manager: meta.branch_manager || "Anand Sharma (Branch Ops Lead)",
         kitchen: "Baking Station A - Oven 4",

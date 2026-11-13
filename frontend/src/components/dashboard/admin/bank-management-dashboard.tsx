@@ -508,7 +508,7 @@ export function BankManagementDashboard() {
           { id: "transactions", label: "Bank Transactions", icon: Receipt },
           { id: "transfers", label: "Bank Transfers", icon: ArrowRightLeft },
           { id: "reconciliation", label: "Bank Reconciliation (BRS)", icon: FileSpreadsheet },
-          { id: "settlements", label: "Cashfree Settlements", icon: Clock },
+          { id: "settlements", label: "Gateway Settlements & Bank Verification", icon: ShieldCheck },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -1653,7 +1653,7 @@ export function BankManagementDashboard() {
 
             {/* Sub-tabs */}
             <div className="flex gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 text-xs font-semibold">
-              {(["overview", "transactions", "details", "audit"] as const).map((t) => (
+              {(["overview", "verification", "transactions", "details", "audit"] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setDetailTab(t)}
@@ -1717,6 +1717,143 @@ export function BankManagementDashboard() {
                       <span className="text-slate-400">Associated Branch:</span>{" "}
                       <span className="font-semibold">{selectedAccountForDetail.branch_name || "Indiranagar Kitchen Hub"}</span>
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {detailTab === "verification" && (
+              <div className="space-y-4 text-xs">
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                        Settlement Account Verification Status
+                      </h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Manual accounting control: Verification by authorized Finance Lead before settlement clearance.
+                      </p>
+                    </div>
+                    <Badge
+                      size="large"
+                      color={
+                        selectedAccountForDetail.verification_status === "VERIFIED"
+                          ? "green"
+                          : selectedAccountForDetail.verification_status === "UNDER_REVIEW"
+                          ? "blue"
+                          : selectedAccountForDetail.verification_status === "PENDING_VERIFICATION"
+                          ? "orange"
+                          : selectedAccountForDetail.verification_status === "REJECTED"
+                          ? "red"
+                          : "grey"
+                      }
+                    >
+                      {selectedAccountForDetail.verification_status || "NOT_SUBMITTED"}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 pt-2 text-slate-600 dark:text-slate-300">
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Verified By</span>
+                      <span className="font-mono">{selectedAccountForDetail.verified_by || "Pending Review"}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Verification Date</span>
+                      <span>{selectedAccountForDetail.verified_at ? new Date(selectedAccountForDetail.verified_at).toLocaleString("en-IN") : "Not Verified"}</span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Accounting Remarks</span>
+                      <p className="mt-0.5 text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-900 p-2 rounded border border-slate-200 dark:border-slate-800">
+                        {selectedAccountForDetail.verification_remarks || "No verification remarks recorded yet."}
+                      </p>
+                    </div>
+                    {selectedAccountForDetail.verification_document_url && (
+                      <div className="col-span-2">
+                        <span className="text-slate-400 block text-[10px] uppercase font-bold">Supporting Bank Statement / Evidence</span>
+                        <span className="font-mono text-blue-600 dark:text-blue-400">{selectedAccountForDetail.verification_document_url}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Verification Action Form */}
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+                  <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Edit3 className="w-4 h-4 text-blue-600" />
+                    Record Verification Review (Finance & Accounts)
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                        Update Verification State
+                      </Label>
+                      <select
+                        id="verify_status_select"
+                        defaultValue={selectedAccountForDetail.verification_status || "PENDING_VERIFICATION"}
+                        className="w-full text-xs py-1.5 px-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg mt-1"
+                      >
+                        <option value="NOT_SUBMITTED">NOT_SUBMITTED</option>
+                        <option value="PENDING_VERIFICATION">PENDING_VERIFICATION</option>
+                        <option value="UNDER_REVIEW">UNDER_REVIEW</option>
+                        <option value="VERIFIED">VERIFIED (Approved)</option>
+                        <option value="REJECTED">REJECTED</option>
+                        <option value="REQUIRES_REVIEW">REQUIRES_REVIEW</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                        Verification Remarks / Audit Notes
+                      </Label>
+                      <textarea
+                        id="verify_remarks_input"
+                        rows={2}
+                        placeholder="e.g. Account name and IFSC verified against official HDFC statement."
+                        className="w-full text-xs p-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                        Supporting Statement / Document Reference URL
+                      </Label>
+                      <Input
+                        id="verify_doc_input"
+                        placeholder="docs/bank-statements/statement_ref_2026.pdf"
+                        className="text-xs mt-1"
+                      />
+                    </div>
+                    <Button
+                      size="small"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white w-full"
+                      onClick={async () => {
+                        const statusEl = document.getElementById("verify_status_select") as HTMLSelectElement;
+                        const remarksEl = document.getElementById("verify_remarks_input") as HTMLTextAreaElement;
+                        const docEl = document.getElementById("verify_doc_input") as HTMLInputElement;
+                        if (!statusEl) return;
+                        try {
+                          const res = await fetch(`/api/v1/admin/accounting/bank-accounts/${selectedAccountForDetail.id}/verify`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              verification_status: statusEl.value,
+                              remarks: remarksEl?.value,
+                              document_url: docEl?.value
+                            })
+                          });
+                          const json = await res.json();
+                          if (json.success) {
+                            alert("Verification state saved successfully.");
+                            window.location.reload();
+                          } else {
+                            alert("Error: " + (json.message || json.error));
+                          }
+                        } catch (err: any) {
+                          alert("Network error: " + err.message);
+                        }
+                      }}
+                    >
+                      <Check className="w-3.5 h-3.5 mr-1" /> Save Verification Review
+                    </Button>
                   </div>
                 </div>
               </div>

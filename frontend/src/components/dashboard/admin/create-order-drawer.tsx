@@ -208,12 +208,9 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
     setCustomerSearch(cust.name);
     setNewCustomer({ name: cust.name, phone: cust.phone || "", email: cust.email || "" });
 
-    const custAddresses = [
-      { id: "addr_1", address_1: "100 Feet Road, Indiranagar", area: "Indiranagar", city: "Bengaluru", state: "Karnataka", postal_code: "560038", landmark: "Opp Metro Pillar 124" },
-      { id: "addr_2", address_1: "80 Feet Road, Koramangala 4th Block", area: "Koramangala", city: "Bengaluru", state: "Karnataka", postal_code: "560034", landmark: "Near Sony Signal" },
-    ];
+    const custAddresses: any[] = []; // shortcut: addresses must come from the customer API, not samples
     setAddresses(custAddresses);
-    setSelectedAddressId(custAddresses[0].id);
+    setSelectedAddressId(custAddresses[0]?.id ?? "");
     setAddressForm({
       address_1: custAddresses[0].address_1,
       address_2: "",

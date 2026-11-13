@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
   const title = fetched?.title || fetched?.name || "Gourmet Cake";
   const rawDesc = fetched?.description || "Decadent handcrafted cake made with rich ingredients and fresh toppings.";
-  const desc = `Order ${title} online from CakeToHome Bangalore. ${rawDesc} Freshly baked with same-day and midnight delivery available.`;
+  const desc = `Order ${title} online from CakeToHome Kerala. ${rawDesc} Freshly baked with same-day and midnight delivery available.`;
   const handle = fetched?.handle || targetId;
   const isAccessory = (fetched?.merchandise_type || "").toUpperCase() === "ACCESSORY" || (targetId && String(targetId).startsWith("acc_"));
   const image = fetched?.thumbnail || (isAccessory ? "/images/gold-acrylic-topper.jpg" : "https://cakes2home.com/images/default-cake.jpg");

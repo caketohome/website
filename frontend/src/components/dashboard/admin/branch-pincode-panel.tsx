@@ -63,17 +63,7 @@ export function BranchPincodePanel() {
       setCityAreas(res?.cityAreas || []);
       setBranches(res?.branches || []);
       
-      const sampleMappings = [
-        { pincode: "560038", branch_id: "br_indiranagar", branch_code: "HUB-BLR-01", zone_id: "zone_1", zone_name: "Zone 1 (0-5 KM)", city_name: "Bengaluru", area_name: "Indiranagar", status: "active" },
-        { pincode: "560008", branch_id: "br_indiranagar", branch_code: "HUB-BLR-01", zone_id: "zone_1", zone_name: "Zone 1 (0-5 KM)", city_name: "Bengaluru", area_name: "Domlur", status: "active" },
-        { pincode: "560071", branch_id: "br_indiranagar", branch_code: "HUB-BLR-01", zone_id: "zone_2", zone_name: "Zone 2 (5-10 KM)", city_name: "Bengaluru", area_name: "HAL", status: "active" },
-        { pincode: "560034", branch_id: "br_koramangala", branch_code: "HUB-BLR-02", zone_id: "zone_1", zone_name: "Zone 1 (0-5 KM)", city_name: "Bengaluru", area_name: "Koramangala", status: "active" },
-        { pincode: "560095", branch_id: "br_koramangala", branch_code: "HUB-BLR-02", zone_id: "zone_2", zone_name: "Zone 2 (5-10 KM)", city_name: "Bengaluru", area_name: "Koramangala 1st Block", status: "active" },
-        { pincode: "560102", branch_id: "br_hsr", branch_code: "HUB-BLR-03", zone_id: "zone_1", zone_name: "Zone 1 (0-5 KM)", city_name: "Bengaluru", area_name: "HSR Sector 1", status: "active" },
-        { pincode: "560068", branch_id: "br_hsr", branch_code: "HUB-BLR-03", zone_id: "zone_2", zone_name: "Zone 2 (5-10 KM)", city_name: "Bengaluru", area_name: "HSR Layout 27th Main", status: "active" },
-        { pincode: "560066", branch_id: "br_whitefield", branch_code: "HUB-BLR-04", zone_id: "zone_1", zone_name: "Zone 1 (0-5 KM)", city_name: "Bengaluru", area_name: "Whitefield ITPL", status: "active" },
-      ];
-      setPincodeMappings(sampleMappings);
+      setPincodeMappings(res?.pincodeMappings || []);
     } catch {
       // Fallback
     } finally {

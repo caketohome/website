@@ -16,8 +16,13 @@ import {
   Loader2,
   CheckCircle2,
   MapPin,
+  MessageSquare,
 } from "lucide-react";
-import { removeItemFromCart, updateCartItemQuantity } from "@frontend/lib/actions/carts";
+import {
+  removeItemFromCart,
+  updateCartItemQuantity,
+  updateCartItemMessage,
+} from "@frontend/lib/actions/carts";
 import { cartBus } from "@frontend/lib/cart/cart-event-bus";
 
 export interface CartModalProps {
@@ -97,48 +102,70 @@ export default function CartModal({
 
   const [activeCart, setActiveCart] = useState(cart);
   const [isFetchingCart, setIsFetchingCart] = useState(false);
+  const lastBusUpdateAtRef = React.useRef<number>(0);
 
   useEffect(() => {
     if (cart && Array.isArray(cart.items) && cart.items.length > 0) {
       setActiveCart(cart);
+      setIsFetchingCart(false);
     } else if (!activeCart || !activeCart.items || activeCart.items.length === 0) {
       setActiveCart(cart);
     }
   }, [cart]);
 
-  // Refresh cart on drawer open if current activeCart is empty
-  // Refresh cart on drawer open if current activeCart is empty
+  // Refresh cart on drawer open from authoritative PostgreSQL endpoint
   useEffect(() => {
-    if (isOpen && (!activeCart || !activeCart.items || activeCart.items.length === 0)) {
+    if (!isOpen) return;
+    const hasExistingItems = Boolean(activeCart && Array.isArray(activeCart.items) && activeCart.items.length > 0);
+    if (!hasExistingItems) {
       setIsFetchingCart(true);
-      setDrawerError(null);
-      fetch("/api/v1/cart")
-        .then((r) => {
-          if (!r.ok) throw new Error("Failed to load cart from server");
-          return r.json();
-        })
-        .then((data) => {
-          if (data?.cart && Array.isArray(data.cart.items) && data.cart.items.length > 0) {
+    }
+    setDrawerError(null);
+    const fetchStartedAt = Date.now();
+    let cancelled = false;
+
+    fetch("/api/v1/cart", { cache: "no-store" })
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to load cart from server");
+        return r.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        // Do not overwrite if a fresher cartBus event arrived after this fetch started
+        if (lastBusUpdateAtRef.current > fetchStartedAt) return;
+        if (data?.cart && Array.isArray(data.cart.items)) {
+          if (data.cart.items.length > 0 || !hasExistingItems) {
             setActiveCart(data.cart);
             onCartUpdate?.(data.cart);
           }
-        })
-        .catch((err) => {
+        }
+      })
+      .catch((err) => {
+        if (!cancelled && !hasExistingItems) {
           setDrawerError(err.message || "Failed to load cart");
-        })
-        .finally(() => {
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
           setIsFetchingCart(false);
-        });
-    }
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen]);
 
   // Synchronize with external cartBus updates
   useEffect(() => {
     const unsub = cartBus.onCartUpdated((newCart) => {
+      lastBusUpdateAtRef.current = Date.now();
       setActiveCart(newCart);
+      setIsFetchingCart(false);
       setDrawerError(null);
     });
     const unsubError = cartBus.onCartError((errMsg) => {
+      setIsFetchingCart(false);
       setDrawerError(errMsg);
     });
     return () => {
@@ -632,11 +659,47 @@ function DrawerCartItem({
   // Metadata attributes
   const meta = item.metadata || {};
   const weight = item.weight || meta.weight || null;
-  const flavour = meta.flavour || null;
-  const shape = meta.shape || null;
+  const flavour = item.flavour || meta.flavour || null;
+  const shape = item.shape || meta.shape || null;
   const cakeMessage = item.cake_message || meta.cake_message || null;
-  const photoCake = meta.photo_cake || null;
-  const selectedAddons = Array.isArray(meta.selected_addons) ? meta.selected_addons : [];
+  const photoCake = item.photo_cake || meta.photo_cake || null;
+  const selectedAddons = Array.isArray(item.selected_addons) && item.selected_addons.length > 0
+    ? item.selected_addons
+    : Array.isArray(meta.selected_addons)
+      ? meta.selected_addons
+      : [];
+
+  const isCakeItem =
+    !String(item.product_id || "").startsWith("acc_") &&
+    !String(title).toLowerCase().includes("bouquet") &&
+    !String(title).toLowerCase().includes("candle") &&
+    !String(title).toLowerCase().includes("topper") &&
+    !String(title).toLowerCase().includes("balloon");
+
+  const [isEditingMessage, setIsEditingMessage] = useState(false);
+  const [draftMessage, setDraftMessage] = useState<string>(cakeMessage || "");
+
+  useEffect(() => {
+    setDraftMessage(cakeMessage || "");
+  }, [cakeMessage]);
+
+  const handleSaveCakeMessage = async () => {
+    if (updating) return;
+    const trimmed = draftMessage.trim().slice(0, 30);
+    setUpdating(true);
+    try {
+      const res = await updateCartItemMessage(item.id, trimmed || null);
+      if (res?.cart) {
+        cartBus.emitCartUpdated(res.cart);
+        onCartUpdate?.(res.cart);
+      }
+      setIsEditingMessage(false);
+    } catch (err: any) {
+      onError?.(err.message || "Failed to update cake message");
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   return (
     <div
@@ -696,12 +759,77 @@ function DrawerCartItem({
           )}
         </div>
 
-        {/* Message Inscription */}
-        {cakeMessage && (
-          <p className="text-[10px] text-slate-500 italic truncate mt-1 bg-amber-50/60 border border-amber-200/50 rounded px-1.5 py-0.5">
-            "{cakeMessage}"
-          </p>
-        )}
+        {/* Message Inscription / Reminder */}
+        {isEditingMessage ? (
+          <div className="mt-1.5 p-2 rounded-xl bg-amber-50/70 border border-amber-200 flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-amber-900 flex items-center gap-1">
+                <MessageSquare className="w-3 h-3" />
+                Message on Cake
+              </span>
+              <span className="text-[10px] font-bold text-amber-700">
+                {draftMessage.length}/30
+              </span>
+            </div>
+            <input
+              type="text"
+              maxLength={30}
+              value={draftMessage}
+              onChange={(e) => setDraftMessage(e.target.value.slice(0, 30))}
+              placeholder="Write message (max 30 chars)"
+              data-testid="cart-item-message-input"
+              className="w-full px-2 py-1 text-xs rounded-lg border border-amber-300 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#2563EB]"
+            />
+            <div className="flex items-center justify-end gap-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setDraftMessage(cakeMessage || "");
+                  setIsEditingMessage(false);
+                }}
+                className="px-2 py-0.5 text-[10px] font-semibold text-slate-600 hover:text-slate-900"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={updating}
+                onClick={handleSaveCakeMessage}
+                data-testid="cart-item-message-save-btn"
+                className="px-2.5 py-0.5 text-[10px] font-bold rounded-md bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        ) : cakeMessage ? (
+          <div className="flex items-center justify-between gap-1.5 mt-1 bg-amber-50/60 border border-amber-200/50 rounded px-1.5 py-0.5">
+            <p
+              data-testid="cart-item-cake-message"
+              className="text-[10px] text-slate-600 italic truncate"
+            >
+              🎂 &ldquo;{cakeMessage}&rdquo;
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsEditingMessage(true)}
+              data-testid="cart-item-edit-message-btn"
+              className="text-[10px] font-semibold text-[#2563EB] hover:underline shrink-0"
+            >
+              Edit
+            </button>
+          </div>
+        ) : isCakeItem ? (
+          <button
+            type="button"
+            onClick={() => setIsEditingMessage(true)}
+            data-testid="cart-item-add-message-btn"
+            className="mt-1 text-[10px] font-semibold text-amber-700 hover:text-amber-900 bg-amber-50/60 hover:bg-amber-100/70 border border-amber-200/60 rounded px-1.5 py-0.5 flex items-center gap-1 w-fit transition-colors"
+          >
+            <MessageSquare className="w-2.5 h-2.5" />
+            <span>+ Add message on cake (Optional)</span>
+          </button>
+        ) : null}
 
         {/* Photo Cake indicator */}
         {photoCake && (

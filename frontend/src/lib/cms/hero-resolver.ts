@@ -58,7 +58,7 @@ export interface ResolvedHeroBannerConfig {
 }
 
 const DEFAULT_HEADLINE = "Handcrafted Gourmet Cakes Delivered in 2 Hours";
-const DEFAULT_SUBHEADLINE = "Fresh, artisanal birthday & wedding cakes across Bangalore. Midnight delivery available!";
+const DEFAULT_SUBHEADLINE = "Fresh, artisanal birthday & wedding cakes across Kerala. Midnight delivery available!";
 const DEFAULT_BADGE = "100% Fresh & Artisanal • Express 2-Hour Delivery";
 const DEFAULT_PRIMARY_CTA_TEXT = "Explore Cakes";
 const DEFAULT_PRIMARY_CTA_URL = "/products";
@@ -173,7 +173,7 @@ export function resolveHeroBannerConfig(
 
   const fleetBadge = config.fleet_badge || deviceConfig.fleet_badge || "Climate-Controlled Transit";
   const fleetHeading = config.fleet_heading || deviceConfig.fleet_heading || "Pristine & Chilled To Your Table";
-  const fleetText = config.fleet_text || deviceConfig.fleet_text || "Specially engineered shock-absorbent cake domes guarantee zero damage during transit across Bangalore.";
+  const fleetText = config.fleet_text || deviceConfig.fleet_text || "Specially engineered shock-absorbent cake domes guarantee zero damage during transit across Kerala.";
   const fleetCtaText = config.fleet_cta_text || deviceConfig.fleet_cta_text || "Order for Today";
   const fleetCtaUrl = config.fleet_cta_url || deviceConfig.fleet_cta_url || "/products";
 

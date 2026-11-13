@@ -568,10 +568,17 @@ export class BankAccountRepository {
       WHERE status = 'IN_PROGRESS';
     `;
 
-    const runner = client ? client.query.bind(client) : dbQuery;
-    const [r1, r2, r3, r4] = await Promise.all([
-      runner(q1), runner(q2), runner(q3), runner(q4)
-    ]);
+    let r1: any, r2: any, r3: any, r4: any;
+    if (client) {
+      r1 = await client.query(q1);
+      r2 = await client.query(q2);
+      r3 = await client.query(q3);
+      r4 = await client.query(q4);
+    } else {
+      [r1, r2, r3, r4] = await Promise.all([
+        dbQuery(q1), dbQuery(q2), dbQuery(q3), dbQuery(q4)
+      ]);
+    }
 
     return {
       totalBankAccounts: parseInt(r1.rows[0]?.total_banks || "0", 10),

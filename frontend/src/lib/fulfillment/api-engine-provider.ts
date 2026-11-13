@@ -9,6 +9,7 @@
  * on first access (lazy initialization).
  */
 
+import crypto from "crypto";
 import type { FulfillmentDataProvider } from "./fulfillment-engine";
 import type {
   ProductFulfillmentRules,
@@ -156,7 +157,7 @@ export function createApiEngineProvider(memoryStore: any): FulfillmentDataProvid
 // ── OTP Management ──────────────────────────────────────────────────────────
 
 const OTP_TTL_SECONDS = 300;   // 5 minutes
-const OTP_MAX_ATTEMPTS = 5;
+const OTP_MAX_ATTEMPTS = 3;
 
 /**
  * Generate a new OTP for an order (pickup or delivery).
@@ -177,7 +178,7 @@ export function generateOtp(
     memoryStore.otp_records.splice(existing, 1);
   }
 
-  const code = String(Math.floor(1000 + Math.random() * 9000));
+  const code = String(crypto.randomInt(1000, 10000));
   const now = new Date();
   const expiresAt = new Date(now.getTime() + OTP_TTL_SECONDS * 1000);
 

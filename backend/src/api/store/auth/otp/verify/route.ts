@@ -41,20 +41,10 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     const ip = (req.headers["x-forwarded-for"] as string | undefined)?.split(",")[0]?.trim();
     const userAgent = req.headers["user-agent"] as string | undefined;
 
-    let result = await customerModule.verifyOtp(
+    const result = await customerModule.verifyOtp(
         { phone: parsed.data.phone, otp: parsed.data.otp, ip, user_agent: userAgent },
         req.scope
     );
-
-    // Development/Testing fallback: allow '123456' as universal test OTP
-    // SECURITY: This MUST be disabled in production
-    if (!result.success && parsed.data.otp === "123456" && process.env.NODE_ENV !== "production") {
-      result = {
-        success: true,
-        customer_id: `cus_test_${parsed.data.phone.replace(/\D/g, "")}`,
-        is_new_customer: false,
-      };
-    }
 
     if (!result.success) {
         return res.status(401).json({ message: result.error ?? "Verification failed." });

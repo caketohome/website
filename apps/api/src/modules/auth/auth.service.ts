@@ -21,9 +21,7 @@ export class AuthService {
   async requestOtp(phone: string): Promise<{ sent: boolean; dev_otp?: string }> {
     // In production, integrate a real SMS provider (MSG91, Twilio, etc.)
     // For now, generate a random 6-digit code
-    const code = process.env.NODE_ENV === "production"
-      ? String(Math.floor(100000 + Math.random() * 900000))
-      : "123456";
+    const code = String(Math.floor(100000 + Math.random() * 900000)); // no fixed dev codes
     AuthService.otpStore.set(phone, code);
     return {
       sent: true,
@@ -33,10 +31,7 @@ export class AuthService {
 
   async verifyOtp(phone: string, code: string): Promise<{ accessToken: string; user: UserSessionDto }> {
     const expected = AuthService.otpStore.get(phone);
-    const isDev = process.env.NODE_ENV !== "production";
-    // In production, the OTP must match the stored value exactly
-    // In development, allow '123456' as a universal fallback
-    if (code !== expected && !(isDev && code === "123456")) {
+    if (!expected || code !== expected) {
       throw new Error("Invalid or expired OTP code");
     }
 

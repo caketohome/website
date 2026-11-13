@@ -1,3 +1,4 @@
+import { resolveServerSession } from "../security/auth-session";
 /**
  * CakeToHome ERP — Delivery Coverage & Partner Geofence Controller
  * Phase C7.10: Map-Fenced Store & Delivery-Partner Coverage Configuration
@@ -31,7 +32,7 @@ export class DeliveryCoverageController {
     if (userCtx && (userCtx.userId || userCtx.id || userCtx.role)) {
       const role = (userCtx.role || userCtx.detected_role || "").toUpperCase();
       const userId = userCtx.userId || userCtx.id || "";
-      const isSuperAdmin = userCtx.isSuperAdmin || role === "SUPER_ADMIN" || userId === "admin_01";
+      const isSuperAdmin = userCtx.isSuperAdmin || role === "SUPER_ADMIN";
       return {
         userId,
         role,
@@ -43,30 +44,17 @@ export class DeliveryCoverageController {
       };
     }
 
-    const roleCookie = req.cookies.get("_cth_role")?.value || "";
-    const userCookie = req.cookies.get("_cth_user_id")?.value || "";
-    const phoneCookie = req.cookies.get("_cth_phone")?.value || "";
-    const emailCookie = req.cookies.get("_cth_email")?.value || "";
-    const branchCookie = req.cookies.get("_cth_branch_id")?.value || "";
-
-    const authHeader = req.headers.get("authorization") || "";
-    const roleHeader = req.headers.get("x-user-role") || "";
-    const userHeader = req.headers.get("x-user-id") || "";
-    const branchHeader = req.headers.get("x-branch-id") || "";
-
-    const role = (roleCookie || roleHeader || "").toUpperCase();
-    const userId = userCookie || userHeader || "";
-    const branchId = branchCookie || branchHeader || null;
-    const isSuperAdmin = role === "SUPER_ADMIN" || userId === "admin_01";
-
+    // Identity only from the signed session — never from client cookies/headers (x-user-role etc.).
+    const session = resolveServerSession(req);
+    const role = (session?.role || "").toUpperCase();
     return {
-      userId,
+      userId: session?.userId || "",
       role,
-      branchId,
-      phone: phoneCookie || null,
-      email: emailCookie || null,
+      branchId: session?.branchId || null,
+      phone: session?.phone || null,
+      email: session?.email || null,
       permissions: [],
-      isSuperAdmin,
+      isSuperAdmin: role === "SUPER_ADMIN",
     };
   }
 
@@ -102,7 +90,7 @@ export class DeliveryCoverageController {
       );
     }
 
-    if (actor.isSuperAdmin || actor.role === "SUPER_ADMIN" || actor.userId === "admin_01") {
+    if (actor.isSuperAdmin || actor.role === "SUPER_ADMIN") {
       return null; // Full network authority
     }
 
@@ -150,7 +138,7 @@ export class DeliveryCoverageController {
    * Validates branch tenant scope for Branch Managers
    */
   private static checkBranchScope(actor: ActorContext, targetBranchId: string): NextResponse | null {
-    if (actor.role === "SUPER_ADMIN" || actor.userId === "admin_01") {
+    if (actor.role === "SUPER_ADMIN") {
       return null; // Global scope
     }
     if (actor.role === "BRANCH_MANAGER" && actor.branchId && actor.branchId !== targetBranchId) {
@@ -306,7 +294,7 @@ export class DeliveryCoverageController {
       // 1. /stores/:id/eligibility -> Toggle corporate routing allow-list (SUPER_ADMIN only)
       const eligMatch = subPath.match(/^stores\/([^/]+)\/eligibility$/);
       if (eligMatch) {
-        if (actor.role !== "SUPER_ADMIN" && actor.userId !== "admin_01") {
+        if (actor.role !== "SUPER_ADMIN") {
           return NextResponse.json(
             { success: false, statusCode: 403, error: "Only Super Administrators can modify corporate routing eligibility." },
             { status: 403 }

@@ -195,7 +195,24 @@ export class OrderService {
         }
       }
 
-      const qty = Math.max(1, Number(reqItem.quantity || 1));
+      if ((reqItem as any).expected_unit_price !== undefined && (reqItem as any).expected_unit_price !== null) {
+        const expectedPrice = Number((reqItem as any).expected_unit_price);
+        if (!Number.isFinite(expectedPrice) || Math.abs(expectedPrice - unitPrice) > 0.01) {
+          return {
+            success: false,
+            error: `PRODUCT_PRICE_MISMATCH: Expected unit price (${expectedPrice}) does not match authoritative catalogue price (${unitPrice}) for '${product.title}'.`,
+          };
+        }
+      }
+
+      const rawQty = reqItem.quantity !== undefined ? Number(reqItem.quantity) : 1;
+      if (!Number.isFinite(rawQty) || rawQty <= 0 || !Number.isInteger(rawQty)) {
+        return {
+          success: false,
+          error: `INVALID_ITEM_QUANTITY: Quantity for '${product.title}' must be a positive integer (received ${reqItem.quantity}).`,
+        };
+      }
+      const qty = rawQty;
       
       // Authoritative GST rate resolution from Tax Master
       let lineTaxRate = 0;
@@ -312,6 +329,13 @@ export class OrderService {
 
     const finalTotal = Math.round(Math.max(0, subtotal - discountAmount + totalTax + deliveryFee) * 100) / 100;
 
+    if (subtotal <= 0 || finalTotal <= 0) {
+      return {
+        success: false,
+        error: "INVALID_ORDER_AMOUNT: Order subtotal and grand total must be greater than zero.",
+      };
+    }
+
     // 7. Atomic Database Transaction: Deduct Inventory, Persist Order, Record Status History
     // Generate authentic secure numeric delivery and pickup OTPs
     const deliveryOtp = String(Math.floor(100000 + Math.random() * 900000));
@@ -324,6 +348,8 @@ export class OrderService {
     const custUid = params.customer_uid || params.customer_id || "guest";
     const email = customer_email || `${custUid}@caketohome.internal`;
     const initialPaymentStatus = params.payment_status || (payment_method === "test_mode" ? "captured" : "pending");
+    const isOnlineGatewayPending = ["razorpay", "online"].includes(String(payment_method || "").toLowerCase()) && initialPaymentStatus !== "captured" && (initialPaymentStatus as string) !== "paid";
+    const initialOrderStatus = isOnlineGatewayPending ? "pending" : "confirmed";
     const initialSettlementStatus = initialPaymentStatus === "captured" ? "settled" : "pending";
 
     const metadata = {
@@ -333,7 +359,7 @@ export class OrderService {
       customer_phone: customer_phone || "",
       branch_id: branch.id,
       branch_name: branch.name,
-      bakery_status: "confirmed",
+      bakery_status: initialOrderStatus,
       payment_status: initialPaymentStatus,
       payment_method: payment_method || "card",
       is_ledger_eligible: true,
@@ -383,7 +409,7 @@ export class OrderService {
       tax_amount: totalTax,
       delivery_fee: deliveryFee,
       currency: "INR",
-      status: "confirmed",
+      status: initialOrderStatus as any,
       payment_status: initialPaymentStatus === "awaiting_payment" ? "pending" : (initialPaymentStatus as any),
       payment_method: payment_method || "card",
       delivery: {
@@ -558,7 +584,7 @@ export class OrderService {
              seller_gstin, seller_legal_name, payment_status, payment_method, metadata,
              created_at, updated_at
            ) VALUES (
-             $1, $2, $3, $4, $5, $6, 'confirmed',
+             $1, $2, $3, $4, $5, $6, $18,
              $7, $8, $9, $10, $11, $12,
              $13, $14, $15, $16, $17,
              NOW(), NOW()
@@ -587,6 +613,7 @@ export class OrderService {
             initialPaymentStatus,
             payment_method || "card",
             JSON.stringify(metadata),
+            initialOrderStatus,
           ]
         );
 
@@ -746,7 +773,7 @@ export class OrderService {
             branch.id,
             orderId,
             custUid,
-            Math.round(finalTotal),
+            finalTotal,
             "INR",
             params.idempotency_key || `idem_${orderId}`,
             initialPaymentStatus,

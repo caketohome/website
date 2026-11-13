@@ -482,9 +482,7 @@ export class BankReconciliationMatchingEngine {
     const execute = async (c: PoolClient): Promise<ConfirmCashDepositClearanceResult> => {
       // Permission verification
       const isSuperAdmin =
-        params.actorContext?.role === "SUPER_ADMIN" ||
-        params.actorContext?.id === "admin_01" ||
-        params.confirmerId === "admin_01";
+        params.actorContext?.role === "SUPER_ADMIN";
 
       const hasPerm =
         isSuperAdmin ||

@@ -65,7 +65,7 @@ export class CodCollectionService {
       const hasPostPerm = hasEffectivePermission(params.actorContext, "ACCOUNTING.POST");
       const hasDeliveryPerm = hasEffectivePermission(params.actorContext, "DELIVERY.UPDATE");
       const isRider = actorRole === "DELIVERY_PARTNER" || actorRole === "RIDER";
-      const isSuperAdmin = actorRole === "SUPER_ADMIN" || params.actorContext.user_id === "admin_01";
+      const isSuperAdmin = actorRole === "SUPER_ADMIN";
 
       if (!hasPostPerm && !hasDeliveryPerm && !isRider && !isSuperAdmin) {
         throw new CodCollectionServiceError(
@@ -120,7 +120,7 @@ export class CodCollectionService {
       const hasFleetPerm = hasEffectivePermission(actorContext, "FLEET.VIEW");
       const isSelfRider = (actorRole === "DELIVERY_PARTNER" || actorRole === "RIDER") &&
         (actorContext.user_id === deliveryPartnerId || actorContext.id === deliveryPartnerId);
-      const isSuperAdmin = actorRole === "SUPER_ADMIN" || actorContext.user_id === "admin_01";
+      const isSuperAdmin = actorRole === "SUPER_ADMIN";
 
       if (!hasViewPerm && !hasFleetPerm && !isSelfRider && !isSuperAdmin) {
         throw new CodCollectionServiceError(
@@ -178,7 +178,7 @@ export class CodCollectionService {
     if (filters.actorContext) {
       const actorRole = (filters.actorContext.role || "").toUpperCase();
       const hasView = hasEffectivePermission(filters.actorContext, "ACCOUNTING.VIEW");
-      const isSuperAdmin = actorRole === "SUPER_ADMIN" || filters.actorContext.user_id === "admin_01";
+      const isSuperAdmin = actorRole === "SUPER_ADMIN";
 
       if (!hasView && !isSuperAdmin) {
         throw new CodCollectionServiceError(
@@ -246,7 +246,7 @@ export class CodCollectionService {
   ): Promise<CodExceptionItem[]> {
     if (actorContext) {
       const hasView = hasEffectivePermission(actorContext, "ACCOUNTING.VIEW");
-      const isSuperAdmin = (actorContext.role || "").toUpperCase() === "SUPER_ADMIN" || actorContext.user_id === "admin_01";
+      const isSuperAdmin = (actorContext.role || "").toUpperCase() === "SUPER_ADMIN";
       if (!hasView && !isSuperAdmin) {
         throw new CodCollectionServiceError("PERMISSION_DENIED", "User lacks ACCOUNTING.VIEW permission.");
       }

@@ -404,7 +404,7 @@ export function AccountDashboardView({ initialCustomer }: AccountDashboardViewPr
               <div className="p-4 rounded-2xl bg-neutral-900/60 border border-neutral-800 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-neutral-100">Primary Delivery Hub</span>
-                  <span className="text-amber-400 font-semibold">{customer.branch_name || "Indiranagar Flagship Bakery"}</span>
+                  <span className="text-amber-400 font-semibold">{customer.branch_name || ""}</span>
                 </div>
                 <p className="text-[11px] text-neutral-400 leading-relaxed">
                   Fastest fulfillment and chef dispatch routed from your nearest neighborhood temperature-controlled kitchen.
@@ -612,7 +612,7 @@ export function AccountDashboardView({ initialCustomer }: AccountDashboardViewPr
                       {addr.address_1}
                       {addr.landmark && <span className="block text-neutral-400 text-[11px]">Landmark: {addr.landmark}</span>}
                       <span className="block text-neutral-400 text-[11px] mt-0.5">
-                        {addr.city}, Karnataka - {addr.postal_code}
+                        {[addr.city, addr.state].filter(Boolean).join(", ")} - {addr.postal_code}
                       </span>
                     </p>
                   </div>

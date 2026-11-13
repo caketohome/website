@@ -727,7 +727,7 @@ class StaffAccessControlStore {
     }
 
     // SUPER_ADMIN has full, unrestricted access (Exact role or canonical admin ID only; zero substring matching)
-    if (role === "SUPER_ADMIN" || userId === "admin_01") {
+    if (role === "SUPER_ADMIN") {
       return true;
     }
 
@@ -834,7 +834,7 @@ class StaffAccessControlStore {
    */
   public getEffectivePermissions(userOrId: any): string[] {
     const userRole = typeof userOrId === "object" ? (userOrId.role || "").toUpperCase() : "";
-    if (userRole === "SUPER_ADMIN" || userOrId === "admin_01" || userOrId?.id === "admin_01") {
+    if (userRole === "SUPER_ADMIN") {
       return PERMISSION_CATALOG.map((p) => p.id);
     }
 
@@ -882,7 +882,7 @@ class StaffAccessControlStore {
    */
   public isTabPermitted(userOrRole: any, tabId: string): boolean {
     const rawRole = typeof userOrRole === "string" ? userOrRole.toUpperCase() : (userOrRole?.role || "").toUpperCase();
-    if (rawRole === "SUPER_ADMIN" || userOrRole === "admin_01" || userOrRole?.id === "admin_01") {
+    if (rawRole === "SUPER_ADMIN") {
       return true;
     }
 

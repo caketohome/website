@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Occasion Cakes & Celebrations | Handcrafted Online Delivery | CakeToHome",
-  description: "Browse curated designer cakes for birthdays, anniversaries, weddings, romantic celebrations, baby showers, and festive occasions. Fresh artisanal delivery across Bangalore.",
+  description: "Browse curated designer cakes for birthdays, anniversaries, weddings, romantic celebrations, baby showers, and festive occasions. Fresh artisanal delivery across Kerala.",
   openGraph: {
     title: "Artisanal Occasion Cakes — CakeToHome",
     description: "Celebrate life's sweetest milestones with chef-crafted gourmet cakes.",

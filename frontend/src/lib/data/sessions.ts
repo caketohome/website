@@ -12,7 +12,7 @@ export function createSession(token: string) {
 
   cookies().set("_cth_jwt", token, {
     httpOnly: true,
-    secure: process.env.VERCEL_ENV === "production",
+    secure: process.env.NODE_ENV === "production",
     expires: expiresAt,
     sameSite: "lax",
     path: "/",
@@ -20,7 +20,7 @@ export function createSession(token: string) {
 }
 
 export function retrieveSession() {
-  return cookies().get("_cth_jwt")?.value || cookies().get("_medusa_jwt")?.value || null;
+  return cookies().get("_cth_jwt")?.value || null;
 }
 
 export function destroySession() {
@@ -34,6 +34,7 @@ export function destroySession() {
     "_cth_branch_id",
     "_cth_shop_id",
     "_cth_partner_id",
+    "_cth_sb_rt",
     "_cth_cart_id",
     "_medusa_cart_id",
   ];

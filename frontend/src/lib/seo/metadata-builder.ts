@@ -57,7 +57,7 @@ export class SeoMetadataBuilder {
     const existing = seoRecord;
 
     // Determine Meta Title
-    const rawTitle = existing?.meta_title || fallbackTitle || "Online Cakes & Cake Delivery in Bangalore | CakeToHome";
+    const rawTitle = existing?.meta_title || fallbackTitle || "Online Cakes & Cake Delivery in Kerala | CakeToHome";
     const title = rawTitle.includes("CakeToHome") ? rawTitle : `${rawTitle} | CakeToHome`;
 
     // Determine Meta Description

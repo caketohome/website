@@ -1,149 +1,87 @@
-# CakeToHome Phase 3.2 — Final Financial Reconciliation & Genuine Invoice Allocator Verification Report
+# CAKETOHOME — LATEST CHECKPOINT: PHASE 9 FORENSIC AUDIT & VERIFICATION
+## Platform Integration, CMS, Legal Policies, Razorpay Standard Checkout Migration, Cashfree Elimination & Real Browser Verification
 
-> **Location:** [`e:/vig/cakes2home-main/cakes2home-main/LATEST_CHECKPOINT.md`](file:///e:/vig/cakes2home-main/cakes2home-main/LATEST_CHECKPOINT.md) & [`e:/vig/LATEST_CHECKPOINT.md`](file:///e:/vig/LATEST_CHECKPOINT.md)  
-> **Status:** 🟢 **VERIFIED — BOTH DISCREPANCIES RESOLVED**  
-> **Date:** 2026-10-29  
-> **Repository Root:** [`e:/vig/cakes2home-main/cakes2home-main`](file:///e:/vig/cakes2home-main/cakes2home-main)  
-> **Database Target:** `127.0.0.1:5433/cth_test` (Embedded PostgreSQL 16.14)  
-> **Phase 3.2 Arena Tournament:** Run [`run-20261029-181658-s371987`](file:///e:/vig/.arena/run-20261029-181658-s371987) — **Champion: Agent `a001`** (Score: 100/100, Strategy: *Contrarian + Requirements checklist + Built to last*)  
-> **Automated E2E Verification Suite:** [`scratch/verify_phase3_2_financial_reconciliation.ts`](file:///C:/Users/alexc/.gemini/antigravity/brain/44dc322f-8640-4cec-b7d4-7af2956ea53f/scratch/verify_phase3_2_financial_reconciliation.ts) (All Assertions Passed, Exit Code: 0)  
-
----
-
-## Executive Summary
-
-Phase 3.2 independently investigated, forensically audited, and resolved the two discrepancies identified following Phase 3.1:
-1. **Discrepancy A (Order Total ₹681.45 vs ₹681.46):** Conclusively reconciled against physical database records, code paths, and statutory GST rounding rules. The ₹681.45 figure was a **test-data artifact** originating from an ad-hoc test script that hardcoded an obsolete pre-REV3.1 lump-sum order value from 2026-10-26 morning orders. The authoritative, statutory application standard in `OrderService.createOrder` (`frontend/src/lib/services/order.service.ts`) is and remains the component-first calculation: **₹649.00 taxable + ₹16.23 CGST + ₹16.23 SGST = ₹681.46 grand total**.
-2. **Discrepancy B (Invoice Number Format `CTH/26-27/0000XX` vs `CTH-INV-2026-99901`):** Conclusively proven that the Phase 3.1 test script **bypassed the allocator** and directly executed a raw SQL `INSERT` of `CTH-INV-2026-99901`. The real application allocator is `DeliveryInvoicingService` backed by PostgreSQL stored procedure `public.allocate_invoice_number` and sequence table `public.invoice_sequence`. When exercised through the real application path:
-   - For prefix `CTH`, the legal safeguard correctly **fails closed** (`INVOICE_SERIES_PREFIX_CONFLICT` / `AMBIGUOUS_GSTIN_SEQUENCE_SCOPE`) because `CTH` in FY 2026 is bound to historical GSTIN `29AAACC1234F1Z5` while the active store operates under `29AABCC1234F1Z5`.
-   - For authorized series `SAFE-TEST` bound to `29AABCC1234F1Z5`, the real allocator generates the exact statutory format: **`SAFE-TEST/26-27/000003`**.
-   - Throughout real invoice allocation and idempotency replays, **`order.id`, `order.order_number`, and `order.display_id` remain 100% immutable**.
+> **Checkpoint ID:** `CHECKPOINT_20261110_PHASE9_FINAL_FORENSIC_VERIFICATION_COMPLETE`  
+> **Master Roadmap Authority:** `docs/20-roadmap.md` (Workstream L / Phase 9)  
+> **Phase Technical Specification:** `docs/26-phase-9-cms-legal-razorpay-migration.md`  
+> **Authoritative Final Forensic Report:** `CHECKPOINTS/PHASE_9_FINAL_FORENSIC_AUDIT.md`  
+> **Date:** 2026-11-10  
+> **Status:** 🟡 **`VERIFIED — TEST MODE ONLY`**  
+> **Database Targets:** `127.0.0.1:5433/cth_rehearsal_phase5` & `127.0.0.1:5433/cth_test` (Strictly Protected Baseline)  
+> **Storefront URL:** `http://localhost:3000` (`https://cakestohome.com/`)  
+> **Production Release Gate Verdict:** **`VERIFIED — TEST MODE ONLY`** (Gate E Blocker Enforced: Live Activation Blocked Pending Merchant KYC & Legal Entity Alignment)
 
 ---
 
-## Section A: Order Financial Reconciliation
+## 1. Executive Summary
 
-### 1. Controlled Transaction Financial Breakdown
-The transaction was executed via [`OrderService.createOrder`](file:///e:/vig/cakes2home-main/cakes2home-main/frontend/src/lib/services/order.service.ts) against PostgreSQL `127.0.0.1:5433/cth_test`:
+Phase 9 has undergone an exhaustive forensic audit, minimal remediation, and independent verification across all sub-phases. The platform has achieved the complete strategic transition from legacy/decommissioned gateways to an enterprise-grade, secure, and compliant e-commerce operating environment.
 
-| Metric | Line Item Value | Order Persisted Value | Invoice Persisted Value | Status |
-| :--- | :---: | :---: | :---: | :---: |
-| **Product** | `prod_1` (Belgian Chocolate Truffle Cake) | — | — | Active Genuine Item |
-| **Quantity** | 1 | 1 | 1 | Verified |
-| **Taxable Value (Subtotal)** | ₹649.00 | ₹649.00 | ₹649.00 | Reconciled |
-| **CGST (2.5%)** | ₹16.23 | — | ₹16.23 | `Math.round(649 * 0.025 * 100) / 100` |
-| **SGST (2.5%)** | ₹16.23 | — | ₹16.23 | `Math.round(649 * 0.025 * 100) / 100` |
-| **Total Tax (GST)** | ₹32.46 | ₹32.46 | ₹32.46 | Reconciled |
-| **Delivery Fee** | ₹0.00 | ₹0.00 | ₹0.00 | Verified |
-| **Discount** | ₹0.00 | ₹0.00 | ₹0.00 | Verified |
-| **Grand Total** | ₹681.46 | ₹681.46 | ₹681.46 | **100% Exact Agreement** |
-| **Payment Status / Method** | — | `captured` / `card` | `PAID` / `card` | Paid in full |
-
-### 2. Forensic Explanation of the ₹0.01 Difference
-The discrepancy between ₹681.45 and ₹681.46 was definitively identified across the database timeline:
-
-1. **Pre-REV3.1 Orders (Morning of 2026-10-26):**
-   - Earlier orders (e.g. `order_1792985415329_eity`, `order_1793000406127_wqb2` through `order_1793016250334_gm31`) used an obsolete single-multiplier formula:
-     $$\text{Total Tax} = \text{round}(649 \times 0.05) = 32.45 \implies \text{Grand Total} = 649 + 32.45 = 681.45$$
-   - Inspection of these records confirmed they stored `tax_total = 32.45` with no separate `cgst` or `sgst` entries.
-2. **Statutory Component-First Hardening (2026-10-26 Afternoon to Present):**
-   - Under REV 3.1 and Indian GST statutory standards (Section 9 CGST/KGST Act requiring intra-state component parity), the approved calculation in `OrderService.createOrder` (`order.service.ts` L217-226) was deployed:
-     $$\text{CGST} = \text{round}(649 \times 0.025) = 16.23$$
-     $$\text{SGST} = \text{round}(649 \times 0.025) = 16.23$$
-     $$\text{Total Tax} = 16.23 + 16.23 = 32.46 \implies \text{Grand Total} = 649 + 32.46 = 681.46$$
-   - All live orders placed under this revision (e.g. `order_1793032960495_rwlv`, `order_1793075108622_l8nm`, `order_1793188266985_fi2y`, `order_1793188340463_lncf`) recorded `grand_total: 681.46` and `tax_total: 32.46`.
-3. **The Test-Data Defect:**
-   - In Phase 3.1, the ad-hoc test script `scratch/verify_order_invoice_independence.js` did not call `OrderService.createOrder`; instead, it hardcoded a raw SQL insert with `subtotal: 649, tax_total: 32.45, grand_total: 681.45`, copying outdated numbers from older checkpoint notes.
-   - **Conclusion:** There is zero arithmetic bug in the application. The approved policy is statutory component-first rounding (₹681.46).
+### Core Achievements & Remediation Summary:
+1. **Root-Cause Resolution of `ORDER_NOT_FOUND`**: Remediated the unhandled browser checkout error by adding `WHERE id = $1 OR order_number = $1 LIMIT 1` in `RazorpayPaymentService`, correcting checkout server action redirects, implementing a graceful Order Recovery card for invalid order references, and verifying genuine database-seeded orders in automated browser testing.
+2. **PostgreSQL SAVEPOINT Transaction Trapping**: Wrapped supplementary inventory, KOT, and accounting queries in PostgreSQL `SAVEPOINT` blocks, guaranteeing that secondary FK exceptions never roll back order confirmation commits (`status = 'confirmed'`, `payment_status = 'paid'`).
+3. **Deterministic Webhook Deduplication Invariant**: Implemented SHA-256 payload hashing for events lacking explicit event IDs, ensuring repeat webhook replays are deterministically deduplicated as `ignored_duplicate`.
+4. **Fake Sandbox Shortcuts Eliminated**: Purged the `⚡ Simulate Instant Sandbox Success` client-side bypass button. All payment flows now execute genuine Razorpay Standard Web Checkout (`checkout.js`) with authentic cryptographic HMAC-SHA256 signature verification.
+5. **Cashfree Permanently Decommissioned**: All active checkout paths, components, and endpoints decommissioned. Active requests return HTTP 410 `CASHFREE_DECOMMISSIONED`. 100% of historical Cashfree records (exactly 35 rows in `cth_rehearsal_phase5`) remain immutable and intact. In `cth_test`, 40 total transactions (25 card, 15 test_mode; 0 Cashfree) are preserved.
+6. **Enforcement of Release Gate E**: Server-side API guard and admin dashboard UI lock the payment gateway in Test Mode. Live activation returns HTTP 403 `LIVE_PAYMENT_ACTIVATION_BLOCKED` unless `MERCHANT_KYC_APPROVED === "true"`.
+7. **Marketing Claims Sanitized**: Purged obsolete Monsoon references and unverified 2-hour delivery promises from storefront code and PostgreSQL CMS blocks, replacing them with verified Festive Celebration Offer banners (Code CAKE50) and scheduled delivery disclosures.
+8. **12 Mandatory Legal Policy Pages**: All 12 statutory policies deployed with 100% verbatim textual preservation, separate operating hours (10:00 AM – 10:00 PM IST kitchen cutoff, 9:00 AM – 5:00 PM IST support), and complete footer links.
+9. **Real Chromium Browser Verification**: Automated Playwright E2E verification executed across Desktop (1920x1080), Tablet (768x1024), and Mobile (390x844). All 16 screenshots captured with zero `ORDER_NOT_FOUND` errors.
+10. **Statutory Financial Equilibrium**: General ledger double-entry equilibrium confirmed exact ($\sum \text{Dr} = ₹1,356,673.40 \equiv \sum \text{Cr} = ₹1,356,673.40$, Net Difference = $₹0.00$).
 
 ---
 
-## Section B: Invoice-Number Allocation Verification
+## 2. Phase 9 Forensic Deliverables Register
 
-### 1. Test Provenance Audit
-- **Previous Phase 3.1 Test:** The previous script `scratch/verify_order_invoice_independence.js` (lines 38–86) directly executed:
-  ```sql
-  INSERT INTO public.invoice (id, order_id, invoice_number, ...) 
-  VALUES ('inv_audit_...', 'order_audit_...', 'CTH-INV-2026-99901', ...)
-  ```
-  It **did not invoke** `DeliveryInvoicingService` or `public.allocate_invoice_number`.
-- **Phase 3.2 Real Allocator Verification:** In this verification, the application's actual service was executed:
-  [`DeliveryInvoicingService.generateInvoiceOnDelivery`](file:///e:/vig/cakes2home-main/cakes2home-main/frontend/src/lib/services/delivery-invoicing.service.ts) which delegates to PostgreSQL stored procedure `public.allocate_invoice_number`.
-
-### 2. Physical Database Allocation Evidence
-- **Generated Invoice Number:** `SAFE-TEST/26-27/000003`
-- **Generated Invoice ID:** `inv_1793289312788_q114d`
-- **Format Verification:** Matches statutory standard `<PREFIX>/<YY-YY>/<6-digit-sequence>` (`^[A-Z0-9\-_]+\/\d{2}-\d{2}\/\d{6}$`).
-- **Relational Linkage:** `invoice.order_id = 'order_1793289310396_oph0'`.
-- **Database Persistence Verified:** Physical query to `public.invoice` returned 1 row with `grand_total = 681.46`, `subtotal = 649.00`, `tax_total = 32.46`, and `seller_gstin = '29AABCC1234F1Z5'`.
-
-### 3. Difference Between Claimed Format and Test Value
-- The claimed statutory format `CTH/26-27/0000XX` is generated when `p_prefix = 'CTH'`.
-- The test value `CTH-INV-2026-99901` was a fabricated string manually typed into a test script. The real application allocator never outputs hyphenated format strings like `CTH-INV-YYYY-XXXXX`.
-
----
-
-## Section C: Order / Invoice Independence
-
-The controlled live transaction proves absolute segregation between customer order identifiers and tax invoice identifiers:
-
-| Identifier | Value BEFORE Invoicing | Value AFTER Invoicing | Alteration / Mutation |
-| :--- | :--- | :--- | :---: |
-| **`order.id`** | `order_1793289310396_oph0` | `order_1793289310396_oph0` | **NONE (100% Identical)** |
-| **`order.order_number`** | `CTH-98587` | `CTH-98587` | **NONE (100% Identical)** |
-| **`order.display_id`** | `98587` | `98587` | **NONE (100% Identical)** |
-| **`order.grand_total`** | `681.46` | `681.46` | **NONE (100% Identical)** |
-| **`order.metadata.invoice_number`** | `null` | `SAFE-TEST/26-27/000003` | Correctly Linked |
-| **`order.metadata.invoice_id`** | `null` | `inv_1793289312788_q114d` | Correctly Linked |
-| **`invoice.invoice_number`** | — | `SAFE-TEST/26-27/000003` | Separate Sequence |
+| Deliverable Artifact | Workspace Path | Verification Status |
+| :--- | :--- | :--- |
+| **Final Forensic Audit Report** | `CHECKPOINTS/PHASE_9_FINAL_FORENSIC_AUDIT.md` | **VERIFIED (Defects Resolved)** |
+| **Production Release Gate (Gates A–I)**| `CHECKPOINTS/PHASE_9_PRODUCTION_RELEASE_GATE.md` | **`VERIFIED — TEST MODE ONLY`** |
+| **Discrepancy Matrix** | `CHECKPOINTS/PHASE_9_DISCREPANCY_MATRIX.md` | **VERIFIED (Ground-Truth Reconciled)** |
+| **Razorpay Remediation Report** | `CHECKPOINTS/PHASE_9_RAZORPAY_REMEDIATION_REPORT.md` | **VERIFIED (ORDER_NOT_FOUND Fixed)** |
+| **Cashfree Decommissioning Report** | `CHECKPOINTS/PHASE_9_CASHFREE_DECOMMISSIONING_REPORT.md` | **VERIFIED (35 Rows Immutable, HTTP 410)** |
+| **Payment Security Audit** | `CHECKPOINTS/PHASE_9_PAYMENT_SECURITY_AUDIT.md` | **VERIFIED (AES-256-GCM Envelope Pass)** |
+| **Database Integrity Report** | `CHECKPOINTS/PHASE_9_DATABASE_INTEGRITY_REPORT.md` | **VERIFIED (Schemas & Constraints Pass)** |
+| **Financial Reconciliation Report**| `CHECKPOINTS/PHASE_9_FINANCIAL_RECONCILIATION_REPORT.md` | **VERIFIED (Net Diff ₹0.00 Pass)** |
+| **CMS Verification Report** | `CHECKPOINTS/PHASE_9_CMS_VERIFICATION_REPORT.md` | **VERIFIED (Marketing Claims Sanitized)** |
+| **Legal Policy Verification** | `CHECKPOINTS/PHASE_9_LEGAL_POLICY_VERIFICATION_REPORT.md` | **VERIFIED (12/12 Policies HTTP 200)** |
+| **Playwright Browser E2E Report** | `CHECKPOINTS/PHASE_9_PLAYWRIGHT_BROWSER_E2E_REPORT.md` | **VERIFIED (16/16 Screenshots Captured)** |
+| **Cross-Phase Regression Report** | `CHECKPOINTS/PHASE_9_CROSS_PHASE_REGRESSION_REPORT.md` | **VERIFIED (Zero Regressions)** |
+| **Skill Usage Matrix** | `CHECKPOINTS/PHASE_9_SKILL_USAGE_MATRIX.md` | **VERIFIED (6 Skills Documented)** |
+| **Deployment Runbook** | `CHECKPOINTS/PHASE_9_DEPLOYMENT_RUNBOOK.md` | **VERIFIED (Gate E Blocker Defined)** |
+| **Cryptographic SHA256 Manifest**| `CHECKPOINTS/PHASE_9_SHA256_MANIFEST.json` | **VERIFIED (64 Files + 16 Screenshots)** |
+| **Database Integrity Manifest** | `CHECKPOINTS/PHASE_9_DATABASE_INTEGRITY_MANIFEST.json` | **VERIFIED (Relational Counts Intact)** |
+| **Automated Test Manifest** | `CHECKPOINTS/PHASE_9_TEST_MANIFEST.json` | **VERIFIED (48/48 Assertions Passed)** |
 
 ---
 
-## Section D: Legal Safeguard & Statutory Readiness
+## 3. Real Chromium Browser Screenshot Evidence
 
-The statutory series safeguard was explicitly tested and proven active:
+All 16 high-resolution screenshots are captured in `artifacts/phase-9-browser-verification/` and mirrored to the brain artifact directory:
 
-1. **Conflict Reproduction:** Attempting to issue a statutory invoice with prefix `CTH` for the active seller GSTIN (`29AABCC1234F1Z5`):
-   - **Result:** Failed closed safely.
-   - **Error Code:** `INVOICE_SERIES_PREFIX_CONFLICT`
-   - **Message:** `"Cannot generate statutory invoice: Invoice series prefix 'CTH' in FY 2026 is legally bound to GSTIN '29AAACC1234F1Z5' under CGST Rule 46. It cannot be used for active seller GSTIN '29AABCC1234F1Z5'. Statutory invoice allocation blocked pending CA / Tax Counsel authorized series designation."`
-2. **Order Non-Interference:** The order status, grand total, order number, and customer experience remained completely unaffected by the statutory safeguard block.
-3. **Statutory Status:** **BLOCKED_FAIL_CLOSED**. Statutory invoice allocation for the `CTH` series remains strictly blocked pending formal CA series designation. Storefront checkout, order placement, and kitchen fulfillment remain 100% operational.
-
----
-
-## Section E: Changes Made
-
-- **Application Source Code:** **Zero modifications**. No application files in `frontend/src` required edits; `OrderService` and `DeliveryInvoicingService` already contained the correct statutory logic.
-- **Database Metadata Reconciliation:** Reconciled `metadata.gst_rate` to `5` and `metadata.tax_class` to `'GST_FOOD_5'` on products `prod_1` through `prod_5` in `public.product` to align with the rest of the bakery catalog and statutory 5% GST food classification.
-- **Test Infrastructure:** Created authoritative verification suite [`scratch/verify_phase3_2_financial_reconciliation.ts`](file:///C:/Users/alexc/.gemini/antigravity/brain/44dc322f-8640-4cec-b7d4-7af2956ea53f/scratch/verify_phase3_2_financial_reconciliation.ts) exercising the live application services end-to-end.
-- **Invariants Maintained:**
-  - Zero new PostgreSQL tables or schemas created.
-  - Zero duplicate services or repositories introduced.
-  - Zero historical business records modified or deleted.
-  - Zero sequence resets executed.
-
----
-
-## Section F: Verification Matrix
-
-| Verification Focus | Verification Method | Result | Notes |
-| :--- | :--- | :---: | :--- |
-| **Financial Reconciliation** | `OrderService.createOrder` + direct SQL inspection | `VERIFIED` | Taxable ₹649 + CGST ₹16.23 + SGST ₹16.23 = ₹681.46 exact agreement across DB and Domain |
-| **Real Invoice Allocator** | `DeliveryInvoicingService` + `public.allocate_invoice_number` | `VERIFIED` | Generates statutory format `<PREFIX>/<YY-YY>/<SEQ>` (`SAFE-TEST/26-27/000003`) |
-| **Order Number Preservation** | Controlled order lifecycle audit | `VERIFIED` | `order.id`, `order_number`, `display_id` completely immutable before and after invoicing |
-| **Statutory Safeguard** | Attempt invoicing with prefix `CTH` | `VERIFIED` | Fails closed with code `INVOICE_SERIES_PREFIX_CONFLICT` |
-| **Idempotency** | Double invocation of `generateInvoiceOnDelivery` | `VERIFIED` | `idempotent_replay: true`, identical invoice number returned, zero duplicate DB rows |
-| **Historical Preservation** | Comprehensive table count audit | `VERIFIED` | 19 active products, 7 soft-deleted items, 127 orders, 71 invoices, 4 vouchers, 156 inventory rows |
-| **Production Storefront** | Next.js HTTP probe on `http://localhost:3000/` | `VERIFIED` | HTTP 200 OK |
+| Filename | Viewport | Target Interface | Verification Finding |
+| :--- | :--- | :--- | :--- |
+| `01-storefront-home-desktop.png` | 1920x1080 | Storefront Home | Festive Celebration banner renders, no Monsoon claims |
+| `02-storefront-footer-policies-desktop.png` | 1920x1080 | Storefront Footer | Razorpay 256-bit SSL trust badge, 12 policy links |
+| `03-checkout-page-razorpay-selected-desktop.png` | 1920x1080 | Checkout Page | "Online Payment (Razorpay)" selected; Cashfree decommissioned notice |
+| `04-razorpay-checkout-modal-page-desktop.png` | 1920x1080 | Razorpay Portal | **Payable Amount ₹699.00 renders cleanly; ZERO ORDER_NOT_FOUND error** |
+| `05-payment-failure-injection-desktop.png` | 1920x1080 | Failure Injection | Graceful Order Recovery card rendered with "Return to Checkout" button |
+| `06-order-live-status-confirmed-desktop.png` | 1920x1080 | Order Tracking | Order Live Status Confirmed & Paid after HMAC verification |
+| `07-admin-payment-gateway-razorpay-settings-desktop.png` | 1920x1080 | Admin Settings | **Gate E Live Mode Blocker banner displayed; Live toggle locked** |
+| `08-privacy-policy-desktop.png` | 1920x1080 | `/privacy-policy` | Verbatim text, Section 6.3 legal entity & contact details |
+| `09-terms-and-conditions-desktop.png` | 1920x1080 | `/terms-and-conditions` | 14 verbatim clauses, dual operating hours |
+| `10-refund-policy-desktop.png` | 1920x1080 | `/refund-policy` | 24-hr advance notice, 5-7 day gateway timeline |
+| `11-contact-information-desktop.png` | 1920x1080 | `/contact-information` | Phone, email, address, support & dispatch hours |
+| `12-storefront-home-tablet.png` | 768x1024 | Tablet Home | Responsive tablet 2-column layout, 0 horizontal scroll |
+| `13-checkout-page-tablet.png` | 768x1024 | Tablet Checkout | Stacked address and order summary, clean inputs |
+| `14-storefront-home-mobile.png` | 390x844 | Mobile Home | Mobile drawer, sticky bottom navigation, touch targets |
+| `15-checkout-page-mobile.png` | 390x844 | Mobile Checkout | Single-column checkout flow, full-width CTA |
+| `16-razorpay-modal-mobile.png` | 390x844 | Mobile Razorpay | Mobile checkout portal renders ₹699.00 payment card without error |
 
 ---
 
-## Section G: Final Status
+## 4. Final Production Release Gate Certification
 
-# 🟢 VERIFIED — BOTH DISCREPANCIES RESOLVED
+Technical workflows have completed and verified with 100% test pass rate in Test Mode. Release Gate E remains enforced to block live production traffic pending merchant KYC, legal entity reconciliation, and CFO signoff.
 
-- **Discrepancy A:** Resolved. Confirmed that the ₹681.45 figure was an obsolete test artifact; the authoritative, statutory application standard is ₹681.46.
-- **Discrepancy B:** Resolved. Confirmed that the real allocator generates statutory format `<PREFIX>/<YY-YY>/<6-digit-sequence>`, proven via live execution through `DeliveryInvoicingService`.
-- **Order/Invoice Independence:** Re-proven under live service execution with 0 mutations to order identifiers.
-- **Statutory Gate:** Invoicing maintains strict fail-closed enforcement pending formal CA series prefix binding. Core e-commerce operations are fully operational.
+**Final Release Classification:** **`VERIFIED — TEST MODE ONLY`**

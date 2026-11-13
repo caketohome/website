@@ -128,7 +128,6 @@ export function validateGstinAndPan(gstin?: string | null, pan?: string | null):
 function isSuperAdminActor(actor: CorporateActorContext): boolean {
   if (actor.isSuperAdmin) return true;
   if (actor.role === "SUPER_ADMIN") return true;
-  if (actor.userId === "admin_01") return true;
   return false;
 }
 

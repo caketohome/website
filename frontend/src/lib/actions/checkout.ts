@@ -21,10 +21,10 @@ export async function getCheckoutAvailabilityAction(payload: {
   coupon_code?: string;
 }) {
   const cookieStore = cookies();
-  if ((payload.payment_method as string) === "razorpay") {
+  if ((payload.payment_method as string) === "cashfree") {
     return {
       success: false,
-      error: "Razorpay payment gateway is decommissioned. Please select Cashfree for online payments.",
+      error: "Cashfree payment gateway has been decommissioned. Please select Razorpay for online payments.",
     };
   }
 
@@ -33,6 +33,14 @@ export async function getCheckoutAvailabilityAction(payload: {
 
   try {
     const { ApiEngine } = await import("../api-engine");
+    const { CartRepository } = await import("../repositories/cart.repository");
+    await ApiEngine.ensureHydrated();
+    if (cartId && cartId !== "cart_guest") {
+      const pgCart = await CartRepository.findCartById(cartId);
+      if (pgCart) {
+        ApiEngine.syncCartFromDb(pgCart);
+      }
+    }
     return ApiEngine.getCheckoutAvailability({
       ...payload,
       cart_id: cartId,
@@ -97,7 +105,7 @@ export async function confirmCheckoutAction(payload: {
   delivery_type?: string;
   branch_id?: string;
   coupon_code?: string;
-  payment_method: "cod" | "cashfree" | "test_mode" | "wallet";
+  payment_method: "cod" | "razorpay" | "cashfree" | "test_mode" | "wallet";
   payment_details?: any;
   occasion?: string;
   ordered_for_self?: boolean;
@@ -164,7 +172,8 @@ export async function placeOrder(prevState: any, data: FormData) {
 
   const deliveryDate = data.get("delivery-date")?.toString() || data.get("delivery_date")?.toString() || new Date().toISOString().slice(0, 10);
   const deliverySlotId = data.get("delivery-slot")?.toString() || data.get("delivery_slot_id")?.toString() || "slot_morning";
-  const paymentMethod = (data.get("payment-method")?.toString() || "cashfree") as "cod" | "cashfree" | "test_mode";
+  let paymentMethod = (data.get("payment-method")?.toString() || "razorpay") as "cod" | "razorpay" | "cashfree" | "test_mode";
+  if (paymentMethod === "cashfree") paymentMethod = "razorpay";
 
   const occasion = data.get("occasion")?.toString() || "Celebration";
   const orderedForSelf = data.get("ordered-for-self")?.toString() !== "false" && data.get("ordered_for_self")?.toString() !== "false";
@@ -221,6 +230,15 @@ export async function placeOrder(prevState: any, data: FormData) {
 
   if (!result.success) {
     return { message: result.error || "Failed to place order. Please verify your details." };
+  }
+
+  if (paymentMethod === "razorpay") {
+    const orderId = result.order_id || "";
+    const amount = Number(result.order?.grand_total ?? result.order?.total_amount ?? result.pricing?.grand_total ?? result.total ?? 0);
+    if (!orderId || !Number.isFinite(amount) || amount <= 0) {
+      return { message: "Invalid order total calculated. Cannot proceed to payment." };
+    }
+    redirect(`/checkout/razorpay?order_id=${encodeURIComponent(orderId)}&amount=${amount}`);
   }
 
   if (paymentMethod === "cashfree") {

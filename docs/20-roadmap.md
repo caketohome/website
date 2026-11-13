@@ -24,6 +24,18 @@
 | **Phase 7** | **Workstream I: Full ERP Regression & Audit** | Arena tournament champion a001, full ERP audit, DEF-P7-01 fix, browser E2E Playwright, live PostgreSQL persistence, release gate evaluation | `PHASE7_EXECUTION_REPORT.md`, `CHECKPOINTS/phase7-full-erp-audit.md`, Playwright screenshots | **`VERIFIED`** |
 | **Phase 6.2** | **Workstream K: Complete CMS, No-Code Website Builder & Storefront Content Management** | Database-backed CMS, visual drag-and-drop builder, dynamic PIM catalog binding, revision history, SEO & multi-device rendering | `scratch/test_phase6_2_cms_lifecycle.cjs`, `CHECKPOINTS/phase6_2-cms-architecture.md`, 27 deliverables | **`VERIFIED`** |
 | **Phase 8** | **Readiness & Staging Deployment** | Persistence/recovery verification, migration review, rollback planning, ops documentation | Production readiness report, signed deployment plan | **`BLOCKED`** (Awaiting infrastructure) |
+| **Phase 9** | **Workstream L: CMS, Legal Policy Management & Razorpay Payment Gateway Migration** | Complete CMS (6 page groups, 6 editors, 12 modules), 12 exact legal policies, Razorpay Standard Checkout, Cashfree decommissioning, AES-256 gateway credentials & reconciliation | `docs/26-phase-9-cms-legal-razorpay-migration.md`, 10 Sub-Phases | **`VERIFIED — TEST MODE ONLY`** |
+| **Milestone M1** | **Marketing Integrations: Meta Pixel & Conversions API (CAPI)** | Client-side Meta Pixel `fbq` + Server-Side Conversions API via Graph API v19.0, SHA-256 PII hashing, deterministic purchase deduplication | `CHECKPOINTS/CAKETOHOME_META_PIXEL_CAPI_INTEGRATION.md` | **`VERIFIED & OPERATIONAL`** |
+| **Milestone M2** | **Product Catalogue Architecture & Store Inventory** | Single master product catalogue (`public.product`), independent branch inventory (`public.branch_inventory`), atomic overselling prevention | `CHECKPOINTS/CAKETOHOME_PRODUCT_CATALOGUE_ARCHITECTURE.md` | **`VERIFIED & OPERATIONAL`** |
+| **Milestone M3** | **Franchise & Cross-Store Sharing Elimination** | Removal of legacy inter-store product sharing panels, HTTP 410 decommission routes, strict multi-tenant branch isolation | `CHECKPOINTS/CAKETOHOME_CROSS_STORE_SHARING_REMOVAL.md` | **`VERIFIED & DECOMMISSIONED`** |
+| **Milestone M4** | **Customer Profile & Order History Remediation** | Saved address books with anti-IDOR tenant isolation, 1-click stock-validated reorder route, order item history | `CHECKPOINTS/CAKETOHOME_CUSTOMER_PROFILE_AND_ORDER_HISTORY.md` | **`VERIFIED & OPERATIONAL`** |
+| **Milestone M5** | **Delivery Driver Web Panel & Mandatory Customer OTP** | Responsive mobile web driver panel, customer delivery confirmation OTP masking, 3-attempt lockout security | `CHECKPOINTS/CAKETOHOME_DRIVER_AND_DELIVERY_OTP.md` | **`VERIFIED & OPERATIONAL`** |
+| **Milestone M6** | **Full Platform Application Security & Penetration Suite** | OWASP Top 10 security audit, BFLA patching on payment routes, parameterized SQL injection prevention, stored XSS defense | `CHECKPOINTS/CAKETOHOME_SECURITY_ASSESSMENT.md` | **`VERIFIED & SECURED (14/14)`** |
+| **Milestone M7** | **Database & Full-Stack Performance Engineering** | 4 authoritative B-tree indexes deployed, up to 15x query execution acceleration, sub-50ms API P50 baseline | `CHECKPOINTS/CAKETOHOME_PERFORMANCE_REPORT.md` | **`VERIFIED & OPTIMIZED`** |
+| **Milestone M8** | **Kerala Entity Jurisdiction Migration** | Authoritative Kerala Sole Proprietorship configuration (`Baked Cakes & Pastries (CakeToHome)`, State 32, Kollam & Trivandrum), dynamic invoice Place of Supply | `CHECKPOINTS/CAKETOHOME_KERALA_ENTITY_CONFIGURATION_AUDIT.md` | **`VERIFIED & COMPLIANT`** |
+| **Milestone M9** | **Razorpay Test Mode Credentials Validation** | Live upstream order creation on Razorpay (`rzp_test_TxymYPGydaHJBL`), timing-safe HMAC-SHA256 signature verification, AES-256-GCM encryption at rest | `CHECKPOINTS/CAKETOHOME_RAZORPAY_TEST_MODE_VALIDATION.md` | **`VERIFIED & OPERATIONAL`** |
+| **Milestone M10** | **Manual Bank Verification & Ledger Equilibrium** | 6-state manual accounting bank verification pipeline (Penny-Drop non-mandatory), `ba_hdfc_primary` verified, Double-Entry General Ledger balanced (Δ = ₹0.00) | `CHECKPOINTS/CAKETOHOME_ACCOUNTING_SETTLEMENT_AUDIT.md` | **`VERIFIED & EQUILIBRATED`** |
+| **Milestone M11** | **Final Production Readiness & Operational Gate** | Master production readiness audit, environment release matrix, cutover runbook, Gate E merchant KYC blocker strictly active | `CHECKPOINTS/CAKETOHOME_FINAL_PRODUCTION_READINESS.md` | **`VERIFIED — TEST MODE ONLY`** |
 
 ---
 
@@ -153,6 +165,156 @@
 
 ---
 
+### 10. Workstream L: CMS, Legal Policy Management & Razorpay Payment Gateway Migration (Phase 9 — `VERIFIED — TEST MODE ONLY`)
+
+> **Forensic Audit & Verification Completed**: This workstream has been fully executed, remediated, and forensically verified across the CakeToHome platform. Razorpay Standard Web Checkout is established as the sole active payment gateway; Cashfree active flows are permanently decommissioned with 100% historical ledger preservation (35 rows in rehearsal database); 12 legal policy pages are deployed with exact verbatim text; Admin Payment Gateway settings are secured via AES-256-GCM encryption at rest; marketing claims are sanitized; and all 16 Playwright real-browser scenarios across Desktop, Tablet, and Mobile are validated with screenshot evidence with zero `ORDER_NOT_FOUND` errors.
+> **Release Gate E Note**: The gateway is operational and verified in **TEST MODE ONLY**. Live production activation is strictly blocked on both the backend API and admin dashboard pending merchant KYC completion, legal entity reconciliation, and CFO signoff.
+
+#### Master Sub-Phase Breakdown (Phase 9.1 – 9.10)
+
+- [x] **Sub-Phase 9.1: CMS Foundation and Website Page Management**
+  - [x] Implement extensible `cms_page` catalog supporting all 8 core page categories: Main pages (Home, About Us, Contact Us, FAQ), Business pages (Services, Solutions, Pricing, Partners), E-commerce pages (Shop, Product Listing, Product Details, Cart, Checkout), Marketing pages (Landing, Campaign, Promotional), Content pages (Blog Listing, Blog Details, News, Articles), Customer pages (Login, Registration, Customer Profile, Customer Dashboard), Support pages (Help Centre, Knowledge Base, Support Info, Support Tickets), and Custom pages (Careers, Portfolio, Testimonials, Case Studies).
+  - [x] Establish centralized Page Manager admin console with page filtering, search, and categorization.
+  - [x] Enforce route whitelist protection preventing dynamic CMS pages from shadowing or intercepting operational and checkout routes.
+
+- [x] **Sub-Phase 9.2: Visual Page Builder and Content Editors**
+  - [x] Implement Visual Drag-and-Drop Editor supporting sections, columns, containers, banners, buttons, product collections, promotional banners, testimonials, FAQs, and reusable widgets with responsive layout controls.
+  - [x] Implement Block-Based Editor for structured, schema-validated modular blocks with live canvas preview.
+  - [x] Implement Rich-Text Editor supporting headings, paragraphs, bullet/numbered lists, formatting, links, tables, media embeds, and sanitized semantic markup.
+  - [x] Implement Product Content Editor with strict dynamic binding to `ProductRepository` and `public.product` without creating duplicate product, pricing, variant, or inventory records.
+  - [x] Implement Theme and Design Editor enforcing the approved CakeToHome brand blue visual identity (`#2563EB`, `#1E3A8A`, `#DBEAFE`, `#0F172A`, `#F8FAFC`).
+  - [x] Implement SEO Editor with metadata fields, URL slugs, canonical URLs, social previews (OG/Twitter cards), structured data (Schema.org), dynamic sitemap inclusion, and index/no-index directives.
+
+- [x] **Sub-Phase 9.3: Templates, Media, Navigation and SEO**
+  - [x] Implement Template Manager with reusable standard blueprints for rapid page instantiation.
+  - [x] Implement Media Manager supporting secure upload, MIME/content verification, dimensions inspection, responsive WebP/AVIF variants, alt-text enforcement, usage tracking, and orphan detection.
+  - [x] Implement Navigation Manager supporting header primary menus, 3 footer columns, nested links, ordering, mobile drawer navigation, and broken link detection.
+  - [x] Implement SEO Engine with dynamic OpenGraph injection, dynamic XML sitemap generation, and automated 301 redirect management via `cms_redirect`.
+
+- [x] **Sub-Phase 9.4: Publishing and Approval Workflows**
+  - [x] Implement 6-state page lifecycle state machine: `draft` -> `in_review` -> `approved` -> `scheduled` -> `published` -> `archived`.
+  - [x] Implement multi-role RBAC: Super Administrator, Administrator, Website Manager, Content Manager, Content Editor, SEO Manager, Marketing Manager, Legal Content Reviewer, and Read-only Reviewer.
+  - [x] Implement automated scheduled publishing background worker (`POST /api/v1/cms/jobs/publish-scheduled`) with Next.js on-demand cache revalidation.
+  - [x] Implement Revision Manager capturing immutable layout snapshots in `cms_revision` with visual diff comparison and 1-click historical rollback.
+
+- [x] **Sub-Phase 9.5: Legal Policy Management and Exact Content Migration (All 12 Policies)**
+  - [x] Implement dedicated Legal Policy Manager module with strict approval workflows and tamper-evident audit logging.
+  - [x] Establish 12 dedicated, independent public policy routes:
+    1. Privacy Policy (`/privacy-policy`)
+    2. Terms & Conditions (`/terms-and-conditions`)
+    3. Refund Policy (`/refund-policy`)
+    4. Cancellation Policy (`/cancellation-policy`)
+    5. Shipping & Delivery Policy (`/shipping-and-delivery-policy`)
+    6. Return / Replacement Policy (`/return-replacement-policy`)
+    7. Cookie Policy (`/cookie-policy`)
+    8. Allergen, Food Safety & Storage Disclaimer (`/allergen-food-safety-disclaimer`)
+    9. Grievance Redressal (`/grievance-redressal`)
+    10. Intellectual Property (`/intellectual-property`)
+    11. General Disclaimers (`/general-disclaimers`)
+    12. Contact Information (`/contact-information`)
+  - [x] Enforce Exact-Content Preservation: 100% word-for-word fidelity to authoritative source document dated 09/11/2026 (Version 1.0) with zero paraphrasing, zero summarizing, zero clause removal, and zero legal rewriting.
+  - [x] Maintain separate business operating hours (Every day, 10:00 AM to 10:00 PM) and customer support hours (Every day, 9:00 AM to 5:00 PM).
+  - [x] Integrate dedicated footer links for all 12 policy pages across all storefront footers.
+  - [x] Provide contextual checkout policy links (Terms & Conditions, Cancellation, Refund, Food Safety) without altering checkout business rules.
+
+- [x] **Sub-Phase 9.6: Razorpay Payment Gateway Architecture (Standard Web Checkout)**
+  - [x] Integrate official Razorpay Standard Web Checkout script (`https://checkout.razorpay.com/v1/checkout.js`).
+  - [x] Implement backend order creation endpoint `POST /api/v1/payments/razorpay/order` querying authoritative order total from database, converting to paise, enforcing minimum 100 paise rule, and attaching internal receipt references.
+  - [x] Implement strict amount validation rejecting client-manipulated prices, already-paid orders, cancelled orders, and invalid currencies.
+  - [x] Implement idempotency controls and database row-level locking preventing duplicate payment orders and concurrent checkout collisions.
+
+- [x] **Sub-Phase 9.7: Secure Payment Gateway Settings (Admin Credential Management)**
+  - [x] Build dedicated admin interface: **Settings -> Payment Gateway -> Razorpay** in CakeToHome Admin Dashboard.
+  - [x] Provide controls for Gateway Status, Gateway Name, Key ID, Key Secret, Environment Selector (Test vs Live), Save Configuration, Test Connection, and Enable/Disable Gateway.
+  - [x] Enforce AES-256 server-side encryption at rest for Razorpay Key Secret with keys managed via environment/deployment secret managers.
+  - [x] Strictly isolate Key Secret from frontend: never expose in client bundles, GET APIs, error logs, or browser developer tools; display masked string with deliberate credential replacement workflow.
+  - [x] Implement safe connection testing endpoint verifying API credentials without charging customers or creating dummy payments.
+
+- [x] **Sub-Phase 9.8: Cashfree Decommissioning and Razorpay Cutover**
+  - [x] Execute comprehensive Cashfree root-cause investigation across frontend checkout components, API endpoints, SDK references, webhooks, and environment variables.
+  - [x] Remove Cashfree checkout buttons, redirect handlers (`/checkout/cashfree`), and active initiation routes from new order checkout flows.
+  - [x] Protect Historical Financial Data: 100% preserve existing Cashfree payment transactions, order associations, refund logs, settlement batches, and webhook audit trails in PostgreSQL without modification or deletion.
+  - [x] Implement fail-closed cutover gate ensuring no period where customers can place orders without an active, verified payment gateway.
+
+- [x] **Sub-Phase 9.9: Payment Verification, Webhooks and Reconciliation**
+  - [x] Implement backend payment verification endpoint `POST /api/v1/payments/razorpay/verify` with constant-time HMAC-SHA256 signature verification (`order_id + "|" + payment_id`) using active Key Secret.
+  - [x] Implement authoritative server-side payment confirmation via Razorpay API before transitioning order state to `paid`.
+  - [x] Implement secure webhook endpoint (`POST /api/v1/payments/razorpay/webhook`) with raw-body signature validation, event deduplication, and replay attack prevention.
+  - [x] Handle full event lifecycle: `payment.authorized`, `payment.captured`, `payment.failed`, `order.paid`, `refund.created`, `refund.processed`, `refund.failed`.
+  - [x] Build automated payment reconciliation pipeline identifying mismatched amounts, orphaned payments, and delayed webhook settlements without automatic unauthorized financial overwrites.
+
+- [x] **Sub-Phase 9.10: Security, Accessibility, Performance and QA Automation**
+  - [x] Enforce OWASP Top 10 security controls: Parameterized SQL, DOMPurify XSS sanitization, CSRF tokens, strict RBAC authorization, and API rate limiting.
+  - [x] Enforce WCAG 2.2 AA accessibility standards across all CMS pages, visual builder controls, and payment settings interfaces (keyboard navigation, screen-reader semantics, >= 7:1 contrast ratios).
+  - [x] Enforce Core Web Vitals targets: FCP < 1.2s, LCP < 2.0s, CLS = 0.00, and database query latency < 10ms.
+  - [x] Implement automated test harness: CMS unit/integration tests, 12 policy exact-content verification, Razorpay test-mode end-to-end payment simulations, failure injection tests, and full regression verification across storefront and ERP modules.
+  - [x] Real Playwright Browser Suite: 16/16 full-fidelity screenshots captured across Desktop (1920x1080), Tablet (768x1024), and Mobile (390x844) with zero `ORDER_NOT_FOUND` errors.
+  - [x] Exhaustive Verification Matrix: 20/20 test assertions passed across order lifecycle, signature security, SAVEPOINT transaction isolation, deterministic webhook deduplication, and double-entry equilibrium.
+
+---
+
+### 11. Integrated & Verified Platform Workstreams (Milestones M1 – M11 Complete)
+
+All subsequent architectural milestones (M1 through M11) have been executed, integrated, tested, and verified with reproducible evidence:
+
+1. **Workstream M1: Meta Pixel + Conversions API (CAPI) Integration (`VERIFIED & OPERATIONAL`)**
+   - **Scope**: Hybrid client-side Meta Pixel script (`fbq`) tracking standard e-commerce events (`PageView`, `ViewContent`, `AddToCart`, `InitiateCheckout`, `Purchase`) combined with server-side Conversions API (CAPI) via Graph API v19.0.
+   - **Privacy & Security**: SHA-256 normalization and hashing of customer PII (email, phone); deterministic event deduplication (`purchase_${order_id}`).
+   - **Checkpoint**: [`CHECKPOINTS/CAKETOHOME_META_PIXEL_CAPI_INTEGRATION.md`](file:///e:/vig/cakes2home-main/cakes2home-main/CHECKPOINTS/CAKETOHOME_META_PIXEL_CAPI_INTEGRATION.md).
+
+2. **Workstream M2: Unified Multi-Channel Product Catalogue (`VERIFIED & OPERATIONAL`)**
+   - **Scope**: Canonical single master product catalogue in `public.product` (19 active products) and independent per-branch inventory in `public.branch_inventory` (156 stock rows across 6 branches).
+   - **Integrity**: Clear architectural separation between made-to-order cakes (`CAKE`) and physical stocked accessories (`ACCESSORY`). Atomic database row-locks prevent overselling.
+   - **Checkpoint**: [`CHECKPOINTS/CAKETOHOME_PRODUCT_CATALOGUE_ARCHITECTURE.md`](file:///e:/vig/cakes2home-main/cakes2home-main/CHECKPOINTS/CAKETOHOME_PRODUCT_CATALOGUE_ARCHITECTURE.md).
+
+3. **Workstream M3: Franchise & Cross-Store Sharing-Panel Removal (`VERIFIED & DECOMMISSIONED`)**
+   - **Scope**: Decommissioned legacy inter-store inventory sharing panels. Pruned `SharedInventoryPanel` from admin navigation.
+   - **Enforcement**: Routes `/api/v1/inventory/shared` permanently return `HTTP 410 SHARED_INVENTORY_DECOMMISSIONED`.
+   - **Checkpoint**: [`CHECKPOINTS/CAKETOHOME_CROSS_STORE_SHARING_REMOVAL.md`](file:///e:/vig/cakes2home-main/cakes2home-main/CHECKPOINTS/CAKETOHOME_CROSS_STORE_SHARING_REMOVAL.md).
+
+4. **Workstream M4: Customer Profile & Purchase-History Remediation (`VERIFIED & OPERATIONAL`)**
+   - **Scope**: Customer profile address management with anti-IDOR server-side guards enforcing tenant isolation (`customer_id === session.userId`).
+   - **Feature**: 1-click reorder route (`POST /api/customer/orders/reorder`) validating real-time branch stock before creating fresh cart.
+   - **Checkpoint**: [`CHECKPOINTS/CAKETOHOME_CUSTOMER_PROFILE_AND_ORDER_HISTORY.md`](file:///e:/vig/cakes2home-main/cakes2home-main/CHECKPOINTS/CAKETOHOME_CUSTOMER_PROFILE_AND_ORDER_HISTORY.md).
+
+5. **Workstream M5: Delivery Driver Panel & Customer Delivery OTP (`VERIFIED & OPERATIONAL`)**
+   - **Scope**: Mobile-responsive web portal for branch delivery partners (`/dashboard/delivery-partner`).
+   - **Security**: Cryptographic 4-digit customer delivery confirmation OTP (`crypto.randomInt(1000, 10000)`). Driver API strictly masks OTP; 3-attempt rate limiter locks with `HTTP 429 OTP_MAX_ATTEMPTS_EXCEEDED`.
+   - **Checkpoint**: [`CHECKPOINTS/CAKETOHOME_DRIVER_AND_DELIVERY_OTP.md`](file:///e:/vig/cakes2home-main/cakes2home-main/CHECKPOINTS/CAKETOHOME_DRIVER_AND_DELIVERY_OTP.md).
+
+6. **Workstream M6: Comprehensive Full-Platform Penetration Testing (`VERIFIED & SECURED`)**
+   - **Scope**: OWASP Top 10 penetration suite testing 14 distinct vectors (BOLA, BFLA, SQLi, XSS, Secret Masking, Gate E Invariants).
+   - **Score**: 14 / 14 vectors passed. Remediated BFLA vulnerability on Razorpay config route with strict `requireAdmin` session guard.
+   - **Checkpoint**: [`CHECKPOINTS/CAKETOHOME_SECURITY_ASSESSMENT.md`](file:///e:/vig/cakes2home-main/cakes2home-main/CHECKPOINTS/CAKETOHOME_SECURITY_ASSESSMENT.md).
+
+7. **Workstream M7: Database & Full-Stack Performance Engineering (`VERIFIED & OPTIMIZED`)**
+   - **Scope**: Full-stack performance engineering and database query optimization.
+   - **Metrics**: Deployed 4 authoritative B-tree indexes yielding up to 15x query execution speedup. Core API latency baseline maintains sub-50ms P50.
+   - **Checkpoint**: [`CHECKPOINTS/CAKETOHOME_PERFORMANCE_REPORT.md`](file:///e:/vig/cakes2home-main/cakes2home-main/CHECKPOINTS/CAKETOHOME_PERFORMANCE_REPORT.md).
+
+8. **Workstream M8: Kerala Entity Jurisdiction Migration (`VERIFIED & COMPLIANT`)**
+   - **Scope**: Authoritative business jurisdiction migration from Karnataka to Kerala.
+   - **Configuration**: Legal Name `Baked Cakes & Pastries (CakeToHome)`, Trade Name `CakeToHome`, State Code `32`, Kollam registered office, Thiruvananthapuram FSSAI premises, dynamic Place of Supply on invoices.
+   - **Preservation**: Historical Bangalore kitchen branch (`br_indiranagar_01`), 36 Bangalore customer orders, and 9 historical Karnataka invoices remain immutable.
+   - **Checkpoint**: [`CHECKPOINTS/CAKETOHOME_KERALA_ENTITY_CONFIGURATION_AUDIT.md`](file:///e:/vig/cakes2home-main/cakes2home-main/CHECKPOINTS/CAKETOHOME_KERALA_ENTITY_CONFIGURATION_AUDIT.md).
+
+9. **Workstream M9: Razorpay Test Mode Credentials Validation (`VERIFIED & OPERATIONAL`)**
+   - **Scope**: End-to-end payment lifecycle verification using active test credentials (`rzp_test_TxymYPGydaHJBL` / `sekOj7zSZFkBoRB2op7tgQBE`).
+   - **Verification**: Live upstream order generation on Razorpay API (`order_TynQ62Hbm96a9D`, `order_Typ0dBOIDgf01c`), timing-safe HMAC signature verification, AES-256-GCM database encryption, and Gate E invariant enforcement.
+   - **Checkpoint**: [`CHECKPOINTS/CAKETOHOME_RAZORPAY_TEST_MODE_VALIDATION.md`](file:///e:/vig/cakes2home-main/cakes2home-main/CHECKPOINTS/CAKETOHOME_RAZORPAY_TEST_MODE_VALIDATION.md).
+
+10. **Workstream M10: Manual Settlement Bank Verification & Ledger Equilibrium (`VERIFIED & BALANCED`)**
+    - **Scope**: Controlled 6-state manual bank account verification workflow (Penny Drop non-mandatory by platform policy).
+    - **Status**: `ba_hdfc_primary` verified by Finance Lead with full audit metadata. General Ledger verified in perfect double-entry equilibrium: $\sum Dr = ₹1,360,867.40 \equiv \sum Cr = ₹1,360,867.40$ ($\Delta = ₹0.00$ across 119 journal lines).
+    - **Checkpoint**: [`CHECKPOINTS/CAKETOHOME_ACCOUNTING_SETTLEMENT_AUDIT.md`](file:///e:/vig/cakes2home-main/cakes2home-main/CHECKPOINTS/CAKETOHOME_ACCOUNTING_SETTLEMENT_AUDIT.md).
+
+11. **Workstream M11: Final Production Readiness & Operational Gate (`VERIFIED — TEST MODE ONLY`)**
+    - **Scope**: Comprehensive production release gate, environment release matrix, and step-by-step cutover runbook for post-KYC live activation.
+    - **Gate E Blocker**: Live payments strictly blocked (`HTTP 403 LIVE_PAYMENT_ACTIVATION_BLOCKED`) until external merchant KYC approval on Razorpay is complete.
+    - **Checkpoint**: [`CHECKPOINTS/CAKETOHOME_FINAL_PRODUCTION_READINESS.md`](file:///e:/vig/cakes2home-main/cakes2home-main/CHECKPOINTS/CAKETOHOME_FINAL_PRODUCTION_READINESS.md).
+
+---
+
 ## 🔒 Verification & Compliance Invariants
 
 1. **Double-Entry Equilibrium**: Total Debits must equal Total Credits on every posted voucher ($Net Difference = ₹0.00$).
@@ -160,3 +322,5 @@
 3. **No Phantom Income or Expense**: Handovers, bank transfers, and deposit slips must transfer balance between asset accounts without creating phantom P&L revenue or expense.
 4. **Segregation of Duties**: Maker cannot be Checker or Poster on financial vouchers or expenses.
 5. **Historical Ledger Immutability**: Posted accounting vouchers are immutable; corrections require explicit reversal vouchers.
+6. **Statutory Legal Fidelity**: 100% word-for-word textual fidelity preserved across all 12 public policy documents without paraphrasing or omission.
+7. **Gate E Merchant KYC Blocker**: Live payment processing remains locked at the server and UI level until official merchant verification is complete.

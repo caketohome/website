@@ -159,6 +159,8 @@ export class ProductRepository {
     min_price?: number;
     max_price?: number;
     sort?: string;
+    branch_id?: string;
+    branchId?: string;
   } = {}): Promise<{
     items: ProductDomain[];
     total: number;
@@ -175,9 +177,9 @@ export class ProductRepository {
     const conditions: string[] = ["deleted_at IS NULL"];
     const values: any[] = [];
 
-    if (params.category_id) {
+    if (params.category_id && params.category_id !== "all") {
       values.push(params.category_id);
-      conditions.push(`(metadata->>'category_id' = $${values.length} OR metadata->>'category' ILIKE $${values.length} OR metadata->>'category_slug' ILIKE $${values.length})`);
+      conditions.push(`(metadata->>'primary_category_id' = $${values.length} OR metadata->>'category_id' = $${values.length} OR metadata->>'category' ILIKE $${values.length} OR metadata->>'category_slug' ILIKE $${values.length})`);
     }
 
     if (params.occasion || params.occasion_id) {
@@ -236,37 +238,44 @@ export class ProductRepository {
     );
 
     const prodIds = (res.rows || []).map((r: any) => r.id);
-    let sharedStockMap: Record<string, { available: number; total: number; reserved: number }> = {};
+    let branchStockMap: Record<string, { available: number; total: number; reserved: number }> = {};
     if (prodIds.length > 0) {
       try {
-        const biRes = await dbQuery(
-          `SELECT pv.product_id, SUM(bi.stocked_quantity) as total_qty, SUM(bi.reserved_quantity) as total_reserved
-           FROM public.branch_inventory bi
-           JOIN public.product_variant pv ON pv.id = bi.variant_id
-           WHERE pv.product_id = ANY($1)
-           GROUP BY pv.product_id`,
-          [prodIds]
-        );
+        const targetBranchId = params.branch_id || (params as any).branchId;
+        const biSql = targetBranchId
+          ? `SELECT bi.product_id, SUM(bi.quantity) as total_qty, SUM(bi.reserved) as total_reserved
+             FROM public.branch_inventory bi
+             WHERE (bi.product_id = ANY($1) OR bi.variant_id = ANY($1))
+               AND bi.branch_id = $2
+               AND bi.deleted_at IS NULL
+             GROUP BY bi.product_id`
+          : `SELECT bi.product_id, SUM(bi.quantity) as total_qty, SUM(bi.reserved) as total_reserved
+             FROM public.branch_inventory bi
+             WHERE (bi.product_id = ANY($1) OR bi.variant_id = ANY($1))
+               AND bi.deleted_at IS NULL
+             GROUP BY bi.product_id`;
+        const biParams = targetBranchId ? [prodIds, targetBranchId] : [prodIds];
+        const biRes = await dbQuery(biSql, biParams);
         for (const row of biRes.rows || []) {
           const tQty = Number(row.total_qty || 0);
           const tRes = Number(row.total_reserved || 0);
-          sharedStockMap[row.product_id] = {
+          branchStockMap[row.product_id] = {
             total: tQty,
             reserved: tRes,
             available: Math.max(0, tQty - tRes),
           };
         }
-      } catch {
-        // Safe: fallback if branch inventory is not populated
+      } catch (biErr) {
+        console.warn("[ProductRepository.listProducts] branch_inventory warning:", biErr);
       }
     }
 
     const items = (res.rows || []).map((r: any) => {
       const domain = ProductRepository.mapRowToDomain(r);
-      const siInfo = sharedStockMap[domain.id];
-      if (siInfo && domain.merchandise_type !== "CAKE") {
-        domain.available_stock = siInfo.available;
-        domain.is_out_of_stock = siInfo.available <= 0;
+      const biInfo = branchStockMap[domain.id];
+      if (biInfo && domain.merchandise_type !== "CAKE") {
+        domain.available_stock = biInfo.available;
+        domain.is_out_of_stock = biInfo.available <= 0;
       }
       return domain;
     });
@@ -299,7 +308,7 @@ export class ProductRepository {
   /**
    * Find product by ID or handle
    */
-  static async findById(idOrHandle: string): Promise<ProductDomain | null> {
+  static async findById(idOrHandle: string, branchId?: string): Promise<ProductDomain | null> {
     const res = await dbQuery(
       `SELECT * FROM "product" WHERE (id = $1 OR handle = $1) AND deleted_at IS NULL LIMIT 1`,
       [idOrHandle]
@@ -331,21 +340,26 @@ export class ProductRepository {
 
     if (domain.merchandise_type !== "CAKE") {
       try {
-        const biRes = await dbQuery(
-          `SELECT SUM(bi.stocked_quantity) as total_qty, SUM(bi.reserved_quantity) as total_reserved
-           FROM public.branch_inventory bi
-           JOIN public.product_variant pv ON pv.id = bi.variant_id
-           WHERE pv.product_id = $1`,
-          [domain.id]
-        );
-        if (biRes.rows && biRes.rows[0]?.total_qty !== null) {
+        const biSql = branchId
+          ? `SELECT SUM(bi.quantity) as total_qty, SUM(bi.reserved) as total_reserved
+             FROM public.branch_inventory bi
+             WHERE (bi.product_id = $1 OR bi.variant_id = $1)
+               AND bi.branch_id = $2
+               AND bi.deleted_at IS NULL`
+          : `SELECT SUM(bi.quantity) as total_qty, SUM(bi.reserved) as total_reserved
+             FROM public.branch_inventory bi
+             WHERE (bi.product_id = $1 OR bi.variant_id = $1)
+               AND bi.deleted_at IS NULL`;
+        const biParams = branchId ? [domain.id, branchId] : [domain.id];
+        const biRes = await dbQuery(biSql, biParams);
+        if (biRes.rows && biRes.rows[0]?.total_qty !== null && biRes.rows[0]?.total_qty !== undefined) {
           const tQty = Number(biRes.rows[0].total_qty || 0);
           const tRes = Number(biRes.rows[0].total_reserved || 0);
           domain.available_stock = Math.max(0, tQty - tRes);
           domain.is_out_of_stock = domain.available_stock <= 0;
         }
-      } catch {
-        // Safe: fallback if branch inventory is not populated
+      } catch (biErr) {
+        console.warn("[ProductRepository.findById] branch inventory warning:", biErr);
       }
     }
 
@@ -355,8 +369,8 @@ export class ProductRepository {
   /**
    * Find product by slug alias
    */
-  static async findBySlug(slug: string): Promise<ProductDomain | null> {
-    return ProductRepository.findById(slug);
+  static async findBySlug(slug: string, branchId?: string): Promise<ProductDomain | null> {
+    return ProductRepository.findById(slug, branchId);
   }
 
   /**

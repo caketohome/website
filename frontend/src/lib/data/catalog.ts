@@ -515,22 +515,11 @@ export async function submitReview(
 
 export async function getAuthenticatedCustomerUid(): Promise<string | null> {
   try {
-    const { cookies } = await import("next/headers");
-    const cookieStore = cookies();
-    const cookieCustomerUid = cookieStore.get("_cth_customer_uid")?.value;
-    const cookieUserId = cookieStore.get("_cth_user_id")?.value;
-    const cookiePhone = cookieStore.get("_cth_phone")?.value;
-    const cookieRole = cookieStore.get("_cth_role")?.value;
-
-    const engine = await getServerApiEngine();
-    const resolved = engine?.resolveUserAccount ? engine.resolveUserAccount({
-      customerUid: cookieCustomerUid,
-      userId: cookieUserId,
-      phone: cookiePhone,
-      role: cookieRole,
-    }) : null;
-
-    return resolved?.customer_uid || resolved?.id || cookieCustomerUid || null;
+    const { retrieveSession } = await import("./sessions");
+    const { verifyAuthToken } = await import("../security/auth-session");
+    const token = retrieveSession();
+    const session = token ? verifyAuthToken(token) : null;
+    return session?.customerUid || null; // never from client-set cookies
   } catch {
     return null;
   }

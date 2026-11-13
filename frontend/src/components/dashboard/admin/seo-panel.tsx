@@ -614,7 +614,7 @@ export const SeoPanel = memo(function SeoPanel() {
                   {metaDesc.length} / 160 chars
                 </span>
               </div>
-              <Textarea id="meta_desc" rows={2} value={metaDesc} onChange={(e) => setMetaDesc(e.target.value)} placeholder="Order handcrafted artisanal cakes online in Bangalore. Midnight delivery, customized birthday cakes, and same-day fresh delivery." />
+              <Textarea id="meta_desc" rows={2} value={metaDesc} onChange={(e) => setMetaDesc(e.target.value)} placeholder="Order handcrafted artisanal cakes online in Kerala. Midnight delivery, customized birthday cakes, and same-day fresh delivery." />
             </div>
 
             <div>
@@ -633,7 +633,7 @@ export const SeoPanel = memo(function SeoPanel() {
             <Text className="text-xs font-semibold text-ui-fg-subtle uppercase tracking-wider mb-1">Google SERP Live Preview</Text>
             <Text className="text-xs text-emerald-700 dark:text-emerald-400 font-mono truncate">{canonicalUrl || "https://cakes2home.com"}</Text>
             <Text className="text-sm font-semibold text-blue-700 dark:text-blue-400 line-clamp-1">{metaTitle || "CakeToHome — Premium Gourmet Cakes Delivered in 2 Hours"}</Text>
-            <Text className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">{metaDesc || "Order handcrafted artisanal cakes online in Bangalore. Midnight delivery, customized birthday cakes, and same-day fresh delivery."}</Text>
+            <Text className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">{metaDesc || "Order handcrafted artisanal cakes online in Kerala. Midnight delivery, customized birthday cakes, and same-day fresh delivery."}</Text>
           </div>
         </Container>
       )}
@@ -705,7 +705,7 @@ export const SeoPanel = memo(function SeoPanel() {
             <div>
               <Label className="text-xs font-semibold">Keyword Phrase</Label>
               <Input
-                placeholder="e.g. midnight cake delivery bangalore"
+                placeholder="e.g. midnight cake delivery kerala"
                 value={newKw.keyword}
                 onChange={(e) => setNewKw({ ...newKw, keyword: e.target.value })}
                 className="mt-1"
