@@ -5,7 +5,7 @@
 --   ping4sms_api_key      Ping4SMS account API key (Developer → Http Api → View API Key)
 --   ping4sms_sender       DLT-approved 6-letter sender ID / header
 --   ping4sms_template_id  DLT template ID (e.g. 1707…)
---   ping4sms_message      Exact approved template text with {OTP} where the code goes
+--   ping4sms_message      Exact approved template text with {{OTP}} (or {OTP}) where the code goes
 -- Then: Dashboard → Authentication → Hooks → Send SMS → Postgres → public.send_sms_ping4sms
 --
 -- Ping4SMS API: GET https://site.ping4sms.com/api/smsapi?key&route&sender&number&sms&templateid
@@ -52,7 +52,7 @@ BEGIN
     || '&route=4'
     || '&sender='     || extensions.urlencode(v_sender)
     || '&number='     || v_phone
-    || '&sms='        || extensions.urlencode(replace(v_msg, '{OTP}', v_otp))
+    || '&sms='        || extensions.urlencode(replace(replace(v_msg, '{{OTP}}', v_otp), '{OTP}', v_otp))
     || '&templateid=' || extensions.urlencode(v_tpl)
   );
   v_body := trim(coalesce(v_resp.content, ''));
