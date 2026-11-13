@@ -6,10 +6,11 @@
 --   ping4sms_sender       DLT-approved 6-letter sender ID / header
 --   ping4sms_template_id  DLT template ID (e.g. 1707…)
 --   ping4sms_message      Exact approved template text with {{OTP}} (or {OTP}) where the code goes
+--   ping4sms_route        optional, default 2 (Transactional)
 -- Then: Dashboard → Authentication → Hooks → Send SMS → Postgres → public.send_sms_ping4sms
 --
 -- Ping4SMS API: GET https://site.ping4sms.com/api/smsapi?key&route&sender&number&sms&templateid
--- route 4 = Transactional OTP. Success body = numeric message id; 101–110 = error codes.
+-- route: Vault ping4sms_route (default 2 = Transactional; this account has no route-4 credits). Success body = numeric message id; 101–110 = error codes.
 
 CREATE EXTENSION IF NOT EXISTS http WITH SCHEMA extensions;
 
@@ -24,6 +25,7 @@ DECLARE
   v_sender text;
   v_tpl    text;
   v_msg    text;
+  v_route  text;
   v_phone  text := right(regexp_replace(coalesce(event->'user'->>'phone', ''), '\D', '', 'g'), 10);
   v_otp    text := event->'sms'->>'otp';
   v_resp   extensions.http_response;
@@ -32,8 +34,9 @@ BEGIN
   SELECT max(decrypted_secret) FILTER (WHERE name = 'ping4sms_api_key'),
          max(decrypted_secret) FILTER (WHERE name = 'ping4sms_sender'),
          max(decrypted_secret) FILTER (WHERE name = 'ping4sms_template_id'),
-         max(decrypted_secret) FILTER (WHERE name = 'ping4sms_message')
-    INTO v_key, v_sender, v_tpl, v_msg
+         max(decrypted_secret) FILTER (WHERE name = 'ping4sms_message'),
+         coalesce(max(decrypted_secret) FILTER (WHERE name = 'ping4sms_route'), '2')
+    INTO v_key, v_sender, v_tpl, v_msg, v_route
     FROM vault.decrypted_secrets
    WHERE name LIKE 'ping4sms_%';
 
@@ -49,7 +52,7 @@ BEGIN
   SELECT * INTO v_resp FROM extensions.http_get(
     'https://site.ping4sms.com/api/smsapi'
     || '?key='        || extensions.urlencode(v_key)
-    || '&route=4'
+    || '&route='      || extensions.urlencode(v_route)
     || '&sender='     || extensions.urlencode(v_sender)
     || '&number='     || v_phone
     || '&sms='        || extensions.urlencode(replace(replace(v_msg, '{{OTP}}', v_otp), '{OTP}', v_otp))
