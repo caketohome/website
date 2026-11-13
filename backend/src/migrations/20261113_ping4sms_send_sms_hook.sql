@@ -42,6 +42,8 @@ BEGIN
 
   IF v_key IS NULL OR v_sender IS NULL OR v_tpl IS NULL OR v_msg IS NULL THEN
     RAISE LOG 'send_sms_ping4sms: Vault config missing';
+  INSERT INTO public.auth_audit_events (id, user_id, phone, event_type, status, metadata, created_at)
+  VALUES (gen_random_uuid(), NULL, '+91' || v_phone, 'OTP_SMS_SEND', 'FAILURE', jsonb_build_object('reason', 'config_missing'), now());
     RETURN jsonb_build_object('error', jsonb_build_object('http_code', 500, 'message', 'SMS provider not configured'));
   END IF;
   IF v_phone !~ '^[6-9][0-9]{9}$' OR v_otp !~ '^[0-9]{4,10}$' THEN
@@ -60,12 +62,19 @@ BEGIN
   );
   v_body := trim(coalesce(v_resp.content, ''));
 
+  -- Each call is recorded in auth_audit_events (OTP_SMS_SEND) without the OTP or key.
+  -- Note: on a FAILURE return Supabase rolls the request back, so only SUCCESS rows persist;
+  -- failures are visible in Postgres logs (RAISE LOG) and as "SMS delivery failed" to the client.
   -- Success = numeric message id (longer than the 3-digit error codes).
   IF v_resp.status <> 200 OR v_body !~ '^[0-9]+$' OR v_body ~ '^1(0[1-9]|10)$' THEN
     RAISE LOG 'send_sms_ping4sms failed: http % body %', v_resp.status, left(v_body, 40);  -- never logs OTP/key
+  INSERT INTO public.auth_audit_events (id, user_id, phone, event_type, status, metadata, created_at)
+  VALUES (gen_random_uuid(), NULL, '+91' || v_phone, 'OTP_SMS_SEND', 'FAILURE', jsonb_build_object('reason', 'provider_rejected', 'http', v_resp.status, 'ping4sms_code', left(v_body, 10)), now());
     RETURN jsonb_build_object('error', jsonb_build_object('http_code', 502, 'message', 'SMS delivery failed'));
   END IF;
 
+  INSERT INTO public.auth_audit_events (id, user_id, phone, event_type, status, metadata, created_at)
+  VALUES (gen_random_uuid(), NULL, '+91' || v_phone, 'OTP_SMS_SEND', 'SUCCESS', jsonb_build_object('ping4sms_message_id', left(v_body, 30)), now());
   RETURN '{}'::jsonb;
 END;
 $$;
