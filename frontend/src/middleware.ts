@@ -35,12 +35,9 @@ async function verifyJwtEdge(token: string | undefined): Promise<VerifiedEdgeJwt
     );
     const sigBytes = base64UrlToUint8Array(sigB64);
     const dataBytes = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
-    const valid = await crypto.subtle.verify(
-      "HMAC",
-      key,
-      sigBytes.buffer as ArrayBuffer,
-      dataBytes
-    );
+    // Pass the Uint8Array, not .buffer: on Node 22 WebCrypto rejects an ArrayBuffer from the
+    // edge sandbox's realm, which made every session look invalid (login redirect loop).
+    const valid = await crypto.subtle.verify("HMAC", key, sigBytes, dataBytes);
     if (!valid) return null;
 
     const payloadJson = new TextDecoder().decode(base64UrlToUint8Array(payloadB64));
