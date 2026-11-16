@@ -60,6 +60,8 @@ async function verifyJwtEdge(token: string | undefined): Promise<VerifiedEdgeJwt
 export async function middleware(request: NextRequest) {
   try {
     const pathname = request.nextUrl.pathname;
+    // Behind Render's proxy request.url is the internal https://localhost:10000; redirect to the public site.
+    const base = process.env.NEXT_PUBLIC_SITE_URL || request.url;
 
     const verifiedSession = await verifyJwtEdge(request.cookies.get("_cth_jwt")?.value);
     const hasAuthSession = Boolean(verifiedSession);
@@ -81,7 +83,7 @@ export async function middleware(request: NextRequest) {
 
     // App session expired but Supabase refresh token present -> silent refresh, then come back.
     if (!hasAuthSession && request.cookies.get("_cth_sb_rt")?.value) {
-      const refreshUrl = new URL("/api/auth/refresh", request.url);
+      const refreshUrl = new URL("/api/auth/refresh", base);
       refreshUrl.searchParams.set("next", pathname + request.nextUrl.search);
       return NextResponse.redirect(refreshUrl);
     }
@@ -114,13 +116,13 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith("/admin/")
     ) {
       if (!hasAuthSession) {
-        return NextResponse.redirect(new URL("/login", request.url));
+        return NextResponse.redirect(new URL("/login", base));
       }
       const isStaffOrAdmin = STAFF_ADMIN_ROLES.has(rawRole);
 
       if (!isStaffOrAdmin) {
         if (DELIVERY_ROLES.has(rawRole)) {
-          return NextResponse.redirect(new URL("/dashboard/delivery-partner", request.url));
+          return NextResponse.redirect(new URL("/dashboard/delivery-partner", base));
         }
         if (MANAGER_ROLES.has(rawRole)) {
           if (
@@ -129,16 +131,16 @@ export async function middleware(request: NextRequest) {
           ) {
             return NextResponse.next();
           }
-          return NextResponse.redirect(new URL("/dashboard/shop", request.url));
+          return NextResponse.redirect(new URL("/dashboard/shop", base));
         }
-        return NextResponse.redirect(new URL("/account", request.url));
+        return NextResponse.redirect(new URL("/account", base));
       }
     }
 
     // 2. /dashboard/delivery-partner protection
     if (pathname.startsWith("/dashboard/delivery-partner")) {
       if (!hasAuthSession) {
-        return NextResponse.redirect(new URL("/login", request.url));
+        return NextResponse.redirect(new URL("/login", base));
       }
       if (
         !DELIVERY_ROLES.has(rawRole) &&
@@ -148,16 +150,16 @@ export async function middleware(request: NextRequest) {
         rawRole !== "DELIVERY_MANAGER"
       ) {
         if (MANAGER_ROLES.has(rawRole)) {
-          return NextResponse.redirect(new URL("/dashboard/shop", request.url));
+          return NextResponse.redirect(new URL("/dashboard/shop", base));
         }
-        return NextResponse.redirect(new URL("/account", request.url));
+        return NextResponse.redirect(new URL("/account", base));
       }
     }
 
     // 3. /dashboard/shop protection
     if (pathname.startsWith("/dashboard/shop")) {
       if (!hasAuthSession) {
-        return NextResponse.redirect(new URL("/login", request.url));
+        return NextResponse.redirect(new URL("/login", base));
       }
       if (
         !MANAGER_ROLES.has(rawRole) &&
@@ -166,22 +168,22 @@ export async function middleware(request: NextRequest) {
         rawRole !== "INTERNAL_ADMIN"
       ) {
         if (DELIVERY_ROLES.has(rawRole)) {
-          return NextResponse.redirect(new URL("/dashboard/delivery-partner", request.url));
+          return NextResponse.redirect(new URL("/dashboard/delivery-partner", base));
         }
-        return NextResponse.redirect(new URL("/account", request.url));
+        return NextResponse.redirect(new URL("/account", base));
       }
     }
 
     // 4. /account protection
     if (pathname === "/account" || pathname.startsWith("/account/")) {
       if (!hasAuthSession) {
-        return NextResponse.redirect(new URL("/login", request.url));
+        return NextResponse.redirect(new URL("/login", base));
       }
       if (DELIVERY_ROLES.has(rawRole)) {
-        return NextResponse.redirect(new URL("/dashboard/delivery-partner", request.url));
+        return NextResponse.redirect(new URL("/dashboard/delivery-partner", base));
       }
       if (MANAGER_ROLES.has(rawRole)) {
-        return NextResponse.redirect(new URL("/dashboard/shop", request.url));
+        return NextResponse.redirect(new URL("/dashboard/shop", base));
       }
       if (
         rawRole === "SUPER_ADMIN" ||
@@ -192,7 +194,7 @@ export async function middleware(request: NextRequest) {
         rawRole === "PLANNER" ||
         rawRole === "DELIVERY_MANAGER"
       ) {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
+        return NextResponse.redirect(new URL("/dashboard", base));
       }
     }
 
@@ -201,7 +203,7 @@ export async function middleware(request: NextRequest) {
     if (request.nextUrl.pathname.startsWith("/api/")) {
       return NextResponse.json({ success: false, error: "UNAUTHORIZED" }, { status: 401 });
     }
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/login", process.env.NEXT_PUBLIC_SITE_URL || request.url));
   }
 }
 

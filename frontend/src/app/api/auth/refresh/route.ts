@@ -24,11 +24,11 @@ export async function GET(req: NextRequest) {
   const next = safeNext(req.nextUrl.searchParams.get("next"));
   try {
     const session = await refresh(req);
-    const res = NextResponse.redirect(new URL(next, req.url));
+    const res = NextResponse.redirect(new URL(next, process.env.NEXT_PUBLIC_SITE_URL || req.url));
     setSessionCookies(res, session);
     return res;
   } catch {
-    const login = new URL("/login", req.url);
+    const login = new URL("/login", process.env.NEXT_PUBLIC_SITE_URL || req.url);
     login.searchParams.set("reason", "session_expired");
     login.searchParams.set("next", next);
     const res = NextResponse.redirect(login);
