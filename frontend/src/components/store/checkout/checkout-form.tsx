@@ -74,7 +74,10 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  const [deliveryType, setDeliveryType] = useState<"delivery" | "pickup">("delivery");
  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
  const [pickupBranches, setPickupBranches] = useState<PickupBranch[]>([]);
- const [storePickupEnabled, setStorePickupEnabled] = useState<boolean>(true);
+ // Hidden until the server confirms each option is switched on (avoids flashing disabled options).
+ const [storePickupEnabled, setStorePickupEnabled] = useState<boolean>(false);
+ const [codEnabled, setCodEnabled] = useState<boolean>(false);
+ const [testPaymentsEnabled, setTestPaymentsEnabled] = useState<boolean>(false);
  const [storePickupFee, setStorePickupFee] = useState<number>(0);
 
  // Step state: 1 = Contact & Occasion, 2 = Fulfillment & Schedule, 3 = Payment & Finalize
@@ -153,6 +156,12 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
      : ""
  );
  const [paymentMethod, setPaymentMethod] = useState<"cod" | "razorpay" | "cashfree" | "test_mode">("razorpay");
+ // A hidden payment option must never stay selected.
+ useEffect(() => {
+ if ((paymentMethod === "cod" && !codEnabled) || (paymentMethod === "test_mode" && !testPaymentsEnabled)) {
+ setPaymentMethod("razorpay");
+ }
+ }, [paymentMethod, codEnabled, testPaymentsEnabled]);
 
  // Availability, Dates, Slots & Real-time Pricing State
  const [availability, setAvailability] = useState<{
@@ -228,6 +237,12 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  if (res.store_pickup_convenience_fee !== undefined) {
  setStorePickupFee(Number(res.store_pickup_convenience_fee) || 0);
  }
+ if (res.cod_enabled !== undefined) {
+ setCodEnabled(Boolean(res.cod_enabled));
+ }
+ if (res.test_payments_enabled !== undefined) {
+ setTestPaymentsEnabled(Boolean(res.test_payments_enabled));
+ }
  if (res.branch_id) {
  setSelectedBranchId(res.branch_id);
  }
@@ -279,15 +294,18 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  .then((res) => res.json())
  .then((data) => {
  if (data && data.config) {
- if (data.config.store_pickup_enabled !== undefined) {
- setStorePickupEnabled(Boolean(data.config.store_pickup_enabled));
- if (!data.config.store_pickup_enabled && deliveryType === "pickup") {
+ const pickupOn = data.config.store_pickup_enabled !== false;
+ setStorePickupEnabled(pickupOn);
+ if (!pickupOn && deliveryType === "pickup") {
  setDeliveryType("delivery");
- }
  }
  if (data.config.store_pickup_convenience_fee !== undefined) {
  setStorePickupFee(Number(data.config.store_pickup_convenience_fee) || 0);
  }
+ setCodEnabled(data.config.cod_enabled !== false);
+ }
+ if (data && data.test_payments_enabled !== undefined) {
+ setTestPaymentsEnabled(Boolean(data.test_payments_enabled));
  }
  })
  .catch(() => {});
@@ -1642,7 +1660,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  </span>
  </div>
 
- <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+ <div className={`grid grid-cols-1 ${[true, codEnabled, testPaymentsEnabled].filter(Boolean).length === 3 ? "sm:grid-cols-3" : [true, codEnabled, testPaymentsEnabled].filter(Boolean).length === 2 ? "sm:grid-cols-2" : ""} gap-3`}>
  <button
  type="button"
  onClick={() => setPaymentMethod("razorpay")}
@@ -1666,6 +1684,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  </div>
  </button>
 
+ {codEnabled && (
  <button
  type="button"
  onClick={() => setPaymentMethod("cod")}
@@ -1688,7 +1707,9 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <p className="text-[11px] text-slate-500 mt-0.5">Pay upon delivery verification</p>
  </div>
  </button>
+ )}
 
+ {testPaymentsEnabled && (
  <button
  type="button"
  onClick={() => setPaymentMethod("test_mode")}
@@ -1711,6 +1732,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <p className="text-[11px] text-slate-500 mt-0.5">Simulate instant verified checkout</p>
  </div>
  </button>
+ )}
  </div>
  </div>
 

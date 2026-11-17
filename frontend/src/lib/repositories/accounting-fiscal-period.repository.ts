@@ -289,4 +289,43 @@ export class AccountingFiscalPeriodRepository {
 
     return res.rows[0] ?? null;
   }
+
+  /**
+   * Automatic fiscal-year rollover: if the Indian fiscal year (April–March) containing `date`
+   * has no periods yet, create its 12 monthly periods (e.g. FY2027-28: Apr-2027 .. Mar-2028).
+   *
+   * Only the current or the next fiscal year is created, so a mistyped far-future date cannot
+   * create stray years. Balances need no copying: balance-sheet accounts carry forward because
+   * they are computed from all journal lines; P&L accounts are reset into Retained Earnings by
+   * the Year-End Close.
+   *
+   * @returns true if periods were created.
+   */
+  static async ensureFiscalYearForDate(date: string, client?: PoolClient): Promise<boolean> {
+    const m = /^(\d{4})-(\d{2})-\d{2}/.exec(date);
+    if (!m) return false;
+    const year = Number(m[1]);
+    const month = Number(m[2]);
+    const fyStartYear = month >= 4 ? year : year - 1;
+
+    const nowIst = new Date(Date.now() + 5.5 * 3600 * 1000);
+    const currentFyStart = nowIst.getUTCMonth() + 1 >= 4 ? nowIst.getUTCFullYear() : nowIst.getUTCFullYear() - 1;
+    if (fyStartYear > currentFyStart + 1) return false;
+
+    const fiscalYear = `FY${fyStartYear}-${String((fyStartYear + 1) % 100).padStart(2, "0")}`;
+    const sql = `
+      WITH lock AS (SELECT pg_advisory_xact_lock(hashtext('fiscal_year_rollover::' || $1)))
+      INSERT INTO public.accounting_fiscal_period (fiscal_year, period_name, start_date, end_date, is_locked, created_at)
+      SELECT $1, to_char(mo, 'Mon-YYYY'), mo::date, (mo + interval '1 month - 1 day')::date, false, NOW()
+      FROM lock, generate_series($2::date, $2::date + interval '11 months', interval '1 month') AS mo
+      WHERE NOT EXISTS (SELECT 1 FROM public.accounting_fiscal_period WHERE fiscal_year = $1)
+        AND NOT EXISTS (
+          SELECT 1 FROM public.accounting_fiscal_period
+          WHERE start_date <= ($2::date + interval '1 year - 1 day')::date AND end_date >= $2::date
+        )
+    `;
+    const params = [fiscalYear, `${fyStartYear}-04-01`];
+    const res = client ? await client.query(sql, params) : await dbQuery(sql, params);
+    return (res.rowCount ?? 0) > 0;
+  }
 }

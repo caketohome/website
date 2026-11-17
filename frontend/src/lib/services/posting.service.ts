@@ -180,10 +180,18 @@ export class PostingService {
     client?: PoolClient,
     allowLockedForClosing: boolean = false
   ): Promise<AccountingFiscalPeriodRow> {
-    const periodStatus = await AccountingFiscalPeriodRepository.getPeriodStatusForDate(
+    let periodStatus = await AccountingFiscalPeriodRepository.getPeriodStatusForDate(
       voucherDate,
       client
     );
+
+    // Automatic fiscal-year rollover: first posting in a new FY creates that year's periods.
+    if (
+      periodStatus.status === "PERIOD_NOT_CONFIGURED" &&
+      (await AccountingFiscalPeriodRepository.ensureFiscalYearForDate(voucherDate, client))
+    ) {
+      periodStatus = await AccountingFiscalPeriodRepository.getPeriodStatusForDate(voucherDate, client);
+    }
 
     if (periodStatus.status === "PERIOD_NOT_CONFIGURED") {
       throw new PostingServiceError(

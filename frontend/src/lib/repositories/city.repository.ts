@@ -171,7 +171,8 @@ export class CityRepository {
          deleted_at = NULL, updated_at = NOW()
        WHERE "city".deleted_at IS NOT NULL
        RETURNING id, name, state, state_id, is_active, created_at, updated_at`,
-      [id, name, stateName, stateId, matchedState?.code || payload.stateCode || null, isActive]
+      // state_code holds the numeric GST state code (e.g. Kerala "32"), matching existing city rows.
+      [id, name, stateName, stateId, matchedState?.gst_state_code || matchedState?.code || payload.stateCode || null, isActive]
     );
     if (!res.rows?.length) throw new Error(`City with ID "${id}" already exists.`);
 

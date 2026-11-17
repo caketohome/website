@@ -64,6 +64,7 @@ import {
   addDaysToDateString,
   compareTimeStrings,
 } from "./fulfillment";
+import { testPaymentsAllowed, isCodEnabled } from "./fulfillment/checkout-policy";
 import { SearchEngine, CanonicalProduct, ProductTag, SearchSynonym, MerchandisingRule } from "./search/search-engine";
 import { loadSearchSettings, saveSearchSettings } from "./search/search-settings-store";
 import { parseAndNormalizeWeight, sortWeightOptions, createDefaultWeightMatrix, ProductWeightOption } from "./util/weight-matrix";
@@ -15674,24 +15675,23 @@ export class ApiEngine {
     }
 
     if (!resolvedCityName) {
-      resolvedCityName = "Bengaluru";
-      resolvedState = "Karnataka";
-      resolvedCityId = "city_bbr";
+      throw new Error("City is required. Please select the store's city.");
     }
 
     // 3. Pincode Validation
-    const cleanPin = (data.pincode || existing?.pincode || "560038").toString().trim().replace(/\D/g, "");
+    const cleanPin = (data.pincode || existing?.pincode || "").toString().trim().replace(/\D/g, "");
     if (!cleanPin || cleanPin.length !== 6 || !/^[1-9][0-9]{5}$/.test(cleanPin)) {
       throw new Error("Primary pincode must be a valid 6-digit Indian postal code.");
     }
 
     // 4. Transactional Store Manager Identity Resolution & Profile Linking
     const mgrName = (data.manager_name || data.manager_account?.name || existing?.manager_name || "Branch Manager").trim();
-    const mgrPhone = (data.manager_account?.phone || data.phone || data.manager_phone || existing?.phone || "+91 98765 00001").trim();
+    // No placeholder phone: a shared default made every store's manager collide ("Role conflict").
+    const mgrPhone = (data.manager_account?.phone || data.phone || data.manager_phone || existing?.phone || "").trim();
     const mgrEmail = (data.manager_account?.email || data.email || data.manager_email || existing?.email || `manager_${branchId}@cakes2home.com`).trim();
 
     let staffMember = null;
-    try {
+    if (mgrPhone) try {
       staffMember = StaffAccessControl.ensureBranchManagerProfile({
         name: mgrName,
         phone: mgrPhone,
@@ -17407,6 +17407,8 @@ export class ApiEngine {
       available_delivery_modes: availableDeliveryModes,
       store_pickup_enabled: isGlobalPickupEnabled,
       store_pickup_convenience_fee: pickupConvenienceFee,
+      cod_enabled: isCodEnabled(globalFulfillmentConfig),
+      test_payments_enabled: testPaymentsAllowed(),
       pricing: {
         subtotal,
         discount,

@@ -539,6 +539,28 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
 
         
 
+        {/* Section 1.5: Cash on Delivery */}
+        <Container className="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-5">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+            <h3 className="font-extrabold text-sm text-slate-900">💵 Cash on Delivery</h3>
+          </div>
+          <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200">
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-slate-800">Enable Cash on Delivery</span>
+              <span className="text-[11px] text-slate-500">When off, COD is hidden at checkout and COD orders are rejected</span>
+            </div>
+            <Switch
+              checked={config.cod_enabled ?? true}
+              onCheckedChange={(checked) =>
+                setConfig({
+                  ...config,
+                  cod_enabled: checked,
+                })
+              }
+            />
+          </div>
+        </Container>
+
         {/* Section 1.6: Store Pickup Fulfillment Configuration */}
         <Container className="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-5">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
@@ -550,7 +572,7 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
             <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200">
               <div className="flex flex-col">
                 <span className="text-xs font-bold text-slate-800">Enable Customer Store Pickup</span>
-                <span className="text-[11px] text-slate-500">Allow customers to select and collect orders directly from kitchen hubs (FREE)</span>
+                <span className="text-[11px] text-slate-500">When off, pickup is hidden at checkout and pickup orders are rejected</span>
               </div>
               <Switch
                 checked={config.store_pickup_enabled ?? true}

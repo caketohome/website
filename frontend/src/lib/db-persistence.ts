@@ -701,6 +701,21 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
         } catch {}
       }
 
+      // Operating hours, holidays and product fulfillment rules (saved as fulfillment settings)
+      for (const [key, storeKey] of [
+        ["operating_hours", "operating_hours"],
+        ["holidays", "holidays"],
+        ["product_rules", "product_fulfillment_rules"],
+      ] as const) {
+        const row = settingsRes.rows.find((s) => s.group === "fulfillment" && s.key === key);
+        if (row && row.value) {
+          try {
+            const val = typeof row.value === "string" ? JSON.parse(row.value) : row.value;
+            if (Array.isArray(val)) targetStore[storeKey] = val;
+          } catch {}
+        }
+      }
+
       // Authoritative PIM Categories Hydration
       const categoriesSetting = settingsRes.rows.find(
         (s) => (s.key === "categories" && s.group === "pim") || s.key === "pim_categories"

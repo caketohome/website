@@ -109,6 +109,18 @@ export const dynamicParams = true;
 
 const BACKEND_URL = process.env.MEDUSA_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9000";
 
+/**
+ * Staff-only guard for write endpoints that are also reachable without the admin/ prefix
+ * (middleware only protects /api/v1/admin/*). Mirrors the middleware rule: verified non-customer session.
+ */
+function denyUnlessStaff(req: NextRequest): NextResponse | null {
+  const session = resolveServerSession(req);
+  const role = (session?.role || "").toUpperCase();
+  if (!session) return NextResponse.json({ success: false, error: "UNAUTHORIZED" }, { status: 401 });
+  if (!role || role === "CUSTOMER") return NextResponse.json({ success: false, error: "FORBIDDEN" }, { status: 403 });
+  return null;
+}
+
 function resolveUserContext(req: NextRequest) {
   const session = resolveServerSession(req);
   if (!session) {
@@ -4166,6 +4178,14 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         // 5. Fiscal Periods: GET admin/accounting/fiscal-periods
         if (acctSubPath === "fiscal-periods") {
           const fiscal_year = url.searchParams.get("fiscal_year") || undefined;
+          // Automatic fiscal-year rollover: the current FY's periods exist from 1 April onward.
+          try {
+            const { AccountingFiscalPeriodRepository } = await import("@frontend/lib/repositories/accounting-fiscal-period.repository");
+            const todayIst = new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
+            await AccountingFiscalPeriodRepository.ensureFiscalYearForDate(todayIst);
+          } catch (e) {
+            console.warn("[fiscal-periods] FY rollover check failed:", (e as Error)?.message);
+          }
           const periods = await FiscalPeriodService.listFiscalPeriods({ fiscal_year });
           return jsonWithDataSource({ success: true, periods }, "postgres");
         }
@@ -5184,8 +5204,10 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "fulfillment/config" || path === "admin/fulfillment/config") {
       const store = ApiEngine.getStore();
       ensureFulfillmentStore(store);
+      const { testPaymentsAllowed } = await import("@frontend/lib/fulfillment/checkout-policy");
       return jsonWithDataSource({
         config: store.fulfillment_config,
+        test_payments_enabled: testPaymentsAllowed(),
         operating_hours: store.operating_hours || [],
         holidays: store.holidays || [],
         product_rules_count: (store.product_fulfillment_rules || []).length,
@@ -10154,6 +10176,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     if (path === "admin/fulfillment/config" || path === "fulfillment/config") {
+      const denied = denyUnlessStaff(req);
+      if (denied) return denied;
       const store = ApiEngine.getStore();
       ensureFulfillmentStore(store);
       // Merge incoming config with existing
@@ -10207,6 +10231,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     if (path === "admin/fulfillment/product-rules" || path === "fulfillment/product-rules") {
+      const denied = denyUnlessStaff(req);
+      if (denied) return denied;
       const store = ApiEngine.getStore();
       ensureFulfillmentStore(store);
       if (!body.product_id) {
@@ -10237,11 +10263,14 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         ruleObj.created_at = new Date().toISOString();
         store.product_fulfillment_rules.push(ruleObj);
       }
+      await persistSettingToDb("fulfillment", "product_rules", store.product_fulfillment_rules, false);
       ApiEngine.persist();
       return jsonWithDataSource({ rules: ruleObj, success: true }, "postgres");
     }
 
     if (path === "admin/fulfillment/operating-hours" || path === "fulfillment/operating-hours") {
+      const denied = denyUnlessStaff(req);
+      if (denied) return denied;
       const store = ApiEngine.getStore();
       ensureFulfillmentStore(store);
       if (!body.entity_type || !body.entity_id || body.day_of_week == null) {
@@ -10266,11 +10295,14 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       } else {
         store.operating_hours.push(hourObj);
       }
+      await persistSettingToDb("fulfillment", "operating_hours", store.operating_hours, true);
       ApiEngine.persist();
       return jsonWithDataSource({ operating_hours: hourObj, success: true }, "postgres");
     }
 
     if (path === "admin/fulfillment/holidays" || path === "fulfillment/holidays") {
+      const denied = denyUnlessStaff(req);
+      if (denied) return denied;
       const store = ApiEngine.getStore();
       ensureFulfillmentStore(store);
       if (!body.date || !body.name) {
@@ -10295,6 +10327,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       } else {
         store.holidays.push(holiday);
       }
+      await persistSettingToDb("fulfillment", "holidays", store.holidays, true);
       ApiEngine.persist();
       return jsonWithDataSource({ holiday, success: true }, "postgres");
     }
@@ -10361,7 +10394,22 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         }
 
         if (!branchId) {
-          branchId = "br_indiranagar";
+          return jsonWithDataSource({ success: false, error: "NO_SERVICING_STORE", message: "No store is available to fulfil this order." }, "postgres", 400);
+        }
+
+        // ── Payment method & fulfillment mode policy (COD / pickup switches, sandbox payments) ──
+        {
+          const { checkoutPolicyError } = await import("@frontend/lib/fulfillment/checkout-policy");
+          const policyStore = ApiEngine.getStore();
+          ensureFulfillmentStore(policyStore);
+          const policyErr = checkoutPolicyError({
+            paymentMethod: body.payment_method,
+            deliveryType: body.delivery_type,
+            config: policyStore.fulfillment_config,
+          });
+          if (policyErr) {
+            return jsonWithDataSource({ success: false, error: policyErr.message, code: policyErr.code }, "postgres", 400);
+          }
         }
 
         // ── Operational Closure Check (Storefront / Checkout Gate) ──
@@ -10411,7 +10459,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           delivery_latitude: body.latitude,
           delivery_longitude: body.longitude,
           payment_method: body.payment_method || "card",
-          payment_status: body.payment_status || (body.payment_method === "test_mode" ? "captured" : (body.payment_method === "cod" ? "pending" : undefined)),
+          // Never trust a client-supplied payment_status: online payments are confirmed only by gateway verification.
+          payment_status: body.payment_method === "test_mode" ? "captured" : (body.payment_method === "cod" ? "pending" : undefined),
         });
 
         if (!orderRes.success || !orderRes.order) {

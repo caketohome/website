@@ -331,6 +331,8 @@ export class BranchRepository {
     const matchedState = resolveStateInfo(rawStateName);
     const stateId = branch.state_id || matchedState?.id || "state_ka";
     const stateCode = matchedState?.code || "KA";
+    // Numeric GST state code (e.g. Kerala = "32") — must match gst_registration.state_code / GSTIN prefix.
+    const gstStateCode = matchedState?.gst_state_code || "";
     const cityId = branch.city_id || (rawCityName.toLowerCase() === "kollam" ? "city_klm" : "city_bbr");
     const pincode = (branch.pincode || "").trim();
 
@@ -355,6 +357,7 @@ export class BranchRepository {
       state: rawStateName,
       state_id: stateId,
       state_code: stateCode,
+      gst_state_code: gstStateCode,
       pincode: pincode,
       formatted_address: branch.formatted_address || branch.address || "",
       deliverable_areas: branch.deliverable_areas || [rawCityName],
@@ -367,9 +370,15 @@ export class BranchRepository {
     await dbTransaction(async (client) => {
       await client.query(
         `
-        INSERT INTO "branch" (id, name, code, phone, email, address, city_id, latitude, longitude, is_open, shop_id, metadata, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+        INSERT INTO "branch" (id, name, code, phone, email, address, city_id, latitude, longitude, is_open, shop_id, metadata,
+                              company_id, gst_registration_id, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+                (SELECT id FROM public.company WHERE is_active = true ORDER BY created_at ASC LIMIT 1),
+                (SELECT id FROM public.gst_registration WHERE is_active = true AND state_code = $13 ORDER BY created_at ASC LIMIT 1),
+                NOW(), NOW())
         ON CONFLICT (id) DO UPDATE SET
+          company_id = COALESCE("branch".company_id, EXCLUDED.company_id),
+          gst_registration_id = COALESCE(EXCLUDED.gst_registration_id, "branch".gst_registration_id),
           name = EXCLUDED.name,
           code = EXCLUDED.code,
           phone = EXCLUDED.phone,
@@ -387,8 +396,8 @@ export class BranchRepository {
           id,
           branch.name || "Bakery Branch",
           branch.code || id,
-          branch.phone || "+91 98765 43210",
-          branch.email || "store@caketohome.com",
+          branch.phone || null,
+          branch.email || null,
           branch.address || "Bakery Hub",
           cityId,
           lat,
@@ -396,6 +405,7 @@ export class BranchRepository {
           branch.is_open !== false,
           shopId,
           JSON.stringify(metadata),
+          gstStateCode,
         ]
       );
 

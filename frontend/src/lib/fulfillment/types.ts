@@ -284,6 +284,8 @@ export interface GlobalFulfillmentConfig {
   max_slots_per_window?: number;         // Default max capacity per slot
   late_night_delivery?: LateNightDeliveryConfig;
   express_delivery?: ExpressDeliveryConfig;
+  // Cash on Delivery (hidden at checkout and rejected server-side when false)
+  cod_enabled?: boolean;
   // Store Pickup Configuration
   store_pickup_enabled?: boolean;
   store_pickup_lead_time_minutes?: number;
@@ -316,6 +318,7 @@ export const DEFAULT_GLOBAL_FULFILLMENT_CONFIG: GlobalFulfillmentConfig = {
   max_slots_per_window: 10,
   late_night_delivery: { ...DEFAULT_LATE_NIGHT_CONFIG },
   express_delivery: { ...DEFAULT_EXPRESS_CONFIG },
+  cod_enabled: true,
   store_pickup_enabled: true,
   store_pickup_lead_time_minutes: 30,
   store_pickup_convenience_fee: 0,

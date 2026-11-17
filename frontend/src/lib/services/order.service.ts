@@ -566,7 +566,8 @@ export class OrderService {
 
         // Step B: Persist order and relational order lines atomically with all first-class schema columns
         // Authoritative seller identity lookup from public.gst_registration
-        const branchState = (branch as any).metadata?.state_code || "29";
+        // GST numeric state code (matches gst_registration.state_code); older branches only stored letter codes.
+        const branchState = (branch as any).metadata?.gst_state_code || (branch as any).metadata?.state_code || "";
         const gstRes = await client.query(
           `SELECT gstin, legal_name FROM public.gst_registration WHERE is_active = true AND state_code = $1 LIMIT 1`,
           [branchState]
