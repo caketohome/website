@@ -6,6 +6,7 @@
  */
 
 import { dbQuery, dbTransaction } from "./db";
+import { externalizeInlineImages } from "./repositories/cms.repository";
 
 // Default Shop ID in Medusa
 const DEFAULT_SHOP_ID = "res_01KXYMAHGFPRY1G9TZKEVGAGAT";
@@ -1649,7 +1650,7 @@ export async function persistCmsPageToDb(page: any): Promise<void> {
       page.meta_description || "",
       page.canonical_url || "",
       page.og_image || "",
-      JSON.stringify(blockData),
+      JSON.stringify(await externalizeInlineImages(blockData)),
       page.published_at ? new Date(page.published_at) : null,
     ]
   );

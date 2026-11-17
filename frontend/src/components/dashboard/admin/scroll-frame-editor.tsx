@@ -206,6 +206,26 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
     });
   };
 
+  const uploadFrame = async (
+    compressed: { dataUrl: string; compressedSize: number; width: number; height: number },
+    filename: string
+  ): Promise<string> => {
+    const res: any = await apiClient.uploadMedia({
+      filename,
+      dataUrl: compressed.dataUrl,
+      mime_type: "image/webp",
+      size: compressed.compressedSize,
+      width: compressed.width,
+      height: compressed.height,
+      folder: `kitchen_story_${activeDevice}`,
+    });
+    const url = res?.url || res?.media?.url;
+    if (!url || String(url).startsWith("data:")) {
+      throw new Error(res?.error || "Frame upload to media storage failed. Please try again.");
+    }
+    return url;
+  };
+
   // ── 1. Batch Upload & Compression Pipeline ────────────────────────────────
   const handleFilesSelected = async (files: FileList | File[]) => {
     setErrorMessage(null);
@@ -246,23 +266,9 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
         origTotal += compressed.originalSize;
         compTotal += compressed.compressedSize;
 
-        // Persist to server media endpoint if available
-        let storageUrl = compressed.dataUrl;
-        try {
-          const uploadRes = await apiClient.createAdminMedia({
-            filename: `${activeDevice}_frame_${Date.now()}_${i + 1}.webp`,
-            dataUrl: compressed.dataUrl,
-            size: compressed.compressedSize,
-            width: compressed.width,
-            height: compressed.height,
-            folder: `kitchen_story_${activeDevice}`,
-          });
-          if (uploadRes?.url || uploadRes?.media?.url) {
-            storageUrl = uploadRes.url || uploadRes.media.url;
-          }
-        } catch {
-          // Fallback to optimized data URL
-        }
+        // Upload to media storage (S3). Never embed base64 frames in the page record —
+        // that bloats cms_page by megabytes and stalls the database on every page view.
+        const storageUrl = await uploadFrame(compressed, `${activeDevice}_frame_${Date.now()}_${i + 1}.webp`);
 
         const seq = currentFrameCount + i + 1;
         newFrames.push({
@@ -326,22 +332,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
       const qualityPreset = currentDeviceConfig.compression_quality || "balanced";
       const compressed = await compressImageToWebp(file, activeDevice, qualityPreset);
 
-      let storageUrl = compressed.dataUrl;
-      try {
-        const uploadRes = await apiClient.createAdminMedia({
-          filename: `${activeDevice}_replaced_${Date.now()}.webp`,
-          dataUrl: compressed.dataUrl,
-          size: compressed.compressedSize,
-          width: compressed.width,
-          height: compressed.height,
-          folder: `kitchen_story_${activeDevice}`,
-        });
-        if (uploadRes?.url || uploadRes?.media?.url) {
-          storageUrl = uploadRes.url || uploadRes.media.url;
-        }
-      } catch {
-        // Fallback to dataUrl
-      }
+      const storageUrl = await uploadFrame(compressed, `${activeDevice}_replaced_${Date.now()}.webp`);
 
       const targetIdx = frames.findIndex((f) => f.id === frameId);
       if (targetIdx >= 0) {

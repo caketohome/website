@@ -871,7 +871,6 @@ export function ScrollFrameAnimation({
           backgroundPosition: "center",
         }}
       >
-        <div className="absolute inset-0 bg-brand-warm-white/80" />
         <div className="relative z-10 p-6 sm:p-12 max-w-3xl flex flex-col items-center text-center gap-4">
           {badgeText && (
             <span
@@ -959,9 +958,6 @@ export function ScrollFrameAnimation({
           ref={canvasRef}
           className="scroll-frame-canvas absolute inset-0 h-full w-full object-cover pointer-events-none"
         />
-
-        {/* Ambient Gradient Overlays for High Contrast Readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-warm-white via-brand-warm-white/40 to-brand-warm-white/75 pointer-events-none" />
 
         {/* Progress Bar (Sticky bottom indicator) */}
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-brand-navy/10 z-20 pointer-events-none">

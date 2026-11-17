@@ -1,5 +1,41 @@
+import { createHash } from "crypto";
 import { dbQuery } from "../db";
 import { CmsPageDomain } from "../types/domain";
+import { putMediaObject } from "../media/media-storage";
+
+const DATA_IMAGE_RE = /^data:(image\/(?:webp|png|jpe?g|avif|gif));base64,([A-Za-z0-9+/=\s]+)$/;
+
+/**
+ * Inline base64 images (e.g. scroll-animation frames) bloat cms_page.blocks into megabytes and are
+ * duplicated into published_config + version_history, which stalls the DB on every page view.
+ * Move them to media storage (content-hashed, so duplicates upload once) and keep only the URL.
+ */
+export async function externalizeInlineImages(value: any, cache: Map<string, string> = new Map()): Promise<any> {
+  if (typeof value === "string") {
+    if (value.length < 2048 || !value.startsWith("data:image/")) return value;
+    const m = value.match(DATA_IMAGE_RE);
+    if (!m) return value;
+    const hash = createHash("sha256").update(m[2]).digest("hex").slice(0, 32);
+    let url = cache.get(hash);
+    if (!url) {
+      const ext = m[1].split("/")[1].replace("jpeg", "jpg");
+      url = await putMediaObject("cms", `${hash}.${ext}`, Buffer.from(m[2], "base64"), m[1]);
+      cache.set(hash, url);
+    }
+    return url;
+  }
+  if (Array.isArray(value)) {
+    const out = [];
+    for (const v of value) out.push(await externalizeInlineImages(v, cache));
+    return out;
+  }
+  if (value && typeof value === "object") {
+    const out: any = {};
+    for (const [k, v] of Object.entries(value)) out[k] = await externalizeInlineImages(v, cache);
+    return out;
+  }
+  return value;
+}
 
 export class CmsRepository {
   /**
@@ -181,7 +217,7 @@ export class CmsRepository {
       draftConfig.pdp = incomingPdpConfig;
     }
 
-    const blocks: any = {
+    const rawBlocks: any = {
       subheading: page.subheading || "",
       h1: page.h1 || "",
       intro_content: page.intro_content || "",
@@ -216,6 +252,7 @@ export class CmsRepository {
         : ((page as any).published_config || null),
       version_history: Array.isArray(page.version_history) ? page.version_history.slice(-10) : [],
     };
+    const blocks = await externalizeInlineImages(rawBlocks, new Map());
 
     const res = await dbQuery(
       `
