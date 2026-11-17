@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Tag, Copy, Check, ArrowRight, X, Sparkles } from "lucide-react";
+import { Tag, Copy, Check, ArrowRight, X } from "lucide-react";
 import { copyText } from "@/lib/util/clipboard";
 
 export interface AnnouncementBarConfig {
@@ -175,8 +175,8 @@ export function AnnouncementBarSection({
   const icon = config.icon || "";
   const badgeText = config.badge_text;
   const showBadge = config.badge_visible !== false && !!badgeText;
-  const badgeBg = config.badge_bg || "rgba(217, 119, 6, 0.25)";
-  const badgeTextColor = config.badge_text_color || "#FDE68A";
+  const badgeBg = config.badge_bg || "transparent";
+  const badgeTextColor = config.badge_text_color || "#F5E8CC";
 
   // ── Action ──
   const actionEnabled = config.action_enabled !== false;
@@ -191,26 +191,26 @@ export function AnnouncementBarSection({
   const couponCode = config.coupon_code || "";
   const copyBtnText = config.copy_button_text || "Copy Code";
   const copySuccessText = config.copy_success_text || "Copied!";
-  const couponBg = config.coupon_bg || "rgba(255, 255, 255, 0.15)";
-  const couponTextColor = config.coupon_text_color || "#FDE68A";
-  const couponBorderColor = config.coupon_border_color || "rgba(245, 158, 11, 0.4)";
+  const couponBg = config.coupon_bg || "rgba(255, 255, 255, 0.06)";
+  const couponTextColor = config.coupon_text_color || "#FFFFFF";
+  const couponBorderColor = config.coupon_border_color || "rgba(245, 232, 204, 0.45)";
   const couponRadius = config.coupon_border_radius ?? 8;
 
   const ctaText = config.cta_text || "";
   const ctaUrl = config.cta_url || "/products";
   const ctaTarget = config.cta_target || "_self";
-  const ctaBgColor = config.cta_bg_color || "#D97706";
-  const ctaTextColor = config.cta_text_color || "#0F172A";
-  const ctaHoverBg = config.cta_hover_bg || "#B45309";
+  const ctaBgColor = config.cta_bg_color || "transparent";
+  const ctaTextColor = config.cta_text_color || "#F5E8CC";
+  const ctaHoverBg = config.cta_hover_bg || "transparent";
   const ctaHoverText = config.cta_hover_text || "#FFFFFF";
   const ctaBorderColor = config.cta_border_color || "transparent";
   const ctaRadius = config.cta_border_radius ?? 8;
 
   // ── Background ──
-  const bgMode = config.bg_mode || (config.gradient_start ? "gradient" : "solid");
-  const bgColor = config.bg_color || "#0F172A";
-  const gradientStart = config.gradient_start || "#0F172A";
-  const gradientEnd = config.gradient_end || "#1E293B";
+  const bgMode = config.bg_mode || "solid"; // solid brand navy unless the CMS asks for a gradient
+  const bgColor = config.bg_color || "#1D2F5D";
+  const gradientStart = config.gradient_start || "#1D2F5D";
+  const gradientEnd = config.gradient_end || "#152347";
   const gradientDirection = config.gradient_direction || "90deg";
   const effectiveBg = bgMode === "gradient"
     ? `linear-gradient(${gradientDirection}, ${gradientStart}, ${gradientEnd})`
@@ -218,7 +218,7 @@ export function AnnouncementBarSection({
 
   // ── Typography ──
   const textColor = config.text_color || "#FFFFFF";
-  const fontWeight = config.font_weight || "700";
+  const fontWeight = config.font_weight || "500";
   const letterSpacing = config.letter_spacing || "normal";
 
   // ── Dimensions ──
@@ -235,7 +235,7 @@ export function AnnouncementBarSection({
   const mbHeight = config.height_mode === "custom" ? (typeof config.mobile_height === "number" ? `${config.mobile_height}px` : config.mobile_height || "auto") : "auto";
 
   const padX = config.padding_x ?? 24;
-  const padY = config.padding_y ?? 10;
+  const padY = config.padding_y ?? 8;
 
   // ── Marquee config ──
   const scrollSpeed = config.scroll_speed || "normal";
@@ -266,7 +266,7 @@ export function AnnouncementBarSection({
         type="button"
         onClick={handleCopy}
         aria-label={`Copy coupon code ${couponCode}`}
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-black transition-all cursor-pointer group active:scale-95 shadow-sm shrink-0 border"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer group shrink-0 border border-dashed hover:bg-white/10"
         style={{
           backgroundColor: couponBg,
           color: couponTextColor,
@@ -278,12 +278,12 @@ export function AnnouncementBarSection({
         <Tag className="w-3 h-3 group-hover:rotate-12 transition-transform" />
         <span className="font-mono tracking-wider">{couponCode}</span>
         {copied ? (
-          <span className="inline-flex items-center gap-1 text-emerald-700 font-extrabold ml-0.5">
+          <span className="inline-flex items-center gap-1 text-[#9BE3B8] font-semibold ml-0.5">
             <Check className="w-3.5 h-3.5" />
             <span>{copySuccessText}</span>
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 font-bold opacity-80 group-hover:opacity-100 ml-0.5">
+          <span className="inline-flex items-center gap-1 font-medium opacity-70 group-hover:opacity-100 ml-0.5">
             <Copy className="w-3 h-3" />
             <span>{copyBtnText}</span>
           </span>
@@ -295,7 +295,7 @@ export function AnnouncementBarSection({
   // ── Render CTA Link (shared between open_link and copy_and_link modes) ──
   const renderCtaLink = () => {
     if (!ctaText) return null;
-    const classes = `${ctaBtnClass} inline-flex items-center gap-1.5 px-3 py-1 text-xs font-extrabold transition-all shadow-sm active:scale-95 border`;
+    const classes = `${ctaBtnClass} inline-flex items-center gap-1 px-1 py-1 text-xs font-semibold underline underline-offset-4 decoration-[#C28A2C] transition-colors border`;
     const styles = {
       backgroundColor: ctaBgColor,
       color: ctaTextColor,
@@ -375,11 +375,11 @@ export function AnnouncementBarSection({
     // Static mode
     return (
       <div
-        className="flex items-center gap-1.5 font-bold tracking-tight leading-snug truncate max-w-full"
+        className="flex items-center gap-1.5 tracking-tight leading-snug max-w-full sm:truncate"
         style={{ color: textColor, fontWeight, letterSpacing }}
       >
         {icon && <span className="shrink-0 text-sm sm:text-base">{icon}</span>}
-        <span className="truncate">{messageText || (isPreview ? "(No announcement text configured)" : "")}</span>
+        <span className="sm:truncate">{messageText || (isPreview ? "(No announcement text configured)" : "")}</span>
       </div>
     );
   };
@@ -391,8 +391,8 @@ export function AnnouncementBarSection({
       className={`cth-announcement-bar w-full max-w-none m-0 rounded-none overflow-hidden transition-all relative ${
         isSticky ? "sticky top-0 z-40" : "relative"
       } ${
-        isSelected ? "ring-2 ring-[#D4AF37]/50 ring-offset-2 cursor-pointer" : ""
-      } ${isPreview ? "hover:outline-dashed hover:outline-2 hover:outline-[#D4AF37]/50" : ""}`}
+        isSelected ? "ring-2 ring-brand-gold/50 ring-offset-2 cursor-pointer" : ""
+      } ${isPreview ? "hover:outline-dashed hover:outline-2 hover:outline-brand-gold/50" : ""}`}
       style={{
         width: "100%",
         maxWidth: "none",
@@ -461,10 +461,9 @@ export function AnnouncementBarSection({
           {/* Optional Badge */}
           {showBadge && (
             <span
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider shrink-0 shadow-xs"
+              className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.14em] shrink-0 border border-[#C28A2C]/60"
               style={{ backgroundColor: badgeBg, color: badgeTextColor }}
             >
-              <Sparkles className="w-2.5 h-2.5" />
               <span>{badgeText}</span>
             </span>
           )}

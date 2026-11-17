@@ -185,15 +185,15 @@ export function FssaiComplianceTab({
           <p className="text-[11px] text-emerald-600/70 mt-0.5">100% compliant</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-amber-200/70 dark:border-amber-900/40 rounded-2xl p-4 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 border border-brand-gold/70 dark:border-brand-gold-dark/40 rounded-2xl p-4 shadow-xs">
           <div className="flex items-center justify-between">
-            <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">Expiring Soon (≤90d)</p>
-            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <p className="text-xs text-brand-gold-dark dark:text-brand-gold font-medium">Expiring Soon (≤90d)</p>
+            <AlertTriangle className="w-4 h-4 text-brand-gold" />
           </div>
-          <div className="text-2xl font-extrabold text-amber-700 dark:text-amber-300 mt-1">
+          <div className="text-2xl font-extrabold text-brand-gold-dark dark:text-brand-gold/40 mt-1">
             {overview?.expiringSoon ?? complianceList.filter((c) => c.status?.includes("EXPIRING")).length}
           </div>
-          <p className="text-[11px] text-amber-600/70 mt-0.5">Requires renewal</p>
+          <p className="text-[11px] text-brand-gold/70 mt-0.5">Requires renewal</p>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-rose-200/70 dark:border-rose-900/40 rounded-2xl p-4 shadow-xs">
@@ -217,14 +217,14 @@ export function FssaiComplianceTab({
               className={`p-3.5 rounded-xl border flex items-start justify-between gap-3 ${
                 alert.severity === "critical"
                   ? "bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-900 text-rose-900 dark:text-rose-200"
-                  : "bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-900 text-amber-900 dark:text-amber-200"
+                  : "bg-brand-gold-light dark:bg-brand-gold-dark/50 border-brand-gold/40 dark:border-brand-gold-dark text-brand-gold-dark dark:text-brand-gold/40"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 {alert.severity === "critical" ? (
                   <AlertOctagon className="w-4 h-4 text-rose-600 shrink-0" />
                 ) : (
-                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <AlertTriangle className="w-4 h-4 text-brand-gold shrink-0" />
                 )}
                 <span className="text-xs font-semibold">{alert.message}</span>
               </div>
@@ -240,14 +240,14 @@ export function FssaiComplianceTab({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-amber-600" />
+            <ShieldAlert className="w-5 h-5 text-brand-gold" />
             <Heading level="h3" className="text-base font-bold">FSSAI Food Safety Licenses (Branch-Level)</Heading>
           </div>
           <Text className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Every food-producing bakery and fulfillment kitchen must possess a valid 14-digit FoSCoS license displayed on customer invoices.
           </Text>
         </div>
-        <Button onClick={openCreateModal} className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1.5 shrink-0">
+        <Button onClick={openCreateModal} className="bg-brand-gold hover:bg-brand-gold-dark text-white flex items-center gap-1.5 shrink-0">
           <Plus className="w-4 h-4" /> Add FSSAI License
         </Button>
       </div>
@@ -297,7 +297,7 @@ export function FssaiComplianceTab({
                         </div>
                       </td>
                       <td className="px-5 py-4">
-                        <div className="font-mono font-bold text-amber-700 dark:text-amber-400 text-sm">
+                        <div className="font-mono font-bold text-brand-gold-dark dark:text-brand-gold text-sm">
                           {comp.fssai_number}
                         </div>
                         <div className="text-xs text-slate-400 truncate max-w-xs">
@@ -314,7 +314,7 @@ export function FssaiComplianceTab({
                           {comp.expiry_date || "N/A"}
                         </div>
                         {daysLeft !== null && (
-                          <div className={`text-[11px] font-medium ${daysLeft <= 0 ? "text-rose-600 font-bold" : daysLeft <= 30 ? "text-amber-600 font-bold" : "text-slate-400"}`}>
+                          <div className={`text-[11px] font-medium ${daysLeft <= 0 ? "text-rose-600 font-bold" : daysLeft <= 30 ? "text-brand-gold font-bold" : "text-slate-400"}`}>
                             {daysLeft <= 0 ? "Expired" : `${daysLeft} days left`}
                           </div>
                         )}
@@ -330,8 +330,8 @@ export function FssaiComplianceTab({
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified
                           </div>
                         ) : (
-                          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                            <AlertTriangle className="w-3 h-3 text-amber-600" /> {comp.verification_status || "UNVERIFIED"}
+                          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40 border border-brand-gold/40 dark:border-brand-gold-dark">
+                            <AlertTriangle className="w-3 h-3 text-brand-gold" /> {comp.verification_status || "UNVERIFIED"}
                           </div>
                         )}
                       </td>
@@ -371,7 +371,7 @@ export function FssaiComplianceTab({
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl p-6 flex flex-col gap-4 animate-in fade-in-50 zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-amber-600" />
+                <ShieldAlert className="w-5 h-5 text-brand-gold" />
                 <h3 className="font-bold text-base text-slate-900 dark:text-white">
                   {editingComp ? "Edit FSSAI Food License" : "Add Branch FSSAI License"}
                 </h3>
@@ -514,7 +514,7 @@ export function FssaiComplianceTab({
                 <Button type="button" variant="secondary" onClick={() => setModalOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" isLoading={saving} className="bg-amber-600 hover:bg-amber-700 text-white">
+                <Button type="submit" isLoading={saving} className="bg-brand-gold hover:bg-brand-gold-dark text-white">
                   {editingComp ? "Save Changes" : "Save FSSAI Record"}
                 </Button>
               </div>

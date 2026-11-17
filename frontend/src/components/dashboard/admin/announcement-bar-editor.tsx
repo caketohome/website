@@ -119,16 +119,16 @@ const BRAND_PRESETS = [
     desc: "Luxury deep obsidian with honey gold accents & champagne badge",
     config: {
       bg_mode: "solid" as const,
-      bg_color: "#0F172A",
+      bg_color: "#172033",
       text_color: "#FFFFFF",
       accent_color: "#F59E0B",
       badge_bg: "rgba(217, 119, 6, 0.25)",
-      badge_text_color: "#FDE68A",
+      badge_text_color: "#F5E8CC",
       coupon_bg: "rgba(255, 255, 255, 0.15)",
-      coupon_text_color: "#FDE68A",
+      coupon_text_color: "#F5E8CC",
       coupon_border_color: "rgba(245, 158, 11, 0.4)",
       cta_bg_color: "#D97706",
-      cta_text_color: "#0F172A",
+      cta_text_color: "#172033",
       cta_hover_bg: "#B45309",
       cta_hover_text: "#FFFFFF",
     },
@@ -143,9 +143,9 @@ const BRAND_PRESETS = [
       gradient_end: "#4C0519",
       gradient_direction: "90deg",
       text_color: "#FFFBEB",
-      accent_color: "#FDE68A",
+      accent_color: "#F5E8CC",
       badge_bg: "rgba(245, 158, 11, 0.3)",
-      badge_text_color: "#FDE68A",
+      badge_text_color: "#F5E8CC",
       coupon_bg: "#FFFFFF",
       coupon_text_color: "#881337",
       coupon_border_color: "rgba(255, 255, 255, 0.5)",
@@ -167,12 +167,12 @@ const BRAND_PRESETS = [
       badge_bg: "rgba(217, 119, 6, 0.15)",
       badge_text_color: "#B45309",
       coupon_bg: "#FFFFFF",
-      coupon_text_color: "#0F172A",
-      coupon_border_color: "#E2E8F0",
-      cta_bg_color: "#0F172A",
+      coupon_text_color: "#172033",
+      coupon_border_color: "#E5E7EB",
+      cta_bg_color: "#172033",
       cta_text_color: "#FFFFFF",
       cta_hover_bg: "#1E293B",
-      cta_hover_text: "#FDE68A",
+      cta_hover_text: "#F5E8CC",
     },
   },
   {
@@ -183,13 +183,13 @@ const BRAND_PRESETS = [
       bg_mode: "solid" as const,
       bg_color: "#064E3B",
       text_color: "#ECFDF5",
-      accent_color: "#FDE68A",
+      accent_color: "#F5E8CC",
       badge_bg: "rgba(253, 230, 138, 0.2)",
-      badge_text_color: "#FDE68A",
+      badge_text_color: "#F5E8CC",
       coupon_bg: "rgba(255, 255, 255, 0.15)",
-      coupon_text_color: "#FDE68A",
+      coupon_text_color: "#F5E8CC",
       coupon_border_color: "rgba(253, 230, 138, 0.3)",
-      cta_bg_color: "#FDE68A",
+      cta_bg_color: "#F5E8CC",
       cta_text_color: "#064E3B",
       cta_hover_bg: "#FCD34D",
       cta_hover_text: "#064E3B",
@@ -292,7 +292,7 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
   return (
     <div className="flex flex-col gap-3">
       {/* HEADER */}
-      <div className="p-3 bg-gradient-to-r from-rose-500/10 via-amber-500/10 to-orange-500/10 rounded-xl border border-rose-200/50 dark:border-rose-900/30 flex items-center justify-between">
+      <div className="p-3 bg-gradient-to-r from-rose-500/10 via-brand-gold/10 to-brand-gold/10 rounded-xl border border-rose-200/50 dark:border-rose-900/30 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Megaphone className="w-4 h-4 text-rose-600" />
           <div>
@@ -394,9 +394,9 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
       {activeTab === "content" && (
         <div className="flex flex-col gap-3">
           {/* Synchronize with Marketing Offers */}
-          <div className="p-3 bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-orange-500/10 rounded-xl border border-amber-200/60 dark:border-amber-900/40 flex flex-col gap-2">
+          <div className="p-3 bg-gradient-to-r from-brand-gold/10 via-rose-500/10 to-brand-gold/10 rounded-xl border border-brand-gold/60 dark:border-brand-gold-dark/40 flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-amber-400">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-brand-gold-dark dark:text-brand-gold">
                 <Database className="w-3.5 h-3.5" />
                 <span>Link to Marketing Offer (PostgreSQL)</span>
               </div>
@@ -429,10 +429,10 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
                   </Select.Content>
                 </Select>
                 {linkedOffer && (
-                  <div className="p-2 rounded-lg bg-ui-bg-base border border-amber-300/50 dark:border-amber-900/50 flex flex-col gap-1 text-[11px]">
+                  <div className="p-2 rounded-lg bg-ui-bg-base border border-brand-gold/50 dark:border-brand-gold-dark/50 flex flex-col gap-1 text-[11px]">
                     <div className="flex items-center justify-between font-bold text-ui-fg-base">
                       <span>{linkedOffer.name}</span>
-                      <span className="font-mono text-amber-700 dark:text-amber-400 font-black">{linkedOffer.code}</span>
+                      <span className="font-mono text-brand-gold-dark dark:text-brand-gold font-black">{linkedOffer.code}</span>
                     </div>
                     <div className="flex items-center gap-3 text-ui-fg-muted">
                       <span>Min Order: ₹{linkedOffer.min_order_value || 0}</span>
@@ -532,7 +532,7 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
                       <Input value={config.copy_success_text || "Copied!"} onChange={(e) => updateProp("copy_success_text", e.target.value)} />
                     </Field>
                     <ColorInput label="Pill BG" value={config.coupon_bg} onChange={(v) => updateProp("coupon_bg", v)} fallback="rgba(255,255,255,0.15)" />
-                    <ColorInput label="Pill Text" value={config.coupon_text_color} onChange={(v) => updateProp("coupon_text_color", v)} fallback="#FDE68A" />
+                    <ColorInput label="Pill Text" value={config.coupon_text_color} onChange={(v) => updateProp("coupon_text_color", v)} fallback="#F5E8CC" />
                   </div>
                 </div>
               )}
@@ -540,7 +540,7 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
               {/* Link CTA Fields */}
               {(actionType === "open_link" || actionType === "copy_and_link") && (
                 <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
-                  <Text className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase flex items-center gap-1">
+                  <Text className="text-xs font-bold text-brand-gold-dark dark:text-brand-gold uppercase flex items-center gap-1">
                     <ExternalLink className="w-3.5 h-3.5" /> Link Configuration
                   </Text>
                   <div className="grid grid-cols-2 gap-2">
@@ -553,7 +553,7 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <ColorInput label="CTA BG" value={config.cta_bg_color} onChange={(v) => updateProp("cta_bg_color", v)} fallback="#D97706" />
-                    <ColorInput label="CTA Text" value={config.cta_text_color} onChange={(v) => updateProp("cta_text_color", v)} fallback="#0F172A" />
+                    <ColorInput label="CTA Text" value={config.cta_text_color} onChange={(v) => updateProp("cta_text_color", v)} fallback="#172033" />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <ColorInput label="CTA Hover BG" value={config.cta_hover_bg} onChange={(v) => updateProp("cta_hover_bg", v)} fallback="#B45309" />
@@ -635,8 +635,8 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
       {activeTab === "design" && (
         <div className="flex flex-col gap-3">
           {/* Brand Presets */}
-          <div className="flex flex-col gap-2 p-3 bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-orange-500/10 rounded-xl border border-amber-200/60 dark:border-amber-900/40">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-amber-400">
+          <div className="flex flex-col gap-2 p-3 bg-gradient-to-r from-brand-gold/10 via-rose-500/10 to-brand-gold/10 rounded-xl border border-brand-gold/60 dark:border-brand-gold-dark/40">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-brand-gold-dark dark:text-brand-gold">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Brand Theme Presets</span>
             </div>
@@ -649,7 +649,7 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
                   key={preset.id}
                   type="button"
                   onClick={() => onChange({ ...config, ...preset.config })}
-                  className="p-2 rounded-lg border border-ui-border-base bg-ui-bg-base hover:border-amber-500 text-left transition-all active:scale-98 cursor-pointer flex flex-col gap-1 shadow-xs"
+                  className="p-2 rounded-lg border border-ui-border-base bg-ui-bg-base hover:border-brand-gold text-left transition-all active:scale-98 cursor-pointer flex flex-col gap-1 shadow-xs"
                 >
                   <div className="flex items-center gap-1.5">
                     <div
@@ -681,7 +681,7 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
           {config.bg_mode === "gradient" ? (
             <div className="flex flex-col gap-2 p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base">
               <div className="grid grid-cols-2 gap-2">
-                <ColorInput label="Gradient Start" value={config.gradient_start} onChange={(v) => updateProp("gradient_start", v)} fallback="#0F172A" />
+                <ColorInput label="Gradient Start" value={config.gradient_start} onChange={(v) => updateProp("gradient_start", v)} fallback="#172033" />
                 <ColorInput label="Gradient End" value={config.gradient_end} onChange={(v) => updateProp("gradient_end", v)} fallback="#1E293B" />
               </div>
               <Field label="Direction">
@@ -697,7 +697,7 @@ export function AnnouncementBarEditor({ config, onChange }: AnnouncementBarEdito
               </Field>
             </div>
           ) : (
-            <ColorInput label="Background Color" value={config.bg_color} onChange={(v) => updateProp("bg_color", v)} fallback="#0F172A" />
+            <ColorInput label="Background Color" value={config.bg_color} onChange={(v) => updateProp("bg_color", v)} fallback="#172033" />
           )}
 
           <div className="grid grid-cols-2 gap-2">

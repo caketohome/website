@@ -375,7 +375,7 @@ export function AccessoriesManagementPanel() {
                             <AlertTriangle className="w-3 h-3" /> OUT OF STOCK (0)
                           </span>
                         ) : isLow ? (
-                          <span className="px-2 py-0.5 rounded font-bold text-[10px] bg-amber-100 text-amber-800 flex items-center gap-1 w-fit">
+                          <span className="px-2 py-0.5 rounded font-bold text-[10px] bg-brand-gold-light text-brand-gold-dark flex items-center gap-1 w-fit">
                             <AlertTriangle className="w-3 h-3" /> LOW STOCK ({stockNum})
                           </span>
                         ) : (

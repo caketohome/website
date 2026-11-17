@@ -259,21 +259,21 @@ export function CorporateRoutingReviewPanel() {
   const getReasonBadge = (reasonCode: CorporateRoutingReasonCode | string) => {
     switch (reasonCode) {
       case "COORDINATES_MISSING":
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800">Coordinates Missing</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-brand-gold-light text-brand-gold-dark">Coordinates Missing</span>;
       case "COORDINATES_INVALID":
         return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800">Coordinates Invalid</span>;
       case "INSIDE_EXCLUSION":
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-800">Inside Exclusion Zone</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-brand-light text-brand-navy">Inside Exclusion Zone</span>;
       case "OUTSIDE_COVERAGE":
         return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">Outside Coverage</span>;
       case "STORE_NOT_ELIGIBLE":
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-orange-100 text-orange-800">Store Not Eligible</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-brand-gold-light text-brand-gold-dark">Store Not Eligible</span>;
       case "NO_ELIGIBLE_PARTNER":
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-yellow-100 text-yellow-800">No Active Partner</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-brand-gold-light text-brand-gold-dark">No Active Partner</span>;
       case "PENDING_REVIEW":
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-indigo-100 text-indigo-800">Pending Review</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-brand-light text-brand-navy">Pending Review</span>;
       case "MANUAL_OVERRIDE":
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-teal-100 text-teal-800">Manual Override</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-brand-light text-brand-navy">Manual Override</span>;
       default:
         return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-800">{reasonCode}</span>;
     }
@@ -285,7 +285,7 @@ export function CorporateRoutingReviewPanel() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            <span className="p-2 rounded-xl bg-brand-gold/10 text-brand-gold dark:text-brand-gold">
               <Compass className="w-6 h-6" />
             </span>
             <h1 className="text-xl font-bold text-slate-900 dark:text-white">
@@ -329,9 +329,9 @@ export function CorporateRoutingReviewPanel() {
           <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Unresolved</div>
           <div className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{totalCount}</div>
         </div>
-        <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900/50">
-          <div className="text-xs font-semibold text-amber-600 dark:text-amber-400">Missing Coords</div>
-          <div className="mt-1 text-2xl font-bold text-amber-700 dark:text-amber-300">
+        <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-brand-gold/40 dark:border-brand-gold-dark/50">
+          <div className="text-xs font-semibold text-brand-gold dark:text-brand-gold">Missing Coords</div>
+          <div className="mt-1 text-2xl font-bold text-brand-gold-dark dark:text-brand-gold/40">
             {reasonCounts["COORDINATES_MISSING"] || 0}
           </div>
         </div>
@@ -341,9 +341,9 @@ export function CorporateRoutingReviewPanel() {
             {reasonCounts["COORDINATES_INVALID"] || 0}
           </div>
         </div>
-        <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-900/50">
-          <div className="text-xs font-semibold text-purple-600 dark:text-purple-400">In Exclusion</div>
-          <div className="mt-1 text-2xl font-bold text-purple-700 dark:text-purple-300">
+        <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-brand-primary/30 dark:border-brand-navy/50">
+          <div className="text-xs font-semibold text-brand-primary dark:text-brand-primary">In Exclusion</div>
+          <div className="mt-1 text-2xl font-bold text-brand-navy dark:text-brand-primary/30">
             {reasonCounts["INSIDE_EXCLUSION"] || 0}
           </div>
         </div>
@@ -353,9 +353,9 @@ export function CorporateRoutingReviewPanel() {
             {reasonCounts["OUTSIDE_COVERAGE"] || 0}
           </div>
         </div>
-        <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-orange-200 dark:border-orange-900/50">
-          <div className="text-xs font-semibold text-orange-600 dark:text-orange-400">Store / Partner</div>
-          <div className="mt-1 text-2xl font-bold text-orange-700 dark:text-orange-300">
+        <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-brand-gold/40 dark:border-brand-gold-dark/50">
+          <div className="text-xs font-semibold text-brand-gold dark:text-brand-gold">Store / Partner</div>
+          <div className="mt-1 text-2xl font-bold text-brand-gold-dark dark:text-brand-gold/40">
             {(reasonCounts["STORE_NOT_ELIGIBLE"] || 0) + (reasonCounts["NO_ELIGIBLE_PARTNER"] || 0)}
           </div>
         </div>
@@ -373,7 +373,7 @@ export function CorporateRoutingReviewPanel() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-full pl-9 pr-3 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white"
+            className="w-full pl-9 pr-3 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary text-slate-900 dark:text-white"
           />
         </div>
 
@@ -443,7 +443,7 @@ export function CorporateRoutingReviewPanel() {
               {loading ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-slate-500">
-                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-500" />
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-brand-primary" />
                     <span>Loading unresolved delivery items...</span>
                   </td>
                 </tr>
@@ -497,7 +497,7 @@ export function CorporateRoutingReviewPanel() {
                           {Number(item.latitude).toFixed(4)}, {Number(item.longitude).toFixed(4)}
                         </div>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-medium">
+                        <span className="inline-flex items-center gap-1 text-xs text-brand-gold dark:text-brand-gold font-medium">
                           <AlertTriangle className="w-3 h-3" />
                           <span>Missing</span>
                         </span>
@@ -514,7 +514,7 @@ export function CorporateRoutingReviewPanel() {
                     <td className="py-3.5 px-4 text-right">
                       <button
                         onClick={() => handleOpenReview(item)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900 transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-brand-light dark:bg-brand-navy/60 text-brand-primary dark:text-brand-primary hover:bg-brand-light dark:hover:bg-brand-navy transition-colors cursor-pointer"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                         <span>Review & Resolve</span>
@@ -558,7 +558,7 @@ export function CorporateRoutingReviewPanel() {
             {/* Modal Header */}
             <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-850">
               <div className="flex items-center gap-2.5">
-                <span className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                <span className="p-2 rounded-xl bg-brand-primary/10 text-brand-primary dark:text-brand-primary">
                   <ShieldAlert className="w-5 h-5" />
                 </span>
                 <div>
@@ -613,14 +613,14 @@ export function CorporateRoutingReviewPanel() {
               </div>
 
               {/* Current Diagnostic Status */}
-              <div className="p-4 rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/20">
+              <div className="p-4 rounded-xl border border-brand-gold/40 dark:border-brand-gold-dark/60 bg-brand-gold-light/50 dark:bg-brand-gold-dark/20">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                  <span className="text-xs font-bold text-amber-800 dark:text-amber-300">
+                  <AlertTriangle className="w-4 h-4 text-brand-gold dark:text-brand-gold" />
+                  <span className="text-xs font-bold text-brand-gold-dark dark:text-brand-gold/40">
                     Routing Evaluation Outcome: {selectedItem.reason_code}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
+                <p className="mt-1 text-xs text-brand-gold-dark dark:text-brand-gold">
                   {selectedItem.diagnostics_message || selectedItem.reason_description}
                 </p>
               </div>
@@ -632,7 +632,7 @@ export function CorporateRoutingReviewPanel() {
                 </h3>
                 {loadingCandidates ? (
                   <div className="p-6 text-center text-xs text-slate-500 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                    <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1 text-indigo-500" />
+                    <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-1 text-brand-primary" />
                     <span>Evaluating store polygon and radius matches...</span>
                   </div>
                 ) : candidateError ? (
@@ -690,7 +690,7 @@ export function CorporateRoutingReviewPanel() {
                                 </td>
                                 <td className="py-2 px-3">
                                   {st.is_inside_exclusion ? (
-                                    <span className="text-purple-600 font-bold">Inside Exclusion</span>
+                                    <span className="text-brand-primary font-bold">Inside Exclusion</span>
                                   ) : (
                                     <span className="text-slate-400">Clear</span>
                                   )}
@@ -712,7 +712,7 @@ export function CorporateRoutingReviewPanel() {
                     onClick={() => setActiveActionTab("CORRECT")}
                     className={`pb-2 px-3 text-xs font-bold transition-colors cursor-pointer ${
                       activeActionTab === "CORRECT"
-                        ? "border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400"
+                        ? "border-b-2 border-brand-primary text-brand-primary dark:text-brand-primary"
                         : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                     }`}
                   >
@@ -722,7 +722,7 @@ export function CorporateRoutingReviewPanel() {
                     onClick={() => setActiveActionTab("MANUAL")}
                     className={`pb-2 px-3 text-xs font-bold transition-colors cursor-pointer ${
                       activeActionTab === "MANUAL"
-                        ? "border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400"
+                        ? "border-b-2 border-brand-primary text-brand-primary dark:text-brand-primary"
                         : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                     }`}
                   >
@@ -732,7 +732,7 @@ export function CorporateRoutingReviewPanel() {
                     onClick={() => setActiveActionTab("HOLD")}
                     className={`pb-2 px-3 text-xs font-bold transition-colors cursor-pointer ${
                       activeActionTab === "HOLD"
-                        ? "border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400"
+                        ? "border-b-2 border-brand-primary text-brand-primary dark:text-brand-primary"
                         : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                     }`}
                   >
@@ -902,7 +902,7 @@ export function CorporateRoutingReviewPanel() {
                 type="button"
                 onClick={handleExecuteResolution}
                 disabled={submitting}
-                className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-brand-primary hover:bg-brand-navy text-white disabled:opacity-50 transition-colors cursor-pointer"
               >
                 {submitting ? (
                   <>

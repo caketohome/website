@@ -40,9 +40,9 @@ export default function InvoiceModal({ orderId, isOpen, onClose }: InvoiceModalP
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-zinc-900 w-full max-w-xl rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden relative">
+      <div className="bg-white dark:bg-zinc-900 w-full max-w-xl rounded-2xl shadow-2xl border border-brand-border dark:border-zinc-800 overflow-hidden relative">
         {/* Modal Top Bar */}
-        <div className="p-4 bg-zinc-900 text-white flex justify-between items-center print:hidden">
+        <div className="p-4 bg-brand-navy text-white flex justify-between items-center print:hidden">
           <div className="flex items-center gap-2">
             <span className="text-lg">🧾</span>
             <h3 className="font-bold text-sm">Official GST Tax Invoice</h3>
@@ -51,12 +51,12 @@ export default function InvoiceModal({ orderId, isOpen, onClose }: InvoiceModalP
             {invoice && (
               <button
                 onClick={() => window.print()}
-                className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-xs font-bold rounded-lg transition"
+                className="px-3 py-1 bg-brand-navy hover:bg-brand-primary text-xs font-bold rounded-lg transition"
               >
                 Print Invoice
               </button>
             )}
-            <button onClick={onClose} className="p-1 text-zinc-400 hover:text-white">
+            <button onClick={onClose} className="p-1 text-brand-text-muted hover:text-white">
               ✕
             </button>
           </div>
@@ -64,18 +64,18 @@ export default function InvoiceModal({ orderId, isOpen, onClose }: InvoiceModalP
 
         {/* Visible Test Watermark Banner in Test Mode */}
         {isTestMode && (
-          <div className="bg-amber-500 text-black font-extrabold text-center py-1.5 px-4 text-xs uppercase tracking-widest border-b border-amber-600 print:block shadow-inner" id="shop-invoice-test-banner">
+          <div className="bg-brand-gold text-black font-extrabold text-center py-1.5 px-4 text-xs uppercase tracking-widest border-b border-brand-gold print:block shadow-inner" id="shop-invoice-test-banner">
             ⚠️ TEST — NOT A VALID TAX INVOICE (SYNTHETIC FIXTURE — NOT FOR STATUTORY FILING)
           </div>
         )}
 
         {/* Printable GST Invoice Body */}
         {loading ? (
-          <div className="p-8 text-center text-zinc-500 text-sm">Loading Authoritative Tax Invoice...</div>
+          <div className="p-8 text-center text-brand-text-muted text-sm">Loading Authoritative Tax Invoice...</div>
         ) : invoice ? (
-          <div className="p-8 text-zinc-900 dark:text-zinc-100 text-xs space-y-6 bg-white dark:bg-zinc-900 print:p-0 print:text-black">
+          <div className="p-8 text-brand-navy dark:text-zinc-100 text-xs space-y-6 bg-white dark:bg-zinc-900 print:p-0 print:text-black">
             {/* Header */}
-            <div className="flex justify-between items-start border-b border-zinc-200 dark:border-zinc-800 pb-4">
+            <div className="flex justify-between items-start border-b border-brand-border dark:border-zinc-800 pb-4">
               <div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -89,26 +89,26 @@ export default function InvoiceModal({ orderId, isOpen, onClose }: InvoiceModalP
                   alt="CakeToHome"
                   className="h-9 w-auto object-contain mb-1.5 hidden dark:block print:hidden"
                 />
-                <p className="text-[11px] text-zinc-600 dark:text-zinc-300 font-semibold">{invoice.branch_name || "CakeToHome Kitchen Hub"}</p>
-                <p className="text-[10px] text-zinc-400">GSTIN: {invoice.branch_gstin || "UNVERIFIED_GSTIN"}</p>
-                <p className="text-[10px] text-zinc-400">FSSAI Lic No: {invoice.branch_fssai || "UNVERIFIED_FSSAI"}</p>
+                <p className="text-[11px] text-brand-text-muted dark:text-zinc-300 font-semibold">{invoice.branch_name || "CakeToHome Kitchen Hub"}</p>
+                <p className="text-[10px] text-brand-text-muted">GSTIN: {invoice.branch_gstin || "UNVERIFIED_GSTIN"}</p>
+                <p className="text-[10px] text-brand-text-muted">FSSAI Lic No: {invoice.branch_fssai || "UNVERIFIED_FSSAI"}</p>
               </div>
               <div className="text-right">
-                <span className="px-2.5 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold rounded text-[10px] uppercase">
+                <span className="px-2.5 py-1 bg-brand-surface-muted dark:bg-zinc-800 text-brand-text dark:text-zinc-300 font-bold rounded text-[10px] uppercase">
                   Tax Invoice
                 </span>
-                <p className="font-bold text-sm text-zinc-900 dark:text-white mt-1">{invoice.invoice_number}</p>
-                <p className="text-[10px] text-zinc-400">Order: #{invoice.order_number}</p>
-                <p className="text-[10px] text-zinc-400">{invoice.invoice_date ? new Date(invoice.invoice_date).toLocaleDateString("en-IN") : "—"}</p>
+                <p className="font-bold text-sm text-brand-navy dark:text-white mt-1">{invoice.invoice_number}</p>
+                <p className="text-[10px] text-brand-text-muted">Order: #{invoice.order_number}</p>
+                <p className="text-[10px] text-brand-text-muted">{invoice.invoice_date ? new Date(invoice.invoice_date).toLocaleDateString("en-IN") : "—"}</p>
               </div>
             </div>
 
             {/* Bill To */}
-            <div className="grid grid-cols-2 gap-4 p-3 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800">
+            <div className="grid grid-cols-2 gap-4 p-3 bg-brand-surface-muted dark:bg-zinc-950/60 rounded-xl border border-brand-border dark:border-zinc-800">
               <div>
-                <p className="font-bold text-[10px] text-zinc-400 uppercase">Customer Bill To:</p>
-                <p className="font-semibold text-zinc-900 dark:text-white text-sm">{invoice.customer?.name || "—"}</p>
-                <p className="text-zinc-600 dark:text-zinc-400">
+                <p className="font-bold text-[10px] text-brand-text-muted uppercase">Customer Bill To:</p>
+                <p className="font-semibold text-brand-navy dark:text-white text-sm">{invoice.customer?.name || "—"}</p>
+                <p className="text-brand-text-muted dark:text-zinc-400">
                   {typeof invoice.customer?.delivery_address === "string"
                     ? invoice.customer?.delivery_address
                     : (invoice.customer?.delivery_address && typeof invoice.customer?.delivery_address === "object"
@@ -123,17 +123,17 @@ export default function InvoiceModal({ orderId, isOpen, onClose }: InvoiceModalP
                 </p>
               </div>
               <div>
-                <p className="font-bold text-[10px] text-zinc-400 uppercase">Payment Details:</p>
+                <p className="font-bold text-[10px] text-brand-text-muted uppercase">Payment Details:</p>
                 <p className="font-semibold text-emerald-600 dark:text-emerald-400">{invoice.payment?.method || "—"}</p>
-                <p className="text-zinc-500">Status: <b className="text-zinc-800 dark:text-zinc-200 uppercase">{invoice.payment?.status || "PENDING"}</b></p>
-                <p className="text-[10px] text-zinc-400 font-mono mt-1">Txn: {invoice.payment?.transaction_id || "—"}</p>
+                <p className="text-brand-text-muted">Status: <b className="text-brand-text dark:text-zinc-200 uppercase">{invoice.payment?.status || "PENDING"}</b></p>
+                <p className="text-[10px] text-brand-text-muted font-mono mt-1">Txn: {invoice.payment?.transaction_id || "—"}</p>
               </div>
             </div>
 
             {/* Line Items Table */}
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-zinc-300 dark:border-zinc-700 text-[10px] font-bold text-zinc-500 uppercase">
+                <tr className="border-b border-brand-border dark:border-zinc-700 text-[10px] font-bold text-brand-text-muted uppercase">
                   <th className="pb-2">Description</th>
                   <th className="pb-2 text-center">HSN</th>
                   <th className="pb-2 text-center">Qty</th>
@@ -142,7 +142,7 @@ export default function InvoiceModal({ orderId, isOpen, onClose }: InvoiceModalP
                   <th className="pb-2 text-right">Total</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+              <tbody className="divide-y divide-brand-border dark:divide-zinc-800">
                 {(invoice.items || []).map((item: any, i: number) => (
                   <tr key={i} className="py-2">
                     <td className="py-2.5 font-medium">{item.description}</td>
@@ -157,39 +157,39 @@ export default function InvoiceModal({ orderId, isOpen, onClose }: InvoiceModalP
             </table>
 
             {/* Totals */}
-            <div className="border-t border-zinc-300 dark:border-zinc-700 pt-3 space-y-1.5 text-right">
-              <div className="flex justify-between text-zinc-500">
+            <div className="border-t border-brand-border dark:border-zinc-700 pt-3 space-y-1.5 text-right">
+              <div className="flex justify-between text-brand-text-muted">
                 <span>Subtotal (Taxable Value):</span>
                 <span>₹{Number(invoice.pricing?.subtotal || 0).toLocaleString("en-IN")}</span>
               </div>
-              <div className="flex justify-between text-zinc-500">
+              <div className="flex justify-between text-brand-text-muted">
                 <span>CGST:</span>
                 <span>₹{Number(invoice.pricing?.cgst || 0).toLocaleString("en-IN")}</span>
               </div>
-              <div className="flex justify-between text-zinc-500">
+              <div className="flex justify-between text-brand-text-muted">
                 <span>SGST:</span>
                 <span>₹{Number(invoice.pricing?.sgst || 0).toLocaleString("en-IN")}</span>
               </div>
-              <div className="flex justify-between text-zinc-500">
+              <div className="flex justify-between text-brand-text-muted">
                 <span>Delivery Charges:</span>
                 <span>₹{Number(invoice.pricing?.delivery_fee || 0).toLocaleString("en-IN")}</span>
               </div>
-              <div className="flex justify-between text-sm font-bold text-zinc-900 dark:text-white pt-2 border-t border-zinc-200 dark:border-zinc-800">
+              <div className="flex justify-between text-sm font-bold text-brand-navy dark:text-white pt-2 border-t border-brand-border dark:border-zinc-800">
                 <span>Total (Incl. all taxes):</span>
-                <span className="text-rose-600 dark:text-rose-400">₹{Number(invoice.pricing?.total || 0).toLocaleString("en-IN")}</span>
+                <span className="text-brand-primary dark:text-rose-400">₹{Number(invoice.pricing?.total || 0).toLocaleString("en-IN")}</span>
               </div>
             </div>
 
             {/* Footer */}
-            <div className="text-center text-[10px] text-zinc-400 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+            <div className="text-center text-[10px] text-brand-text-muted pt-4 border-t border-brand-border dark:border-zinc-800">
               <p>Thank you for choosing CakeToHome! This is a computer-generated tax invoice.</p>
               <p className="mt-0.5">For support inquiries: care@cakes2home.com</p>
             </div>
           </div>
         ) : (
-          <div className="p-8 text-center text-rose-500 font-medium space-y-2" id="shop-invoice-error">
+          <div className="p-8 text-center text-brand-primary font-medium space-y-2" id="shop-invoice-error">
             <p className="font-bold text-sm">❌ Invoice Print Denied</p>
-            <p className="text-xs text-zinc-400">{errorMessage || "No committed statutory tax invoice exists for this order. Invoices must be generated upon delivery."}</p>
+            <p className="text-xs text-brand-text-muted">{errorMessage || "No committed statutory tax invoice exists for this order. Invoices must be generated upon delivery."}</p>
           </div>
         )}
       </div>

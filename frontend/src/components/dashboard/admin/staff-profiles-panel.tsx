@@ -327,7 +327,7 @@ export function StaffProfilesPanel() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800">
+            <span className="p-2 rounded-xl bg-brand-light dark:bg-brand-navy/60 text-brand-primary dark:text-brand-primary border border-brand-primary/30 dark:border-brand-navy">
               <Key className="w-5 h-5" />
             </span>
             <Heading level="h2" className="text-xl font-bold tracking-tight">
@@ -343,7 +343,7 @@ export function StaffProfilesPanel() {
           <Button
             size="small"
             onClick={openCreateStaffModal}
-            className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-1.5 text-xs shadow-sm font-medium"
+            className="bg-brand-primary hover:bg-brand-navy text-white flex items-center gap-1.5 text-xs shadow-sm font-medium"
           >
             <Plus className="w-3.5 h-3.5" /> Add Staff Member
           </Button>
@@ -353,7 +353,7 @@ export function StaffProfilesPanel() {
             onClick={openCreateProfileModal}
             className="flex items-center gap-1.5 text-xs font-medium"
           >
-            <Shield className="w-3.5 h-3.5 text-purple-600" /> New Access Profile
+            <Shield className="w-3.5 h-3.5 text-brand-primary" /> New Access Profile
           </Button>
         </div>
       </div>
@@ -381,7 +381,7 @@ export function StaffProfilesPanel() {
           onClick={() => setActiveSubTab("staff")}
           className={`px-4 py-2 text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors ${
             activeSubTab === "staff"
-              ? "bg-purple-100 dark:bg-purple-950/80 text-purple-900 dark:text-purple-200"
+              ? "bg-brand-light dark:bg-brand-navy/80 text-brand-navy dark:text-brand-primary/30"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
@@ -391,7 +391,7 @@ export function StaffProfilesPanel() {
           onClick={() => setActiveSubTab("profiles")}
           className={`px-4 py-2 text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors ${
             activeSubTab === "profiles"
-              ? "bg-purple-100 dark:bg-purple-950/80 text-purple-900 dark:text-purple-200"
+              ? "bg-brand-light dark:bg-brand-navy/80 text-brand-navy dark:text-brand-primary/30"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
@@ -401,7 +401,7 @@ export function StaffProfilesPanel() {
           onClick={() => setActiveSubTab("matrix")}
           className={`px-4 py-2 text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors ${
             activeSubTab === "matrix"
-              ? "bg-purple-100 dark:bg-purple-950/80 text-purple-900 dark:text-purple-200"
+              ? "bg-brand-light dark:bg-brand-navy/80 text-brand-navy dark:text-brand-primary/30"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
@@ -411,7 +411,7 @@ export function StaffProfilesPanel() {
           onClick={() => setActiveSubTab("audit")}
           className={`px-4 py-2 text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors ${
             activeSubTab === "audit"
-              ? "bg-purple-100 dark:bg-purple-950/80 text-purple-900 dark:text-purple-200"
+              ? "bg-brand-light dark:bg-brand-navy/80 text-brand-navy dark:text-brand-primary/30"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
@@ -430,7 +430,7 @@ export function StaffProfilesPanel() {
                 placeholder="Search staff by name, phone (+91 98765 43210), or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-brand-primary"
               />
             </div>
 
@@ -472,7 +472,7 @@ export function StaffProfilesPanel() {
                       <tr key={staff.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
                         <td className="p-3.5 font-medium">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-bold flex items-center justify-center text-xs">
+                            <div className="w-7 h-7 rounded-full bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary/30 font-bold flex items-center justify-center text-xs">
                               {staff.name.charAt(0)}
                             </div>
                             <div>
@@ -508,13 +508,13 @@ export function StaffProfilesPanel() {
                               staff.profile_names.map((pName, idx) => (
                                 <span
                                   key={idx}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-purple-50 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shadow-2xs"
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-brand-light dark:bg-brand-navy/80 text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy shadow-2xs"
                                 >
-                                  <Shield className="w-3 h-3 text-purple-500" /> {pName}
+                                  <Shield className="w-3 h-3 text-brand-primary" /> {pName}
                                 </span>
                               ))
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-brand-light dark:bg-brand-navy text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy">
                                 <Shield className="w-3 h-3" /> {staff.profile_name || "Assigned Profile"}
                               </span>
                             )}
@@ -540,7 +540,7 @@ export function StaffProfilesPanel() {
                         </td>
                         <td className="p-3.5">
                           {overrideCount > 0 ? (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40">
                               {overrideCount} Active Override{overrideCount > 1 ? "s" : ""}
                             </span>
                           ) : (
@@ -555,7 +555,7 @@ export function StaffProfilesPanel() {
                               onClick={() => openOverrideModal(staff)}
                               className="text-[11px] h-7 px-2"
                             >
-                              <ShieldAlert className="w-3 h-3 text-amber-600" /> Overrides
+                              <ShieldAlert className="w-3 h-3 text-brand-gold" /> Overrides
                             </Button>
                             <Button
                               variant="secondary"
@@ -588,12 +588,12 @@ export function StaffProfilesPanel() {
             return (
               <Container
                 key={prof.id}
-                className="p-5 flex flex-col justify-between border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 transition-all rounded-2xl shadow-sm bg-white dark:bg-slate-900"
+                className="p-5 flex flex-col justify-between border border-slate-200 dark:border-slate-800 hover:border-brand-primary/30 dark:hover:border-brand-navy transition-all rounded-2xl shadow-sm bg-white dark:bg-slate-900"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="p-1.5 rounded-lg bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400">
+                      <span className="p-1.5 rounded-lg bg-brand-light dark:bg-brand-navy text-brand-primary dark:text-brand-primary">
                         <Shield className="w-4 h-4" />
                       </span>
                       <Heading level="h3" className="text-base font-bold text-slate-900 dark:text-slate-100">
@@ -620,7 +620,7 @@ export function StaffProfilesPanel() {
                       <span className="font-semibold text-slate-800 dark:text-slate-200">{prof.permissions.length}</span> Permitted Features
                     </div>
                     <div>
-                      <span className="font-semibold text-purple-600 dark:text-purple-400">{assignedCount}</span> Staff Member{assignedCount !== 1 ? "s" : ""}
+                      <span className="font-semibold text-brand-primary dark:text-brand-primary">{assignedCount}</span> Staff Member{assignedCount !== 1 ? "s" : ""}
                     </div>
                   </div>
                 </div>
@@ -650,7 +650,7 @@ export function StaffProfilesPanel() {
                   <Button
                     size="small"
                     onClick={() => openEditProfileModal(prof)}
-                    className="text-[11px] h-7 px-3 bg-purple-600 hover:bg-purple-700 text-white font-medium"
+                    className="text-[11px] h-7 px-3 bg-brand-primary hover:bg-brand-navy text-white font-medium"
                   >
                     <Edit2 className="w-3 h-3" /> Edit Permissions
                   </Button>
@@ -673,7 +673,7 @@ export function StaffProfilesPanel() {
                   const p = profilesList.find((prof) => prof.id === e.target.value);
                   if (p) setSelectedProfile(p);
                 }}
-                className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-bold text-purple-700 dark:text-purple-300"
+                className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-bold text-brand-navy dark:text-brand-primary/30"
               >
                 {profilesList.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -766,7 +766,7 @@ export function StaffProfilesPanel() {
                       {log.actor_name}
                     </td>
                     <td className="p-3.5">
-                      <span className="font-semibold text-purple-700 dark:text-purple-300">
+                      <span className="font-semibold text-brand-navy dark:text-brand-primary/30">
                         {log.target_name}
                       </span>
                       <span className="text-[10px] text-slate-400 ml-1 font-mono">({log.target_type})</span>
@@ -794,7 +794,7 @@ export function StaffProfilesPanel() {
             {/* Modal Header */}
             <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-purple-600" />
+                <Shield className="w-5 h-5 text-brand-primary" />
                 <Heading level="h3" className="text-lg font-bold">
                   {selectedProfile ? `Edit Profile: ${selectedProfile.name}` : "Create New Access Profile"}
                 </Heading>
@@ -844,7 +844,7 @@ export function StaffProfilesPanel() {
                     <button
                       type="button"
                       onClick={() => setProfileFormPerms(catalog.map((p) => p.id))}
-                      className="text-[11px] text-purple-600 font-semibold hover:underline"
+                      className="text-[11px] text-brand-primary font-semibold hover:underline"
                     >
                       Select All
                     </button>
@@ -874,7 +874,7 @@ export function StaffProfilesPanel() {
                           <button
                             type="button"
                             onClick={() => toggleAllInCategory(perms)}
-                            className="text-[10px] text-purple-600 hover:underline font-medium"
+                            className="text-[10px] text-brand-primary hover:underline font-medium"
                           >
                             {allCatSelected ? "Deselect Group" : "Select Group"}
                           </button>
@@ -888,7 +888,7 @@ export function StaffProfilesPanel() {
                                 key={p.id}
                                 className={`flex items-start gap-2 p-1.5 rounded-lg text-xs cursor-pointer select-none transition-colors ${
                                   checked
-                                    ? "bg-purple-50 dark:bg-purple-950/60 text-purple-900 dark:text-purple-100 font-medium"
+                                    ? "bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-light font-medium"
                                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 }`}
                               >
@@ -896,7 +896,7 @@ export function StaffProfilesPanel() {
                                   type="checkbox"
                                   checked={checked}
                                   onChange={() => togglePermissionInForm(p.id)}
-                                  className="mt-0.5 rounded text-purple-600 focus:ring-purple-500"
+                                  className="mt-0.5 rounded text-brand-primary focus:ring-brand-primary"
                                 />
                                 <div>
                                   <div>{p.label}</div>
@@ -922,7 +922,7 @@ export function StaffProfilesPanel() {
                 size="small"
                 onClick={handleSaveProfile}
                 isLoading={isSavingProfile}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-medium"
+                className="bg-brand-primary hover:bg-brand-navy text-white font-medium"
               >
                 Save Access Profile
               </Button>
@@ -937,7 +937,7 @@ export function StaffProfilesPanel() {
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
             <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-purple-600" />
+                <Users className="w-5 h-5 text-brand-primary" />
                 <Heading level="h3" className="text-lg font-bold">
                   {selectedStaff ? `Edit Staff: ${selectedStaff.name}` : "Create Staff Account"}
                 </Heading>
@@ -1069,7 +1069,7 @@ export function StaffProfilesPanel() {
                 size="small"
                 onClick={handleSaveStaff}
                 isLoading={isSavingStaff}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-medium"
+                className="bg-brand-primary hover:bg-brand-navy text-white font-medium"
               >
                 Save Staff Account
               </Button>
@@ -1085,13 +1085,13 @@ export function StaffProfilesPanel() {
             <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <ShieldAlert className="w-5 h-5 text-amber-600" />
+                  <ShieldAlert className="w-5 h-5 text-brand-gold" />
                   <Heading level="h3" className="text-lg font-bold">
                     Explicit Permission Overrides: {overrideStaff.name}
                   </Heading>
                 </div>
                 <Text className="text-xs text-slate-500 mt-0.5">
-                  Profile: <span className="font-semibold text-purple-600">{overrideStaff.profile_name}</span>. An explicit DENY takes top priority over profile ALLOW.
+                  Profile: <span className="font-semibold text-brand-primary">{overrideStaff.profile_name}</span>. An explicit DENY takes top priority over profile ALLOW.
                 </Text>
               </div>
               <button
@@ -1140,7 +1140,7 @@ export function StaffProfilesPanel() {
             </div>
 
             <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end bg-slate-50 dark:bg-slate-900">
-              <Button size="small" onClick={() => setOverrideModalOpen(false)} className="bg-purple-600 text-white">
+              <Button size="small" onClick={() => setOverrideModalOpen(false)} className="bg-brand-primary text-white">
                 Done
               </Button>
             </div>

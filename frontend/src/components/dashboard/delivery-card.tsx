@@ -90,9 +90,9 @@ export default async function DeliveryCard({
             )}
             {landmark && <span>🏠 Landmark: {landmark}</span>}
             {instructions && <span className="italic text-ui-fg-muted">💬 Note: &quot;{instructions}&quot;</span>}
-            {giftMsg && <span className="font-medium text-purple-600 dark:text-purple-400">🎁 Gift Card Message Included</span>}
+            {giftMsg && <span className="font-medium text-brand-primary dark:text-brand-primary">🎁 Gift Card Message Included</span>}
             {hasDeliveryOtp && (
-              <span className="mt-1 font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded w-fit">
+              <span className="mt-1 font-bold text-brand-gold-dark bg-brand-gold-light px-2 py-0.5 rounded w-fit">
                 🔑 Delivery Verification OTP Required
               </span>
             )}

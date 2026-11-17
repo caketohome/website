@@ -406,7 +406,7 @@ export function StorefrontPopupModal({
             type="button"
             onClick={onClose}
             aria-label="Close popup"
-            className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-neutral-700 dark:text-neutral-200 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 cursor-pointer"
+            className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-neutral-700 dark:text-neutral-200 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-brand-gold/50 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -464,16 +464,16 @@ export function StorefrontPopupModal({
 
             {/* Coupon Voucher Box */}
             {offer?.type === "COUPON" && resolvedCouponCode && (
-              <div className="p-3 sm:p-3.5 rounded-xl bg-brand-gold-soft/80 dark:bg-[#0c1326]/40 border border-dashed border-[#D4AF37]/40 dark:border-[#D4AF37]/20 flex items-center justify-between gap-3">
+              <div className="p-3 sm:p-3.5 rounded-xl bg-brand-gold-soft/80 dark:bg-brand-deep/40 border border-dashed border-brand-gold/40 dark:border-brand-gold/20 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-brand-gold-soft dark:bg-[#142040]/60 text-[#1D2F5D] dark:text-[#D4AF37] flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-brand-gold-soft dark:bg-brand-navy/60 text-brand-navy dark:text-brand-gold flex items-center justify-center shrink-0">
                     <Tag className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <span className="text-[10px] text-[#152347] dark:text-[#D4AF37]/80 uppercase font-semibold block tracking-wider">
+                    <span className="text-[10px] text-brand-deep dark:text-brand-gold/80 uppercase font-semibold block tracking-wider">
                       Promo Code
                     </span>
-                    <span className="text-sm font-mono font-bold text-[#1D2F5D] dark:text-[#D4AF37] truncate block">
+                    <span className="text-sm font-mono font-bold text-brand-navy dark:text-brand-gold truncate block">
                       {resolvedCouponCode}
                     </span>
                   </div>
@@ -482,7 +482,7 @@ export function StorefrontPopupModal({
                 <button
                   type="button"
                   onClick={handleCopyCode}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#1D2F5D] hover:bg-[#152347] text-white transition-colors flex items-center gap-1 shrink-0 shadow-xs cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-navy hover:bg-brand-deep text-white transition-colors flex items-center gap-1 shrink-0 shadow-xs cursor-pointer"
                 >
                   {copied ? (
                     <>
@@ -503,7 +503,7 @@ export function StorefrontPopupModal({
             {isPhoneLoginPopup && (
               <div className="flex flex-col gap-3 pt-1">
                 {authError && (
-                  <div className="p-2.5 rounded-lg bg-brand-gold-soft dark:bg-[#0c1326]/50 border border-[#D4AF37]/30 dark:border-[#D4AF37]/20 text-[#152347] dark:text-[#D4AF37]/80 text-xs flex items-center gap-2">
+                  <div className="p-2.5 rounded-lg bg-brand-gold-soft dark:bg-brand-deep/50 border border-brand-gold/30 dark:border-brand-gold/20 text-brand-deep dark:text-brand-gold/80 text-xs flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{authError}</span>
                   </div>
@@ -516,7 +516,7 @@ export function StorefrontPopupModal({
                       <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
                         {phoneConfig?.placeholder || "Mobile Number"}
                       </label>
-                      <div className="flex items-center rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 focus-within:border-[#D4AF37] focus-within:ring-2 focus-within:ring-[#D4AF37]/50/20 overflow-hidden transition-all">
+                      <div className="flex items-center rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 focus-within:border-brand-gold focus-within:ring-2 focus-within:ring-brand-gold/50/20 overflow-hidden transition-all">
                         <div className="px-3 py-2.5 text-xs font-bold text-neutral-600 dark:text-neutral-300 border-r border-neutral-200 dark:border-neutral-700 flex items-center gap-1 shrink-0 bg-neutral-100 dark:bg-neutral-900">
                           <span>🇮🇳</span>
                           <span>+91</span>
@@ -582,7 +582,7 @@ export function StorefrontPopupModal({
                           onChange={(e) => handleOtpChange(idx, e.target.value)}
                           onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                           disabled={loading}
-                          className="w-11 h-12 text-center text-lg font-bold rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/50/20 focus:outline-none transition-all"
+                          className="w-11 h-12 text-center text-lg font-bold rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/50/20 focus:outline-none transition-all"
                         />
                       ))}
                     </div>
@@ -603,7 +603,7 @@ export function StorefrontPopupModal({
                         type="button"
                         disabled={resendSeconds > 0 || loading}
                         onClick={() => handleRequestOtp()}
-                        className="text-[#1D2F5D] hover:underline disabled:opacity-40 disabled:cursor-not-allowed font-medium cursor-pointer"
+                        className="text-brand-navy hover:underline disabled:opacity-40 disabled:cursor-not-allowed font-medium cursor-pointer"
                       >
                         {resendSeconds > 0 ? `Resend OTP (${resendSeconds}s)` : "Resend OTP"}
                       </button>
@@ -645,7 +645,7 @@ export function StorefrontPopupModal({
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 flex items-center gap-1">
                         <User className="w-3.5 h-3.5" />
-                        <span>Full Name <span className="text-[#D4AF37]">*</span></span>
+                        <span>Full Name <span className="text-brand-gold">*</span></span>
                       </label>
                       <input
                         type="text"
@@ -654,7 +654,7 @@ export function StorefrontPopupModal({
                         placeholder="e.g. Rahul Sharma"
                         autoFocus
                         disabled={loading}
-                        className="w-full px-3 py-2.5 text-sm rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-medium focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/50/20 focus:outline-none placeholder:text-neutral-400 transition-all"
+                        className="w-full px-3 py-2.5 text-sm rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-medium focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/50/20 focus:outline-none placeholder:text-neutral-400 transition-all"
                       />
                     </div>
 
@@ -669,7 +669,7 @@ export function StorefrontPopupModal({
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="e.g. rahul@example.com"
                         disabled={loading}
-                        className="w-full px-3 py-2.5 text-sm rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-medium focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/50/20 focus:outline-none placeholder:text-neutral-400 transition-all"
+                        className="w-full px-3 py-2.5 text-sm rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white font-medium focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/50/20 focus:outline-none placeholder:text-neutral-400 transition-all"
                       />
                     </div>
 
@@ -718,7 +718,7 @@ export function StorefrontPopupModal({
                     <span className="text-sm font-bold text-emerald-900 dark:text-emerald-200">
                       Welcome to CakeToHome!
                     </span>
-                    <span className="text-xs text-emerald-700 dark:text-emerald-400">
+                    <span className="text-xs text-emerald-700 dark:text-[#16834A]">
                       Your phone login was successful.
                     </span>
                   </div>

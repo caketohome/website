@@ -19,7 +19,7 @@ const CheckoutMap = dynamic(
     ssr: false,
     loading: () => (
       <div className="w-full h-[240px] rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-xs text-zinc-500 animate-pulse">
-        <Loader2 className="w-4 h-4 animate-spin text-[#0F172A] mr-2" />
+        <Loader2 className="w-4 h-4 animate-spin text-brand-text mr-2" />
         Loading delivery map...
       </div>
     ),
@@ -51,7 +51,7 @@ function Submit({ disabled, paymentMethod }: { disabled?: boolean; paymentMethod
   <Button
   type="submit"
   size="large"
-  className="w-full sm:w-auto mt-6 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-sans font-bold tracking-wider text-[14px] px-8 py-4 rounded-xl shadow-lg border border-blue-200 transition-all hover:scale-[1.01]"
+  className="w-full sm:w-auto mt-6 bg-brand-primary hover:bg-brand-secondary text-white font-sans font-bold tracking-wider text-[14px] px-8 py-4 rounded-xl shadow-lg border border-blue-200 transition-all hover:scale-[1.01]"
   isLoading={status.pending}
   disabled={disabled}
   aria-label="Confirm and place your cake order"
@@ -700,12 +700,12 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
   <div className="lg:col-span-7 flex flex-col gap-6">
     <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-200 pb-3">
       <div>
-        <Heading level="h1" className="text-2xl md:text-3xl font-extrabold tracking-tight text-[#0F172A] dark:text-slate-900">
+        <Heading level="h1" className="text-2xl md:text-3xl font-extrabold tracking-tight text-brand-text dark:text-slate-900">
           Cake Delivery Checkout
         </Heading>
         <p className="text-xs text-slate-600 dark:text-slate-500 mt-0.5 font-medium">Direct Bakery Kitchen Fulfillment</p>
       </div>
-      <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-50 text-[#0F172A] dark:text-slate-900 border border-slate-200 dark:border-slate-200">
+      <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-50 text-brand-text dark:text-slate-900 border border-slate-200 dark:border-slate-200">
         🔒 SSL Encrypted
       </span>
     </div>
@@ -716,11 +716,11 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
         type="button"
         onClick={() => setStep(1)}
         className={`flex items-center gap-2 text-xs md:text-sm font-semibold transition-all ${
-          step === 1 ? "text-[#0F172A] dark:text-slate-900 font-bold" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-900"
+          step === 1 ? "text-brand-text dark:text-slate-900 font-bold" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-900"
         }`}
       >
         <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
-          step > 1 ? "bg-[#2563EB] text-[#2563EB] border border-blue-200" : step === 1 ? "border-2 border-[#2563EB] text-white bg-[#2563EB]" : "border border-slate-300  text-slate-400"
+          step > 1 ? "bg-brand-primary text-brand-primary border border-blue-200" : step === 1 ? "border-2 border-brand-primary text-white bg-brand-primary" : "border border-slate-300  text-slate-400"
         }`}>
           {step > 1 ? "✓" : "1"}
         </span>
@@ -732,11 +732,11 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
         disabled={!isStep1Valid}
         onClick={() => setStep(2)}
         className={`flex items-center gap-2 text-xs md:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
-          step === 2 ? "text-[#0F172A] dark:text-slate-900 font-bold" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-900"
+          step === 2 ? "text-brand-text dark:text-slate-900 font-bold" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-900"
         }`}
       >
         <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
-          step > 2 ? "bg-[#2563EB] text-[#2563EB] border border-blue-200" : step === 2 ? "border-2 border-[#2563EB] text-white bg-[#2563EB]" : "border border-slate-300  text-slate-400"
+          step > 2 ? "bg-brand-primary text-brand-primary border border-blue-200" : step === 2 ? "border-2 border-brand-primary text-white bg-brand-primary" : "border border-slate-300  text-slate-400"
         }`}>
           {step > 2 ? "✓" : "2"}
         </span>
@@ -748,11 +748,11 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
         disabled={!isStep1Valid || !isStep2Valid}
         onClick={() => setStep(3)}
         className={`flex items-center gap-2 text-xs md:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
-          step === 3 ? "text-[#0F172A] dark:text-slate-900 font-bold" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-900"
+          step === 3 ? "text-brand-text dark:text-slate-900 font-bold" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-900"
         }`}
       >
         <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
-          step === 3 ? "border-2 border-[#2563EB] text-white bg-[#2563EB]" : "border border-slate-300  text-slate-400"
+          step === 3 ? "border-2 border-brand-primary text-white bg-brand-primary" : "border border-slate-300  text-slate-400"
         }`}>
           3
         </span>
@@ -780,7 +780,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => setOrderedForSelf(true)}
  className={`py-3 px-4 rounded-2xl border text-left font-semibold text-xs md:text-sm transition-all flex items-center gap-2.5 ${
  orderedForSelf
- ? "border-[#2563EB] bg-blue-50/60 text-slate-900 ring-2 ring-blue-500/20"
+ ? "border-brand-primary bg-blue-50/60 text-slate-900 ring-2 ring-blue-500/20"
  : "border-slate-200 text-slate-900 hover:bg-slate-50"
  }`}
  >
@@ -792,7 +792,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => setOrderedForSelf(false)}
  className={`py-3 px-4 rounded-2xl border text-left font-semibold text-xs md:text-sm transition-all flex items-center gap-2.5 ${
  !orderedForSelf
- ? "border-[#2563EB] bg-blue-50/60 text-slate-900 ring-2 ring-blue-500/20"
+ ? "border-brand-primary bg-blue-50/60 text-slate-900 ring-2 ring-blue-500/20"
  : "border-slate-200 text-slate-900 hover:bg-slate-50"
  }`}
  >
@@ -931,7 +931,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  type="button"
  disabled={!isStep1Valid}
  onClick={() => setStep(2)}
- className="mt-2 w-full sm:w-fit self-end bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold py-2.5 px-6 rounded-2xl border border-blue-200 shadow-md"
+ className="mt-2 w-full sm:w-fit self-end bg-brand-primary hover:bg-brand-secondary text-white font-bold py-2.5 px-6 rounded-2xl border border-blue-200 shadow-md"
  >
  Continue to Delivery Mode & Slots →
  </Button>
@@ -956,7 +956,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => handleModeChange("delivery")}
  className={`py-4 px-4 rounded-2xl border text-left font-semibold transition-all flex flex-col gap-1.5 ${
  deliveryType === "delivery"
- ? "border-[#2563EB] bg-blue-50/60 text-slate-900 ring-2 ring-blue-500/20"
+ ? "border-brand-primary bg-blue-50/60 text-slate-900 ring-2 ring-blue-500/20"
  : "border-slate-200 text-slate-900 hover:bg-slate-50"
  }`}
  >
@@ -975,7 +975,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => handleModeChange("pickup")}
  className={`py-4 px-4 rounded-2xl border text-left font-semibold transition-all flex flex-col gap-1.5 ${
  deliveryType === "pickup"
- ? "border-[#2563EB] bg-blue-50/60 text-slate-900 ring-2 ring-blue-500/20"
+ ? "border-brand-primary bg-blue-50/60 text-slate-900 ring-2 ring-blue-500/20"
  : "border-slate-200 text-slate-900 hover:bg-slate-50"
  }`}
  >
@@ -1007,7 +1007,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  type="button"
  onClick={handleUseCurrentLocation}
  disabled={locatingGps}
- className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-bold text-[#2563EB] bg-slate-50 border border-blue-200 hover:bg-[#2563EB]/20 transition shadow-sm"
+ className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-bold text-brand-primary bg-slate-50 border border-blue-200 hover:bg-brand-primary/20 transition shadow-sm"
  data-testid="use-current-location-btn"
  >
  {locatingGps ? (
@@ -1025,15 +1025,15 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  </div>
 
  {gpsError && (
- <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-800 flex items-center gap-2">
- <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
+ <div className="p-2.5 bg-brand-gold-light border border-brand-gold/40 rounded-2xl text-xs text-brand-gold-dark flex items-center gap-2">
+ <AlertCircle className="w-4 h-4 shrink-0 text-brand-gold" />
  <span>{gpsError}</span>
  </div>
  )}
 
  {gpsAccuracy !== null && gpsAccuracy > 500 && (
- <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-800 flex items-center gap-2">
- <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
+ <div className="p-2.5 bg-brand-gold-light border border-brand-gold/40 rounded-2xl text-xs text-brand-gold-dark flex items-center gap-2">
+ <AlertTriangle className="w-4 h-4 shrink-0 text-brand-gold" />
  <span>GPS location is approximate (~{Math.round(gpsAccuracy)}m accuracy). Please confirm your exact building name and street below.</span>
  </div>
  )}
@@ -1053,11 +1053,11 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onFocus={() => {
  if (locationSearchResults.length > 0 || locationSearchQuery.trim().length >= 2) setShowLocationDropdown(true);
  }}
- style={{ color: "#F4F5F8", caretColor: "#D4AF37" }}
- className="pl-10 pr-10 text-xs sm:text-sm bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200/80 focus:border-[#2563EB] focus:ring-1 focus:ring-[#D4AF37]/50 focus:outline-none selection:bg-[#2563EB]/30 selection:text-white disabled:opacity-50 disabled:cursor-not-allowed [&:-webkit-autofill]:[box-shadow:0_0_0_1000px_#07090E_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:#F4F5F8]"
+ style={{ color: "#F4F5F8", caretColor: "#C28A2C" }}
+ className="pl-10 pr-10 text-xs sm:text-sm bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200/80 focus:border-brand-primary focus:ring-1 focus:ring-brand-gold/50 focus:outline-none selection:bg-brand-primary/30 selection:text-white disabled:opacity-50 disabled:cursor-not-allowed [&:-webkit-autofill]:[box-shadow:0_0_0_1000px_#07090E_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:#F4F5F8]"
  />
  {isSearchingLocation && (
- <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-[#2563EB]" />
+ <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-brand-primary" />
  )}
  </div>
 
@@ -1066,7 +1066,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <div className="absolute left-0 right-0 top-full mt-1.5 bg-white/98 backdrop-blur-md border border-slate-200/80 rounded-2xl shadow-[0_16px_40px_rgba(0,0,0,0.6)] p-2 z-50 max-h-60 overflow-y-auto space-y-1">
  {isSearchingLocation ? (
  <div className="p-3 text-xs text-slate-500 flex items-center gap-2 justify-center">
- <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2563EB]" />
+ <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-primary" />
  <span>Searching localities...</span>
  </div>
  ) : locationSearchResults.length > 0 ? (
@@ -1081,7 +1081,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  className="p-2.5 rounded-2xl hover:bg-slate-50 hover:bg-navy-accent/80 active:bg-navy-accent cursor-pointer flex items-center justify-between gap-3 text-xs transition"
  >
  <div className="flex items-center gap-2 min-w-0">
- <MapPin className="w-4 h-4 shrink-0 text-[#2563EB]" />
+ <MapPin className="w-4 h-4 shrink-0 text-brand-primary" />
  <div className="truncate">
  <p className="font-bold text-slate-900 truncate">{loc.label}</p>
  <p className="text-[11px] text-slate-500 truncate">{loc.formatted_address}</p>
@@ -1121,7 +1121,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => handleSelectSavedAddress(addr)}
  className={`px-3 py-1.5 rounded-2xl border text-xs font-semibold flex items-center gap-1.5 transition ${
  isSel
- ? "bg-[#2563EB] text-white border-[#2563EB] shadow-sm"
+ ? "bg-brand-primary text-white border-brand-primary shadow-sm"
  : "bg-slate-50 text-slate-900 border-slate-200 hover:border-blue-200"
  }`}
  >
@@ -1208,7 +1208,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  ) : (
  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col gap-2">
  <div className="flex items-center justify-between">
- <span className="text-xs font-bold text-[#0F172A] flex items-center gap-1.5">
+ <span className="text-xs font-bold text-brand-text flex items-center gap-1.5">
  <span>❌</span> We currently don't deliver to this location
  </span>
  <div className="flex items-center gap-2">
@@ -1216,7 +1216,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <button
  type="button"
  onClick={() => setNotifiedLocation(true)}
- className="text-[11px] font-bold text-amber-700 hover:underline flex items-center gap-1"
+ className="text-[11px] font-bold text-brand-gold-dark hover:underline flex items-center gap-1"
  >
  <span>🔔</span> Notify Me
  </button>
@@ -1231,13 +1231,13 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  setLocationSearchQuery("");
  searchInputRef.current?.focus();
  }}
- className="text-[11px] font-bold text-[#152347] underline hover:no-underline ml-1"
+ className="text-[11px] font-bold text-brand-deep underline hover:no-underline ml-1"
  >
  Change Location
  </button>
  </div>
  </div>
- <p className="text-[11px] text-[#152347] ">
+ <p className="text-[11px] text-brand-deep ">
  {availability.status_message || "We currently don't deliver to this location. We're coming soon to your town."}
  </p>
  {notifiedLocation && (
@@ -1333,7 +1333,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  type="button"
  onClick={handleSearchAddressOnMap}
  disabled={isGeocodingAddress || (!address.trim() && !city.trim() && !zip.trim())}
- className="px-3 py-1.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-[#2563EB]/30 :bg-zinc-750 text-xs font-semibold text-slate-900 flex items-center gap-1.5 transition disabled:opacity-50"
+ className="px-3 py-1.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-brand-primary/30 :bg-zinc-750 text-xs font-semibold text-slate-900 flex items-center gap-1.5 transition disabled:opacity-50"
  >
  {isGeocodingAddress ? (
  <>
@@ -1379,7 +1379,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => handleBranchSelect(b.id)}
  className={`p-4 rounded-2xl border text-left transition-all flex flex-col gap-1.5 ${
  isSelected
- ? "border-[#2563EB] bg-slate-50 text-slate-900 ring-2 ring-blue-500/20"
+ ? "border-brand-primary bg-slate-50 text-slate-900 ring-2 ring-blue-500/20"
  : "border-slate-200 hover:border-blue-300"
  }`}
  >
@@ -1425,7 +1425,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => handleDateChange(d.date)}
  className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center ${
  isSelected
- ? "border-[#2563EB] bg-[#2563EB] text-white font-bold shadow-md shadow-[#1D2F5D]/30"
+ ? "border-brand-primary bg-brand-primary text-white font-bold shadow-md shadow-brand-navy/30"
  : d.is_available
  ? "border-slate-200 bg-slate-50 text-slate-900 hover:border-blue-200"
  : "border-slate-200 opacity-40 cursor-not-allowed bg-white/5 text-slate-400"
@@ -1465,12 +1465,12 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <div className="flex flex-col gap-3">
  {/* Same-day cutoff banner when all slots on current date are closed/expired */}
  {currentSlots.length > 0 && currentSlots.every((s: any) => !s.available) && (
- <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-900 ">
+ <div className="bg-brand-gold-light border border-brand-gold/40 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-brand-gold-dark ">
  <div className="flex items-center gap-2.5">
  <span className="text-xl">⏰</span>
  <div>
  <p className="font-bold text-xs md:text-sm">Same-Day Ordering Closed</p>
- <p className="text-[11px] text-amber-700 ">
+ <p className="text-[11px] text-brand-gold-dark ">
  Same-day acceptance cutoff has passed for this date. Pre-orders are open for tomorrow!
  </p>
  </div>
@@ -1482,7 +1482,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  const nextAvail = activeDates.find((d) => d.date !== selectedDate && d.is_available);
  if (nextAvail) handleDateChange(nextAvail.date);
  }}
- className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-1.5 px-3.5 rounded-2xl whitespace-nowrap shadow-sm transition-all"
+ className="bg-brand-navy hover:bg-brand-primary text-white text-xs font-bold py-1.5 px-3.5 rounded-2xl whitespace-nowrap shadow-sm transition-all"
  >
  Switch to {activeDates.find((d) => d.date !== selectedDate && d.is_available)?.label} →
  </button>
@@ -1511,7 +1511,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  }}
  className={`flex flex-col text-left border rounded-2xl p-3.5 transition-all ${
  isSelected && isAvailable
- ? "border-[#2563EB] bg-slate-50/80 ring-2 ring-blue-500/20 shadow-sm"
+ ? "border-brand-primary bg-slate-50/80 ring-2 ring-blue-500/20 shadow-sm"
  : isAvailable
  ? "border-slate-200 bg-white hover:border-blue-300 cursor-pointer"
  : "border-slate-200 bg-slate-50/80 opacity-60 cursor-not-allowed"
@@ -1574,7 +1574,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => setStep(3)}
  className={`font-bold py-2.5 px-6 rounded-2xl w-full sm:w-auto transition-all ${
  isStep2Valid
- ? "bg-[#2563EB] hover:bg-[#1D4ED8] text-white border border-blue-200 shadow-md"
+ ? "bg-brand-primary hover:bg-brand-secondary text-white border border-blue-200 shadow-md"
  : "bg-navy-accent/40 text-slate-400 cursor-not-allowed"
  }`}
  >
@@ -1648,14 +1648,14 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => setPaymentMethod("razorpay")}
  className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all ${
  (paymentMethod === "razorpay" || paymentMethod === "cashfree")
- ? "border-[#2563EB] bg-blue-50/60 ring-2 ring-blue-500/20"
+ ? "border-brand-primary bg-blue-50/60 ring-2 ring-blue-500/20"
  : "border-slate-200 hover:border-blue-300"
  }`}
  >
  <div className="flex justify-between items-center">
  <span className="text-2xl">💳</span>
  <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
- (paymentMethod === "razorpay" || paymentMethod === "cashfree") ? "border-[#2563EB] bg-[#2563EB] text-[#2563EB] text-[10px]" : "border-stone/70"
+ (paymentMethod === "razorpay" || paymentMethod === "cashfree") ? "border-brand-primary bg-brand-primary text-brand-primary text-[10px]" : "border-stone/70"
  }`}>
  {(paymentMethod === "razorpay" || paymentMethod === "cashfree") && "✓"}
  </span>
@@ -1671,14 +1671,14 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => setPaymentMethod("cod")}
  className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all ${
  paymentMethod === "cod"
- ? "border-[#2563EB] bg-blue-50/60 ring-2 ring-blue-500/20"
+ ? "border-brand-primary bg-blue-50/60 ring-2 ring-blue-500/20"
  : "border-slate-200 hover:border-blue-300"
  }`}
  >
  <div className="flex justify-between items-center">
  <span className="text-2xl">💵</span>
  <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
- paymentMethod === "cod" ? "border-[#2563EB] bg-[#2563EB] text-[#2563EB] text-[10px]" : "border-stone/70"
+ paymentMethod === "cod" ? "border-brand-primary bg-brand-primary text-brand-primary text-[10px]" : "border-stone/70"
  }`}>
  {paymentMethod === "cod" && "✓"}
  </span>
@@ -1694,14 +1694,14 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onClick={() => setPaymentMethod("test_mode")}
  className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all ${
  paymentMethod === "test_mode"
- ? "border-[#2563EB] bg-blue-50/60 ring-2 ring-blue-500/20"
+ ? "border-brand-primary bg-blue-50/60 ring-2 ring-blue-500/20"
  : "border-slate-200 hover:border-blue-300"
  }`}
  >
  <div className="flex justify-between items-center">
  <span className="text-2xl">⚡</span>
  <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
- paymentMethod === "test_mode" ? "border-[#2563EB] bg-[#2563EB] text-[#2563EB] text-[10px]" : "border-stone/70"
+ paymentMethod === "test_mode" ? "border-brand-primary bg-brand-primary text-brand-primary text-[10px]" : "border-stone/70"
  }`}>
  {paymentMethod === "test_mode" && "✓"}
  </span>

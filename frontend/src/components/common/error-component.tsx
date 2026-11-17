@@ -27,11 +27,11 @@ export function ErrorComponent({
       <div
         role="alert"
         aria-live="assertive"
-        className={`flex items-center justify-between gap-3 p-3 bg-brand-gold-soft dark:bg-[#0c1326]/80 border border-[#D4AF37]/30 dark:border-rose-800 rounded-lg text-rose-800 dark:text-rose-200 text-xs font-medium ${className}`}
+        className={`flex items-center justify-between gap-3 p-3 bg-brand-gold-soft dark:bg-brand-deep/80 border border-brand-gold/30 dark:border-rose-800 rounded-lg text-rose-800 dark:text-rose-200 text-xs font-medium ${className}`}
       >
         <div className="flex items-center gap-2">
           <svg
-            className="w-4 h-4 text-[#1D2F5D] dark:text-[#D4AF37] shrink-0"
+            className="w-4 h-4 text-brand-navy dark:text-brand-gold shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -49,7 +49,7 @@ export function ErrorComponent({
           <button
             type="button"
             onClick={onDismiss}
-            className="text-[#D4AF37] hover:text-[#152347] dark:hover:text-rose-300 font-bold ml-auto"
+            className="text-brand-gold hover:text-brand-deep dark:hover:text-rose-300 font-bold ml-auto"
             aria-label="Dismiss error"
           >
             ✕
@@ -63,10 +63,10 @@ export function ErrorComponent({
     <div
       role="alert"
       aria-live="assertive"
-      className={`p-4 bg-brand-gold-soft dark:bg-[#0c1326]/50 border border-[#D4AF37]/30 dark:border-rose-800 rounded-xl text-rose-900 dark:text-rose-100 flex flex-col gap-3 shadow-sm ${className}`}
+      className={`p-4 bg-brand-gold-soft dark:bg-brand-deep/50 border border-brand-gold/30 dark:border-rose-800 rounded-xl text-rose-900 dark:text-rose-100 flex flex-col gap-3 shadow-sm ${className}`}
     >
       <div className="flex items-start gap-3">
-        <div className="p-2 bg-brand-gold-soft dark:bg-rose-900/80 rounded-full text-[#1D2F5D] dark:text-rose-300 shrink-0 mt-0.5">
+        <div className="p-2 bg-brand-gold-soft dark:bg-rose-900/80 rounded-full text-brand-navy dark:text-rose-300 shrink-0 mt-0.5">
           <svg
             className="w-5 h-5"
             fill="none"
@@ -93,7 +93,7 @@ export function ErrorComponent({
           <button
             type="button"
             onClick={onDismiss}
-            className="text-[#D4AF37] hover:text-[#1D2F5D] dark:hover:text-rose-200 transition-colors p-1"
+            className="text-brand-gold hover:text-brand-navy dark:hover:text-rose-200 transition-colors p-1"
             aria-label="Close error notification"
           >
             ✕
@@ -108,7 +108,7 @@ export function ErrorComponent({
             variant="secondary"
             size="small"
             onClick={onRetry}
-            className="text-xs font-semibold border-[#D4AF37]/40 hover:bg-brand-gold-soft"
+            className="text-xs font-semibold border-brand-gold/40 hover:bg-brand-gold-soft"
           >
             🔄 Try Again
           </Button>

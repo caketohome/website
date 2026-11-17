@@ -62,7 +62,7 @@ export function BillDetailModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
+            <div className="p-2.5 rounded-xl bg-brand-light text-brand-primary dark:bg-brand-navy/60 dark:text-brand-primary">
               <Receipt className="w-5 h-5" />
             </div>
             <div>
@@ -78,7 +78,7 @@ export function BillDetailModal({
                         : data.bill.status === "OVERDUE"
                         ? "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400"
                         : data.bill.status === "PARTIALLY_PAID"
-                        ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400"
+                        ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold"
                         : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                     }`}
                   >
@@ -132,15 +132,15 @@ export function BillDetailModal({
                     ₹{Number(data.bill.paid_amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                   </p>
                 </div>
-                <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-amber-50/40 dark:bg-amber-950/20">
-                  <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">Debit Notes / Ret</span>
-                  <p className="text-lg font-bold text-amber-700 dark:text-amber-400 mt-0.5">
+                <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-brand-gold-light/40 dark:bg-brand-gold-dark/20">
+                  <span className="text-xs text-brand-gold-dark dark:text-brand-gold font-medium">Debit Notes / Ret</span>
+                  <p className="text-lg font-bold text-brand-gold-dark dark:text-brand-gold mt-0.5">
                     ₹{Number(data.bill.returns_amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                   </p>
                 </div>
-                <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-indigo-50/40 dark:bg-indigo-950/20">
-                  <span className="text-xs text-indigo-700 dark:text-indigo-400 font-medium">Balance Outstanding</span>
-                  <p className="text-lg font-bold text-indigo-700 dark:text-indigo-400 mt-0.5">
+                <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-brand-light/40 dark:bg-brand-navy/20">
+                  <span className="text-xs text-brand-navy dark:text-brand-primary font-medium">Balance Outstanding</span>
+                  <p className="text-lg font-bold text-brand-navy dark:text-brand-primary mt-0.5">
                     ₹{Number(data.bill.outstanding_amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                   </p>
                 </div>
@@ -172,7 +172,7 @@ export function BillDetailModal({
                 <div>
                   <span className="text-zinc-400 block mb-0.5">Linked GL Voucher</span>
                   {data.bill.voucher_no ? (
-                    <span className="inline-flex items-center gap-1 font-mono font-medium text-indigo-600 dark:text-indigo-400">
+                    <span className="inline-flex items-center gap-1 font-mono font-medium text-brand-primary dark:text-brand-primary">
                       {data.bill.voucher_no}
                     </span>
                   ) : (
@@ -258,7 +258,7 @@ export function BillDetailModal({
                             <td className="py-2.5 px-3 font-mono text-zinc-600 dark:text-zinc-400">
                               {p.reference || "—"}
                             </td>
-                            <td className="py-2.5 px-3 font-mono text-indigo-600 dark:text-indigo-400">
+                            <td className="py-2.5 px-3 font-mono text-brand-primary dark:text-brand-primary">
                               {p.voucher_no || p.voucher_id || "—"}
                             </td>
                             <td className="py-2.5 px-3 text-right font-semibold text-emerald-600 dark:text-emerald-400">
@@ -293,7 +293,7 @@ export function BillDetailModal({
                 onClose();
                 onOpenPay(data.bill);
               }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-brand-primary hover:bg-brand-navy rounded-xl shadow-sm transition"
             >
               <span>Disburse Payment (₹{Number(data.bill.outstanding_amount).toFixed(2)})</span>
               <ArrowRight className="w-4 h-4" />

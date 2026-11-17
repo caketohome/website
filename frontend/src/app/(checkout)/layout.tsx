@@ -22,7 +22,7 @@ export default async function RootLayout({
 
   return (
     <div className="min-h-screen flex flex-col w-full">
-      <nav className="flex px-4 md:px-10 h-16 bg-[#1D2F5D]/95 backdrop-blur-md text-white justify-between items-center sticky top-0 z-50 border-b border-white/10 shadow-[0_4px_24px_rgba(29,47,93,0.25)]">
+      <nav className="flex px-4 md:px-10 h-16 bg-brand-navy/95 backdrop-blur-md text-white justify-between items-center sticky top-0 z-50 border-b border-white/10 shadow-[0_4px_24px_rgba(29,47,93,0.25)]">
         <div className="flex items-center gap-3">
           <CakeToHomeLogo
             variant="white"
@@ -32,7 +32,7 @@ export default async function RootLayout({
             href="/"
             className="py-1"
           />
-          <span className="hidden sm:inline-flex text-[10px] uppercase font-sans tracking-[0.2em] font-semibold text-[#D4AF37] px-2.5 py-0.5 rounded-full bg-white/10 border border-[#D4AF37]/30">
+          <span className="hidden sm:inline-flex text-[10px] uppercase font-sans tracking-[0.2em] font-semibold text-brand-gold px-2.5 py-0.5 rounded-full bg-white/10 border border-brand-gold/30">
             Patisserie Checkout
           </span>
         </div>

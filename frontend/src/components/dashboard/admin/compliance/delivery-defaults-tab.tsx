@@ -54,7 +54,7 @@ export function DeliveryDefaultsTab({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <Truck className="w-5 h-5 text-amber-600" />
+            <Truck className="w-5 h-5 text-brand-gold" />
             <Heading level="h3" className="text-base font-bold">Platform Delivery & Operational Defaults</Heading>
           </div>
           <Text className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -64,7 +64,7 @@ export function DeliveryDefaultsTab({
         <Button
           type="submit"
           isLoading={saving}
-          className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1.5 shrink-0"
+          className="bg-brand-gold hover:bg-brand-gold-dark text-white flex items-center gap-1.5 shrink-0"
         >
           <Save className="w-4 h-4" /> Save Delivery Defaults
         </Button>
@@ -74,7 +74,7 @@ export function DeliveryDefaultsTab({
         {/* Pricing Rules */}
         <Container className="p-5 flex flex-col gap-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <Truck className="w-4 h-4 text-amber-600" />
+            <Truck className="w-4 h-4 text-brand-gold" />
             <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
               Delivery Thresholds & Surcharges
             </Text>
@@ -124,7 +124,7 @@ export function DeliveryDefaultsTab({
         {/* Operational Time Buffers */}
         <Container className="p-5 flex flex-col gap-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <Clock className="w-4 h-4 text-amber-600" />
+            <Clock className="w-4 h-4 text-brand-gold" />
             <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
               Kitchen Preparation Buffers
             </Text>

@@ -853,7 +853,7 @@ export function ScrollFrameAnimation({
       <section
         id={sectionId}
         ref={sectionRef}
-        className="relative w-full overflow-hidden border-b border-ui-border-base min-h-[420px] sm:min-h-[500px] flex items-center justify-center text-white"
+        className="relative w-full overflow-hidden border-b border-ui-border-base min-h-[420px] sm:min-h-[500px] flex items-center justify-center text-brand-navy bg-brand-warm-white"
         data-cms-renderer="scroll-frame-hero-static-fallback"
         data-section-id={sectionId}
         data-cms-section-id={sectionId}
@@ -871,22 +871,22 @@ export function ScrollFrameAnimation({
           backgroundPosition: "center",
         }}
       >
-        <div className="absolute inset-0 bg-stone-950/60 backdrop-blur-xs" />
+        <div className="absolute inset-0 bg-brand-warm-white/80" />
         <div className="relative z-10 p-6 sm:p-12 max-w-3xl flex flex-col items-center text-center gap-4">
           {badgeText && (
             <span
-              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase shadow-lg bg-[#D97706]/25 text-[#FDE68A] border border-[#FDE68A]/35 backdrop-blur-md"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase bg-brand-gold-light text-brand-gold-dark border border-brand-gold/30"
               style={badgeBg ? { backgroundColor: badgeBg, color: badgeColor } : undefined}
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+              <Sparkles className="w-3.5 h-3.5 text-brand-gold" />
               <span>{badgeText}</span>
             </span>
           )}
-          <Heading level="h1" className="font-serif text-3xl sm:text-5xl font-normal sm:font-semibold tracking-[-0.02em] leading-[1.12] text-white drop-shadow-xl">
+          <Heading level="h1" className="font-serif text-3xl sm:text-5xl font-normal sm:font-semibold tracking-[-0.02em] leading-[1.12] text-brand-navy">
             {headline}
           </Heading>
           {subheadline && (
-            <Text className="font-sans text-sm sm:text-base text-stone-200 max-w-xl font-normal leading-relaxed drop-shadow-sm">
+            <Text className="font-sans text-sm sm:text-base text-brand-text max-w-xl font-normal leading-relaxed">
               {subheadline}
             </Text>
           )}
@@ -896,7 +896,7 @@ export function ScrollFrameAnimation({
                 <Button
                   variant="primary"
                   size="large"
-                  className="rounded-full px-8 py-3.5 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-gradient-to-r from-[#D97706] to-[#B45309] hover:from-[#B45309] hover:to-[#92400E] text-white shadow-[0_10px_25px_rgba(217,119,6,0.35)] transition-all duration-300 border-none"
+                  className="rounded-lg px-7 py-3.5 font-sans font-semibold text-xs sm:text-sm uppercase tracking-[0.12em] bg-brand-navy hover:bg-brand-primary text-white shadow-sm transition-colors duration-200 border-none"
                   style={primaryCtaBg ? { backgroundColor: primaryCtaBg, color: primaryCtaColor } : undefined}
                 >
                   {primaryCtaText} <ArrowRight className="w-4 h-4 ml-1" />
@@ -908,7 +908,7 @@ export function ScrollFrameAnimation({
                 <Button
                   variant="secondary"
                   size="large"
-                  className="rounded-full px-7 py-3.5 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-white/10 hover:bg-white/20 text-[#FAF9F6] border border-[#FDE68A]/30 backdrop-blur-md hover:border-[#FDE68A]/50 transition-all"
+                  className="rounded-lg px-6 py-3.5 font-sans font-semibold text-xs sm:text-sm uppercase tracking-[0.12em] bg-white hover:bg-brand-light text-brand-navy border border-brand-border transition-colors"
                 >
                   {secondaryCtaText}
                 </Button>
@@ -941,7 +941,7 @@ export function ScrollFrameAnimation({
     >
       <div
         ref={stickyRef}
-        className="scroll-frame-sticky sticky top-0 h-screen sm:h-[100svh] w-full overflow-hidden bg-stone-950 flex items-center justify-center select-none"
+        className="scroll-frame-sticky sticky top-0 h-screen sm:h-[100svh] w-full overflow-hidden bg-brand-warm-white flex items-center justify-center select-none"
       >
         {/* Fallback & Initial Poster Backdrop (Visible immediately before/during frame decoding) */}
         {posterImage && (
@@ -961,13 +961,13 @@ export function ScrollFrameAnimation({
         />
 
         {/* Ambient Gradient Overlays for High Contrast Readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-stone-950/95 via-stone-950/20 to-stone-950/60 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-warm-white via-brand-warm-white/40 to-brand-warm-white/75 pointer-events-none" />
 
         {/* Progress Bar (Sticky bottom indicator) */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 z-20 pointer-events-none">
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-brand-navy/10 z-20 pointer-events-none">
           <div
             ref={progressBarRef}
-            className="h-full bg-gradient-to-r from-[#D97706] to-[#F59E0B] origin-left transition-transform duration-75 ease-out shadow-[0_0_12px_rgba(245,158,11,0.6)]"
+            className="h-full bg-brand-primary origin-left transition-transform duration-75 ease-out"
             style={{ transform: "scaleX(0)" }}
           />
         </div>
@@ -975,9 +975,9 @@ export function ScrollFrameAnimation({
         {/* Dev-Only Debug HUD (Visible via ?debug_scroll=1 or in dev) */}
         {showDebugHud && (
           <div className="fixed bottom-4 right-4 z-50 p-3.5 rounded-2xl bg-stone-950/90 backdrop-blur-md border border-white/20 text-white font-mono text-[11px] shadow-2xl flex flex-col gap-1.5 pointer-events-none select-none max-w-xs">
-            <div className="font-bold text-[#D4AF37] flex items-center justify-between">
+            <div className="font-bold text-brand-gold flex items-center justify-between">
               <span>🎬 Kitchen Story HUD</span>
-              <span className="text-[9px] uppercase px-1.5 py-0.5 bg-[#D4AF37]/20 text-[#D4AF37] rounded font-bold">{currentDevice}</span>
+              <span className="text-[9px] uppercase px-1.5 py-0.5 bg-brand-gold/20 text-brand-gold rounded font-bold">{currentDevice}</span>
             </div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-stone-300 mt-1">
               <span>Frames:</span>
@@ -989,11 +989,11 @@ export function ScrollFrameAnimation({
               <span>Disp Prog:</span>
               <span className="text-white">{(displayedProgressRef.current * 100).toFixed(1)}%</span>
               <span>Disp Frame:</span>
-              <span className="text-[#D4AF37] font-bold">{(displayedProgressRef.current * (totalFrames - 1)).toFixed(2)}</span>
+              <span className="text-brand-gold font-bold">{(displayedProgressRef.current * (totalFrames - 1)).toFixed(2)}</span>
               <span>Hold (In/Out):</span>
               <span className="text-white">{(firstFrameHold * 100).toFixed(0)}% / {(finalFrameHold * 100).toFixed(0)}%</span>
               <span>Smoothing:</span>
-              <span className="text-emerald-400 font-bold">{smoothingPreset}</span>
+              <span className="text-[#16834A] font-bold">{smoothingPreset}</span>
               <span>Track Height:</span>
               <span className="text-white">{scrollLengthVh}vh</span>
             </div>
@@ -1003,22 +1003,22 @@ export function ScrollFrameAnimation({
         {/* ── Phase 1 Overlay (Intro Headline & Primary CTAs) ── */}
         <div
           ref={introOverlayRef}
-          className="absolute inset-0 flex flex-col items-center justify-center p-6 sm:p-12 text-center text-white z-10 max-w-4xl mx-auto will-change-transform"
+          className="absolute inset-0 flex flex-col items-center justify-center p-6 sm:p-12 text-center text-brand-navy z-10 max-w-4xl mx-auto will-change-transform"
         >
           {badgeText && (
             <span
-              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-4 shadow-xl backdrop-blur-md bg-[#D97706]/25 text-[#FDE68A] border border-[#FDE68A]/35"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-4 bg-brand-gold-light text-brand-gold-dark border border-brand-gold/30"
               style={badgeBg ? { backgroundColor: badgeBg, color: badgeColor } : undefined}
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+              <Sparkles className="w-3.5 h-3.5 text-brand-gold" />
               <span>{badgeText}</span>
             </span>
           )}
-          <Heading level="h1" className="font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-normal sm:font-semibold tracking-[-0.025em] leading-[1.1] text-white drop-shadow-2xl max-w-3xl">
+          <Heading level="h1" className="font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-normal sm:font-semibold tracking-[-0.025em] leading-[1.1] text-brand-navy max-w-3xl">
             {headline}
           </Heading>
           {subheadline && (
-            <Text className="font-sans text-sm sm:text-lg text-stone-200 mt-3 max-w-2xl font-normal leading-relaxed drop-shadow-md">
+            <Text className="font-sans text-sm sm:text-lg text-brand-text mt-3 max-w-2xl font-normal leading-relaxed">
               {subheadline}
             </Text>
           )}
@@ -1028,7 +1028,7 @@ export function ScrollFrameAnimation({
                 <Button
                   variant="primary"
                   size="large"
-                  className="rounded-full px-8 py-4 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-gradient-to-r from-[#D97706] to-[#B45309] hover:from-[#B45309] hover:to-[#92400E] text-white shadow-[0_12px_30px_rgba(217,119,6,0.4)] transition-all duration-300 border-none"
+                  className="rounded-lg px-7 py-3.5 font-sans font-semibold text-xs sm:text-sm uppercase tracking-[0.12em] bg-brand-navy hover:bg-brand-primary text-white shadow-sm transition-colors duration-200 border-none"
                   style={primaryCtaBg ? { backgroundColor: primaryCtaBg, color: primaryCtaColor } : undefined}
                 >
                   {primaryCtaText} <ArrowRight className="w-4 h-4 ml-1.5" />
@@ -1040,7 +1040,7 @@ export function ScrollFrameAnimation({
                 <Button
                   variant="secondary"
                   size="large"
-                  className="rounded-full px-7 py-4 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-white/10 hover:bg-white/20 text-[#FAF9F6] border border-[#FDE68A]/30 backdrop-blur-md hover:border-[#FDE68A]/60 transition-all"
+                  className="rounded-lg px-6 py-3.5 font-sans font-semibold text-xs sm:text-sm uppercase tracking-[0.12em] bg-white hover:bg-brand-light text-brand-navy border border-brand-border transition-colors"
                 >
                   {secondaryCtaText}
                 </Button>
@@ -1052,19 +1052,19 @@ export function ScrollFrameAnimation({
         {/* ── Phase 2 Overlay (Craft / Artisan Kitchen Story) ── */}
         <div
           ref={craftOverlayRef}
-          className="absolute inset-0 flex flex-col items-center justify-center p-6 sm:p-12 text-center text-white z-10 max-w-3xl mx-auto opacity-0 will-change-transform pointer-events-none"
+          className="absolute inset-0 flex flex-col items-center justify-center p-6 sm:p-12 text-center text-brand-navy z-10 max-w-3xl mx-auto opacity-0 will-change-transform pointer-events-none"
         >
           {craftBadge && (
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-3 bg-[#D97706]/20 text-[#FDE68A] border border-[#FDE68A]/30 backdrop-blur-md">
-              <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-3 bg-brand-gold-light text-brand-gold-dark border border-brand-gold/30">
+              <Sparkles className="w-3.5 h-3.5 text-brand-gold" />
               <span>{craftBadge}</span>
             </span>
           )}
-          <Heading level="h2" className="font-serif text-2xl sm:text-4xl md:text-5xl font-normal sm:font-semibold tracking-tight text-white drop-shadow-2xl">
+          <Heading level="h2" className="font-serif text-2xl sm:text-4xl md:text-5xl font-normal sm:font-semibold tracking-tight text-brand-navy">
             {craftHeading}
           </Heading>
           {craftText && (
-            <Text className="font-sans text-xs sm:text-base text-stone-200 mt-2.5 max-w-xl font-normal drop-shadow-md leading-relaxed">
+            <Text className="font-sans text-xs sm:text-base text-brand-text mt-2.5 max-w-xl font-normal leading-relaxed">
               {craftText}
             </Text>
           )}
@@ -1073,19 +1073,19 @@ export function ScrollFrameAnimation({
         {/* ── Phase 3 Overlay (Fleet Guarantee & Express Delivery) ── */}
         <div
           ref={fleetOverlayRef}
-          className="absolute inset-0 flex flex-col items-center justify-center p-6 sm:p-12 text-center text-white z-10 max-w-3xl mx-auto opacity-0 will-change-transform pointer-events-none"
+          className="absolute inset-0 flex flex-col items-center justify-center p-6 sm:p-12 text-center text-brand-navy z-10 max-w-3xl mx-auto opacity-0 will-change-transform pointer-events-none"
         >
           {fleetBadge && (
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-3 bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 backdrop-blur-md">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-3 bg-[#EAF7EF] text-[#16834A] border border-[#16834A]/25">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>{fleetBadge}</span>
             </span>
           )}
-          <Heading level="h2" className="font-serif text-2xl sm:text-4xl md:text-5xl font-normal sm:font-semibold tracking-tight text-white drop-shadow-2xl">
+          <Heading level="h2" className="font-serif text-2xl sm:text-4xl md:text-5xl font-normal sm:font-semibold tracking-tight text-brand-navy">
             {fleetHeading}
           </Heading>
           {fleetText && (
-            <Text className="font-sans text-xs sm:text-base text-stone-200 mt-2.5 max-w-xl font-normal drop-shadow-md leading-relaxed">
+            <Text className="font-sans text-xs sm:text-base text-brand-text mt-2.5 max-w-xl font-normal leading-relaxed">
               {fleetText}
             </Text>
           )}
@@ -1095,7 +1095,7 @@ export function ScrollFrameAnimation({
                 <Button
                   variant="primary"
                   size="large"
-                  className="rounded-full px-8 py-3.5 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-gradient-to-r from-[#D97706] to-[#B45309] hover:from-[#B45309] hover:to-[#92400E] text-white shadow-[0_12px_30px_rgba(217,119,6,0.4)] transition-all duration-300 border-none"
+                  className="rounded-lg px-7 py-3.5 font-sans font-semibold text-xs sm:text-sm uppercase tracking-[0.12em] bg-brand-navy hover:bg-brand-primary text-white shadow-sm transition-colors duration-200 border-none"
                 >
                   {fleetCtaText} <ArrowRight className="w-4 h-4 ml-1.5" />
                 </Button>

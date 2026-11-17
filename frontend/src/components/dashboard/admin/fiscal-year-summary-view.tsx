@@ -112,7 +112,7 @@ export function FiscalYearSummaryView({ branchId }: { branchId?: string }) {
                 id="fy-filter-select"
                 value={selectedFY}
                 onChange={(e) => setSelectedFY(e.target.value)}
-                className="py-1.5 px-3 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+                className="py-1.5 px-3 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-navy"
               >
                 <option value="ALL">All Tracked Fiscal Years</option>
                 <option value="FY2526">FY2526 (2025–2026)</option>
@@ -127,7 +127,7 @@ export function FiscalYearSummaryView({ branchId }: { branchId?: string }) {
                 type="button"
                 onClick={fetchData}
                 disabled={loading}
-                className="inline-flex items-center gap-1.5 py-1.5 px-4 text-xs font-bold text-white bg-[#1D2F5D] hover:bg-[#162447] rounded-lg transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 py-1.5 px-4 text-xs font-bold text-white bg-brand-navy hover:bg-[#162447] rounded-lg transition-colors disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
                 <span>{loading ? "Loading…" : "Refresh"}</span>
@@ -153,7 +153,7 @@ export function FiscalYearSummaryView({ branchId }: { branchId?: string }) {
           </div>
 
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <Shield className="w-4 h-4 text-indigo-500" />
+            <Shield className="w-4 h-4 text-brand-primary" />
             <span>Authoritative GL • Fiscal Period Lockout &amp; Close Status</span>
           </div>
         </div>
@@ -192,7 +192,7 @@ export function FiscalYearSummaryView({ branchId }: { branchId?: string }) {
           <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
             Fully Locked Periods
           </span>
-          <span className="text-2xl font-black text-indigo-600 dark:text-indigo-400">
+          <span className="text-2xl font-black text-brand-primary dark:text-brand-primary">
             {fullyLockedYears}
           </span>
           <span className="text-[11px] text-slate-500 ml-1.5 font-medium">FYs</span>
@@ -202,7 +202,7 @@ export function FiscalYearSummaryView({ branchId }: { branchId?: string }) {
           <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
             Historical Lockout Active
           </span>
-          <span className="text-2xl font-black text-amber-600 dark:text-amber-400">
+          <span className="text-2xl font-black text-brand-gold dark:text-brand-gold">
             {lockedOutYears}
           </span>
           <span className="text-[11px] text-slate-500 ml-1.5 font-medium">FYs</span>
@@ -272,8 +272,8 @@ export function FiscalYearSummaryView({ branchId }: { branchId?: string }) {
                           item.status === "CLOSED"
                             ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
                             : item.status === "REOPENED"
-                            ? "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
-                            : "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                            ? "bg-brand-light dark:bg-brand-navy/40 text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy"
+                            : "bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold/40 border border-brand-gold/40 dark:border-brand-gold-dark"
                         }`}>
                           {item.status === "CLOSED" ? <Lock className="w-2.5 h-2.5" /> : item.status === "REOPENED" ? <RefreshCw className="w-2.5 h-2.5" /> : <Unlock className="w-2.5 h-2.5" />}
                           {item.status}
@@ -291,7 +291,7 @@ export function FiscalYearSummaryView({ branchId }: { branchId?: string }) {
                         <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                           <div
                             className={`h-1.5 rounded-full ${
-                              item.all_periods_locked ? "bg-emerald-500" : "bg-indigo-500"
+                              item.all_periods_locked ? "bg-emerald-500" : "bg-brand-primary"
                             }`}
                             style={{ width: `${lockPercent}%` }}
                           />
@@ -316,7 +316,7 @@ export function FiscalYearSummaryView({ branchId }: { branchId?: string }) {
                         {item.active_closing_voucher ? (
                           <div className="text-[11px]">
                             <span className="font-mono font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-                              <FileText className="w-3 h-3 text-indigo-500" />
+                              <FileText className="w-3 h-3 text-brand-primary" />
                               {item.active_closing_voucher.voucher_no}
                             </span>
                             <span className="text-[10px] text-slate-400 block mt-0.5">

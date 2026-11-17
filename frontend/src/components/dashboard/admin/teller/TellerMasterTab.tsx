@@ -107,11 +107,11 @@ export function TellerMasterTab({
   return (
     <div className="space-y-6">
       {/* Canonical Till Guidance Banner */}
-      <div className="bg-indigo-50/80 border border-indigo-200/90 rounded-2xl p-4 flex items-start gap-3">
-        <Building className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
-        <div className="text-xs text-indigo-950">
+      <div className="bg-brand-light/80 border border-brand-primary/90 rounded-2xl p-4 flex items-start gap-3">
+        <Building className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
+        <div className="text-xs text-brand-navy">
           <span className="font-bold">Canonical Branch Till Architecture:</span>
-          <p className="text-indigo-800 mt-0.5 leading-relaxed">
+          <p className="text-brand-navy mt-0.5 leading-relaxed">
             The Branch Manager is the default authorized cash operator for their assigned branch. Every branch is automatically provisioned with a <strong>Main Cash Drawer (MAIN)</strong>. Creating extra counter stations here is purely optional and only required if your physical store operates multiple tills simultaneously.
           </p>
         </div>
@@ -121,7 +121,7 @@ export function TellerMasterTab({
       <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
-            <Building className="w-5 h-5 text-indigo-600" />
+            <Building className="w-5 h-5 text-brand-primary" />
             Teller Counter Stations Management
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -145,7 +145,7 @@ export function TellerMasterTab({
 
           <button
             onClick={() => setShowAddModal(true)}
-            className="px-3.5 py-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-sm transition-colors flex items-center gap-1.5 shrink-0"
+            className="px-3.5 py-1.5 text-xs font-semibold bg-brand-primary hover:bg-brand-navy text-white rounded-xl shadow-sm transition-colors flex items-center gap-1.5 shrink-0"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Counter</span>
@@ -157,7 +157,7 @@ export function TellerMasterTab({
             className="p-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors disabled:opacity-50"
             title="Refresh tellers"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-indigo-600" : ""}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-brand-primary" : ""}`} />
           </button>
         </div>
       </div>
@@ -173,7 +173,7 @@ export function TellerMasterTab({
             </p>
             <button
               onClick={() => setShowAddModal(true)}
-              className="mt-4 px-4 py-2 text-xs font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 inline-flex items-center gap-1.5"
+              className="mt-4 px-4 py-2 text-xs font-semibold bg-brand-primary text-white rounded-xl hover:bg-brand-navy inline-flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4" />
               <span>Create First Station</span>
@@ -244,7 +244,7 @@ export function TellerMasterTab({
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-indigo-50/40">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-brand-light/40">
               <h3 className="text-base font-bold text-slate-800">Add Counter Station</h3>
               <button
                 onClick={() => setShowAddModal(false)}
@@ -272,7 +272,7 @@ export function TellerMasterTab({
                   placeholder="e.g. T1, CASH-01"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs font-mono uppercase bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full px-3 py-1.5 text-xs font-mono uppercase bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
                 />
               </div>
 
@@ -286,7 +286,7 @@ export function TellerMasterTab({
                   placeholder="e.g. Main Cash Desk 1"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
                 />
               </div>
 
@@ -299,7 +299,7 @@ export function TellerMasterTab({
                   placeholder="Leave blank to auto-assign branch till operator"
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs font-mono bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full px-3 py-1.5 text-xs font-mono bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
                 />
                 <p className="text-[11px] text-slate-400 mt-1">
                   Optional. If omitted, the till station is automatically configured with a dedicated branch operator identity.
@@ -318,7 +318,7 @@ export function TellerMasterTab({
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm flex items-center gap-1.5"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-brand-primary hover:bg-brand-navy rounded-xl shadow-sm flex items-center gap-1.5"
                 >
                   {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>Save Station</span>

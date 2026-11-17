@@ -50,7 +50,7 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${checked ? "bg-[#1D2F5D] border border-[#D4AF37]/50" : "bg-ui-bg-component border border-ui-border-base"}`}
+      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${checked ? "bg-brand-navy border border-brand-gold/50" : "bg-ui-bg-component border border-ui-border-base"}`}
       aria-label={label}
     >
       <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow ${checked ? "translate-x-4" : "translate-x-0.5"}`} />
@@ -150,7 +150,7 @@ function OccasionChooserModal({
         <div className="p-4 border-b border-ui-border-base flex items-center justify-between bg-ui-bg-subtle">
           <div>
             <h3 className="text-sm font-bold text-ui-fg-base flex items-center gap-2">
-              <Gift className="w-4 h-4 text-[#D4AF37]" /> Choose Occasion Cards
+              <Gift className="w-4 h-4 text-brand-gold" /> Choose Occasion Cards
             </h3>
             <p className="text-[11px] text-ui-fg-muted mt-0.5">
               Select occasions from your catalog to display in this section.
@@ -174,7 +174,7 @@ function OccasionChooserModal({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search occasions by name or slug..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-ui-bg-subtle border border-ui-border-base focus:outline-none focus:ring-1 focus:ring-[#1D2F5D] dark:focus:ring-[#D4AF37]"
+              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-ui-bg-subtle border border-ui-border-base focus:outline-none focus:ring-1 focus:ring-brand-navy dark:focus:ring-brand-gold"
             />
             {search && (
               <button
@@ -226,7 +226,7 @@ function OccasionChooserModal({
                     onClick={() => toggleSelect(occ)}
                     className={`p-2.5 rounded-xl border cursor-pointer transition-all flex items-center gap-3 select-none ${
                       isSelected
-                        ? "bg-[#1D2F5D]/5 dark:bg-[#D4AF37]/10 border-[#1D2F5D] dark:border-[#D4AF37] ring-1 ring-[#1D2F5D] dark:ring-[#D4AF37]"
+                        ? "bg-brand-navy/5 dark:bg-brand-gold/10 border-brand-navy dark:border-brand-gold ring-1 ring-brand-navy dark:ring-brand-gold"
                         : "bg-ui-bg-subtle/50 border-ui-border-base hover:bg-ui-bg-subtle"
                     }`}
                   >
@@ -234,7 +234,7 @@ function OccasionChooserModal({
                     <div
                       className={`w-4 h-4 rounded flex items-center justify-center shrink-0 transition-colors ${
                         isSelected
-                          ? "bg-[#1D2F5D] dark:bg-[#D4AF37] text-white dark:text-black"
+                          ? "bg-brand-navy dark:bg-brand-gold text-white dark:text-black"
                           : "border border-ui-border-base bg-ui-bg-base"
                       }`}
                     >
@@ -262,7 +262,7 @@ function OccasionChooserModal({
                           {occ.emoji || occ.icon || "🎂"} {occ.name || occ.title}
                         </span>
                         {occ.is_featured && (
-                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 shrink-0 font-medium">
+                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-brand-gold-light text-brand-gold-dark shrink-0 font-medium">
                             Featured
                           </span>
                         )}
@@ -294,7 +294,7 @@ function OccasionChooserModal({
             <button
               type="button"
               onClick={handleConfirm}
-              className="px-4 py-1.5 rounded-xl bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold text-xs shadow-sm border border-[#D4AF37]/40 flex items-center gap-1.5 transition-all"
+              className="px-4 py-1.5 rounded-xl bg-brand-navy hover:bg-brand-deep text-white font-bold text-xs shadow-sm border border-brand-gold/40 flex items-center gap-1.5 transition-all"
             >
               <Check className="w-3.5 h-3.5" /> Apply Selection
             </button>
@@ -471,8 +471,8 @@ export function OccasionsGridEditor({ config, allOccasions = [], onChange }: Occ
     <div className="flex flex-col gap-4">
       {/* 1. Headings & Eyebrow */}
       <div className="p-3.5 bg-ui-bg-subtle rounded-2xl border border-ui-border-base flex flex-col gap-3">
-        <Text className="text-xs font-bold uppercase tracking-wider text-[#1D2F5D] dark:text-[#D4AF37] flex items-center gap-1.5">
-          <Gift className="w-3.5 h-3.5 text-[#D4AF37]" /> Occasion Section Headings
+        <Text className="text-xs font-bold uppercase tracking-wider text-brand-navy dark:text-brand-gold flex items-center gap-1.5">
+          <Gift className="w-3.5 h-3.5 text-brand-gold" /> Occasion Section Headings
         </Text>
 
         <Field label="Section Eyebrow / Label">
@@ -590,7 +590,7 @@ export function OccasionsGridEditor({ config, allOccasions = [], onChange }: Occ
                             <span className="truncate">{occ.emoji || occ.icon || "🎂"} {occ.name || occ.title}</span>
                           </span>
                           {occ.is_featured && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 shrink-0">Featured</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-brand-gold-light text-brand-gold-dark shrink-0">Featured</span>
                           )}
                         </label>
                       );
@@ -606,12 +606,12 @@ export function OccasionsGridEditor({ config, allOccasions = [], onChange }: Occ
         {dataSource === "manual" && (
           <div className="flex flex-col gap-3">
             {/* Info bar */}
-            <div className="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 text-[11px] text-purple-800 dark:text-purple-300 flex items-center justify-between gap-2">
+            <div className="p-2.5 rounded-xl bg-brand-light dark:bg-brand-navy/40 border border-brand-primary/30 dark:border-brand-navy text-[11px] text-brand-navy dark:text-brand-primary/30 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 shrink-0 text-purple-600" />
+                <Sparkles className="w-4 h-4 shrink-0 text-brand-primary" />
                 <span>Curate specific cards, custom titles, artwork, and links.</span>
               </div>
-              <span className="font-bold text-xs bg-purple-200/60 dark:bg-purple-800/60 px-2 py-0.5 rounded-md shrink-0">
+              <span className="font-bold text-xs bg-brand-primary/60 dark:bg-brand-navy/60 px-2 py-0.5 rounded-md shrink-0">
                 {manualOccasions.length} {manualOccasions.length === 1 ? "Card" : "Cards"}
               </span>
             </div>
@@ -624,9 +624,9 @@ export function OccasionsGridEditor({ config, allOccasions = [], onChange }: Occ
                 size="small"
                 data-testid="choose-from-pim-btn"
                 onClick={() => setIsChooserOpen(true)}
-                className="w-full text-xs font-bold border-[#1D2F5D]/30 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 py-2 rounded-xl"
+                className="w-full text-xs font-bold border-brand-navy/30 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 py-2 rounded-xl"
               >
-                <CheckSquare className="w-3.5 h-3.5 text-[#1D2F5D] dark:text-[#D4AF37]" />
+                <CheckSquare className="w-3.5 h-3.5 text-brand-navy dark:text-brand-gold" />
                 <span>Choose from PIM</span>
               </Button>
               <Button
@@ -635,7 +635,7 @@ export function OccasionsGridEditor({ config, allOccasions = [], onChange }: Occ
                 size="small"
                 data-testid="add-custom-card-btn"
                 onClick={handleAddCustomCard}
-                className="w-full text-xs font-bold border-[#1D2F5D]/30 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 py-2 rounded-xl"
+                className="w-full text-xs font-bold border-brand-navy/30 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 py-2 rounded-xl"
               >
                 <Plus className="w-3.5 h-3.5 text-emerald-600" />
                 <span>+ Custom Card</span>
@@ -681,7 +681,7 @@ export function OccasionsGridEditor({ config, allOccasions = [], onChange }: Occ
                         data-testid={`manual-occasion-card-${idx}`}
                         className={`rounded-xl border transition-all overflow-hidden bg-ui-bg-base ${
                           isExpanded
-                            ? "border-[#1D2F5D] dark:border-[#D4AF37] ring-1 ring-[#1D2F5D]/20 shadow-md"
+                            ? "border-brand-navy dark:border-brand-gold ring-1 ring-brand-navy/20 shadow-md"
                             : "border-ui-border-base hover:border-ui-border-strong"
                         }`}
                       >
@@ -861,7 +861,7 @@ export function OccasionsGridEditor({ config, allOccasions = [], onChange }: Occ
                                       <button
                                         type="button"
                                         onClick={() => setMediaPickerCardIndex(idx)}
-                                        className="text-[11px] font-bold text-[#1D2F5D] dark:text-[#D4AF37] hover:underline flex items-center gap-1"
+                                        className="text-[11px] font-bold text-brand-navy dark:text-brand-gold hover:underline flex items-center gap-1"
                                       >
                                         <ImageIcon className="w-3 h-3" /> Select from Media Library
                                       </button>
@@ -1023,7 +1023,7 @@ export function OccasionsGridEditor({ config, allOccasions = [], onChange }: Occ
 
       {/* 4. Display Toggles */}
       <div className="p-3.5 bg-ui-bg-subtle rounded-2xl border border-ui-border-base flex flex-col gap-3">
-        <Text className="text-xs font-bold uppercase tracking-wider text-purple-600 flex items-center gap-1.5">
+        <Text className="text-xs font-bold uppercase tracking-wider text-brand-primary flex items-center gap-1.5">
           <Eye className="w-3.5 h-3.5" /> Card Content Elements
         </Text>
 

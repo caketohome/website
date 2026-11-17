@@ -74,8 +74,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     thumbnail: thumbnail,
     images: images,
     price: basePrice,
-    rating: Number(fetched?.rating) || 4.9,
-    review_count: Number(fetched?.review_count) || 12,
+    rating: Number(fetched?.rating) || 0,
+    review_count: Number(fetched?.review_count) || 0,
     branch_status: (fetched as any)?.branch_status || "AVAILABLE",
     category: fetched?.category,
     category_slug: fetched?.category_slug,
@@ -147,7 +147,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       limit: 8,
     });
     relatedProducts = (relatedRes?.items || [])
-      .filter((p: any) => p.id !== productId && p.product_id !== productId)
+      .filter((p: any) => p.id !== productId && p.product_id !== productId && Number(p.price || p.selling_price) > 0)
       .slice(0, pdpConfig?.related_limit || 4)
       .map((p: any) => ({
         product_id: p.id || p.product_id,
@@ -155,10 +155,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         title: p.title || p.name,
         name: p.title || p.name,
         handle: p.handle || p.slug,
-        price: Number(p.price || p.selling_price || 599),
+        price: Number(p.price || p.selling_price),
         thumbnail: p.thumbnail || "/images/placeholder-cake.jpg",
-        rating: Number(p.rating || 4.9),
-        review_count: Number(p.review_count || 12),
+        rating: Number(p.rating) || 0,
+        review_count: Number(p.review_count) || 0,
         category: p.category || "Cakes",
         category_slug: p.category_slug || "cakes",
         is_bestseller: Boolean(p.is_bestseller),

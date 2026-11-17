@@ -6,83 +6,105 @@
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-serif: 'Playfair Display', Georgia, Cambria, 'Times New Roman', serif;
   /* Medusa UI & Global surface tokens (Default Approved Blue Light Theme) */
-  --fg-base: 15, 23, 42; /* #0F172A */
-  --bg-base: 248, 250, 252; /* #F8FAFC Light Background */
-  --bg-subtle: 241, 245, 249; /* #F1F5F9 */
+  --fg-base: 23, 32, 51; /* #0F172A */
+  --bg-base: 255, 252, 248; /* #F8FAFC Light Background */
+  --bg-subtle: 245, 246, 248; /* #F1F5F9 */
   --ui-bg-base: #FFFFFF;
-  --ui-bg-subtle: #F8FAFC;
+  --ui-bg-subtle: #F5F6F8;
   --ui-bg-field: #FFFFFF;
-  --ui-fg-base: #0F172A;
-  --ui-fg-subtle: #475569;
-  --ui-fg-muted: #64748B;
-  --ui-border-base: #E2E8F0;
-  --brand-primary: #2563EB;
-  --brand-primary-dark: #1E3A8A;
-  --brand-primary-light: #60A5FA;
-  --brand-primary-soft: #DBEAFE;
-  --brand-blue: #2563EB;
-  --brand-blue-hover: #1D4ED8;
-  --brand-blue-light: #DBEAFE;
-  --brand-blue-accent: #60A5FA;
-  --brand-blue-dark: #1E3A8A;
-  --brand-footer-dark: #0F172A;
-  --brand-cream: #F8FAFC;
-  --brand-warm-white: #FFFFFF;
+  --ui-fg-base: #172033;
+  --ui-fg-subtle: #4B5563;
+  --ui-fg-muted: #6B7280;
+  --ui-border-base: #E5E7EB;
+  --brand-primary: #245A96;
+  --brand-primary-dark: #1D2F5D;
+  --brand-primary-light: #3978B8;
+  --brand-primary-soft: #EAF2FA;
+  --brand-blue: #245A96;
+  --brand-blue-hover: #3978B8;
+  --brand-blue-light: #EAF2FA;
+  --brand-blue-accent: #3978B8;
+  --brand-blue-dark: #1D2F5D;
+  --brand-footer-dark: #152347;
+  --brand-cream: #F8F3EB;
+  --brand-warm-white: #FFFCF8;
   --brand-surface: #FFFFFF;
-  --brand-surface-muted: #F8FAFC;
-  --brand-text: #0F172A;
-  --brand-text-muted: #64748B;
-  --brand-border: #E2E8F0;
-  --brand-gold: #D4AF37;
-  --brand-gold-soft: #EFF6FF;
-  --brand-navy: #1E3A8A;
-  --brand-navy-surface: #0F172A;
-  --brand-navy-dark: #0A0F1D;
+  --brand-surface-muted: #F5F6F8;
+  --brand-text: #172033;
+  --brand-text-muted: #6B7280;
+  --brand-border: #E5E7EB;
+  --brand-gold: #C28A2C;
+  --brand-gold-soft: #F5E8CC;
+  --brand-navy: #1D2F5D;
+  --brand-navy-surface: #152347;
+  --brand-navy-dark: #152347;
   --brand-chocolate: #1A120B;
-  --brand-neutral: #F8FAFC;
-  --brand-pink-soft: #EFF6FF;
-  --brand-pink-accent: #2563EB;
+  --brand-neutral: #F5F6F8;
+  --brand-pink-soft: #EAF2FA;
+  --brand-pink-accent: #245A96;
 
   /* ── SHARED CAKETOHOME APPROVED DESIGN SYSTEM TOKENS ── */
-  --page-bg: #F8FAFC;
+  --page-bg: #FFFCF8;
   --surface-bg: #FFFFFF;
-  --elevated-surface: #F1F5F9;
-  --border-color: #E2E8F0;
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #64748B;
+  --elevated-surface: #F5F6F8;
+  --border-color: #E5E7EB;
+  --text-primary: #172033;
+  --text-secondary: #4B5563;
+  --text-muted: #6B7280;
   --text-disabled: #94A3B8;
-  --focus-ring: #2563EB;
-  --primary-action: #2563EB;
-  --primary-action-hover: #1D4ED8;
-  --gold-action: #2563EB;
-  --gold-action-hover: #1D4ED8;
-  --status-danger: #DC2626;
-  --status-danger-bg: #FEF2F2;
-  --status-success: #059669;
-  --status-success-bg: #ECFDF5;
-  --status-warning: #D97706;
-  --status-warning-bg: #FFFBEB;
-  --status-info: #2563EB;
-  --status-info-bg: #EFF6FF;
+  --focus-ring: #245A96;
+  --primary-action: #1D2F5D;
+  --primary-action-hover: #245A96;
+  --gold-action: #C28A2C;
+  --gold-action-hover: #9B6A19;
+  --status-danger: #C93636;
+  --status-danger-bg: #FDECEC;
+  --status-success: #16834A;
+  --status-success-bg: #EAF7EF;
+  --status-warning: #B7791F;
+  --status-warning-bg: #FFF6E5;
+  --status-info: #245A96;
+  --status-info-bg: #EAF2FA;
   --input-bg: #FFFFFF;
-  --table-header-bg: #F8FAFC;
-  --table-row-hover: #F1F5F9;
+  --table-header-bg: #F5F6F8;
+  --table-row-hover: #F5F6F8;
 
   /* ── ADMIN SHELL DESIGN TOKENS ── */
-  --admin-sidebar-bg: #0F1729;
+  --admin-sidebar-bg: #152347;
   --admin-sidebar-border: rgba(30, 46, 91, 0.4);
   --admin-sidebar-text: #CBD5E1;
   --admin-sidebar-active: #1D2F5D;
-  --admin-sidebar-accent: #D4AF37;
+  --admin-sidebar-accent: #C28A2C;
   --admin-topbar-bg: #FFFFFF;
-  --admin-topbar-border: #E2E8F0;
-  --admin-page-bg: #F8FAFC;
+  --admin-topbar-border: #E5E7EB;
+  --admin-page-bg: #F5F6F8;
   --admin-content-bg: transparent;
-  --admin-border: #E2E8F0;
+  --admin-border: #E5E7EB;
   --admin-card-bg: #FFFFFF;
-  --admin-card-border: #E2E8F0;
+  --admin-card-border: #E5E7EB;
   --admin-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  /* M13 brand palette (docs/27-ui-ux-redesign-brief.md). Logo ink stays #0F172A. */
+  --brand-secondary: #3978B8;
+  --brand-light: #EAF2FA;
+  --brand-deep: #152347;
+  --surface-warm: #FFFCF8;
+  --surface-cream: #F8F3EB;
+  --accent-gold-light: #F5E8CC;
+  --accent-gold-dark: #9B6A19;
+  --rgb-navy: 29 47 93;
+  --rgb-primary: 36 90 150;
+  --rgb-secondary: 57 120 184;
+  --rgb-light: 234 242 250;
+  --rgb-deep: 21 35 71;
+  --rgb-gold: 194 138 44;
+  --rgb-gold-light: 245 232 204;
+  --rgb-gold-dark: 155 106 25;
+  --rgb-warm: 255 252 248;
+  --rgb-cream: 248 243 235;
+  --rgb-muted-bg: 245 246 248;
+  --rgb-border: 229 231 235;
+  --rgb-text: 23 32 51;
+  --rgb-text-muted: 107 114 128;
 }
 
 .dark {

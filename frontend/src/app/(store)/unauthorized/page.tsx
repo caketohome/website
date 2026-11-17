@@ -16,7 +16,7 @@ export default function UnauthorizedPage() {
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-16 bg-[#0c0a09] text-neutral-100">
       <div className="max-w-md w-full bg-neutral-900/80 border border-neutral-800 rounded-2xl p-8 text-center shadow-2xl backdrop-blur-sm">
-        <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+        <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-brand-gold">
           <ShieldAlert className="w-8 h-8" />
         </div>
 
@@ -31,7 +31,7 @@ export default function UnauthorizedPage() {
         <div className="space-y-3">
           <Link
             href="/account"
-            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-medium text-sm transition-colors shadow-lg shadow-amber-900/20"
+            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-brand-navy hover:bg-brand-primary text-white font-medium text-sm transition-colors shadow-lg shadow-brand-gold-dark/20"
           >
             Go to Your Account
           </Link>
@@ -45,7 +45,7 @@ export default function UnauthorizedPage() {
 
           <Link
             href="/login"
-            className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 text-neutral-400 hover:text-amber-400 text-xs transition-colors"
+            className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 text-neutral-400 hover:text-brand-gold text-xs transition-colors"
           >
             <LogIn className="w-3.5 h-3.5" /> Sign in with different account
           </Link>

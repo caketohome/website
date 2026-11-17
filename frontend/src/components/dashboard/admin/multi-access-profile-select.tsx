@@ -173,12 +173,12 @@ export function MultiAccessProfileSelect({
       {/* Label and Selected Metrics Header */}
       <div className="flex items-center justify-between gap-2 mb-1.5">
         <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-          <Shield className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+          <Shield className="w-3.5 h-3.5 text-brand-primary dark:text-brand-primary" />
           <span>{label}</span>
         </label>
         {selectedProfiles.length > 0 && (
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/80 px-2 py-0.5 rounded-full border border-purple-200 dark:border-purple-800 flex items-center gap-1 shadow-2xs">
+            <span className="text-[11px] font-bold text-brand-primary dark:text-brand-primary bg-brand-light dark:bg-brand-navy/80 px-2 py-0.5 rounded-full border border-brand-primary/30 dark:border-brand-navy flex items-center gap-1 shadow-2xs">
               <Layers className="w-3 h-3" />
               {selectedProfiles.length} Profile{selectedProfiles.length > 1 ? "s" : ""} •{" "}
               <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">
@@ -203,7 +203,7 @@ export function MultiAccessProfileSelect({
           disabled
             ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 opacity-60 cursor-not-allowed"
             : isOpen
-            ? "border-purple-500 ring-2 ring-purple-500/20 bg-white dark:bg-slate-900 shadow-sm"
+            ? "border-brand-primary ring-2 ring-brand-primary/20 bg-white dark:bg-slate-900 shadow-sm"
             : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700 shadow-2xs"
         }`}
       >
@@ -211,7 +211,7 @@ export function MultiAccessProfileSelect({
         <div className="flex flex-wrap items-center gap-1.5 flex-1 min-w-0 py-0.5">
           {isLoading ? (
             <span className="text-xs text-slate-400 flex items-center gap-1.5">
-              <span className="w-3.5 h-3.5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+              <span className="w-3.5 h-3.5 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
               Loading access profiles...
             </span>
           ) : selectedProfiles.length === 0 ? (
@@ -222,7 +222,7 @@ export function MultiAccessProfileSelect({
             selectedProfiles.map((prof) => (
               <span
                 key={prof.id}
-                className="inline-flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-lg text-xs font-semibold bg-purple-50 dark:bg-purple-950/90 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/80 animate-in fade-in zoom-in-95 group shadow-2xs"
+                className="inline-flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-lg text-xs font-semibold bg-brand-light dark:bg-brand-navy/90 text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy/80 animate-in fade-in zoom-in-95 group shadow-2xs"
               >
                 <span>{prof.name}</span>
                 <span className="text-[10px] opacity-75 font-mono">({prof.permissions.length})</span>
@@ -230,7 +230,7 @@ export function MultiAccessProfileSelect({
                   <button
                     type="button"
                     onClick={(e) => removeProfile(prof.id, e)}
-                    className="p-0.5 hover:bg-purple-200 dark:hover:bg-purple-800 rounded text-purple-500 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-100 transition-colors cursor-pointer"
+                    className="p-0.5 hover:bg-brand-primary/30 dark:hover:bg-brand-navy rounded text-brand-primary dark:text-brand-primary hover:text-brand-navy dark:hover:text-brand-light transition-colors cursor-pointer"
                     aria-label={`Remove profile ${prof.name}`}
                   >
                     <X className="w-3 h-3" />
@@ -256,7 +256,7 @@ export function MultiAccessProfileSelect({
           )}
           <ChevronDown
             className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-              isOpen ? "rotate-180 text-purple-600 dark:text-purple-400" : ""
+              isOpen ? "rotate-180 text-brand-primary dark:text-brand-primary" : ""
             }`}
           />
         </div>
@@ -264,7 +264,7 @@ export function MultiAccessProfileSelect({
 
       {/* Validation Message */}
       {required && selectedProfiles.length === 0 && !isLoading && (
-        <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
+        <p className="text-[11px] text-brand-gold dark:text-brand-gold mt-1 flex items-center gap-1">
           <AlertCircle className="w-3 h-3 shrink-0" />
           <span>At least one access profile is required for standard staff accounts.</span>
         </p>
@@ -295,7 +295,7 @@ export function MultiAccessProfileSelect({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search profiles by name or permissions..."
-                className="w-full pl-8 pr-7 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-purple-500"
+                className="w-full pl-8 pr-7 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-brand-primary"
               />
               {searchQuery && (
                 <button
@@ -311,7 +311,7 @@ export function MultiAccessProfileSelect({
               <button
                 type="button"
                 onClick={selectAll}
-                className="px-2 py-1 text-[10px] font-semibold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950 rounded transition-colors whitespace-nowrap"
+                className="px-2 py-1 text-[10px] font-semibold text-brand-primary dark:text-brand-primary hover:bg-brand-light dark:hover:bg-brand-navy rounded transition-colors whitespace-nowrap"
               >
                 Select All
               </button>
@@ -330,12 +330,12 @@ export function MultiAccessProfileSelect({
           <div ref={optionsListRef} className="overflow-y-auto p-1.5 space-y-1 flex-1">
             {isLoading ? (
               <div className="p-6 text-center text-xs text-slate-400">
-                <span className="inline-block w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-2" />
+                <span className="inline-block w-4 h-4 border-2 border-brand-primary border-t-transparent rounded-full animate-spin mb-2" />
                 <p>Loading access profiles from database...</p>
               </div>
             ) : filteredProfiles.length === 0 ? (
               <div className="p-6 text-center text-xs text-slate-400">
-                <Shield className="w-6 h-6 mx-auto mb-1.5 opacity-40 text-purple-500" />
+                <Shield className="w-6 h-6 mx-auto mb-1.5 opacity-40 text-brand-primary" />
                 <p className="font-semibold">No access profiles found.</p>
                 {searchQuery && <p className="text-[10px] mt-0.5">Try searching with a different keyword.</p>}
               </div>
@@ -352,7 +352,7 @@ export function MultiAccessProfileSelect({
                     onClick={() => toggleProfile(prof.id)}
                     className={`group p-2.5 rounded-xl border transition-all flex items-start justify-between gap-3 cursor-pointer ${
                       isSelected
-                        ? "bg-purple-50/70 dark:bg-purple-950/50 border-purple-200 dark:border-purple-800/80 shadow-2xs"
+                        ? "bg-brand-light/70 dark:bg-brand-navy/50 border-brand-primary/30 dark:border-brand-navy/80 shadow-2xs"
                         : isFocused
                         ? "bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700"
                         : "bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/60"
@@ -363,8 +363,8 @@ export function MultiAccessProfileSelect({
                       <div
                         className={`w-4 h-4 mt-0.5 rounded-md border flex items-center justify-center transition-colors shrink-0 ${
                           isSelected
-                            ? "bg-purple-600 border-purple-600 text-white"
-                            : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 group-hover:border-purple-400"
+                            ? "bg-brand-primary border-brand-primary text-white"
+                            : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 group-hover:border-brand-primary"
                         }`}
                       >
                         {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
@@ -400,7 +400,7 @@ export function MultiAccessProfileSelect({
                           e.stopPropagation();
                           setInspectingProfile(inspectingProfile?.id === prof.id ? null : prof);
                         }}
-                        className="p-1 hover:bg-purple-100 dark:hover:bg-purple-900/60 rounded text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
+                        className="p-1 hover:bg-brand-light dark:hover:bg-brand-navy/60 rounded text-slate-400 hover:text-brand-primary dark:hover:text-brand-primary/30 transition-colors"
                         title="View profile permissions details"
                         aria-label={`Inspect ${prof.name} permissions`}
                       >
@@ -415,16 +415,16 @@ export function MultiAccessProfileSelect({
 
           {/* Inspect Profile Permissions Details Popover */}
           {inspectingProfile && (
-            <div className="p-3 bg-purple-950/90 text-white border-t border-purple-800/80 animate-in fade-in slide-in-from-bottom-2">
+            <div className="p-3 bg-brand-navy/90 text-white border-t border-brand-navy/80 animate-in fade-in slide-in-from-bottom-2">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs font-bold text-purple-200 flex items-center gap-1">
-                  <Shield className="w-3 h-3 text-purple-400" />
+                <span className="text-xs font-bold text-brand-primary/30 flex items-center gap-1">
+                  <Shield className="w-3 h-3 text-brand-primary" />
                   {inspectingProfile.name} ({inspectingProfile.permissions.length} Permissions)
                 </span>
                 <button
                   type="button"
                   onClick={() => setInspectingProfile(null)}
-                  className="p-0.5 text-purple-300 hover:text-white"
+                  className="p-0.5 text-brand-primary/30 hover:text-white"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -433,7 +433,7 @@ export function MultiAccessProfileSelect({
                 {inspectingProfile.permissions.map((perm) => (
                   <span
                     key={perm}
-                    className="text-[10px] px-1.5 py-0.5 rounded bg-purple-900 text-purple-200 border border-purple-700 font-mono"
+                    className="text-[10px] px-1.5 py-0.5 rounded bg-brand-navy text-brand-primary/30 border border-brand-navy font-mono"
                   >
                     {perm}
                   </span>
@@ -445,7 +445,7 @@ export function MultiAccessProfileSelect({
           {/* Popover Footer Summary */}
           <div className="p-2.5 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
             <div className="text-[11px] text-slate-500">
-              <span className="font-bold text-purple-600 dark:text-purple-400">
+              <span className="font-bold text-brand-primary dark:text-brand-primary">
                 {selectedProfiles.length}
               </span>{" "}
               selected (
@@ -460,7 +460,7 @@ export function MultiAccessProfileSelect({
                 setIsOpen(false);
                 setInspectingProfile(null);
               }}
-              className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-colors shadow-xs cursor-pointer"
+              className="px-3 py-1 bg-brand-primary hover:bg-brand-navy text-white rounded-lg text-xs font-bold transition-colors shadow-xs cursor-pointer"
             >
               Done
             </button>

@@ -125,7 +125,7 @@ export function WeightsManagementPanel() {
       <div className="flex items-center justify-between">
         <div>
           <Heading level="h2" className="text-xl font-bold flex items-center gap-2">
-            <Scale className="w-5 h-5 text-purple-600" /> Master Weight Management
+            <Scale className="w-5 h-5 text-brand-primary" /> Master Weight Management
           </Heading>
           <Text className="text-ui-fg-subtle text-sm">
             Configure master weight sizes (e.g. 250g, 500g, 750g, 900g, 1kg, 1.25kg, 2kg, 5kg). Prices are configured per product in the Product Editor.
@@ -135,7 +135,7 @@ export function WeightsManagementPanel() {
           <Button size="small" variant="transparent" onClick={fetchWeights} className="flex items-center gap-1">
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </Button>
-          <Button size="small" onClick={handleOpenCreateModal} className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white">
+          <Button size="small" onClick={handleOpenCreateModal} className="flex items-center gap-1.5 bg-brand-primary hover:bg-brand-navy text-white">
             <Plus className="w-4 h-4" /> Add New Weight Size
           </Button>
         </div>
@@ -156,7 +156,7 @@ export function WeightsManagementPanel() {
 
       {/* Create / Edit Modal */}
       {showModal && (
-        <Container className="p-6 border-2 border-purple-500/30 bg-purple-50/20 dark:bg-purple-950/20">
+        <Container className="p-6 border-2 border-brand-primary/30 bg-brand-light/20 dark:bg-brand-navy/20">
           <div className="flex items-center justify-between mb-4">
             <Text className="font-semibold text-base">
               {editingWeight ? `Edit Weight "${editingWeight.name}"` : "Create Master Weight Size Option"}
@@ -208,7 +208,7 @@ export function WeightsManagementPanel() {
 
             <div className="md:col-span-2 flex items-center justify-end gap-2 pt-4 border-t border-ui-border-base">
               <Button type="button" variant="transparent" onClick={() => setShowModal(false)}>Cancel</Button>
-              <Button type="submit" isLoading={submitting} className="bg-purple-600 hover:bg-purple-700 text-white">
+              <Button type="submit" isLoading={submitting} className="bg-brand-primary hover:bg-brand-navy text-white">
                 Save Master Weight
               </Button>
             </div>
@@ -233,7 +233,7 @@ export function WeightsManagementPanel() {
               <div key={w.id} className="border border-ui-border-base rounded-xl p-4 bg-ui-bg-subtle/50 flex flex-col justify-between space-y-3">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <Text className="font-bold text-base text-purple-600">{w.name}</Text>
+                    <Text className="font-bold text-base text-brand-primary">{w.name}</Text>
                     <Badge color={w.status === "active" ? "green" : "grey"}>
                       {w.status || "active"}
                     </Badge>

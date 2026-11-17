@@ -71,12 +71,12 @@ export function SpinWheel({
     };
 
     return (
-        <div className="flex flex-col items-center gap-4 p-6 rounded-xl bg-gradient-to-br from-purple-50 to-[#FDFBF7]">
+        <div className="flex flex-col items-center gap-4 p-6 rounded-xl bg-gradient-to-br from-brand-light to-brand-warm-white">
             <h3 className="text-lg font-bold">🎡 {name}</h3>
             <button
                 onClick={handleSpin}
                 disabled={spinning}
-                className="w-24 h-24 rounded-full bg-gradient-to-r from-purple-600 to-[#D4AF37] text-white text-sm font-bold flex items-center justify-center shadow-lg hover:scale-105 transition disabled:opacity-50"
+                className="w-24 h-24 rounded-full bg-gradient-to-r from-brand-primary to-brand-gold text-white text-sm font-bold flex items-center justify-center shadow-lg hover:scale-105 transition disabled:opacity-50"
             >
                 {spinning ? "Spinning…" : "SPIN"}
             </button>
@@ -91,12 +91,12 @@ export function SpinWheel({
                             : "😢 Better luck next time!"}
                     </p>
                     {result.reward_label && (
-                        <p className="text-lg font-bold text-purple-700">
+                        <p className="text-lg font-bold text-brand-navy">
                             {result.reward_label}
                         </p>
                     )}
                     {result.coupon_code && (
-                        <div className="mt-2 px-3 py-2 rounded-lg bg-white border border-dashed border-purple-400 font-mono font-bold">
+                        <div className="mt-2 px-3 py-2 rounded-lg bg-white border border-dashed border-brand-primary font-mono font-bold">
                             {result.coupon_code}
                         </div>
                     )}
@@ -107,7 +107,7 @@ export function SpinWheel({
                                 setResult({ ...result, redeemed: true });
                             }}
                             disabled={result.redeemed}
-                            className="mt-2 px-3 py-1 rounded-lg bg-purple-600 text-white text-xs font-semibold disabled:opacity-50"
+                            className="mt-2 px-3 py-1 rounded-lg bg-brand-primary text-white text-xs font-semibold disabled:opacity-50"
                         >
                             {result.redeemed ? "Redeemed ✓" : "Claim Reward"}
                         </button>
@@ -161,14 +161,14 @@ export function ScratchCard({
     };
 
     return (
-        <div className="flex flex-col items-center gap-4 p-6 rounded-xl bg-gradient-to-br from-yellow-50 to-orange-50">
+        <div className="flex flex-col items-center gap-4 p-6 rounded-xl bg-gradient-to-br from-brand-gold-light to-brand-gold-light">
             <h3 className="text-lg font-bold">🎟️ {name}</h3>
             <div
                 className="relative w-48 h-32 rounded-lg overflow-hidden cursor-pointer"
                 onClick={handleScratch}
             >
                 <div
-                    className={`absolute inset-0 flex items-center justify-center bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-semibold transition-opacity ${
+                    className={`absolute inset-0 flex items-center justify-center bg-gradient-to-r from-brand-gold to-brand-gold text-white font-semibold transition-opacity ${
                         revealed ? "opacity-0" : "opacity-100"
                     }`}
                 >
@@ -182,7 +182,7 @@ export function ScratchCard({
                                 : "😢 No luck"}
                         </p>
                         {result.reward_label && (
-                            <p className="text-sm text-orange-600 font-semibold">
+                            <p className="text-sm text-brand-gold font-semibold">
                                 {result.reward_label}
                             </p>
                         )}
@@ -241,12 +241,12 @@ export function LuckyDraw({
     };
 
     return (
-        <div className="flex flex-col items-center gap-4 p-6 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="flex flex-col items-center gap-4 p-6 rounded-xl bg-gradient-to-br from-blue-50 to-brand-light">
             <h3 className="text-lg font-bold">🎯 {name}</h3>
             <button
                 onClick={handleDraw}
                 disabled={drawing}
-                className="px-6 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold hover:scale-105 transition disabled:opacity-50"
+                className="px-6 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-brand-primary text-white font-semibold hover:scale-105 transition disabled:opacity-50"
             >
                 {drawing ? "Drawing…" : "Draw a Ticket"}
             </button>

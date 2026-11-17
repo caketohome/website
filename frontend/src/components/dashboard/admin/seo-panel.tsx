@@ -506,13 +506,13 @@ export const SeoPanel = memo(function SeoPanel() {
 
             <Container className="p-3.5 flex flex-col gap-1 border-l-4 border-l-purple-500">
               <Text className="text-[11px] text-ui-fg-muted uppercase tracking-wider font-semibold">AEO Score</Text>
-              <Text className="text-xl font-bold text-purple-600">{summary?.aeo_score || 0}<span className="text-xs text-ui-fg-subtle font-normal"> /100</span></Text>
+              <Text className="text-xl font-bold text-brand-primary">{summary?.aeo_score || 0}<span className="text-xs text-ui-fg-subtle font-normal"> /100</span></Text>
               <Text className="text-[10px] text-ui-fg-subtle">Voice & answer engines</Text>
             </Container>
 
             <Container className="p-3.5 flex flex-col gap-1 border-l-4 border-l-amber-500">
               <Text className="text-[11px] text-ui-fg-muted uppercase tracking-wider font-semibold">Indexed Pages</Text>
-              <Text className="text-xl font-bold text-amber-600">{summary?.indexed_pages || 0}</Text>
+              <Text className="text-xl font-bold text-brand-gold">{summary?.indexed_pages || 0}</Text>
               <Text className="text-[10px] text-ui-fg-subtle">Out of {summary?.total_pages || 0} total pages</Text>
             </Container>
 
@@ -524,13 +524,13 @@ export const SeoPanel = memo(function SeoPanel() {
 
             <Container className="p-3.5 flex flex-col gap-1 border-l-4 border-l-indigo-500">
               <Text className="text-[11px] text-ui-fg-muted uppercase tracking-wider font-semibold">Missing ALT</Text>
-              <Text className="text-xl font-bold text-indigo-600">{summary?.missing_alt || 0}</Text>
+              <Text className="text-xl font-bold text-brand-primary">{summary?.missing_alt || 0}</Text>
               <Text className="text-[10px] text-ui-fg-subtle">Product images without alt</Text>
             </Container>
 
             <Container className="p-3.5 flex flex-col gap-1 border-l-4 border-l-cyan-500">
               <Text className="text-[11px] text-ui-fg-muted uppercase tracking-wider font-semibold">Tracked Keywords</Text>
-              <Text className="text-xl font-bold text-cyan-600">{summary?.tracked_keywords || 0}</Text>
+              <Text className="text-xl font-bold text-brand-primary">{summary?.tracked_keywords || 0}</Text>
               <Text className="text-[10px] text-ui-fg-subtle">{summary?.total_redirects || 0} active redirects</Text>
             </Container>
           </div>
@@ -556,7 +556,7 @@ export const SeoPanel = memo(function SeoPanel() {
               </div>
               <div className="flex items-center justify-between pt-2 border-t">
                 <Badge color="purple" className="text-[10px]">AEO Active ✓</Badge>
-                <button onClick={() => setActiveTab("aeo_geo")} className="text-xs text-purple-600 hover:underline font-semibold">Edit Content ↗</button>
+                <button onClick={() => setActiveTab("aeo_geo")} className="text-xs text-brand-primary hover:underline font-semibold">Edit Content ↗</button>
               </div>
             </Container>
 
@@ -680,9 +680,9 @@ export const SeoPanel = memo(function SeoPanel() {
                   <Table.Cell><Badge color="blue" className="capitalize text-[10px]">{p.entity_type}</Badge></Table.Cell>
                   <Table.Cell className="font-mono text-xs text-emerald-600">{p.url || `/${p.slug}`}</Table.Cell>
                   <Table.Cell className="text-xs truncate max-w-[200px]">{p.meta_title || <span className="text-rose-500 font-semibold">Missing Title</span>}</Table.Cell>
-                  <Table.Cell><span className={`text-xs font-bold ${p.seo_score >= 70 ? "text-emerald-600" : p.seo_score >= 40 ? "text-amber-600" : "text-rose-500"}`}>{p.seo_score || 0}%</span></Table.Cell>
+                  <Table.Cell><span className={`text-xs font-bold ${p.seo_score >= 70 ? "text-emerald-600" : p.seo_score >= 40 ? "text-brand-gold" : "text-rose-500"}`}>{p.seo_score || 0}%</span></Table.Cell>
                   <Table.Cell><span className="text-xs font-bold text-blue-600">{p.geo_score || 0}%</span></Table.Cell>
-                  <Table.Cell><span className="text-xs font-bold text-purple-600">{p.aeo_score || 0}%</span></Table.Cell>
+                  <Table.Cell><span className="text-xs font-bold text-brand-primary">{p.aeo_score || 0}%</span></Table.Cell>
                   <Table.Cell><Badge color={p.status === "published" ? "green" : "grey"} className="text-[10px]">{p.status}</Badge></Table.Cell>
                 </Table.Row>
               ))}
@@ -815,13 +815,13 @@ export const SeoPanel = memo(function SeoPanel() {
 
             <Container className="p-4 flex flex-col gap-1 border-l-4 border-l-purple-500">
               <Text className="text-[11px] text-ui-fg-muted uppercase tracking-wider font-semibold">Bandwidth Reduction</Text>
-              <Text className="text-xl font-bold text-purple-600">-68.4%</Text>
+              <Text className="text-xl font-bold text-brand-primary">-68.4%</Text>
               <Text className="text-[10px] text-ui-fg-subtle">Average byte payload savings</Text>
             </Container>
 
             <Container className="p-4 flex flex-col gap-1 border-l-4 border-l-amber-500">
               <Text className="text-[11px] text-ui-fg-muted uppercase tracking-wider font-semibold">Responsive Srcsets</Text>
-              <Text className="text-xl font-bold text-amber-600">300w / 600w</Text>
+              <Text className="text-xl font-bold text-brand-gold">300w / 600w</Text>
               <Text className="text-[10px] text-ui-fg-subtle">Auto-generated device breakpoints</Text>
             </Container>
           </div>
@@ -1048,7 +1048,7 @@ export const SeoPanel = memo(function SeoPanel() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-xs text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                      <HelpCircle className="w-4 h-4 text-purple-600" />
+                      <HelpCircle className="w-4 h-4 text-brand-primary" />
                       {a.question}
                     </span>
                   </div>
@@ -1186,20 +1186,20 @@ export const SeoPanel = memo(function SeoPanel() {
                 <Text className="text-2xl font-bold text-rose-600 mt-1">{linkGraph?.orphanCount || 0}</Text>
                 <Text className="text-[10px] text-rose-700">0 inbound internal links</Text>
               </div>
-              <div className="p-4 bg-amber-50 dark:bg-amber-950 border border-amber-200 rounded-lg">
-                <Text className="text-xs text-amber-800 font-semibold">Weak Pages</Text>
-                <Text className="text-2xl font-bold text-amber-600 mt-1">{linkGraph?.weakCount || 0}</Text>
-                <Text className="text-[10px] text-amber-700">1 inbound internal link</Text>
+              <div className="p-4 bg-brand-gold-light dark:bg-brand-gold-dark border border-brand-gold/40 rounded-lg">
+                <Text className="text-xs text-brand-gold-dark font-semibold">Weak Pages</Text>
+                <Text className="text-2xl font-bold text-brand-gold mt-1">{linkGraph?.weakCount || 0}</Text>
+                <Text className="text-[10px] text-brand-gold-dark">1 inbound internal link</Text>
               </div>
               <div className="p-4 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 rounded-lg">
                 <Text className="text-xs text-emerald-800 font-semibold">Optimal Pages</Text>
                 <Text className="text-2xl font-bold text-emerald-600 mt-1">{linkGraph?.metrics?.filter((m: any) => m.classification === "optimal").length || 0}</Text>
                 <Text className="text-[10px] text-emerald-700">2-5 inbound internal links</Text>
               </div>
-              <div className="p-4 bg-purple-50 dark:bg-purple-950 border border-purple-200 rounded-lg">
-                <Text className="text-xs text-purple-800 font-semibold">Authority Hubs</Text>
-                <Text className="text-2xl font-bold text-purple-600 mt-1">{linkGraph?.authorityCount || 0}</Text>
-                <Text className="text-[10px] text-purple-700">6+ inbound internal links</Text>
+              <div className="p-4 bg-brand-light dark:bg-brand-navy border border-brand-primary/30 rounded-lg">
+                <Text className="text-xs text-brand-navy font-semibold">Authority Hubs</Text>
+                <Text className="text-2xl font-bold text-brand-primary mt-1">{linkGraph?.authorityCount || 0}</Text>
+                <Text className="text-[10px] text-brand-navy">6+ inbound internal links</Text>
               </div>
             </div>
           </Container>
@@ -1221,7 +1221,7 @@ export const SeoPanel = memo(function SeoPanel() {
                 <div className="p-4 bg-slate-50 dark:bg-slate-900 border rounded-lg flex gap-4 text-xs font-mono">
                   <span>Pages Scanned: <strong>{crawlResults.pagesCrawled?.length || 0}</strong></span>
                   <span>Broken Links: <strong className="text-rose-600">{crawlResults.brokenLinks?.length || 0}</strong></span>
-                  <span>Orphan Pages: <strong className="text-amber-600">{crawlResults.orphanPages?.length || 0}</strong></span>
+                  <span>Orphan Pages: <strong className="text-brand-gold">{crawlResults.orphanPages?.length || 0}</strong></span>
                 </div>
 
                 <Table>
@@ -1387,7 +1387,7 @@ export const SeoPanel = memo(function SeoPanel() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
             <div className="p-4 rounded-xl border bg-slate-50 dark:bg-slate-900 space-y-2">
               <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                <Zap className="w-4 h-4 text-amber-500" /> Sharp WebP &amp; AVIF Compression Pipeline
+                <Zap className="w-4 h-4 text-brand-gold" /> Sharp WebP &amp; AVIF Compression Pipeline
               </span>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                 Images are automatically converted to next-gen WebP and AVIF formats with 300px and 600px responsive widths and LQIP blur placeholders, keeping LCP well under the 2.5s threshold.
@@ -1411,7 +1411,7 @@ export const SeoPanel = memo(function SeoPanel() {
           <div className="flex items-center justify-between border-b pb-3">
             <div>
               <span className="text-base font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">
-                <Bot className="w-5 h-5 text-[#D4AF37]" /> AI Search Engine &amp; LLM Crawler Policies
+                <Bot className="w-5 h-5 text-brand-gold" /> AI Search Engine &amp; LLM Crawler Policies
               </span>
               <p className="text-xs text-ui-fg-subtle">
                 Control real-time AI knowledge grounding and answer retrieval for ChatGPT, Perplexity, Gemini, and Claude.

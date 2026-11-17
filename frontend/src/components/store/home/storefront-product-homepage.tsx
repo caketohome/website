@@ -18,23 +18,22 @@ const ScrollFrameHero = dynamic(
   {
     ssr: false,
     loading: () => (
-      <section className="relative w-full min-h-[480px] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#0A0E17] text-white rounded-3xl shadow-2xl my-4 border border-[#FDE68A]/20">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-500/15 via-transparent to-transparent pointer-events-none" />
+      <section className="relative w-full min-h-[480px] flex items-center justify-center overflow-hidden bg-brand-warm-white text-brand-navy rounded-2xl my-4 border border-brand-border">
         <div className="relative z-10 p-6 sm:p-12 max-w-3xl flex flex-col items-center text-center gap-4">
-          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-1 shadow-lg bg-[#D97706]/20 text-[#FDE68A] border border-[#FDE68A]/30 backdrop-blur-sm">
-            <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-1 bg-brand-gold-light text-brand-gold-dark border border-brand-gold/30">
+            <Sparkles className="w-3.5 h-3.5 text-brand-gold" />
             100% Fresh & Artisanal • Express 2-Hour Delivery
           </span>
-          <Heading level="h1" className="font-serif text-3xl sm:text-5xl md:text-6xl font-normal sm:font-semibold tracking-[-0.025em] leading-[1.1] text-white drop-shadow-xl">
+          <Heading level="h1" className="font-serif text-3xl sm:text-5xl md:text-6xl font-normal sm:font-semibold tracking-[-0.025em] leading-[1.1] text-brand-navy">
             Freshly Baked Happiness
           </Heading>
-          <Text className="font-sans text-sm sm:text-base text-stone-200 max-w-xl font-normal leading-relaxed">
+          <Text className="font-sans text-sm sm:text-base text-brand-text-muted max-w-xl font-normal leading-relaxed">
             Explore gourmet cakes, handcrafted chocolates, fresh pastries, and savory treats. Delivered directly from our nearest kitchen across Kerala.
           </Text>
           <div className="flex items-center gap-3 pt-2">
             <Link
               href="/search"
-              className="rounded-full px-8 py-3.5 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-gradient-to-r from-[#D97706] to-[#B45309] hover:from-[#B45309] hover:to-[#92400E] text-white shadow-[0_10px_25px_rgba(217,119,6,0.35)] transition-all flex items-center gap-1.5 font-bold"
+              className="rounded-lg px-7 py-3.5 font-sans font-semibold text-xs sm:text-sm uppercase tracking-[0.12em] bg-brand-navy hover:bg-brand-primary text-white shadow-sm transition-colors flex items-center gap-1.5"
             >
               Explore Cakes <ArrowRight className="w-4 h-4 ml-1" />
             </Link>
@@ -116,14 +115,14 @@ export function StorefrontProductHomepage({
         <section className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <Heading level="h2" className="text-xl font-bold flex items-center gap-2">
-              <Tag className="w-5 h-5 text-[#1D2F5D]" /> Special Offers & Coupons
+              <Tag className="w-5 h-5 text-brand-navy" /> Special Offers & Coupons
             </Heading>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {offers.map((o) => (
               <div
                 key={o.code || o.id}
-                className={`p-5 rounded-2xl bg-gradient-to-br ${o.bg || "from-[#1D2F5D] to-[#D4AF37]"} text-white shadow-md flex flex-col justify-between gap-3`}
+                className={`p-5 rounded-2xl bg-gradient-to-br ${o.bg || "from-brand-navy to-brand-gold"} text-white shadow-md flex flex-col justify-between gap-3`}
               >
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
@@ -148,10 +147,10 @@ export function StorefrontProductHomepage({
       {categories.length > 0 && (
         <section className="flex flex-col gap-5">
           <div className="flex items-center justify-between">
-            <Heading level="h2" className="text-xl font-bold text-[#0F172A]">
+            <Heading level="h2" className="text-xl font-bold text-brand-text">
               Explore Categories
             </Heading>
-            <Link href="/search" className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] flex items-center gap-1">
+            <Link href="/search" className="text-xs font-semibold text-brand-primary hover:text-brand-secondary flex items-center gap-1">
               View All Categories <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -175,10 +174,10 @@ export function StorefrontProductHomepage({
       <section className="flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <div>
-            <Heading level="h2" className="text-xl font-bold font-serif text-[#0F172A]">Featured Cakes</Heading>
-            <Text className="text-xs text-[#64748B]">Handcrafted gourmet cakes baked fresh daily</Text>
+            <Heading level="h2" className="text-xl font-bold font-serif text-brand-text">Featured Cakes</Heading>
+            <Text className="text-xs text-brand-text-muted">Handcrafted gourmet cakes baked fresh daily</Text>
           </div>
-          <Link href="/search?is_featured=true" className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-colors">
+          <Link href="/search?is_featured=true" className="text-xs font-semibold text-brand-primary hover:text-brand-secondary transition-colors">
             See All →
           </Link>
         </div>
@@ -189,10 +188,10 @@ export function StorefrontProductHomepage({
       <section className="flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <div>
-            <Heading level="h2" className="text-xl font-bold font-serif text-[#0F172A]">Best Sellers</Heading>
-            <Text className="text-xs text-[#64748B]">Customer favorites ordered most frequently</Text>
+            <Heading level="h2" className="text-xl font-bold font-serif text-brand-text">Best Sellers</Heading>
+            <Text className="text-xs text-brand-text-muted">Customer favorites ordered most frequently</Text>
           </div>
-          <Link href="/search?sort=rating" className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-colors">
+          <Link href="/search?sort=rating" className="text-xs font-semibold text-brand-primary hover:text-brand-secondary transition-colors">
             See All →
           </Link>
         </div>
@@ -203,12 +202,12 @@ export function StorefrontProductHomepage({
       <section className="flex flex-col gap-5 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
         <div className="flex items-center justify-between">
           <div>
-            <Heading level="h2" className="text-xl font-bold font-serif text-[#0F172A] flex items-center gap-2">
+            <Heading level="h2" className="text-xl font-bold font-serif text-brand-text flex items-center gap-2">
               🎂 Birthday Cakes Collection
             </Heading>
-            <Text className="text-xs text-[#64748B]">Make birthday celebrations extraordinary</Text>
+            <Text className="text-xs text-brand-text-muted">Make birthday celebrations extraordinary</Text>
           </div>
-          <Link href="/category/birthday-cakes" className="text-xs font-bold text-[#2563EB] hover:text-[#1D4ED8] transition-colors">
+          <Link href="/category/birthday-cakes" className="text-xs font-bold text-brand-primary hover:text-brand-secondary transition-colors">
             Explore Birthday Range →
           </Link>
         </div>
@@ -219,12 +218,12 @@ export function StorefrontProductHomepage({
       <section className="flex flex-col gap-5 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
         <div className="flex items-center justify-between">
           <div>
-            <Heading level="h2" className="text-xl font-bold font-serif text-[#0F172A] flex items-center gap-2">
+            <Heading level="h2" className="text-xl font-bold font-serif text-brand-text flex items-center gap-2">
               💖 Anniversary Cakes Collection
             </Heading>
-            <Text className="text-xs text-[#64748B]">Romantic heart-shaped & premium layered cakes</Text>
+            <Text className="text-xs text-brand-text-muted">Romantic heart-shaped & premium layered cakes</Text>
           </div>
-          <Link href="/category/anniversary-cakes" className="text-xs font-bold text-[#2563EB] hover:text-[#1D4ED8] transition-colors">
+          <Link href="/category/anniversary-cakes" className="text-xs font-bold text-brand-primary hover:text-brand-secondary transition-colors">
             Explore Anniversary Range →
           </Link>
         </div>
@@ -235,10 +234,10 @@ export function StorefrontProductHomepage({
       <section className="flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <div>
-            <Heading level="h2" className="text-xl font-bold font-serif text-[#0F172A]">Pastries & Slices</Heading>
-            <Text className="text-xs text-[#64748B]">Individual indulgence for sweet cravings</Text>
+            <Heading level="h2" className="text-xl font-bold font-serif text-brand-text">Pastries & Slices</Heading>
+            <Text className="text-xs text-brand-text-muted">Individual indulgence for sweet cravings</Text>
           </div>
-          <Link href="/category/pastries" className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-colors">
+          <Link href="/category/pastries" className="text-xs font-semibold text-brand-primary hover:text-brand-secondary transition-colors">
             See All →
           </Link>
         </div>
@@ -249,10 +248,10 @@ export function StorefrontProductHomepage({
       <section className="flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <div>
-            <Heading level="h2" className="text-xl font-bold font-serif text-[#0F172A]">Cookies & Handcrafted Chocolates</Heading>
-            <Text className="text-xs text-[#64748B]">Freshly baked cookies and pralines</Text>
+            <Heading level="h2" className="text-xl font-bold font-serif text-brand-text">Cookies & Handcrafted Chocolates</Heading>
+            <Text className="text-xs text-brand-text-muted">Freshly baked cookies and pralines</Text>
           </div>
-          <Link href="/category/chocolates" className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-colors">
+          <Link href="/category/chocolates" className="text-xs font-semibold text-brand-primary hover:text-brand-secondary transition-colors">
             See All →
           </Link>
         </div>
@@ -263,10 +262,10 @@ export function StorefrontProductHomepage({
       <section className="flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <div>
-            <Heading level="h2" className="text-xl font-bold font-serif text-[#0F172A]">New Arrivals ✨</Heading>
-            <Text className="text-xs text-[#64748B]">Discover our latest baker creations</Text>
+            <Heading level="h2" className="text-xl font-bold font-serif text-brand-text">New Arrivals ✨</Heading>
+            <Text className="text-xs text-brand-text-muted">Discover our latest baker creations</Text>
           </div>
-          <Link href="/search?is_new_arrival=true" className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-colors">
+          <Link href="/search?is_new_arrival=true" className="text-xs font-semibold text-brand-primary hover:text-brand-secondary transition-colors">
             See All →
           </Link>
         </div>
@@ -274,11 +273,11 @@ export function StorefrontProductHomepage({
       </section>
 
       {/* Recommended For You */}
-      <section className="flex flex-col gap-5 bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-blue-50/70 p-6 rounded-3xl border border-blue-100 shadow-xs">
+      <section className="flex flex-col gap-5 bg-gradient-to-r from-blue-50/70 via-brand-light/50 to-blue-50/70 p-6 rounded-3xl border border-blue-100 shadow-xs">
         <div className="flex items-center justify-between">
           <div>
             <Heading level="h2" className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-[#2563EB]" /> Recommended For You
+              <Sparkles className="w-5 h-5 text-brand-primary" /> Recommended For You
             </Heading>
             <Text className="text-xs text-slate-600">Tailored suggestions based on popular choices in your area</Text>
           </div>
@@ -288,7 +287,7 @@ export function StorefrontProductHomepage({
 
       {/* Recently Viewed Placeholder Section */}
       <section className="flex flex-col gap-4 border-t border-slate-200/80 pt-8">
-        <Heading level="h2" className="text-lg font-bold text-[#0F172A]">Recently Viewed</Heading>
+        <Heading level="h2" className="text-lg font-bold text-brand-text">Recently Viewed</Heading>
         <div className="flex items-center gap-4 overflow-x-auto pb-2">
           {products.slice(0, 4).map((p) => (
             <Link
@@ -302,8 +301,8 @@ export function StorefrontProductHomepage({
                 )}
               </div>
               <div className="flex flex-col truncate">
-                <span className="text-xs font-semibold truncate text-[#0F172A]">{p.title}</span>
-                <span className="text-xs text-[#2563EB] font-bold">₹{p.price}</span>
+                <span className="text-xs font-semibold truncate text-brand-text">{p.title}</span>
+                <span className="text-xs text-brand-primary font-bold">₹{p.price}</span>
               </div>
             </Link>
           ))}

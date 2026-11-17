@@ -321,7 +321,7 @@ export const CrmPanel = memo(function CrmPanel() {
                 size="small"
                 variant="secondary"
                 onClick={() => setShowDuplicateModal(true)}
-                className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 hover:bg-amber-100 border-amber-300 dark:bg-amber-950 dark:text-amber-300"
+                className="flex items-center gap-1.5 text-xs text-brand-gold-dark bg-brand-gold-light hover:bg-brand-gold-light border-brand-gold/40 dark:bg-brand-gold-dark dark:text-brand-gold/40"
               >
                 <Users className="w-3.5 h-3.5" /> Duplicates ({duplicateCount})
               </Button>
@@ -331,7 +331,7 @@ export const CrmPanel = memo(function CrmPanel() {
               size="small"
               variant="secondary"
               onClick={() => setShowSegmentModal(true)}
-              className="flex items-center gap-1.5 text-xs text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border-indigo-300 dark:bg-indigo-950 dark:text-indigo-300"
+              className="flex items-center gap-1.5 text-xs text-brand-navy bg-brand-light hover:bg-brand-light border-brand-primary/30 dark:bg-brand-navy dark:text-brand-primary/30"
             >
               <Layers className="w-3.5 h-3.5" /> New Segment
             </Button>
@@ -358,7 +358,7 @@ export const CrmPanel = memo(function CrmPanel() {
             <Button
               size="small"
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-1.5 bg-[#1D2F5D] hover:bg-[#152347] text-white border border-[#D4AF37]/40 shadow-xs text-xs font-semibold"
+              className="flex items-center gap-1.5 bg-brand-navy hover:bg-brand-deep text-white border border-brand-gold/40 shadow-xs text-xs font-semibold"
             >
               <UserPlus className="w-3.5 h-3.5" /> Add Customer
             </Button>
@@ -374,7 +374,7 @@ export const CrmPanel = memo(function CrmPanel() {
             }}
             className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
               activeSegment === "all" && lifecycleFilter === "all"
-                ? "border-[#1D2F5D] bg-[#1D2F5D]/5 dark:bg-[#1D2F5D]/20 ring-1 ring-[#1D2F5D] dark:border-[#D4AF37]"
+                ? "border-brand-navy bg-brand-navy/5 dark:bg-brand-navy/20 ring-1 ring-brand-navy dark:border-brand-gold"
                 : "border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:border-neutral-300"
             }`}
           >
@@ -436,17 +436,17 @@ export const CrmPanel = memo(function CrmPanel() {
             }}
             className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
               lifecycleFilter === "VIP"
-                ? "border-purple-500 bg-purple-50/40 dark:bg-purple-950/20 ring-1 ring-purple-500"
+                ? "border-brand-primary bg-brand-light/40 dark:bg-brand-navy/20 ring-1 ring-brand-primary"
                 : "border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:border-neutral-300"
             }`}
           >
-            <span className="text-[10px] font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider block mb-0.5">
+            <span className="text-[10px] font-bold text-brand-navy dark:text-brand-primary uppercase tracking-wider block mb-0.5">
               VIP Patrons
             </span>
-            <span className="text-xl font-extrabold text-purple-600 dark:text-purple-400">
+            <span className="text-xl font-extrabold text-brand-primary dark:text-brand-primary">
               {summary?.vip_customers_count ?? 0}
             </span>
-            <span className="text-[10px] text-purple-700/70 block mt-0.5">₹5k+ Spend or VIP Tag</span>
+            <span className="text-[10px] text-brand-navy/70 block mt-0.5">₹5k+ Spend or VIP Tag</span>
           </div>
 
           <div
@@ -499,7 +499,7 @@ export const CrmPanel = memo(function CrmPanel() {
               onClick={() => setActiveSegment("all")}
               className={`py-1.5 px-3 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                 activeSegment === "all"
-                  ? "bg-[#1D2F5D] text-white border border-[#D4AF37]/40 shadow-xs"
+                  ? "bg-brand-navy text-white border border-brand-gold/40 shadow-xs"
                   : "bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200"
               }`}
             >
@@ -511,7 +511,7 @@ export const CrmPanel = memo(function CrmPanel() {
                 onClick={() => setActiveSegment(seg.id)}
                 className={`py-1.5 px-3 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
                   activeSegment === seg.id
-                    ? "bg-[#1D2F5D] text-white border border-[#D4AF37]/40 shadow-xs"
+                    ? "bg-brand-navy text-white border border-brand-gold/40 shadow-xs"
                     : "bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200"
                 }`}
               >
@@ -534,14 +534,14 @@ export const CrmPanel = memo(function CrmPanel() {
               placeholder="Search by Name, Phone, Email, UID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1D2F5D] dark:focus:ring-[#D4AF37]"
+              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-navy dark:focus:ring-brand-gold"
             />
           </div>
 
           <select
             value={lifecycleFilter}
             onChange={(e) => setLifecycleFilter(e.target.value)}
-            className="py-1.5 px-2.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 min-w-0 focus:outline-none focus:ring-2 focus:ring-[#1D2F5D] dark:focus:ring-[#D4AF37]"
+            className="py-1.5 px-2.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 min-w-0 focus:outline-none focus:ring-2 focus:ring-brand-navy dark:focus:ring-brand-gold"
           >
             <option value="all">All Lifecycle Stages</option>
             <option value="NEW">New (0 Orders)</option>
@@ -555,7 +555,7 @@ export const CrmPanel = memo(function CrmPanel() {
           <select
             value={tierFilter}
             onChange={(e) => setTierFilter(e.target.value)}
-            className="py-1.5 px-2.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 min-w-0 focus:outline-none focus:ring-2 focus:ring-[#1D2F5D] dark:focus:ring-[#D4AF37]"
+            className="py-1.5 px-2.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 min-w-0 focus:outline-none focus:ring-2 focus:ring-brand-navy dark:focus:ring-brand-gold"
           >
             <option value="all">All Loyalty Tiers</option>
             <option value="VIP_PLATINUM">👑 VIP Platinum</option>
@@ -567,7 +567,7 @@ export const CrmPanel = memo(function CrmPanel() {
           <select
             value={branchFilter}
             onChange={(e) => setBranchFilter(e.target.value)}
-            className="py-1.5 px-2.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 min-w-0 focus:outline-none focus:ring-2 focus:ring-[#1D2F5D] dark:focus:ring-[#D4AF37]"
+            className="py-1.5 px-2.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 min-w-0 focus:outline-none focus:ring-2 focus:ring-brand-navy dark:focus:ring-brand-gold"
           >
             <option value="all">All Kitchen Hubs</option>
             {branches.map((b) => (
@@ -611,13 +611,13 @@ export const CrmPanel = memo(function CrmPanel() {
                   {customers.map((c) => (
                     <tr
                       key={c.customer_uid || c.id}
-                      className="hover:bg-[#1D2F5D]/5 dark:hover:bg-[#1D2F5D]/20 transition-colors group cursor-pointer"
+                      className="hover:bg-brand-navy/5 dark:hover:bg-brand-navy/20 transition-colors group cursor-pointer"
                       onClick={() => setSelectedCustomerUid(c.customer_uid || c.id)}
                     >
                       {/* Customer Name & Info */}
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-[#1D2F5D]/10 dark:bg-[#1D2F5D]/30 text-[#1D2F5D] dark:text-[#D4AF37] font-bold flex items-center justify-center text-xs shrink-0 border border-[#D4AF37]/30">
+                          <div className="w-8 h-8 rounded-full bg-brand-navy/10 dark:bg-brand-navy/30 text-brand-navy dark:text-brand-gold font-bold flex items-center justify-center text-xs shrink-0 border border-brand-gold/30">
                             {c.name.slice(0, 2).toUpperCase()}
                           </div>
                           <div className="flex flex-col min-w-0">
@@ -652,7 +652,7 @@ export const CrmPanel = memo(function CrmPanel() {
                       {/* Intelligence Score */}
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-extrabold text-amber-500 font-mono text-xs">
+                          <span className="font-extrabold text-brand-gold font-mono text-xs">
                             {c.customer_intelligence_score != null ? `${c.customer_intelligence_score}/100` : "—"}
                           </span>
                           <span className="text-[10px] text-neutral-400">Score</span>
@@ -684,7 +684,7 @@ export const CrmPanel = memo(function CrmPanel() {
                       {/* Telecaller */}
                       <td className="py-3 px-4 text-neutral-600 dark:text-neutral-300 text-[11px]">
                         {c.assigned_telecaller_name ? (
-                          <span className="font-medium text-purple-600 bg-purple-50 dark:bg-purple-950/40 px-2 py-0.5 rounded">
+                          <span className="font-medium text-brand-primary bg-brand-light dark:bg-brand-navy/40 px-2 py-0.5 rounded">
                             {c.assigned_telecaller_name}
                           </span>
                         ) : (
@@ -714,7 +714,7 @@ export const CrmPanel = memo(function CrmPanel() {
                           <button
                             title="View Customer 360 & Lineage"
                             onClick={() => setSelectedCustomerUid(c.customer_uid || c.id)}
-                            className="p-1.5 rounded-lg hover:bg-[#1D2F5D]/10 dark:hover:bg-[#1D2F5D]/30 text-[#1D2F5D] dark:text-[#D4AF37] transition-colors"
+                            className="p-1.5 rounded-lg hover:bg-brand-navy/10 dark:hover:bg-brand-navy/30 text-brand-navy dark:text-brand-gold transition-colors"
                           >
                             <ChevronRight className="w-4 h-4" />
                           </button>
@@ -774,7 +774,7 @@ export const CrmPanel = memo(function CrmPanel() {
 
               {healthLoading ? (
                 <div className="p-8 flex items-center justify-center">
-                  <RefreshCw className="w-6 h-6 animate-spin text-[#1D2F5D] dark:text-[#D4AF37]" />
+                  <RefreshCw className="w-6 h-6 animate-spin text-brand-navy dark:text-brand-gold" />
                 </div>
               ) : healthReport ? (
                 <div className="flex flex-col gap-4 text-xs">
@@ -793,7 +793,7 @@ export const CrmPanel = memo(function CrmPanel() {
                     </div>
                     <div className="p-3 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 flex flex-col">
                       <span className="text-neutral-500">Accounts (0 Orders)</span>
-                      <span className="text-lg font-bold text-amber-600">{healthReport.customers_without_orders}</span>
+                      <span className="text-lg font-bold text-brand-gold">{healthReport.customers_without_orders}</span>
                     </div>
                   </div>
 
@@ -874,7 +874,7 @@ export const CrmPanel = memo(function CrmPanel() {
                   <Button size="small" variant="secondary" type="button" onClick={() => setShowSegmentModal(false)}>
                     Cancel
                   </Button>
-                  <Button size="small" type="submit" disabled={submittingSegment || !segmentName} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                  <Button size="small" type="submit" disabled={submittingSegment || !segmentName} className="bg-brand-primary hover:bg-brand-navy text-white">
                     {submittingSegment ? "Creating..." : "Save Segment"}
                   </Button>
                 </div>
@@ -957,7 +957,7 @@ export const CrmPanel = memo(function CrmPanel() {
                     id="isVip"
                     checked={createIsVip}
                     onChange={(e) => setCreateIsVip(e.target.checked)}
-                    className="rounded border-neutral-300 text-[#1D2F5D] focus:ring-[#1D2F5D]"
+                    className="rounded border-neutral-300 text-brand-navy focus:ring-brand-navy"
                   />
                   <Label htmlFor="isVip" className="text-xs cursor-pointer font-medium">
                     Grant VIP Patron Status
@@ -968,7 +968,7 @@ export const CrmPanel = memo(function CrmPanel() {
                   <Button size="small" variant="secondary" type="button" onClick={() => setShowCreateModal(false)}>
                     Cancel
                   </Button>
-                  <Button size="small" type="submit" disabled={submitting} className="bg-[#1D2F5D] hover:bg-[#152347] text-white border border-[#D4AF37]/30">
+                  <Button size="small" type="submit" disabled={submitting} className="bg-brand-navy hover:bg-brand-deep text-white border border-brand-gold/30">
                     {submitting ? "Creating..." : "Save Customer"}
                   </Button>
                 </div>

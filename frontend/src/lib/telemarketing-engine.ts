@@ -185,9 +185,7 @@ class TelemarketingEngineStore {
   private toleranceDays: number = 14; // Default ±14 days anniversary window
   private attributionWindowDays: number = 14; // 14-day outreach conversion attribution window
 
-  constructor() {
-    this.seedCanonicalCandidates();
-  }
+  // Candidates come only from real order history (evaluateHistoricalOrders).
 
   public setToleranceDays(days: number) {
     this.toleranceDays = Math.max(1, days);
@@ -199,285 +197,6 @@ class TelemarketingEngineStore {
 
   public setAttributionWindowDays(days: number) {
     this.attributionWindowDays = Math.max(1, days);
-  }
-
-  // ── Seed Initial Canonical Realistic Opportunities ────────
-  private seedCanonicalCandidates() {
-    const today = new Date("2026-08-17T10:00:00.000Z");
-
-    const sampleOrders = [
-      {
-        id: "ord_cth_9801",
-        order_number: "CTH-ORD-9801",
-        customer_uid: "cth_cus_9876543210",
-        customer_name: "Priya Sharma",
-        customer_phone: "+91 98765 43210",
-        customer_email: "priya.sharma@example.com",
-        city_id: "bengaluru",
-        city: "Bengaluru",
-        area: "Indiranagar",
-        pincode: "560038",
-        branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-        branch_name: "Indiranagar Flagship Kitchen",
-        order_date: "2025-08-18T14:30:00.000Z",
-        product_id: "prod_truffle_signature",
-        product_name: "Belgian Dark Chocolate Truffle Cake (1 Kg)",
-        category: "Signature Chocolate",
-        occasion: "Birthday Celebration",
-        occasion_id: "occ_birthday",
-        order_value: 1299,
-        historical_orders: 4,
-        repeat_purchases: 3,
-        aov: 1250,
-        total_spend: 5000,
-        opportunity_type: "BIRTHDAY_REORDER" as OpportunityType,
-        status: "NEW" as TelemarketingContactStatus,
-        assigned_staff_id: "staff_01",
-        assigned_to: "Priya Sharma",
-      },
-      {
-        id: "ord_cth_9802",
-        order_number: "CTH-ORD-9802",
-        customer_uid: "cth_cus_9123456780",
-        customer_name: "Anand Verma",
-        customer_phone: "+91 91234 56780",
-        customer_email: "anand.v@example.com",
-        city_id: "bengaluru",
-        city: "Bengaluru",
-        area: "Koramangala",
-        pincode: "560034",
-        branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-        branch_name: "Indiranagar Flagship Kitchen",
-        order_date: "2025-08-20T16:00:00.000Z",
-        product_id: "prod_red_velvet",
-        product_name: "Red Velvet Cream Cheese Cake (0.5 Kg)",
-        category: "Velvet & Cream",
-        occasion: "Wedding Anniversary",
-        occasion_id: "occ_anniversary",
-        order_value: 950,
-        historical_orders: 2,
-        repeat_purchases: 1,
-        aov: 920,
-        total_spend: 1840,
-        opportunity_type: "ANNIVERSARY_REORDER" as OpportunityType,
-        status: "FOLLOW_UP" as TelemarketingContactStatus,
-        assigned_staff_id: "staff_01",
-        assigned_to: "Priya Sharma",
-        next_followup_date: "2026-08-17",
-      },
-      {
-        id: "ord_cth_9803",
-        order_number: "CTH-ORD-9803",
-        customer_uid: "cth_cus_9988776655",
-        customer_name: "Meera Krishnan",
-        customer_phone: "+91 99887 76655",
-        customer_email: "meera.k@example.com",
-        city_id: "bengaluru",
-        city: "Bengaluru",
-        area: "Whitefield",
-        pincode: "560066",
-        branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-        branch_name: "Indiranagar Flagship Kitchen",
-        order_date: "2025-08-15T11:20:00.000Z",
-        product_id: "prod_fresh_mango",
-        product_name: "Fresh Alphonso Mango Gateau (1 Kg)",
-        category: "Seasonal Fruit",
-        occasion: "Birthday Celebration",
-        occasion_id: "occ_birthday",
-        order_value: 1450,
-        historical_orders: 5,
-        repeat_purchases: 4,
-        aov: 1380,
-        total_spend: 6900,
-        opportunity_type: "BIRTHDAY_REORDER" as OpportunityType,
-        status: "INTERESTED" as TelemarketingContactStatus,
-        assigned_staff_id: "staff_01",
-        assigned_to: "Priya Sharma",
-      },
-      {
-        id: "ord_cth_9804",
-        order_number: "CTH-ORD-9804",
-        customer_uid: "cth_cus_9871122334",
-        customer_name: "Vikram Malhotra",
-        customer_phone: "+91 98711 22334",
-        customer_email: "vikram.m@example.com",
-        city_id: "bengaluru",
-        city: "Bengaluru",
-        area: "HSR Layout",
-        pincode: "560102",
-        branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-        branch_name: "Indiranagar Flagship Kitchen",
-        order_date: "2025-08-10T18:00:00.000Z",
-        product_id: "prod_black_forest",
-        product_name: "Classic German Black Forest Cake (0.5 Kg)",
-        category: "Classic Cakes",
-        occasion: "Family Gathering",
-        occasion_id: "occ_general",
-        order_value: 799,
-        historical_orders: 3,
-        repeat_purchases: 2,
-        aov: 820,
-        total_spend: 2460,
-        opportunity_type: "RECENT_REPEAT_PURCHASE" as OpportunityType,
-        status: "CONVERTED" as TelemarketingContactStatus,
-        assigned_staff_id: "staff_01",
-        assigned_to: "Priya Sharma",
-        attributed_order_id: "ord_cth_9921",
-        attributed_revenue: 1099,
-      },
-      {
-        id: "ord_cth_9805",
-        order_number: "CTH-ORD-9805",
-        customer_uid: "cth_cus_9776655443",
-        customer_name: "Deepika Rao",
-        customer_phone: "+91 97766 55443",
-        customer_email: "deepika.r@example.com",
-        city_id: "bengaluru",
-        city: "Bengaluru",
-        area: "Jayanagar",
-        pincode: "560041",
-        branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-        branch_name: "Indiranagar Flagship Kitchen",
-        order_date: "2025-08-25T19:30:00.000Z",
-        product_id: "prod_rasmalai_pistachio",
-        product_name: "Royal Rasmalai Pistachio Cake (1 Kg)",
-        category: "Fusion Gourmet",
-        occasion: "Birthday Celebration",
-        occasion_id: "occ_birthday",
-        order_value: 1599,
-        historical_orders: 3,
-        repeat_purchases: 2,
-        aov: 1400,
-        total_spend: 4200,
-        opportunity_type: "HIGH_VALUE_REACTIVATION" as OpportunityType,
-        status: "NEW" as TelemarketingContactStatus,
-        assigned_staff_id: null,
-        assigned_to: null,
-      },
-    ];
-
-    sampleOrders.forEach((so) => {
-      const refDate = new Date(so.order_date);
-      const daysSince = Math.floor((today.getTime() - refDate.getTime()) / (1000 * 60 * 60 * 24));
-      const targetYear = today.getUTCFullYear();
-
-      const anniversaryDate = new Date(refDate);
-      anniversaryDate.setUTCFullYear(targetYear);
-
-      const startWindow = new Date(anniversaryDate);
-      startWindow.setDate(startWindow.getDate() - this.toleranceDays);
-      const endWindow = new Date(anniversaryDate);
-      endWindow.setDate(endWindow.getDate() + this.toleranceDays);
-
-      const daysDiff = Math.abs(Math.floor((today.getTime() - anniversaryDate.getTime()) / (1000 * 60 * 60 * 24)));
-
-      const breakdown = this.calculateDeterministicScore({
-        daysDiff,
-        occasion: so.occasion,
-        historicalOrderCount: so.historical_orders,
-        repeatPurchaseCount: so.repeat_purchases,
-        lifetimeSpend: so.total_spend,
-        aov: so.aov,
-        marketingConsent: true,
-      });
-
-      const priority: ReorderPriority = breakdown.total >= 80 ? "HIGH" : breakdown.total >= 50 ? "MEDIUM" : "LOW";
-      const { reason, pitch } = this.generateSafePitch({
-        customerName: so.customer_name,
-        productName: so.product_name,
-        occasion: so.occasion,
-        orderDateStr: refDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
-        opportunityType: so.opportunity_type,
-        cityName: so.city,
-      });
-
-      const expectedDateStr = anniversaryDate.toISOString().slice(0, 10);
-      const dedupeKey = `${so.customer_uid}_${so.opportunity_type}_${expectedDateStr}_${so.id}`;
-
-      this.candidates.push({
-        id: `opp_${so.id}_${targetYear}`,
-        dedupe_key: dedupeKey,
-        customer_uid: so.customer_uid,
-        customer_id: so.customer_uid,
-        customer_name: so.customer_name,
-        customer_phone: so.customer_phone,
-        customer_email: so.customer_email,
-        city_id: so.city_id,
-        city: so.city,
-        area: so.area,
-        pincode: so.pincode,
-        preferred_branch_id: so.branch_id,
-        preferred_branch_name: so.branch_name,
-
-        opportunity_type: so.opportunity_type,
-        reference_order_id: so.id,
-        reference_order_number: so.order_number,
-        reference_order_date: so.order_date,
-        days_since_reference_order: daysSince,
-        reference_product_id: so.product_id,
-        reference_product_name: so.product_name,
-        reference_category: so.category,
-        reference_occasion: so.occasion,
-        reference_order_value: so.order_value,
-
-        historical_order_count: so.historical_orders,
-        repeat_purchase_count: so.repeat_purchases,
-        average_order_value: so.aov,
-        total_lifetime_spend: so.total_spend,
-        last_order_date: so.order_date,
-
-        target_year: targetYear,
-        target_window_start: startWindow.toISOString().slice(0, 10),
-        target_window_end: endWindow.toISOString().slice(0, 10),
-        suggested_followup_date: expectedDateStr,
-        expected_date: expectedDateStr,
-        expected_date_confidence: daysDiff <= 7 ? "HIGH" : daysDiff <= 14 ? "MEDIUM" : "LOW",
-        expected_date_reason: `Annual anniversary recurrence calculated from ${refDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} purchase.`,
-
-        score: breakdown.total,
-        priority,
-        score_breakdown: breakdown,
-        reason,
-        pitch,
-        recommended_product_id: so.product_id,
-        recommended_product_name: so.product_name,
-        recommended_addons: [
-          { id: "add_candles", name: "Sparkler Birthday Candles (Pack of 6)", price: 99 },
-          { id: "add_topper", name: "Custom Golden Cake Topper", price: 149 },
-        ],
-
-        contact_status: so.status,
-        assigned_staff_id: so.assigned_staff_id,
-        assigned_to: so.assigned_to,
-        assigned_at: so.assigned_to ? "2026-08-15T09:00:00.000Z" : null,
-        last_contacted_at: so.status !== "NEW" ? "2026-08-16T09:30:00.000Z" : null,
-        next_followup_date: so.next_followup_date || null,
-        call_notes: so.status !== "NEW" ? [
-          {
-            id: `note_${Date.now()}_${so.id}`,
-            staff_id: so.assigned_staff_id,
-            agent_name: so.assigned_to || "Agent",
-            outcome: so.status,
-            status: so.status,
-            note: so.status === "CONVERTED" || so.status === "ORDER_PLACED"
-              ? "Customer converted! Order placed for celebration."
-              : "Customer reached and informed of anniversary celebration options.",
-            created_at: "2026-08-16T09:30:00.000Z",
-          }
-        ] : [],
-
-        attributed_order_id: (so as any).attributed_order_id || null,
-        converted_order_id: (so as any).attributed_order_id || null,
-        attributed_revenue: (so as any).attributed_revenue || 0,
-        conversion_value: (so as any).attributed_revenue || 0,
-        converted_at: so.status === "CONVERTED" ? "2026-08-16T10:15:00.000Z" : null,
-
-        marketing_consent: true,
-        do_not_contact: false,
-        created_at: "2026-08-15T00:00:00.000Z",
-        updated_at: "2026-08-16T10:00:00.000Z",
-      });
-    });
   }
 
   // ── 5-Signal Deterministic Explainable Scoring Engine ───────────
@@ -629,7 +348,7 @@ class TelemarketingEngineStore {
   // ── Candidate Generation from Real Order History ──────────
   public evaluateHistoricalOrders(
     sourceOrders: any[] = [],
-    currentDateStr: string = "2026-08-17"
+    currentDateStr: string = new Date().toISOString()
   ): { evaluated: number; new_candidates: number; updated_candidates: number } {
     const today = new Date(currentDateStr);
     const targetYear = today.getUTCFullYear();
@@ -661,7 +380,7 @@ class TelemarketingEngineStore {
 
       const historicalOrderCount = custOrders.length;
       const repeatPurchaseCount = Math.max(0, historicalOrderCount - 1);
-      const totalSpend = custOrders.reduce((sum, o) => sum + Number(o.total || o.grossAmount || o.netAmount || 1000), 0);
+      const totalSpend = custOrders.reduce((sum, o) => sum + (Number(o.total || o.grossAmount || o.netAmount) || 0), 0);
       const aov = Math.round(totalSpend / historicalOrderCount);
       const lastOrder = custOrders[custOrders.length - 1];
 
@@ -681,15 +400,18 @@ class TelemarketingEngineStore {
 
         // Candidate qualifies if within tolerance window (default ±14 days) or is dormant high-value
         const isAnniversaryWindow = daysDiff <= this.toleranceDays;
-        const isDormantCandidate = daysSinceOrder >= 60 && totalSpend >= 2000;
+        // Win-back: one reminder per customer, based on their most recent order only.
+        const isDormantCandidate = ord === lastOrder && daysSinceOrder >= 60 && totalSpend >= 2000;
 
         if (!isAnniversaryWindow && !isDormantCandidate) {
           continue;
         }
 
         // Determine Opportunity Type
-        const occasionStr = ord.occasion || ord.occasion_name || "Birthday Celebration";
-        let oppType: OpportunityType = "BIRTHDAY_REORDER";
+        const occasionStr = ord.occasion || ord.occasion_name || "Previous order";
+        // Only label it a birthday when the order actually says so; otherwise it's a
+        // "same time last year" product reorder.
+        let oppType: OpportunityType = occasionStr.toLowerCase().includes("birthday") ? "BIRTHDAY_REORDER" : "PRODUCT_REORDER";
         if (occasionStr.toLowerCase().includes("anniversary") || occasionStr.toLowerCase().includes("wedding")) {
           oppType = "ANNIVERSARY_REORDER";
         } else if (occasionStr.toLowerCase().includes("festival") || occasionStr.toLowerCase().includes("season")) {
@@ -714,7 +436,7 @@ class TelemarketingEngineStore {
         });
 
         const priority: ReorderPriority = scoreBreakdown.total >= 80 ? "HIGH" : scoreBreakdown.total >= 50 ? "MEDIUM" : "LOW";
-        const prodName = ord.items?.[0]?.name || ord.items?.[0]?.product_name || ord.product_name || ord.productName || "Belgian Dark Chocolate Truffle Cake (1 Kg)";
+        const prodName = ord.items?.[0]?.name || ord.items?.[0]?.product_name || ord.product_name || ord.productName || "Previous order";
         const custName = ord.customer_name || ord.customerName || ord.name || "Valued Customer";
         const custPhone = formatDisplayPhone(ord.customer_phone || ord.customerPhone || ord.phone || "");
 
@@ -761,11 +483,11 @@ class TelemarketingEngineStore {
             reference_order_number: ord.order_number || ord.id,
             reference_order_date: ord.order_date || ord.orderDate || ord.created_at,
             days_since_reference_order: daysSinceOrder,
-            reference_product_id: ord.items?.[0]?.product_id || "prod_cake",
+            reference_product_id: ord.items?.[0]?.product_id || null,
             reference_product_name: prodName,
-            reference_category: ord.category || "Celebration Cakes",
+            reference_category: ord.category || "",
             reference_occasion: occasionStr,
-            reference_order_value: Number(ord.total || ord.grossAmount || 1000),
+            reference_order_value: Number(ord.total || ord.grossAmount) || 0,
 
             historical_order_count: historicalOrderCount,
             repeat_purchase_count: repeatPurchaseCount,
@@ -788,12 +510,9 @@ class TelemarketingEngineStore {
             score_breakdown: scoreBreakdown,
             reason,
             pitch,
-            recommended_product_id: ord.items?.[0]?.product_id || "prod_cake",
+            recommended_product_id: ord.items?.[0]?.product_id || null,
             recommended_product_name: prodName,
-            recommended_addons: [
-              { id: "add_candles", name: "Sparkler Birthday Candles (Pack of 6)", price: 99 },
-              { id: "add_topper", name: "Custom Golden Cake Topper", price: 149 },
-            ],
+            recommended_addons: [],
 
             contact_status: "NEW",
             assigned_staff_id: null,

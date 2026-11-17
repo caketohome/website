@@ -217,7 +217,7 @@ export const PopupsPanel = memo(function PopupsPanel() {
             variant="primary"
             size="small"
             onClick={handleCreateNew}
-            className="bg-[#1D2F5D] hover:bg-[#152347] text-white flex items-center gap-1.5 text-xs shadow-sm font-medium"
+            className="bg-brand-navy hover:bg-brand-deep text-white flex items-center gap-1.5 text-xs shadow-sm font-medium"
           >
             <Plus className="w-4 h-4" />
             Create Popup Campaign
@@ -293,7 +293,7 @@ export const PopupsPanel = memo(function PopupsPanel() {
           <Text className="text-[11px] font-semibold text-ui-fg-subtle uppercase tracking-wider">
             Recovered Revenue
           </Text>
-          <Text className="text-2xl font-bold text-purple-600">
+          <Text className="text-2xl font-bold text-brand-primary">
             ₹{(analytics?.total_revenue || 0).toLocaleString()}
           </Text>
           <Text className="text-[10px] text-emerald-600 font-medium">
@@ -405,7 +405,7 @@ export const PopupsPanel = memo(function PopupsPanel() {
                       <td className="p-3.5">
                         <div className="flex flex-col gap-0.5">
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-xs text-ui-fg-base hover:text-[#1D2F5D] dark:hover:text-[#D4AF37] transition-colors">
+                            <span className="font-semibold text-xs text-ui-fg-base hover:text-brand-navy dark:hover:text-brand-gold transition-colors">
                               {camp.name}
                             </span>
                             <Badge color="purple" className="text-[10px] px-1.5 py-0">
@@ -426,7 +426,7 @@ export const PopupsPanel = memo(function PopupsPanel() {
                         <div className="flex flex-col gap-1 text-xs text-ui-fg-subtle">
                           <div className="flex items-center gap-1.5">
                             {v?.trigger?.exitIntent && (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-medium border border-amber-500/20">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-brand-gold/10 text-brand-gold dark:text-brand-gold text-[10px] font-medium border border-brand-gold/20">
                                 Exit Intent
                               </span>
                             )}
@@ -436,7 +436,7 @@ export const PopupsPanel = memo(function PopupsPanel() {
                               </span>
                             )}
                             {v?.trigger?.scrollDepthPercent && (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 text-[10px] font-medium">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-brand-light text-brand-navy text-[10px] font-medium">
                                 {v.trigger.scrollDepthPercent}% Scroll
                               </span>
                             )}
@@ -476,7 +476,7 @@ export const PopupsPanel = memo(function PopupsPanel() {
                             {camp.analytics?.ctr || 0}% CTR • {camp.analytics?.conversions || 0} orders
                           </span>
                           {(camp.analytics?.recovered_revenue || 0) > 0 && (
-                            <span className="text-[10px] text-purple-600 font-bold">
+                            <span className="text-[10px] text-brand-primary font-bold">
                               ₹{(camp.analytics?.recovered_revenue || 0).toLocaleString()}
                             </span>
                           )}
@@ -502,7 +502,7 @@ export const PopupsPanel = memo(function PopupsPanel() {
                               size="small"
                               onClick={() => handlePause(camp.id, camp.name)}
                               title="Pause Campaign"
-                              className="p-1.5 h-7 w-7 text-amber-600 hover:text-amber-700"
+                              className="p-1.5 h-7 w-7 text-brand-gold hover:text-brand-gold-dark"
                             >
                               <Pause className="w-3.5 h-3.5" />
                             </Button>

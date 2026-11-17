@@ -84,19 +84,19 @@ export function CountryPhoneInput({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`Country: ${selectedCountry.name} +${selectedCountry.dialCode}`}
-        className="flex items-center gap-1.5 shrink-0 bg-neutral-950 border border-neutral-800 border-r-0 rounded-l-xl px-3 py-3 text-xs font-bold text-neutral-300 hover:bg-neutral-900 hover:border-neutral-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed select-none min-w-[90px]"
+        className="flex items-center gap-1.5 shrink-0 bg-white border border-brand-border border-r-0 rounded-l-xl px-3 py-3 text-xs font-bold text-brand-text hover:bg-brand-surface-muted hover:border-brand-text-muted/40 focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed select-none min-w-[90px]"
       >
         <span className="text-base leading-none" aria-hidden="true">
           {selectedCountry.flag}
         </span>
-        <span className="font-mono text-neutral-300">+{selectedCountry.dialCode}</span>
+        <span className="font-mono text-brand-text">+{selectedCountry.dialCode}</span>
         <ChevronDown
-          className={`w-3 h-3 text-neutral-500 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`w-3 h-3 text-brand-text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />
       </button>
 
       {/* Divider */}
-      <div className="w-px bg-neutral-800 self-stretch" />
+      <div className="w-px bg-brand-border self-stretch" />
 
       {/* Phone Number Input */}
       <input
@@ -110,29 +110,29 @@ export function CountryPhoneInput({
         autoFocus={autoFocus}
         autoComplete="tel-national"
         inputMode="tel"
-        className="flex-1 min-w-0 bg-neutral-950 border border-neutral-800 border-l-0 rounded-r-xl px-4 py-3 text-sm text-white font-mono placeholder-neutral-600 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex-1 min-w-0 bg-white border border-brand-border border-l-0 rounded-r-xl px-4 py-3 text-sm text-brand-text font-mono placeholder:text-brand-text-muted/70 focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       />
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute top-full left-0 z-50 mt-1 w-72 bg-neutral-950 border border-neutral-800 rounded-xl shadow-2xl shadow-black/60 overflow-hidden">
+        <div className="absolute top-full left-0 z-50 mt-1 w-72 bg-white border border-brand-border rounded-xl shadow-lg overflow-hidden">
           {/* Search */}
-          <div className="p-2 border-b border-neutral-800">
+          <div className="p-2 border-b border-brand-border">
             <div className="relative flex items-center">
-              <Search className="absolute left-2.5 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
+              <Search className="absolute left-2.5 w-3.5 h-3.5 text-brand-text-muted pointer-events-none" />
               <input
                 ref={searchRef}
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search country or code…"
-                className="w-full bg-neutral-900 border border-neutral-800 rounded-lg pl-8 pr-7 py-2 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-amber-500 transition-colors"
+                className="w-full bg-white border border-brand-border rounded-lg pl-8 pr-7 py-2 text-xs text-brand-text placeholder:text-brand-text-muted/70 focus:outline-none focus:border-brand-primary transition-colors"
               />
               {search && (
                 <button
                   type="button"
                   onClick={() => setSearch("")}
-                  className="absolute right-2 text-neutral-500 hover:text-neutral-300"
+                  className="absolute right-2 text-brand-text-muted hover:text-brand-text"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -147,7 +147,7 @@ export function CountryPhoneInput({
             className="max-h-56 overflow-y-auto overscroll-contain"
           >
             {filtered.length === 0 ? (
-              <li className="px-4 py-3 text-xs text-neutral-500 text-center">
+              <li className="px-4 py-3 text-xs text-brand-text-muted text-center">
                 No countries found
               </li>
             ) : (
@@ -156,17 +156,17 @@ export function CountryPhoneInput({
                   <button
                     type="button"
                     onClick={() => handleSelect(country)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-neutral-800 transition-colors text-xs ${
+                    className={`w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-brand-surface-muted transition-colors text-xs ${
                       country.iso2 === selectedCountry.iso2
-                        ? "bg-amber-500/10 text-amber-400"
-                        : "text-neutral-200"
+                        ? "bg-brand-light text-brand-primary"
+                        : "text-brand-text"
                     }`}
                   >
                     <span className="text-base leading-none w-5 text-center shrink-0">
                       {country.flag}
                     </span>
                     <span className="flex-1 truncate">{country.name}</span>
-                    <span className="font-mono text-neutral-500 shrink-0">
+                    <span className="font-mono text-brand-text-muted shrink-0">
                       +{country.dialCode}
                     </span>
                   </button>

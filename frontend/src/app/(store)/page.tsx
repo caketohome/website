@@ -41,7 +41,7 @@ export default async function Home() {
   const theme = ("theme" in cms && cms.theme) ? cms.theme : (cms?.page as any)?.theme;
 
   return (
-    <div className="flex flex-col gap-0 w-full overflow-x-clip bg-[#F8FAFC]">
+    <div className="flex flex-col gap-0 w-full overflow-x-clip bg-brand-surface-muted">
       {/* Dynamic Published CMS Page Sections */}
       {sections.length > 0 ? (
         <PageRenderer

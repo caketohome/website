@@ -320,11 +320,11 @@ export function OccasionsPanel() {
   return (
     <div className="space-y-6">
       {/* Top Header Banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-[#1D2F5D]/10 via-[#1D2F5D]/5 to-[#D4AF37]/10 dark:from-[#1D2F5D]/30 dark:via-[#0D152B]/40 dark:to-[#142040]/30 p-5 rounded-2xl border border-[#D4AF37]/30 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-brand-navy/10 via-brand-navy/5 to-brand-gold/10 dark:from-brand-navy/30 dark:via-brand-deep/40 dark:to-brand-navy/30 p-5 rounded-2xl border border-brand-gold/30 shadow-sm">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Heading level="h2" className="text-xl font-extrabold flex items-center gap-2 text-[#1D2F5D] dark:text-[#F4F5F8]">
-              <Sparkles className="w-6 h-6 text-[#D4AF37] animate-pulse" /> Structured Occasion Taxonomy & Recommendation Matrix
+            <Heading level="h2" className="text-xl font-extrabold flex items-center gap-2 text-brand-navy dark:text-[#F4F5F8]">
+              <Sparkles className="w-6 h-6 text-brand-gold animate-pulse" /> Structured Occasion Taxonomy & Recommendation Matrix
             </Heading>
             <Badge color="purple" className="text-xs font-bold">Enterprise PIM</Badge>
           </div>
@@ -339,14 +339,14 @@ export function OccasionsPanel() {
             variant="secondary"
             onClick={handleRunMigration}
             isLoading={migrating}
-            className="text-xs flex items-center gap-1.5 border-purple-300 dark:border-purple-800"
+            className="text-xs flex items-center gap-1.5 border-brand-primary/30 dark:border-brand-navy"
           >
-            <Wand2 className="w-3.5 h-3.5 text-purple-600" /> Auto-Migrate Legacy Occasions
+            <Wand2 className="w-3.5 h-3.5 text-brand-primary" /> Auto-Migrate Legacy Occasions
           </Button>
           <Button
             size="small"
             onClick={handleOpenCreate}
-            className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-purple-600/20"
+            className="bg-brand-primary hover:bg-brand-navy text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-brand-primary/20"
           >
             <Plus className="w-4 h-4" /> + Create Occasion
           </Button>
@@ -374,10 +374,10 @@ export function OccasionsPanel() {
 
       {/* Create / Edit Modal */}
       {showModal && (
-        <Container className="p-6 border-2 border-purple-200 dark:border-purple-900 shadow-xl rounded-2xl animate-in fade-in-50 zoom-in-95">
+        <Container className="p-6 border-2 border-brand-primary/30 dark:border-brand-navy shadow-xl rounded-2xl animate-in fade-in-50 zoom-in-95">
           <div className="flex items-center justify-between pb-4 mb-4 border-b border-ui-border-base">
             <div className="flex items-center gap-3">
-              <span className="text-3xl p-2 bg-purple-50 dark:bg-purple-950/60 rounded-xl border border-purple-200 dark:border-purple-800 shrink-0">
+              <span className="text-3xl p-2 bg-brand-light dark:bg-brand-navy/60 rounded-xl border border-brand-primary/30 dark:border-brand-navy shrink-0">
                 {icon || "🎉"}
               </span>
               <div>
@@ -398,7 +398,7 @@ export function OccasionsPanel() {
               type="button"
               onClick={() => setModalTab("identity")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                modalTab === "identity" ? "bg-purple-600 text-white shadow-sm" : "bg-ui-bg-subtle text-ui-fg-subtle hover:text-ui-fg-base"
+                modalTab === "identity" ? "bg-brand-primary text-white shadow-sm" : "bg-ui-bg-subtle text-ui-fg-subtle hover:text-ui-fg-base"
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" /> Identity & Content
@@ -407,7 +407,7 @@ export function OccasionsPanel() {
               type="button"
               onClick={() => setModalTab("media")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                modalTab === "media" ? "bg-purple-600 text-white shadow-sm" : "bg-ui-bg-subtle text-ui-fg-subtle hover:text-ui-fg-base"
+                modalTab === "media" ? "bg-brand-primary text-white shadow-sm" : "bg-ui-bg-subtle text-ui-fg-subtle hover:text-ui-fg-base"
               }`}
             >
               <ImageIcon className="w-3.5 h-3.5" /> Media & Cover Imagery
@@ -416,7 +416,7 @@ export function OccasionsPanel() {
               type="button"
               onClick={() => setModalTab("display")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                modalTab === "display" ? "bg-purple-600 text-white shadow-sm" : "bg-ui-bg-subtle text-ui-fg-subtle hover:text-ui-fg-base"
+                modalTab === "display" ? "bg-brand-primary text-white shadow-sm" : "bg-ui-bg-subtle text-ui-fg-subtle hover:text-ui-fg-base"
               }`}
             >
               <Eye className="w-3.5 h-3.5" /> Display & Discovery
@@ -425,7 +425,7 @@ export function OccasionsPanel() {
               type="button"
               onClick={() => setModalTab("seo")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                modalTab === "seo" ? "bg-purple-600 text-white shadow-sm" : "bg-ui-bg-subtle text-ui-fg-subtle hover:text-ui-fg-base"
+                modalTab === "seo" ? "bg-brand-primary text-white shadow-sm" : "bg-ui-bg-subtle text-ui-fg-subtle hover:text-ui-fg-base"
               }`}
             >
               <Globe className="w-3.5 h-3.5" /> SEO & Social
@@ -434,7 +434,7 @@ export function OccasionsPanel() {
               type="button"
               onClick={() => setModalTab("products")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                modalTab === "products" ? "bg-purple-600 text-white shadow-sm" : "bg-ui-bg-subtle text-ui-fg-subtle hover:text-ui-fg-base"
+                modalTab === "products" ? "bg-brand-primary text-white shadow-sm" : "bg-ui-bg-subtle text-ui-fg-subtle hover:text-ui-fg-base"
               }`}
             >
               <Layers className="w-3.5 h-3.5" /> Products ({featuredProductIds.length})
@@ -542,7 +542,7 @@ export function OccasionsPanel() {
                 <div className="p-4 bg-ui-bg-subtle rounded-2xl border border-ui-border-base space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Monitor className="w-4 h-4 text-purple-600" />
+                      <Monitor className="w-4 h-4 text-brand-primary" />
                       <Text className="text-xs font-bold text-ui-fg-base uppercase tracking-wider">
                         Primary Cover Image (Desktop / Storefront Grid)
                       </Text>
@@ -614,7 +614,7 @@ export function OccasionsPanel() {
                           onClick={() => setMediaPickerTarget("cover")}
                           className="text-xs flex items-center gap-1.5 border border-ui-border-base"
                         >
-                          <FolderOpen className="w-3.5 h-3.5 text-purple-600" /> Choose From Media Library
+                          <FolderOpen className="w-3.5 h-3.5 text-brand-primary" /> Choose From Media Library
                         </Button>
                       </div>
 
@@ -666,7 +666,7 @@ export function OccasionsPanel() {
                   <div className="p-3.5 bg-ui-bg-subtle rounded-2xl border border-ui-border-base space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
-                        <Smartphone className="w-3.5 h-3.5 text-indigo-600" />
+                        <Smartphone className="w-3.5 h-3.5 text-brand-primary" />
                         <Text className="text-xs font-bold text-ui-fg-base">Mobile Cover Variant</Text>
                       </div>
                       {mobileCoverImage && (
@@ -721,7 +721,7 @@ export function OccasionsPanel() {
                   <div className="p-3.5 bg-ui-bg-subtle rounded-2xl border border-ui-border-base space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
-                        <Layers className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <Layers className="w-3.5 h-3.5 text-brand-gold" />
                         <Text className="text-xs font-bold text-ui-fg-base">Square Thumbnail</Text>
                       </div>
                       {thumbnailImage && (
@@ -787,7 +787,7 @@ export function OccasionsPanel() {
                     type="checkbox"
                     checked={featured}
                     onChange={(e) => setFeatured(e.target.checked)}
-                    className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                    className="w-4 h-4 rounded text-brand-primary focus:ring-brand-primary"
                   />
                 </div>
 
@@ -800,7 +800,7 @@ export function OccasionsPanel() {
                     type="checkbox"
                     checked={showOnHomepage}
                     onChange={(e) => setShowOnHomepage(e.target.checked)}
-                    className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                    className="w-4 h-4 rounded text-brand-primary focus:ring-brand-primary"
                   />
                 </div>
 
@@ -813,7 +813,7 @@ export function OccasionsPanel() {
                     type="checkbox"
                     checked={showInGrid}
                     onChange={(e) => setShowInGrid(e.target.checked)}
-                    className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                    className="w-4 h-4 rounded text-brand-primary focus:ring-brand-primary"
                   />
                 </div>
 
@@ -826,7 +826,7 @@ export function OccasionsPanel() {
                     type="checkbox"
                     checked={showInNav}
                     onChange={(e) => setShowInNav(e.target.checked)}
-                    className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                    className="w-4 h-4 rounded text-brand-primary focus:ring-brand-primary"
                   />
                 </div>
 
@@ -839,7 +839,7 @@ export function OccasionsPanel() {
                     type="checkbox"
                     checked={showInSearch}
                     onChange={(e) => setShowInSearch(e.target.checked)}
-                    className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                    className="w-4 h-4 rounded text-brand-primary focus:ring-brand-primary"
                   />
                 </div>
               </div>
@@ -934,7 +934,7 @@ export function OccasionsPanel() {
                           key={p.id}
                           className={`flex items-center gap-2.5 p-2 rounded-lg cursor-pointer text-xs border transition ${
                             isSelected
-                              ? "bg-purple-50 border-purple-300 font-bold text-purple-900 dark:bg-purple-950/60 dark:text-purple-200"
+                              ? "bg-brand-light border-brand-primary/30 font-bold text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary/30"
                               : "bg-white dark:bg-slate-900 border-ui-border-base hover:bg-ui-bg-base"
                           }`}
                         >
@@ -946,7 +946,7 @@ export function OccasionsPanel() {
                                 isSelected ? prev.filter(id => id !== p.id) : [...prev, p.id]
                               );
                             }}
-                            className="rounded text-purple-600 focus:ring-purple-500"
+                            className="rounded text-brand-primary focus:ring-brand-primary"
                           />
                           <span className="truncate">{p.title || p.name}</span>
                         </label>
@@ -960,11 +960,11 @@ export function OccasionsPanel() {
             {/* Modal Actions */}
             <div className="flex items-center justify-between pt-4 border-t border-ui-border-base">
               <div className="text-xs text-ui-fg-muted">
-                {coverImage ? <span className="text-emerald-600 font-medium flex items-center gap-1"><Check className="w-3.5 h-3.5" /> Cover Image Configured</span> : <span className="text-amber-600 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" /> Using curated fallback cover</span>}
+                {coverImage ? <span className="text-emerald-600 font-medium flex items-center gap-1"><Check className="w-3.5 h-3.5" /> Cover Image Configured</span> : <span className="text-brand-gold font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" /> Using curated fallback cover</span>}
               </div>
               <div className="flex items-center gap-2">
                 <Button type="button" variant="transparent" onClick={() => setShowModal(false)}>Cancel</Button>
-                <Button type="submit" isLoading={submitting} className="bg-purple-600 hover:bg-purple-700 text-white font-semibold">
+                <Button type="submit" isLoading={submitting} className="bg-brand-primary hover:bg-brand-navy text-white font-semibold">
                   {editingOccasion ? "Save & Update Occasion" : "Register New Occasion"}
                 </Button>
               </div>
@@ -1021,7 +1021,7 @@ export function OccasionsPanel() {
                 type="button"
                 onClick={() => setStatusFilter("all")}
                 className={`px-2.5 py-1 rounded font-semibold transition ${
-                  statusFilter === "all" ? "bg-white dark:bg-slate-800 text-purple-600 shadow-sm" : "text-ui-fg-subtle"
+                  statusFilter === "all" ? "bg-white dark:bg-slate-800 text-brand-primary shadow-sm" : "text-ui-fg-subtle"
                 }`}
               >
                 All
@@ -1050,12 +1050,12 @@ export function OccasionsPanel() {
 
         {loading ? (
           <div className="text-center py-12 text-ui-fg-subtle flex flex-col items-center gap-2">
-            <RefreshCw className="w-6 h-6 animate-spin text-purple-600" />
+            <RefreshCw className="w-6 h-6 animate-spin text-brand-primary" />
             <Text className="text-xs">Loading occasion taxonomy...</Text>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 text-ui-fg-subtle">
-            <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-40 text-purple-500" />
+            <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-40 text-brand-primary" />
             <Text className="text-sm">No occasions match search criteria.</Text>
           </div>
         ) : (
@@ -1072,7 +1072,7 @@ export function OccasionsPanel() {
                   className={`rounded-2xl border transition-all overflow-hidden flex flex-col justify-between ${
                     isArchived
                       ? "border-ui-border-base bg-ui-bg-subtle/40 opacity-70"
-                      : "border-ui-border-base bg-white dark:bg-slate-900 hover:border-purple-300 hover:shadow-md"
+                      : "border-ui-border-base bg-white dark:bg-slate-900 hover:border-brand-primary/30 hover:shadow-md"
                   }`}
                 >
                   {/* Card Cover Header with distinct Image */}
@@ -1091,7 +1091,7 @@ export function OccasionsPanel() {
                         {occ.icon || "🎉"}
                       </span>
                       {occ.featured && (
-                        <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                        <span className="bg-brand-gold text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
                           <Star className="w-2.5 h-2.5 fill-white" /> Featured
                         </span>
                       )}
@@ -1107,7 +1107,7 @@ export function OccasionsPanel() {
                       <Text className="font-extrabold text-sm leading-tight drop-shadow truncate">
                         {occ.name}
                       </Text>
-                      <Text className="text-[10px] text-purple-200 font-mono">/occasions/{occ.slug}</Text>
+                      <Text className="text-[10px] text-brand-primary/30 font-mono">/occasions/{occ.slug}</Text>
                     </div>
                   </div>
 
@@ -1132,7 +1132,7 @@ export function OccasionsPanel() {
                           size="small"
                           variant="transparent"
                           onClick={() => handleOpenEdit(occ)}
-                          className="text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950 p-1.5 h-7"
+                          className="text-brand-primary hover:bg-brand-light dark:hover:bg-brand-navy p-1.5 h-7"
                           title="Edit Occasion"
                         >
                           <Edit3 className="w-3.5 h-3.5" />

@@ -352,7 +352,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
 
         {loading ? (
           <div className="flex-1 flex flex-col items-center justify-center p-12 text-slate-400 space-y-3">
-            <RefreshCw className="w-8 h-8 animate-spin text-purple-600" />
+            <RefreshCw className="w-8 h-8 animate-spin text-brand-primary" />
             <Text className="text-sm">Loading full enterprise order details from database...</Text>
           </div>
         ) : error || !order ? (
@@ -364,10 +364,10 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
         ) : (
           <div className="flex-1 overflow-y-auto p-6 space-y-6 text-slate-800 dark:text-slate-200">
             {/* SECTION 1: ORDER SUMMARY & INTERACTIVE LIFECYCLE TIMELINE STEPPER */}
-            <div className="p-5 border rounded-2xl bg-gradient-to-r from-purple-50/50 to-blue-50/50 dark:from-purple-950/20 dark:to-blue-950/20 space-y-4">
+            <div className="p-5 border rounded-2xl bg-gradient-to-r from-brand-light/50 to-blue-50/50 dark:from-brand-navy/20 dark:to-blue-950/20 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
                 <div>
-                  <span className="text-[10px] font-extrabold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">SECTION 1 &bull; ORDER LIFECYCLE STATUS</span>
+                  <span className="text-[10px] font-extrabold text-brand-primary dark:text-brand-primary uppercase tracking-wider block">SECTION 1 &bull; ORDER LIFECYCLE STATUS</span>
                   <div className="flex flex-wrap items-center gap-2 mt-1">
                     <Heading level="h3" className="text-lg font-black">{order.order_number}</Heading>
                     <Badge color={order.invoice_number && order.invoice_number !== "PENDING_INVOICE" ? "purple" : "grey"} className="text-xs font-mono font-bold px-2 py-0.5" id="drawer-order-invoice-badge">
@@ -380,7 +380,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                         variant="primary"
                         onClick={handleGenerateInvoice}
                         isLoading={actionLoading}
-                        className="text-xs font-extrabold bg-purple-600 hover:bg-purple-700 text-white"
+                        className="text-xs font-extrabold bg-brand-primary hover:bg-brand-navy text-white"
                       >
                         <Zap className="w-3.5 h-3.5 mr-1" /> Generate Tax Invoice
                       </Button>
@@ -431,11 +431,11 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                         onClick={() => handleStatusUpdate(st.key)}
                         className={`p-2 rounded-xl border text-[11px] font-bold transition-all flex flex-col items-center gap-1 ${
                           isCurrent
-                            ? "bg-purple-600 text-white border-purple-600 ring-2 ring-purple-300 shadow-md"
-                            : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-purple-400"
+                            ? "bg-brand-primary text-white border-brand-primary ring-2 ring-brand-primary/30 shadow-md"
+                            : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-brand-primary"
                         }`}
                       >
-                        <span className="w-5 h-5 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-[10px] font-extrabold">
+                        <span className="w-5 h-5 rounded-full bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary/30 flex items-center justify-center text-[10px] font-extrabold">
                           {idx + 1}
                         </span>
                         <span className="line-clamp-1">{st.label}</span>
@@ -448,11 +448,11 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
 
             {/* SECTION 12 (PRIMARY ACTIONS BAR): QUICK OPERATIONAL CONTROLS */}
             <div className="p-4 border rounded-2xl bg-slate-900 text-white flex flex-wrap items-center justify-between gap-3 shadow-lg">
-              <span className="text-xs font-extrabold uppercase tracking-wider flex items-center gap-1 text-purple-300">
-                <ShieldCheck className="w-4 h-4 text-purple-400" /> Operational Controls:
+              <span className="text-xs font-extrabold uppercase tracking-wider flex items-center gap-1 text-brand-primary/30">
+                <ShieldCheck className="w-4 h-4 text-brand-primary" /> Operational Controls:
               </span>
               <div className="flex flex-wrap items-center gap-2">
-                <Button size="small" onClick={() => setShowKotModal(true)} className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold">
+                <Button size="small" onClick={() => setShowKotModal(true)} className="bg-brand-gold hover:bg-brand-gold-dark text-white text-xs font-bold">
                   <Printer className="w-3.5 h-3.5 mr-1" /> Print KOT
                 </Button>
                 {order.invoice_number && order.invoice_number !== "PENDING_INVOICE" && (
@@ -477,8 +477,8 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
 
             {/* Inline Action Forms */}
             {showBranchAssign && (
-              <div className="p-4 border rounded-xl bg-purple-50 dark:bg-purple-950/40 space-y-3 text-xs">
-                <Text className="font-bold text-purple-900 dark:text-purple-200">Reassign Kitchen Branch Hub &amp; Baking Station:</Text>
+              <div className="p-4 border rounded-xl bg-brand-light dark:bg-brand-navy/40 space-y-3 text-xs">
+                <Text className="font-bold text-brand-navy dark:text-brand-primary/30">Reassign Kitchen Branch Hub &amp; Baking Station:</Text>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-h-56 overflow-y-auto">
                   {(branchesList.length > 0 ? branchesList : [
                     { id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", name: "Indiranagar Flagship", code: "HUB-BLR-01", queue: 4, capacity: "78% Load", bakers: 6, delay: "0 mins" },
@@ -495,11 +495,11 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                         key={bId}
                         onClick={() => setSelectedBranch(bId)}
                         className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                          selectedBranch === bId ? "bg-purple-600 text-white border-purple-600 shadow-md" : "bg-white dark:bg-slate-800 border-slate-200 hover:border-purple-400"
+                          selectedBranch === bId ? "bg-brand-primary text-white border-brand-primary shadow-md" : "bg-white dark:bg-slate-800 border-slate-200 hover:border-brand-primary"
                         }`}
                       >
                         <p className="font-bold text-xs">{bName}</p>
-                        <p className={`text-[10px] ${selectedBranch === bId ? "text-purple-100" : "text-slate-500"}`}>{bCode} {bCity ? `• ${bCity}` : ""}</p>
+                        <p className={`text-[10px] ${selectedBranch === bId ? "text-brand-light" : "text-slate-500"}`}>{bCode} {bCity ? `• ${bCity}` : ""}</p>
                         <div className="mt-1.5 flex items-center justify-between text-[10px]">
                           <span className="font-mono">{bCapacity}</span>
                           <span>{b.status || "Active"}</span>
@@ -510,7 +510,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                 </div>
                 <div className="flex justify-end gap-2 pt-1">
                   <Button size="small" variant="secondary" onClick={() => setShowBranchAssign(false)}>Cancel</Button>
-                  <Button size="small" onClick={handleAssignBranch} isLoading={actionLoading} className="bg-purple-600 text-white font-bold">
+                  <Button size="small" onClick={handleAssignBranch} isLoading={actionLoading} className="bg-brand-primary text-white font-bold">
                     Reassign Selected Branch
                   </Button>
                 </div>
@@ -592,15 +592,15 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
             )}
 
             {showReschedule && (
-              <div className="p-4 border rounded-xl bg-amber-50 dark:bg-amber-950/40 space-y-3 text-xs">
-                <Text className="font-bold text-amber-900 dark:text-amber-200">Delivery Slot Capacity Scheduler:</Text>
+              <div className="p-4 border rounded-xl bg-brand-gold-light dark:bg-brand-gold-dark/40 space-y-3 text-xs">
+                <Text className="font-bold text-brand-gold-dark dark:text-brand-gold/40">Delivery Slot Capacity Scheduler:</Text>
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-amber-800 dark:text-amber-300 block">Select Target Date:</label>
+                    <label className="text-[10px] font-bold text-brand-gold-dark dark:text-brand-gold/40 block">Select Target Date:</label>
                     <Input type="date" value={newDeliveryDate} onChange={(e) => setNewDeliveryDate(e.target.value)} className="w-44 text-xs bg-white dark:bg-slate-800" />
                   </div>
                   <div className="space-y-1 flex-1">
-                    <label className="text-[10px] font-bold text-amber-800 dark:text-amber-300 block">Select Available Time Slot:</label>
+                    <label className="text-[10px] font-bold text-brand-gold-dark dark:text-brand-gold/40 block">Select Available Time Slot:</label>
                     <select value={newDeliverySlot} onChange={(e) => setNewDeliverySlot(e.target.value)} className="p-2 border rounded-lg bg-white dark:bg-slate-800 text-xs w-full font-bold">
                       <option value="09:00 AM - 12:00 PM (Morning Slot)">09:00 AM - 12:00 PM (Morning Slot) - 4/15 Orders</option>
                       <option value="02:00 PM - 05:00 PM (Afternoon Slot)">02:00 PM - 05:00 PM (Afternoon Slot) - 8/15 Orders</option>
@@ -609,7 +609,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                     </select>
                   </div>
                   <div className="pt-4">
-                    <Button size="small" onClick={handleReschedule} isLoading={actionLoading} className="bg-amber-600 hover:bg-amber-700 text-white font-bold">
+                    <Button size="small" onClick={handleReschedule} isLoading={actionLoading} className="bg-brand-gold hover:bg-brand-gold-dark text-white font-bold">
                       Confirm Schedule
                     </Button>
                   </div>
@@ -631,7 +631,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                 </div>
                 <div>
                   <p className="font-extrabold text-base text-slate-900 dark:text-white">{order.customer?.name || order.customer_name}</p>
-                  <p className="text-xs text-purple-600 font-mono font-bold mt-0.5">
+                  <p className="text-xs text-brand-primary font-mono font-bold mt-0.5">
                     Customer No: {order.customer?.customer_number || order.customer_number || "CTH-CUST-GUEST"}
                   </p>
                   <p className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5 mt-1">
@@ -696,7 +696,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                   )}
                 </div>
                 {(order.delivery_instructions || order.customer?.delivery_instructions) && (
-                  <div className="p-2 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 rounded-lg text-xs text-amber-800 dark:text-amber-200">
+                  <div className="p-2 bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 rounded-lg text-xs text-brand-gold-dark dark:text-brand-gold/40">
                     <span className="font-bold block text-[10px]">Instructions:</span> {order.delivery_instructions || order.customer?.delivery_instructions}
                   </div>
                 )}
@@ -705,11 +705,11 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
               {/* SECTION 3: BRANCH INFORMATION */}
               <div className="p-4 border rounded-2xl space-y-3 bg-white dark:bg-slate-800/50">
                 <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                  <Store className="w-3.5 h-3.5 text-purple-600" /> SECTION 3 &bull; ASSIGNED BRANCH &amp; KITCHEN
+                  <Store className="w-3.5 h-3.5 text-brand-primary" /> SECTION 3 &bull; ASSIGNED BRANCH &amp; KITCHEN
                 </span>
                 <div>
                   <p className="font-extrabold text-base text-slate-900 dark:text-white">{order.branch?.name || order.branch_name}</p>
-                  <p className="text-xs text-purple-600 font-mono font-bold mt-0.5">{order.branch?.code || order.branch_code}</p>
+                  <p className="text-xs text-brand-primary font-mono font-bold mt-0.5">{order.branch?.code || order.branch_code}</p>
                 </div>
                 <div className="pt-2 border-t text-xs space-y-1.5">
                   <p><span className="font-bold text-slate-500">Address:</span> {order.branch?.address || "Flagship Kitchen Location"}</p>
@@ -738,7 +738,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                   <div className="flex items-center justify-between">
                     <p className="font-extrabold text-sm text-slate-900 dark:text-white">{order.delivery?.partner_name || "Awaiting rider assignment"}</p>
                     {order.delivery?.partner_number && (
-                      <span className="text-xs font-mono font-bold text-purple-600">{order.delivery.partner_number}</span>
+                      <span className="text-xs font-mono font-bold text-brand-primary">{order.delivery.partner_number}</span>
                     )}
                   </div>
                   <p className="text-xs text-slate-500">{order.delivery?.partner_phone || "Not assigned"}</p>
@@ -783,11 +783,11 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
               {/* SECTION 7: KITCHEN KOT DETAILS */}
               <div className="p-4 border rounded-2xl space-y-3 bg-white dark:bg-slate-800/50">
                 <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                  <ChefHat className="w-3.5 h-3.5 text-amber-600" /> SECTION 7 &bull; KITCHEN TICKET (KOT) &amp; PRODUCTION
+                  <ChefHat className="w-3.5 h-3.5 text-brand-gold" /> SECTION 7 &bull; KITCHEN TICKET (KOT) &amp; PRODUCTION
                 </span>
                 <div>
                   <p className="font-extrabold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                    KOT #: <span className="font-mono underline text-amber-600">{order.kitchen?.kot_number || "KOT not created"}</span>
+                    KOT #: <span className="font-mono underline text-brand-gold">{order.kitchen?.kot_number || "KOT not created"}</span>
                   </p>
                   <p className="text-xs text-slate-500">{order.kitchen?.chef_assigned || "Not assigned"}</p>
                 </div>
@@ -824,7 +824,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                         </p>
 
                         {item.cake_message && (
-                          <div className="mt-1 p-1.5 bg-amber-100 dark:bg-amber-950/60 rounded border border-amber-200 text-amber-900 dark:text-amber-200 text-xs font-semibold">
+                          <div className="mt-1 p-1.5 bg-brand-gold-light dark:bg-brand-gold-dark/60 rounded border border-brand-gold/40 text-brand-gold-dark dark:text-brand-gold/40 text-xs font-semibold">
                             Piping Text: &ldquo;{item.cake_message}&rdquo;
                           </div>
                         )}
@@ -892,9 +892,9 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
               {/* SECTION 9: TIMELINE */}
               <div className="p-4 border rounded-2xl space-y-3 bg-white dark:bg-slate-800/50">
                 <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                  <History className="w-3.5 h-3.5 text-purple-600" /> SECTION 9 &bull; AUDIT LOG TIMELINE
+                  <History className="w-3.5 h-3.5 text-brand-primary" /> SECTION 9 &bull; AUDIT LOG TIMELINE
                 </span>
-                <div className="space-y-2 border-l-2 border-purple-200 dark:border-purple-900 pl-3 text-xs">
+                <div className="space-y-2 border-l-2 border-brand-primary/30 dark:border-brand-navy pl-3 text-xs">
                   {(order.timeline || []).map((tl: any, i: number) => (
                     <div key={i} className="relative space-y-0.5">
                       <p className="font-bold text-slate-800 dark:text-slate-200">{tl.event}</p>
@@ -918,7 +918,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                       onChange={(e) => setInternalNoteInput(e.target.value)}
                       className="text-xs flex-1 h-8"
                     />
-                    <Button size="small" onClick={handleAddInternalNote} className="bg-purple-600 text-white h-8 text-xs">
+                    <Button size="small" onClick={handleAddInternalNote} className="bg-brand-primary text-white h-8 text-xs">
                       <Send className="w-3 h-3" />
                     </Button>
                   </div>
@@ -926,7 +926,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                   <div className="space-y-1.5 text-xs max-h-36 overflow-y-auto">
                     {internalNotesList.map((note, idx) => (
                       <div key={idx} className="p-2 bg-slate-50 dark:bg-slate-800 rounded border text-slate-700 dark:text-slate-300">
-                        <span className="font-bold text-[10px] text-purple-600 block">Admin Staff Note:</span>
+                        <span className="font-bold text-[10px] text-brand-primary block">Admin Staff Note:</span>
                         <p>{note}</p>
                       </div>
                     ))}
@@ -947,7 +947,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                   </Button>
                 )}
                 <Button size="small" variant="secondary" onClick={() => setShowKotModal(true)} className="text-xs">
-                  <ChefHat className="w-3.5 h-3.5 mr-1 text-amber-600" /> Kitchen KOT Ticket
+                  <ChefHat className="w-3.5 h-3.5 mr-1 text-brand-gold" /> Kitchen KOT Ticket
                 </Button>
                 <Button size="small" variant="secondary" onClick={() => setShowCancelModal(true)} className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50 font-bold">
                   ❌ Cancel Order

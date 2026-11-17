@@ -184,10 +184,10 @@ export function OccasionSelector({
     <div className="space-y-1.5" ref={containerRef} onKeyDown={handleKeyDown}>
       <div className="flex items-center justify-between">
         <Label className="font-semibold text-xs text-ui-fg-base flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-purple-600" /> {label}
+          <Sparkles className="w-3.5 h-3.5 text-brand-primary" /> {label}
         </Label>
         {selectedIds.length > 0 && (
-          <span className="text-[11px] text-purple-600 font-bold">
+          <span className="text-[11px] text-brand-primary font-bold">
             {selectedIds.length} Selected
           </span>
         )}
@@ -201,7 +201,7 @@ export function OccasionSelector({
             setTimeout(() => searchInputRef.current?.focus(), 100);
           }
         }}
-        className="min-h-[42px] p-2 bg-ui-bg-field border border-ui-border-base rounded-lg cursor-pointer hover:border-purple-400 focus-within:ring-2 focus-within:ring-purple-200 transition-all flex flex-wrap items-center gap-1.5"
+        className="min-h-[42px] p-2 bg-ui-bg-field border border-ui-border-base rounded-lg cursor-pointer hover:border-brand-primary focus-within:ring-2 focus-within:ring-brand-primary/30 transition-all flex flex-wrap items-center gap-1.5"
       >
         {selectedIds.length === 0 ? (
           <span className="text-xs text-ui-fg-muted px-1.5">
@@ -221,7 +221,7 @@ export function OccasionSelector({
                 <button
                   type="button"
                   onClick={(e) => removeOccasion(id, e)}
-                  className="p-0.5 hover:bg-purple-200 dark:hover:bg-purple-900 rounded-full text-purple-700 transition"
+                  className="p-0.5 hover:bg-brand-primary/30 dark:hover:bg-brand-navy rounded-full text-brand-navy transition"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -231,7 +231,7 @@ export function OccasionSelector({
         )}
 
         <div className="ml-auto flex items-center gap-1">
-          <span className="text-[11px] text-purple-600 font-bold flex items-center gap-0.5 hover:underline px-1">
+          <span className="text-[11px] text-brand-primary font-bold flex items-center gap-0.5 hover:underline px-1">
             <Plus className="w-3 h-3" /> Add
           </span>
           {isOpen ? <ChevronUp className="w-4 h-4 text-ui-fg-subtle" /> : <ChevronDown className="w-4 h-4 text-ui-fg-subtle" />}
@@ -255,7 +255,7 @@ export function OccasionSelector({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search occasions (e.g., Birthday, Wedding, Diwali)..."
-                className="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border border-ui-border-base bg-ui-bg-subtle focus:outline-none focus:ring-1 focus:ring-purple-500"
+                className="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border border-ui-border-base bg-ui-bg-subtle focus:outline-none focus:ring-1 focus:ring-brand-primary"
               />
             </div>
 
@@ -266,7 +266,7 @@ export function OccasionSelector({
                 <button
                   type="button"
                   onClick={handleSelectAll}
-                  className="text-purple-600 hover:underline font-semibold"
+                  className="text-brand-primary hover:underline font-semibold"
                 >
                   Select All
                 </button>
@@ -292,7 +292,7 @@ export function OccasionSelector({
                     size="small"
                     type="button"
                     onClick={handleOpenCreateModal}
-                    className="text-xs bg-purple-600 hover:bg-purple-700 text-white"
+                    className="text-xs bg-brand-primary hover:bg-brand-navy text-white"
                   >
                     <Plus className="w-3 h-3" /> Create &quot;{search}&quot;
                   </Button>
@@ -307,7 +307,7 @@ export function OccasionSelector({
                       onClick={() => toggleSelect(occ.id)}
                       className={`p-2 rounded-lg flex items-center justify-between cursor-pointer transition ${
                         isSelected
-                          ? "bg-purple-50 dark:bg-purple-950/40 text-purple-900 dark:text-purple-200"
+                          ? "bg-brand-light dark:bg-brand-navy/40 text-brand-navy dark:text-brand-primary/30"
                           : isFocused
                           ? "bg-ui-bg-subtle"
                           : "hover:bg-ui-bg-subtle/70"
@@ -326,7 +326,7 @@ export function OccasionSelector({
                       <div
                         className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition ${
                           isSelected
-                            ? "bg-purple-600 border-purple-600 text-white"
+                            ? "bg-brand-primary border-brand-primary text-white"
                             : "border-ui-border-base bg-white dark:bg-slate-800"
                         }`}
                       >
@@ -345,7 +345,7 @@ export function OccasionSelector({
                 variant="transparent"
                 type="button"
                 onClick={handleOpenCreateModal}
-                className="text-xs text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950 flex items-center gap-1"
+                className="text-xs text-brand-primary hover:bg-brand-light dark:hover:bg-brand-navy flex items-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" /> + Create New Occasion
               </Button>
@@ -463,7 +463,7 @@ export function OccasionSelector({
                 <Button
                   type="submit"
                   isLoading={createSubmitting}
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  className="bg-brand-primary hover:bg-brand-navy text-white"
                 >
                   Save & Apply Occasion
                 </Button>

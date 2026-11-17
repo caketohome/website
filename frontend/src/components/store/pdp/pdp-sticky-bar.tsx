@@ -68,7 +68,7 @@ export function PdpStickyBar({
           </div>
 
           <div className="flex flex-col min-w-0">
-            <span className="text-xs font-bold text-[#0F172A] truncate block">
+            <span className="text-xs font-bold text-brand-text truncate block">
               {title}
             </span>
             <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
@@ -76,7 +76,7 @@ export function PdpStickyBar({
                 <span className="font-semibold text-slate-700">{selectedWeightName}</span>
               )}
               <span>•</span>
-              <span className="font-bold text-[#0F172A] text-xs">₹{totalPrice}</span>
+              <span className="font-bold text-brand-text text-xs">₹{totalPrice}</span>
             </div>
           </div>
         </div>
@@ -86,7 +86,7 @@ export function PdpStickyBar({
           type="button"
           onClick={onAddToCart}
           disabled={cartLoading || isOutOfStock}
-          className="shrink-0 py-2.5 px-5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-95 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all disabled:opacity-50"
+          className="shrink-0 py-2.5 px-5 rounded-xl bg-brand-primary hover:bg-brand-secondary active:scale-95 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md transition-all disabled:opacity-50"
         >
           {cartLoading ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />

@@ -30,7 +30,7 @@ function fmt(n: number | null | undefined) {
 
 const STATUS_COLORS: Record<PurchaseStatus, string> = {
   DRAFT:     "bg-gray-100 text-gray-600",
-  SUBMITTED: "bg-yellow-100 text-yellow-700",
+  SUBMITTED: "bg-brand-gold-light text-brand-gold-dark",
   APPROVED:  "bg-green-100 text-green-700",
   POSTED:    "bg-blue-100 text-blue-700",
 };
@@ -229,7 +229,7 @@ export default function PurchasePanel() {
                       <div className="flex gap-2">
                         {p.status === "DRAFT" && (
                           <button onClick={() => handleStatusTransition(p.id, "SUBMITTED")}
-                            className="text-xs text-yellow-700 border border-yellow-300 rounded px-2 py-0.5 hover:bg-yellow-50">Submit</button>
+                            className="text-xs text-brand-gold-dark border border-brand-gold/40 rounded px-2 py-0.5 hover:bg-brand-gold-light">Submit</button>
                         )}
                         {p.status === "SUBMITTED" && (
                           <button onClick={() => handleStatusTransition(p.id, "APPROVED")}
@@ -457,7 +457,7 @@ export default function PurchasePanel() {
           {p.status === "DRAFT" && (
             <>
               <button onClick={() => handleStatusTransition(p.id, "SUBMITTED")}
-                className="bg-yellow-600 text-white text-sm px-4 py-2 rounded hover:bg-yellow-700 transition">
+                className="bg-brand-gold text-white text-sm px-4 py-2 rounded hover:bg-brand-gold-dark transition">
                 Submit for Approval
               </button>
               <button onClick={() => handleDelete(p.id)}

@@ -250,13 +250,13 @@ export const StatesPanel = memo(function StatesPanel() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-[#1D2F5D]/10 dark:bg-[#D4AF37]/10 flex items-center justify-center text-[#1D2F5D] dark:text-[#D4AF37]">
-              <Globe2 className="w-5 h-5 text-[#1D2F5D] dark:text-[#D4AF37]" />
+            <div className="w-10 h-10 rounded-xl bg-brand-navy/10 dark:bg-brand-gold/10 flex items-center justify-center text-brand-navy dark:text-brand-gold">
+              <Globe2 className="w-5 h-5 text-brand-navy dark:text-brand-gold" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[#1D2F5D] dark:text-white flex items-center gap-2">
+              <h2 className="text-xl font-bold text-brand-navy dark:text-white flex items-center gap-2">
                 State & Territory Master Registry
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#1D2F5D]/10 text-[#1D2F5D] dark:bg-[#D4AF37]/20 dark:text-[#D4AF37]">
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-brand-navy/10 text-brand-navy dark:bg-brand-gold/20 dark:text-brand-gold">
                   {states.length} States / UTs
                 </span>
               </h2>
@@ -278,7 +278,7 @@ export const StatesPanel = memo(function StatesPanel() {
           </button>
           <button
             onClick={handleOpenCreate}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#1D2F5D] hover:bg-[#152347] dark:bg-[#D4AF37] dark:hover:bg-[#c49f2f] dark:text-slate-950 rounded-xl shadow-sm transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-brand-navy hover:bg-brand-deep dark:bg-brand-gold dark:hover:bg-[#c49f2f] dark:text-slate-950 rounded-xl shadow-sm transition-all"
           >
             <Plus className="w-4 h-4" />
             Add State / UT
@@ -312,7 +312,7 @@ export const StatesPanel = memo(function StatesPanel() {
               placeholder="Search by state name, 2-letter code (e.g. KA, MH), or GST code..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1D2F5D]/30 dark:focus:ring-[#D4AF37]/30"
+              className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-navy/30 dark:focus:ring-brand-gold/30"
             />
           </div>
 
@@ -324,7 +324,7 @@ export const StatesPanel = memo(function StatesPanel() {
                 onClick={() => setStatusFilter(s)}
                 className={`flex-1 py-1.5 text-[11px] font-bold rounded-lg capitalize transition-all ${
                   statusFilter === s
-                    ? "bg-white dark:bg-slate-900 text-[#1D2F5D] dark:text-[#D4AF37] shadow-xs"
+                    ? "bg-white dark:bg-slate-900 text-brand-navy dark:text-brand-gold shadow-xs"
                     : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
@@ -339,7 +339,7 @@ export const StatesPanel = memo(function StatesPanel() {
       <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         {loading ? (
           <div className="py-16 text-center text-slate-400 text-xs flex flex-col items-center justify-center gap-2">
-            <RotateCw className="w-6 h-6 animate-spin text-[#1D2F5D] dark:text-[#D4AF37]" />
+            <RotateCw className="w-6 h-6 animate-spin text-brand-navy dark:text-brand-gold" />
             Loading registered states from PostgreSQL...
           </div>
         ) : error ? (
@@ -351,7 +351,7 @@ export const StatesPanel = memo(function StatesPanel() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#1D2F5D]/5 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-[#1D2F5D] dark:text-slate-300 font-bold uppercase tracking-wider text-[10px]">
+              <thead className="bg-brand-navy/5 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-brand-navy dark:text-slate-300 font-bold uppercase tracking-wider text-[10px]">
                 <tr>
                   <th className="p-3.5 pl-5">Order</th>
                   <th className="p-3.5">State / UT Name</th>
@@ -376,7 +376,7 @@ export const StatesPanel = memo(function StatesPanel() {
 
                       <td className="p-3.5">
                         <div className="flex items-center gap-2">
-                          <ShieldCheck className="w-4 h-4 text-[#1D2F5D] dark:text-[#D4AF37] shrink-0" />
+                          <ShieldCheck className="w-4 h-4 text-brand-navy dark:text-brand-gold shrink-0" />
                           <div>
                             <div className="font-bold text-slate-900 dark:text-white text-xs">
                               {st.name}
@@ -386,7 +386,7 @@ export const StatesPanel = memo(function StatesPanel() {
                         </div>
                       </td>
 
-                      <td className="p-3.5 font-mono font-bold text-[#1D2F5D] dark:text-[#D4AF37]">
+                      <td className="p-3.5 font-mono font-bold text-brand-navy dark:text-brand-gold">
                         {st.code}
                       </td>
 
@@ -403,12 +403,12 @@ export const StatesPanel = memo(function StatesPanel() {
                           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wider ${
                             isActive
                               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
-                              : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                              : "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold/40 border border-brand-gold/40 dark:border-brand-gold-dark"
                           }`}
                         >
                           <span
                             className={`w-1.5 h-1.5 rounded-full ${
-                              isActive ? "bg-emerald-500" : "bg-amber-500"
+                              isActive ? "bg-emerald-500" : "bg-brand-gold"
                             }`}
                           />
                           {isActive ? "Active" : "Disabled"}
@@ -420,7 +420,7 @@ export const StatesPanel = memo(function StatesPanel() {
                           <button
                             onClick={() => handleOpenEdit(st)}
                             title="Edit State Details"
-                            className="p-1.5 text-slate-600 hover:text-[#1D2F5D] dark:text-slate-300 dark:hover:text-[#D4AF37] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                            className="p-1.5 text-slate-600 hover:text-brand-navy dark:text-slate-300 dark:hover:text-brand-gold hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
@@ -430,7 +430,7 @@ export const StatesPanel = memo(function StatesPanel() {
                             title={isActive ? "Disable State" : "Enable State"}
                             className={`p-1.5 rounded-lg transition-colors ${
                               isActive
-                                ? "text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40"
+                                ? "text-brand-gold hover:bg-brand-gold-light dark:hover:bg-brand-gold-dark/40"
                                 : "text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
                             }`}
                           >
@@ -463,10 +463,10 @@ export const StatesPanel = memo(function StatesPanel() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
-            <div className="p-5 border-b border-slate-200 dark:border-slate-800 bg-[#1D2F5D]/5 dark:bg-slate-800/50 flex items-center justify-between">
+            <div className="p-5 border-b border-slate-200 dark:border-slate-800 bg-brand-navy/5 dark:bg-slate-800/50 flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-sm text-[#1D2F5D] dark:text-white flex items-center gap-2">
-                  <Globe2 className="w-4 h-4 text-[#1D2F5D] dark:text-[#D4AF37]" />
+                <h3 className="font-bold text-sm text-brand-navy dark:text-white flex items-center gap-2">
+                  <Globe2 className="w-4 h-4 text-brand-navy dark:text-brand-gold" />
                   {editingState ? `Edit State: ${editingState.name}` : "Register New State / UT"}
                 </h3>
                 <p className="text-[11px] text-slate-500 mt-0.5">
@@ -492,7 +492,7 @@ export const StatesPanel = memo(function StatesPanel() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Karnataka, Kerala"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-[#1D2F5D]/30"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-navy/30"
                     required
                   />
                 </div>
@@ -507,7 +507,7 @@ export const StatesPanel = memo(function StatesPanel() {
                     maxLength={2}
                     onChange={(e) => setCode(e.target.value.toUpperCase())}
                     placeholder="e.g. KA, KL, TN, MH"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-[#1D2F5D]/30"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-brand-navy/30"
                     required
                   />
                 </div>
@@ -524,7 +524,7 @@ export const StatesPanel = memo(function StatesPanel() {
                     maxLength={2}
                     onChange={(e) => setGstStateCode(e.target.value.replace(/\D/g, ""))}
                     placeholder="e.g. 29 for KA, 32 for KL"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-[#1D2F5D]/30"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-brand-navy/30"
                   />
                 </div>
 
@@ -537,7 +537,7 @@ export const StatesPanel = memo(function StatesPanel() {
                     value={displayOrder}
                     min={1}
                     onChange={(e) => setDisplayOrder(e.target.value)}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-[#1D2F5D]/30"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-navy/30"
                   />
                 </div>
               </div>
@@ -553,7 +553,7 @@ export const StatesPanel = memo(function StatesPanel() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 text-xs font-bold text-white bg-[#1D2F5D] hover:bg-[#152347] dark:bg-[#D4AF37] dark:hover:bg-[#c49f2f] dark:text-slate-950 rounded-xl shadow-xs disabled:opacity-50"
+                  className="px-4 py-2 text-xs font-bold text-white bg-brand-navy hover:bg-brand-deep dark:bg-brand-gold dark:hover:bg-[#c49f2f] dark:text-slate-950 rounded-xl shadow-xs disabled:opacity-50"
                 >
                   {submitting ? "Saving..." : editingState ? "Save Changes" : "Register State"}
                 </button>
@@ -583,15 +583,15 @@ export const StatesPanel = memo(function StatesPanel() {
             <div className="p-5 space-y-4 text-xs">
               {depLoading ? (
                 <div className="py-8 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
-                  <RotateCw className="w-5 h-5 animate-spin text-[#1D2F5D] dark:text-[#D4AF37]" />
+                  <RotateCw className="w-5 h-5 animate-spin text-brand-navy dark:text-brand-gold" />
                   Checking child cities and registered branches in this state...
                 </div>
               ) : deps ? (
                 <div className="space-y-4">
                   {!deps.canDelete ? (
-                    <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 space-y-2">
+                    <div className="p-4 rounded-xl bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 dark:border-brand-gold-dark text-brand-gold-dark dark:text-brand-gold/40 space-y-2">
                       <div className="flex items-center gap-2 font-bold">
-                        <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                        <AlertTriangle className="w-4 h-4 text-brand-gold shrink-0" />
                         Deletion Blocked: Active Cities & Hubs Connected
                       </div>
                       <p className="text-[11px] leading-relaxed">
@@ -612,7 +612,7 @@ export const StatesPanel = memo(function StatesPanel() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 text-center">
-                      <MapPin className="w-4 h-4 mx-auto text-[#1D2F5D] dark:text-[#D4AF37] mb-1" />
+                      <MapPin className="w-4 h-4 mx-auto text-brand-navy dark:text-brand-gold mb-1" />
                       <div className="text-lg font-extrabold text-slate-900 dark:text-white">
                         {deps.citiesCount}
                       </div>
@@ -620,7 +620,7 @@ export const StatesPanel = memo(function StatesPanel() {
                     </div>
 
                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 text-center">
-                      <Store className="w-4 h-4 mx-auto text-[#1D2F5D] dark:text-[#D4AF37] mb-1" />
+                      <Store className="w-4 h-4 mx-auto text-brand-navy dark:text-brand-gold mb-1" />
                       <div className="text-lg font-extrabold text-slate-900 dark:text-white">
                         {deps.branchesCount}
                       </div>
@@ -629,8 +629,8 @@ export const StatesPanel = memo(function StatesPanel() {
                   </div>
 
                   {!deps.canDelete && (
-                    <div className="p-3.5 rounded-xl bg-[#1D2F5D]/5 dark:bg-[#D4AF37]/5 border border-[#1D2F5D]/15 dark:border-[#D4AF37]/15">
-                      <div className="font-bold text-[#1D2F5D] dark:text-[#D4AF37] text-xs">
+                    <div className="p-3.5 rounded-xl bg-brand-navy/5 dark:bg-brand-gold/5 border border-brand-navy/15 dark:border-brand-gold/15">
+                      <div className="font-bold text-brand-navy dark:text-brand-gold text-xs">
                         Recommended Action: Disable (Archive) State
                       </div>
                       <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
@@ -656,7 +656,7 @@ export const StatesPanel = memo(function StatesPanel() {
                       type="button"
                       disabled={actionLoading}
                       onClick={handleArchiveFromModal}
-                      className="px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-xs flex items-center gap-1.5"
+                      className="px-4 py-2 text-xs font-bold text-white bg-brand-gold hover:bg-brand-gold-dark rounded-xl shadow-xs flex items-center gap-1.5"
                     >
                       <Archive className="w-3.5 h-3.5" />
                       {actionLoading ? "Archiving..." : "Disable State (Safe Archive)"}

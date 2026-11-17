@@ -240,13 +240,13 @@ export function VariantsManagementPanel() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <Heading level="h2" className="text-xl font-bold flex items-center gap-2">
-            <Sliders className="w-5 h-5 text-purple-600" /> Database-Driven Flavor & Shape Masters
+            <Sliders className="w-5 h-5 text-brand-primary" /> Database-Driven Flavor & Shape Masters
           </Heading>
           <Text className="text-ui-fg-subtle text-sm">
             Configure dynamic bakery options, extra pricing rules, prep times, and availability matrices directly stored in the database.
           </Text>
         </div>
-        <Button size="small" onClick={handleOpenCreateModal} className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white">
+        <Button size="small" onClick={handleOpenCreateModal} className="flex items-center gap-1.5 bg-brand-primary hover:bg-brand-navy text-white">
           <Plus className="w-4 h-4" /> Add Master {activeType === "flavour" ? "Flavor" : "Shape"}
         </Button>
       </div>
@@ -254,13 +254,13 @@ export function VariantsManagementPanel() {
       <div className="flex border-b border-ui-border-base px-2 gap-2 bg-ui-bg-subtle overflow-x-auto text-xs font-medium rounded-lg p-1">
         <button
           onClick={() => setActiveType("flavour")}
-          className={`py-2 px-4 rounded flex items-center gap-1.5 ${activeType === "flavour" ? "bg-purple-600 text-white font-semibold" : "text-ui-fg-subtle hover:text-ui-fg-base"}`}
+          className={`py-2 px-4 rounded flex items-center gap-1.5 ${activeType === "flavour" ? "bg-brand-primary text-white font-semibold" : "text-ui-fg-subtle hover:text-ui-fg-base"}`}
         >
           <Sparkles className="w-4 h-4" /> Flavors ({flavors.length})
         </button>
         <button
           onClick={() => setActiveType("shape")}
-          className={`py-2 px-4 rounded flex items-center gap-1.5 ${activeType === "shape" ? "bg-purple-600 text-white font-semibold" : "text-ui-fg-subtle hover:text-ui-fg-base"}`}
+          className={`py-2 px-4 rounded flex items-center gap-1.5 ${activeType === "shape" ? "bg-brand-primary text-white font-semibold" : "text-ui-fg-subtle hover:text-ui-fg-base"}`}
         >
           <Layers className="w-4 h-4" /> Shapes ({shapes.length})
         </button>
@@ -288,7 +288,7 @@ export function VariantsManagementPanel() {
             const isFlv = activeType === "flavour";
             const price = isFlv ? (item.extra_price || 0) : (item.additional_price || 0);
             return (
-              <Container key={item.id} className="p-4 border rounded-xl flex flex-col justify-between gap-3 shadow-sm hover:border-purple-300 transition-colors">
+              <Container key={item.id} className="p-4 border rounded-xl flex flex-col justify-between gap-3 shadow-sm hover:border-brand-primary/30 transition-colors">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">
                     {isFlv && item.color && (
@@ -299,7 +299,7 @@ export function VariantsManagementPanel() {
                         {item.display_name || item.name}
                       </Heading>
                       {item.internal_code && (
-                        <Text className="text-[10px] font-mono text-purple-600">{item.internal_code}</Text>
+                        <Text className="text-[10px] font-mono text-brand-primary">{item.internal_code}</Text>
                       )}
                     </div>
                   </div>
@@ -330,7 +330,7 @@ export function VariantsManagementPanel() {
                   <Button size="small" variant="secondary" onClick={() => handleOpenEditModal(item)} className="text-xs">
                     <Edit3 className="w-3.5 h-3.5 mr-1" /> Edit
                   </Button>
-                  <Button size="small" variant="secondary" onClick={() => handleDuplicate(item)} className="text-xs text-purple-600 hover:text-purple-700" title="Duplicate master entry">
+                  <Button size="small" variant="secondary" onClick={() => handleDuplicate(item)} className="text-xs text-brand-primary hover:text-brand-navy" title="Duplicate master entry">
                     <Copy className="w-3.5 h-3.5 mr-1" /> Duplicate
                   </Button>
                   <Button size="small" variant="transparent" onClick={() => handleDelete(item)} className="text-red-500 hover:text-red-700">
@@ -346,9 +346,9 @@ export function VariantsManagementPanel() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-4 border-b flex items-center justify-between bg-purple-50 dark:bg-purple-950/40">
+            <div className="p-4 border-b flex items-center justify-between bg-brand-light dark:bg-brand-navy/40">
               <Heading level="h3" className="text-base font-bold flex items-center gap-2">
-                <Sliders className="w-5 h-5 text-purple-600" />
+                <Sliders className="w-5 h-5 text-brand-primary" />
                 {editingItem ? `Edit ${activeType === "flavour" ? "Flavor" : "Shape"}` : `Create ${activeType === "flavour" ? "Flavor" : "Shape"}`}
               </Heading>
               <Button size="small" variant="transparent" onClick={() => setShowModal(false)}>Close</Button>
@@ -471,7 +471,7 @@ export function VariantsManagementPanel() {
 
               <div className="pt-4 border-t flex justify-end gap-2">
                 <Button type="button" variant="transparent" onClick={() => setShowModal(false)}>Cancel</Button>
-                <Button type="submit" isLoading={submitting} className="bg-purple-600 hover:bg-purple-700 text-white font-bold">
+                <Button type="submit" isLoading={submitting} className="bg-brand-primary hover:bg-brand-navy text-white font-bold">
                   Save {activeType === "flavour" ? "Flavor" : "Shape"} Master
                 </Button>
               </div>

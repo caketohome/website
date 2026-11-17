@@ -45,10 +45,10 @@ type Tab = "list" | "create" | "categories";
 const STATUS_COLORS: Record<ExpenseStatus, string> = {
   DRAFT:            "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
   SUBMITTED:        "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300",
-  APPROVED:         "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
+  APPROVED:         "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold/40",
   REJECTED:         "bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300",
-  AWAITING_PAYMENT: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300",
-  PAID:             "bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300",
+  AWAITING_PAYMENT: "bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary/30",
+  PAID:             "bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary/30",
   POSTED:           "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300",
   REVERSED:         "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300",
   CANCELLED:        "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
@@ -372,7 +372,7 @@ export default function ExpensePanel() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-brand-gold/10 text-brand-gold dark:text-brand-gold flex items-center justify-center font-bold">
               <Receipt className="w-5 h-5" />
             </div>
             <div>
@@ -393,7 +393,7 @@ export default function ExpensePanel() {
               onClick={() => { setTab(t); setSelected(null); }}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
                 tab === t
-                  ? "bg-amber-600 text-white shadow-md shadow-amber-600/20"
+                  ? "bg-brand-gold text-white shadow-md shadow-brand-gold/20"
                   : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
               }`}
             >
@@ -428,7 +428,7 @@ export default function ExpensePanel() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <input
-              className="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs flex-1 bg-transparent text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-amber-500"
+              className="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs flex-1 bg-transparent text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-gold"
               placeholder="Search by description, reference, or supplier..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -497,7 +497,7 @@ export default function ExpensePanel() {
                       <td className="py-3 px-4 text-right font-mono text-slate-700 dark:text-slate-300">
                         {fmtCurrency(e.taxable_value)}
                       </td>
-                      <td className="py-3 px-4 text-right font-mono font-bold text-amber-600 dark:text-amber-400">
+                      <td className="py-3 px-4 text-right font-mono font-bold text-brand-gold dark:text-brand-gold">
                         {fmtCurrency(e.total)}
                       </td>
                       <td className="py-3 px-4 text-center">
@@ -522,7 +522,7 @@ export default function ExpensePanel() {
         <div className="space-y-6">
           <button
             onClick={() => setSelected(null)}
-            className="text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1.5 transition"
+            className="text-xs font-bold text-brand-gold hover:text-brand-gold-dark flex items-center gap-1.5 transition"
           >
             ← Back to expense register
           </button>
@@ -578,7 +578,7 @@ export default function ExpensePanel() {
                     <button
                       onClick={() => handleStatusChange(selected, "APPROVED")}
                       disabled={loading}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white transition shadow-sm"
+                      className="px-4 py-2 rounded-xl text-xs font-bold bg-brand-gold hover:bg-brand-gold-dark text-white transition shadow-sm"
                     >
                       Approve Claim
                     </button>
@@ -638,9 +638,9 @@ export default function ExpensePanel() {
                 <span className="text-slate-400 block font-semibold text-[11px]">IGST</span>
                 <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{fmtCurrency(selected.igst)}</span>
               </div>
-              <div className="bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 p-3 rounded-2xl">
-                <span className="text-amber-800 dark:text-amber-300 block font-bold text-[11px]">Total Claim</span>
-                <span className="font-mono font-black text-amber-600 dark:text-amber-400 text-sm">{fmtCurrency(selected.total)}</span>
+              <div className="bg-brand-gold-light/80 dark:bg-brand-gold-dark/30 border border-brand-gold/40 dark:border-brand-gold-dark/60 p-3 rounded-2xl">
+                <span className="text-brand-gold-dark dark:text-brand-gold/40 block font-bold text-[11px]">Total Claim</span>
+                <span className="font-mono font-black text-brand-gold dark:text-brand-gold text-sm">{fmtCurrency(selected.total)}</span>
               </div>
             </div>
 
@@ -671,8 +671,8 @@ export default function ExpensePanel() {
                   <span>Indian GST &amp; Tax Compliance</span>
                 </h4>
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div><span className="text-slate-400">ITC Eligibility:</span> <strong className={selected.itc_eligibility === "ITC_ELIGIBLE" ? "text-emerald-600" : "text-amber-600"}>{selected.itc_eligibility}</strong></div>
-                  <div><span className="text-slate-400">RCM Applicable:</span> <strong className={selected.rcm_applicable ? "text-purple-600" : "text-slate-600"}>{selected.rcm_applicable ? "YES" : "NO"}</strong></div>
+                  <div><span className="text-slate-400">ITC Eligibility:</span> <strong className={selected.itc_eligibility === "ITC_ELIGIBLE" ? "text-emerald-600" : "text-brand-gold"}>{selected.itc_eligibility}</strong></div>
+                  <div><span className="text-slate-400">RCM Applicable:</span> <strong className={selected.rcm_applicable ? "text-brand-primary" : "text-slate-600"}>{selected.rcm_applicable ? "YES" : "NO"}</strong></div>
                   <div><span className="text-slate-400">HSN / SAC Code:</span> <span className="font-mono">{selected.hsn_sac_code || "—"}</span></div>
                   <div><span className="text-slate-400">Vendor GSTIN:</span> <span className="font-mono">{selected.vendor_gstin || "—"}</span></div>
                 </div>
@@ -948,7 +948,7 @@ export default function ExpensePanel() {
                     id="rcm_cb"
                     checked={!!form.rcm_applicable}
                     onChange={(e) => handleFormChange("rcm_applicable", e.target.checked)}
-                    className="rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                    className="rounded border-slate-300 text-brand-gold focus:ring-brand-gold"
                   />
                   <label htmlFor="rcm_cb" className="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
                     RCM Applicable
@@ -1004,10 +1004,10 @@ export default function ExpensePanel() {
                 />
               </div>
               <div>
-                <label className="text-xs font-black text-amber-700 dark:text-amber-300 block mb-1">Total (₹)</label>
+                <label className="text-xs font-black text-brand-gold-dark dark:text-brand-gold/40 block mb-1">Total (₹)</label>
                 <input
                   type="number" readOnly
-                  className="w-full border border-amber-200 dark:border-amber-800 rounded-xl px-3 py-1.5 text-xs bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-black font-mono"
+                  className="w-full border border-brand-gold/40 dark:border-brand-gold-dark rounded-xl px-3 py-1.5 text-xs bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold/40 font-black font-mono"
                   value={String(form.total ?? 0)}
                 />
               </div>
@@ -1061,7 +1061,7 @@ export default function ExpensePanel() {
             <button
               onClick={handleCreate}
               disabled={loading}
-              className="px-6 py-2.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md shadow-amber-600/20 transition"
+              className="px-6 py-2.5 bg-brand-gold hover:bg-brand-gold-dark disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-gold/20 transition"
             >
               {loading ? "Recording..." : "Create Expense Draft"}
             </button>
@@ -1096,7 +1096,7 @@ export default function ExpensePanel() {
               />
               <button
                 onClick={handleCreateCategory}
-                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition"
+                className="px-4 py-2 bg-brand-gold hover:bg-brand-gold-dark text-white rounded-xl text-xs font-bold transition"
               >
                 Add
               </button>
@@ -1136,7 +1136,7 @@ export default function ExpensePanel() {
                     <td className="py-3 px-4 text-right">
                       <button
                         onClick={() => handleToggleCategory(c)}
-                        className="text-xs font-bold text-amber-600 hover:text-amber-700"
+                        className="text-xs font-bold text-brand-gold hover:text-brand-gold-dark"
                       >
                         {c.is_active ? "Deactivate" : "Activate"}
                       </button>

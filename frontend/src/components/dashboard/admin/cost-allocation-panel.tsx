@@ -537,7 +537,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 rounded-lg">
+            <div className="p-2 bg-brand-primary/10 text-brand-primary dark:text-brand-primary rounded-lg">
               <PieChart className="w-6 h-6" />
             </div>
             <div>
@@ -555,7 +555,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setCreateRuleModalOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-brand-primary hover:bg-brand-navy rounded-lg shadow-sm transition"
           >
             <Plus className="w-4 h-4" />
             <span>Create Rule</span>
@@ -616,11 +616,11 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
             <div className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
               {metrics.activeRules}
             </div>
-            <div className="text-xs text-indigo-600 dark:text-indigo-400 mt-0.5">
+            <div className="text-xs text-brand-primary dark:text-brand-primary mt-0.5">
               Fixed-Percentage
             </div>
           </div>
-          <div className="p-3 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-lg">
+          <div className="p-3 bg-brand-light dark:bg-brand-navy/40 text-brand-primary dark:text-brand-primary rounded-lg">
             <Sliders className="w-5 h-5" />
           </div>
         </div>
@@ -630,14 +630,14 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
             <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Awaiting Checker
             </div>
-            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+            <div className="text-2xl font-bold text-brand-gold dark:text-brand-gold mt-1">
               {metrics.submittedRuns}
             </div>
-            <div className="text-xs text-amber-600 dark:text-amber-500 mt-0.5">
+            <div className="text-xs text-brand-gold dark:text-brand-gold mt-0.5">
               4-Eyes Review Pending
             </div>
           </div>
-          <div className="p-3 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-lg">
+          <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold dark:text-brand-gold rounded-lg">
             <ShieldCheck className="w-5 h-5" />
           </div>
         </div>
@@ -664,14 +664,14 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
             <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Reversed Runs
             </div>
-            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">
+            <div className="text-2xl font-bold text-brand-primary dark:text-brand-primary mt-1">
               {metrics.reversedRuns}
             </div>
-            <div className="text-xs text-purple-600 dark:text-purple-500 mt-0.5">
+            <div className="text-xs text-brand-primary dark:text-brand-primary mt-0.5">
               Compensating Audited
             </div>
           </div>
-          <div className="p-3 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 rounded-lg">
+          <div className="p-3 bg-brand-light dark:bg-brand-navy/40 text-brand-primary dark:text-brand-primary rounded-lg">
             <RotateCcw className="w-5 h-5" />
           </div>
         </div>
@@ -683,7 +683,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
           onClick={() => setActiveTab("rules")}
           className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition ${
             activeTab === "rules"
-              ? "border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400"
+              ? "border-brand-primary text-brand-primary dark:border-brand-primary dark:text-brand-primary"
               : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white"
           }`}
         >
@@ -698,7 +698,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
           onClick={() => setActiveTab("preview")}
           className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition ${
             activeTab === "preview"
-              ? "border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400"
+              ? "border-brand-primary text-brand-primary dark:border-brand-primary dark:text-brand-primary"
               : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white"
           }`}
         >
@@ -710,7 +710,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
           onClick={() => setActiveTab("runs")}
           className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition ${
             activeTab === "runs"
-              ? "border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400"
+              ? "border-brand-primary text-brand-primary dark:border-brand-primary dark:text-brand-primary"
               : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white"
           }`}
         >
@@ -748,7 +748,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
               </p>
               <button
                 onClick={() => setCreateRuleModalOpen(true)}
-                className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm"
+                className="px-4 py-2 text-xs font-semibold text-white bg-brand-primary hover:bg-brand-navy rounded-lg shadow-sm"
               >
                 Create First Rule
               </button>
@@ -801,7 +801,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
                             )}
                           </td>
                           <td className="px-4 py-3">
-                            <span className="text-xs font-medium px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300">
+                            <span className="text-xs font-medium px-2 py-0.5 rounded bg-brand-light dark:bg-brand-navy/40 text-brand-navy dark:text-brand-primary/30">
                               Fixed %
                             </span>
                           </td>
@@ -857,7 +857,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
           <div className="p-5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <Scale className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <Scale className="w-5 h-5 text-brand-primary dark:text-brand-primary" />
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
                   Dry-Run Preview Calculator
                 </h3>
@@ -929,7 +929,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
               <button
                 onClick={handleRunPreview}
                 disabled={previewLoading || !previewRuleId}
-                className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-lg shadow-sm transition"
+                className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-brand-primary hover:bg-brand-navy disabled:opacity-50 rounded-lg shadow-sm transition"
               >
                 {previewLoading ? (
                   <>
@@ -972,7 +972,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
                   <div className="text-xs font-semibold text-slate-500 uppercase">
                     Eligible Expense Lines Found
                   </div>
-                  <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-1">
+                  <div className="text-2xl font-bold text-brand-primary dark:text-brand-primary mt-1">
                     {previewResult.source_journal_lines?.length || 0} Lines
                   </div>
                   <div className="text-xs text-slate-500 mt-0.5">
@@ -1133,8 +1133,8 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
                           </td>
                           <td className="px-4 py-3">
                             {run.status === "SUBMITTED" && (
-                              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold">
+                                <span className="w-1.5 h-1.5 rounded-full bg-brand-gold" />
                                 Submitted
                               </span>
                             )}
@@ -1145,8 +1145,8 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
                               </span>
                             )}
                             {run.status === "REVERSED" && (
-                              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400">
-                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-light dark:bg-brand-navy/40 text-brand-navy dark:text-brand-primary">
+                                <span className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
                                 Reversed
                               </span>
                             )}
@@ -1161,7 +1161,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
                               </div>
                             )}
                             {isMaker && (
-                              <div className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
+                              <div className="text-[10px] text-brand-gold dark:text-brand-gold font-semibold">
                                 (You are Maker — SoD blocks approval)
                               </div>
                             )}
@@ -1192,7 +1192,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
                                 <button
                                   onClick={() => handleReverseRun(run)}
                                   disabled={isMaker}
-                                  className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed rounded shadow-xs transition"
+                                  className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-white bg-brand-primary hover:bg-brand-navy disabled:opacity-40 disabled:cursor-not-allowed rounded shadow-xs transition"
                                   title={isMaker ? "Maker cannot reverse own run" : "Compensating Reversal"}
                                 >
                                   <RotateCcw className="w-3.5 h-3.5" />
@@ -1218,7 +1218,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
           <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <Sliders className="w-5 h-5 text-indigo-600" />
+                <Sliders className="w-5 h-5 text-brand-primary" />
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
                   Create Fixed-Percentage Allocation Rule
                 </h3>
@@ -1341,7 +1341,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
                   <button
                     type="button"
                     onClick={handleAddTargetRow}
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                    className="text-xs font-semibold text-brand-primary hover:text-brand-navy flex items-center gap-1"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Target</span>
@@ -1408,7 +1408,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
                 <button
                   type="submit"
                   disabled={createRuleSubmitting || !isPercentageValid}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-lg shadow-sm transition"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-brand-primary hover:bg-brand-navy disabled:opacity-50 rounded-lg shadow-sm transition"
                 >
                   {createRuleSubmitting ? "Creating Rule..." : "Create Rule"}
                 </button>
@@ -1438,7 +1438,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
             </div>
 
             <form onSubmit={handleExecuteRun} className="p-6 space-y-4">
-              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
+              <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/30 rounded-lg text-xs text-brand-gold-dark dark:text-brand-gold/40 flex items-start gap-2">
                 <Info className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>
                   <strong>Maker-Checker Notice:</strong> Executing this run marks you as the <strong>Maker</strong>.
@@ -1552,7 +1552,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
           <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-indigo-600" />
+                <FileText className="w-5 h-5 text-brand-primary" />
                 <h3 className="text-base font-bold text-slate-900 dark:text-white font-mono">
                   {runDetailModal.run_number} Details
                 </h3>
@@ -1587,7 +1587,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
                 </div>
                 <div>
                   <span className="text-xs text-slate-500 uppercase">General Ledger Voucher</span>
-                  <div className="font-mono text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                  <div className="font-mono text-xs font-semibold text-brand-primary dark:text-brand-primary">
                     {runDetailModal.accounting_voucher_id ? `VOUCHER: ${runDetailModal.accounting_voucher_id.slice(0, 8)}` : "Not Posted"}
                   </div>
                 </div>

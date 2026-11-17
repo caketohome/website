@@ -140,17 +140,17 @@ export const LoginActivityPanel = memo(function LoginActivityPanel() {
             <div className="text-xs text-rose-600/70 mt-1">Invalid OTPs or rejected</div>
           </div>
 
-          <div className="bg-white dark:bg-neutral-900 border border-purple-100 dark:border-purple-950 rounded-xl p-4 shadow-xs">
+          <div className="bg-white dark:bg-neutral-900 border border-brand-light dark:border-brand-navy rounded-xl p-4 shadow-xs">
             <div className="flex items-center justify-between text-neutral-500 mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-purple-700 dark:text-purple-400">
+              <span className="text-xs font-semibold uppercase tracking-wider text-brand-navy dark:text-brand-primary">
                 Unique Users
               </span>
-              <Users className="w-4 h-4 text-purple-500" />
+              <Users className="w-4 h-4 text-brand-primary" />
             </div>
-            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+            <div className="text-2xl font-bold text-brand-primary dark:text-brand-primary">
               {metrics.unique_users || 0}
             </div>
-            <div className="text-xs text-purple-600/70 mt-1">Active customer/staff profiles</div>
+            <div className="text-xs text-brand-primary/70 mt-1">Active customer/staff profiles</div>
           </div>
         </div>
 
@@ -274,11 +274,11 @@ export const LoginActivityPanel = memo(function LoginActivityPanel() {
                           <span
                             className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold ${
                               isSuperAdmin
-                                ? "bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800"
+                                ? "bg-brand-light dark:bg-brand-navy text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy"
                                 : evt.role === "BRANCH_MANAGER"
                                 ? "bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
                                 : evt.role === "DELIVERY_PARTNER"
-                                ? "bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                                ? "bg-brand-gold-light dark:bg-brand-gold-dark text-brand-gold-dark dark:text-brand-gold/40 border border-brand-gold/40 dark:border-brand-gold-dark"
                                 : "bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300"
                             }`}
                           >

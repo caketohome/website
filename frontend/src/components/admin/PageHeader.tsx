@@ -20,8 +20,8 @@ export function PageHeader({ title, description, icon: Icon, badge, actions, chi
     <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between mb-5">
       <div className="flex items-start gap-3 min-w-0">
         {Icon && (
-          <div className="mt-0.5 shrink-0 w-9 h-9 rounded-lg bg-[#1D2F5D] flex items-center justify-center">
-            <Icon className="w-4.5 h-4.5 text-[#D4AF37]" />
+          <div className="mt-0.5 shrink-0 w-9 h-9 rounded-lg bg-brand-navy flex items-center justify-center">
+            <Icon className="w-4.5 h-4.5 text-brand-gold" />
           </div>
         )}
         <div className="min-w-0">

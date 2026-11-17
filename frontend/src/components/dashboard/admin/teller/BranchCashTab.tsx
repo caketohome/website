@@ -382,11 +382,11 @@ export function BranchCashTab() {
       )}
 
       {summary?.unconfigured_warnings && summary.unconfigured_warnings.length > 0 && (
-        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 dark:bg-amber-950/40 dark:border-amber-900 dark:text-amber-300 text-xs flex items-start gap-2.5">
-          <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+        <div className="p-4 rounded-xl bg-brand-gold-light border border-brand-gold/40 text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:border-brand-gold-dark dark:text-brand-gold/40 text-xs flex items-start gap-2.5">
+          <AlertTriangle className="w-4 h-4 shrink-0 text-brand-gold mt-0.5" />
           <div>
             <p className="font-bold">Branch Cash Limits Configuration Notice</p>
-            <p className="mt-0.5 text-amber-700 dark:text-amber-400">
+            <p className="mt-0.5 text-brand-gold-dark dark:text-brand-gold">
               {summary.unconfigured_warnings.length} operating location(s) require cash limit setup in Branch Settings (
               {summary.unconfigured_warnings.map((w) => `${w.branch_name}: missing ${w.missing_limits.join(", ")}`).join("; ")}
               ). Operations remain active with standard monitoring.
@@ -415,7 +415,7 @@ export function BranchCashTab() {
         <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between text-xs font-medium text-zinc-500 dark:text-zinc-400">
             <span>Branch Petty Cash (1114)</span>
-            <Layers className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <Layers className="w-4 h-4 text-brand-gold dark:text-brand-gold" />
           </div>
           <div className="text-2xl font-bold font-mono text-zinc-900 dark:text-zinc-100">
             ₹{summary ? summary.total_gl_petty_cash.toLocaleString("en-IN", { minimumFractionDigits: 2 }) : "0.00"}
@@ -429,9 +429,9 @@ export function BranchCashTab() {
         <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between text-xs font-medium text-zinc-500 dark:text-zinc-400">
             <span>Active Drawer Custody</span>
-            <Building className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <Building className="w-4 h-4 text-brand-primary dark:text-brand-primary" />
           </div>
-          <div className="text-2xl font-bold font-mono text-indigo-600 dark:text-indigo-400">
+          <div className="text-2xl font-bold font-mono text-brand-primary dark:text-brand-primary">
             ₹{summary ? summary.total_active_drawer_cash.toLocaleString("en-IN", { minimumFractionDigits: 2 }) : "0.00"}
           </div>
           <p className="text-[11px] text-zinc-400 dark:text-zinc-500">
@@ -443,9 +443,9 @@ export function BranchCashTab() {
         <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between text-xs font-medium text-zinc-500 dark:text-zinc-400">
             <span>Branch Vault Custody</span>
-            <Vault className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+            <Vault className="w-4 h-4 text-brand-primary dark:text-brand-primary" />
           </div>
-          <div className="text-2xl font-bold font-mono text-violet-600 dark:text-violet-400">
+          <div className="text-2xl font-bold font-mono text-brand-primary dark:text-brand-primary">
             ₹{summary ? (summary.total_vault_cash || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 }) : "0.00"}
           </div>
           <p className="text-[11px] text-zinc-400 dark:text-zinc-500">
@@ -454,7 +454,7 @@ export function BranchCashTab() {
         </div>
 
         {/* Total Physical Cash */}
-        <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-sm space-y-2">
+        <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-600 to-brand-navy text-white shadow-sm space-y-2">
           <div className="flex items-center justify-between text-xs font-medium text-emerald-100">
             <span>Total Physical Cash</span>
             <ShieldCheck className="w-4 h-4 text-white" />
@@ -533,10 +533,10 @@ export function BranchCashTab() {
                     <td className="py-3.5 px-3 text-right font-mono text-zinc-600 dark:text-zinc-400">
                       ₹{b.gl_petty_cash.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </td>
-                    <td className="py-3.5 px-3 text-right font-mono font-semibold text-indigo-600 dark:text-indigo-400">
+                    <td className="py-3.5 px-3 text-right font-mono font-semibold text-brand-primary dark:text-brand-primary">
                       ₹{b.active_drawer_cash.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </td>
-                    <td className="py-3.5 px-3 text-right font-mono font-semibold text-violet-600 dark:text-violet-400">
+                    <td className="py-3.5 px-3 text-right font-mono font-semibold text-brand-primary dark:text-brand-primary">
                       ₹{(b.vault_cash || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </td>
                     <td className="py-3.5 px-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">
@@ -549,7 +549,7 @@ export function BranchCashTab() {
                           CRITICAL (140%+) • CASH BLOCKED
                         </span>
                       ) : b.drawer_threshold_status === "WARNING" ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40 border border-brand-gold/40">
                           WARNING (100%+)
                         </span>
                       ) : (
@@ -589,21 +589,21 @@ export function BranchCashTab() {
                         </button>
                         <button
                           onClick={() => openSafeDrop(b)}
-                          className="px-2 py-1 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-lg transition"
+                          className="px-2 py-1 text-[11px] font-semibold text-brand-navy dark:text-brand-primary/30 bg-brand-light dark:bg-brand-navy/60 hover:bg-brand-light dark:hover:bg-brand-navy/60 rounded-lg transition"
                           title="Mid-day Safe Drop (Till -> Vault)"
                         >
                           Safe Drop
                         </button>
                         <button
                           onClick={() => openSafeToTill(b)}
-                          className="px-2 py-1 text-[11px] font-semibold text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/60 hover:bg-violet-100 dark:hover:bg-violet-900/60 rounded-lg transition"
+                          className="px-2 py-1 text-[11px] font-semibold text-brand-navy dark:text-brand-primary/30 bg-brand-light dark:bg-brand-navy/60 hover:bg-brand-light dark:hover:bg-brand-navy/60 rounded-lg transition"
                           title="Float Replenishment (Vault -> Till)"
                         >
                           Safe → Till
                         </button>
                         <button
                           onClick={() => openPettyCash(b)}
-                          className="px-2 py-1 text-[11px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 rounded-lg transition"
+                          className="px-2 py-1 text-[11px] font-semibold text-brand-gold-dark dark:text-brand-gold/40 bg-brand-gold-light dark:bg-brand-gold-dark/60 hover:bg-brand-gold-light dark:hover:bg-brand-gold-dark/60 rounded-lg transition"
                           title="Petty Cash Imprest Management"
                         >
                           Petty Cash
@@ -634,10 +634,10 @@ export function BranchCashTab() {
                   <td className="py-4 px-3 text-right font-mono font-bold">
                     ₹{summary.total_gl_petty_cash.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                   </td>
-                  <td className="py-4 px-3 text-right font-mono font-extrabold text-indigo-600 dark:text-indigo-400">
+                  <td className="py-4 px-3 text-right font-mono font-extrabold text-brand-primary dark:text-brand-primary">
                     ₹{summary.total_active_drawer_cash.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                   </td>
-                  <td className="py-4 px-3 text-right font-mono font-extrabold text-violet-600 dark:text-violet-400">
+                  <td className="py-4 px-3 text-right font-mono font-extrabold text-brand-primary dark:text-brand-primary">
                     ₹{(summary.total_vault_cash || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                   </td>
                   <td className="py-4 px-3 text-right font-mono font-extrabold text-emerald-700 dark:text-emerald-300 text-sm">
@@ -668,7 +668,7 @@ export function BranchCashTab() {
           <div className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60">
               <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
+                <div className="p-2 rounded-xl bg-brand-light text-brand-primary dark:bg-brand-navy/60 dark:text-brand-primary">
                   <ArrowDownLeft className="w-5 h-5" />
                 </div>
                 <div>
@@ -686,11 +686,11 @@ export function BranchCashTab() {
               <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 text-xs">
                 <div>
                   <span className="text-zinc-500">Available Drawer Cash:</span>
-                  <div className="font-mono font-bold text-indigo-600 text-sm">₹{safeDropBranch.active_drawer_cash.toFixed(2)}</div>
+                  <div className="font-mono font-bold text-brand-primary text-sm">₹{safeDropBranch.active_drawer_cash.toFixed(2)}</div>
                 </div>
                 <div>
                   <span className="text-zinc-500">Current Safe Custody:</span>
-                  <div className="font-mono font-bold text-violet-600 text-sm">₹{(safeDropBranch.vault_cash || 0).toFixed(2)}</div>
+                  <div className="font-mono font-bold text-brand-primary text-sm">₹{(safeDropBranch.vault_cash || 0).toFixed(2)}</div>
                 </div>
               </div>
               <div>
@@ -748,7 +748,7 @@ export function BranchCashTab() {
               )}
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-200 dark:border-zinc-800">
                 <button type="button" onClick={() => setSafeDropBranch(null)} className="px-4 py-2 text-xs font-semibold rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700">Cancel</button>
-                <button type="submit" disabled={safeDropLoading} className="px-4 py-2 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50 flex items-center gap-1.5">
+                <button type="submit" disabled={safeDropLoading} className="px-4 py-2 text-xs font-semibold rounded-xl bg-brand-primary hover:bg-brand-navy text-white disabled:opacity-50 flex items-center gap-1.5">
                   {safeDropLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                   <span>Execute Safe Drop</span>
                 </button>
@@ -764,7 +764,7 @@ export function BranchCashTab() {
           <div className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60">
               <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-400">
+                <div className="p-2 rounded-xl bg-brand-light text-brand-primary dark:bg-brand-navy/60 dark:text-brand-primary">
                   <ArrowUpRight className="w-5 h-5" />
                 </div>
                 <div>
@@ -781,7 +781,7 @@ export function BranchCashTab() {
             <form onSubmit={handleSafeToTillSubmit} className="p-6 space-y-4">
               <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 text-xs">
                 <span className="text-zinc-500">Available Safe Custody:</span>
-                <div className="font-mono font-bold text-violet-600 text-base">₹{(safeToTillBranch.vault_cash || 0).toFixed(2)}</div>
+                <div className="font-mono font-bold text-brand-primary text-base">₹{(safeToTillBranch.vault_cash || 0).toFixed(2)}</div>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Teller Session ID *</label>
@@ -825,7 +825,7 @@ export function BranchCashTab() {
               )}
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-200 dark:border-zinc-800">
                 <button type="button" onClick={() => setSafeToTillBranch(null)} className="px-4 py-2 text-xs font-semibold rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700">Cancel</button>
-                <button type="submit" disabled={safeToTillLoading} className="px-4 py-2 text-xs font-semibold rounded-xl bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-50 flex items-center gap-1.5">
+                <button type="submit" disabled={safeToTillLoading} className="px-4 py-2 text-xs font-semibold rounded-xl bg-brand-primary hover:bg-brand-navy text-white disabled:opacity-50 flex items-center gap-1.5">
                   {safeToTillLoading && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                   <span>Replenish Float</span>
                 </button>
@@ -841,7 +841,7 @@ export function BranchCashTab() {
           <div className="relative w-full max-w-3xl max-h-[90vh] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60">
               <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
+                <div className="p-2 rounded-xl bg-brand-gold-light text-brand-gold dark:bg-brand-gold-dark/60 dark:text-brand-gold">
                   <Receipt className="w-5 h-5" />
                 </div>
                 <div>
@@ -862,19 +862,19 @@ export function BranchCashTab() {
             <div className="flex border-b border-zinc-200 dark:border-zinc-800 px-6 gap-4 text-xs font-semibold">
               <button
                 onClick={() => setPettyCashTab("LIST")}
-                className={`py-3 border-b-2 transition ${pettyCashTab === "LIST" ? "border-amber-600 text-amber-600 dark:text-amber-400" : "border-transparent text-zinc-500 hover:text-zinc-900"}`}
+                className={`py-3 border-b-2 transition ${pettyCashTab === "LIST" ? "border-brand-gold text-brand-gold dark:text-brand-gold" : "border-transparent text-zinc-500 hover:text-zinc-900"}`}
               >
                 Requests &amp; Claims ({pettyCashRequests.length})
               </button>
               <button
                 onClick={() => setPettyCashTab("FUNDING")}
-                className={`py-3 border-b-2 transition ${pettyCashTab === "FUNDING" ? "border-amber-600 text-amber-600 dark:text-amber-400" : "border-transparent text-zinc-500 hover:text-zinc-900"}`}
+                className={`py-3 border-b-2 transition ${pettyCashTab === "FUNDING" ? "border-brand-gold text-brand-gold dark:text-brand-gold" : "border-transparent text-zinc-500 hover:text-zinc-900"}`}
               >
                 + Request Initial Float
               </button>
               <button
                 onClick={() => setPettyCashTab("EXPENSE")}
-                className={`py-3 border-b-2 transition ${pettyCashTab === "EXPENSE" ? "border-amber-600 text-amber-600 dark:text-amber-400" : "border-transparent text-zinc-500 hover:text-zinc-900"}`}
+                className={`py-3 border-b-2 transition ${pettyCashTab === "EXPENSE" ? "border-brand-gold text-brand-gold dark:text-brand-gold" : "border-transparent text-zinc-500 hover:text-zinc-900"}`}
               >
                 + Record Expense Claim
               </button>
@@ -920,7 +920,7 @@ export function BranchCashTab() {
                               <td className="py-2.5 px-3 text-zinc-600 dark:text-zinc-400">{r.purpose}</td>
                               <td className="py-2.5 px-3 text-right font-mono font-bold">₹{Number(r.amount).toFixed(2)}</td>
                               <td className="py-2.5 px-3 text-center">
-                                <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${r.status === "DISBURSED" ? "bg-emerald-50 text-emerald-700" : r.status === "APPROVED" ? "bg-indigo-50 text-indigo-700" : "bg-amber-50 text-amber-700"}`}>
+                                <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${r.status === "DISBURSED" ? "bg-emerald-50 text-emerald-700" : r.status === "APPROVED" ? "bg-brand-light text-brand-navy" : "bg-brand-gold-light text-brand-gold-dark"}`}>
                                   {r.status}
                                 </span>
                               </td>
@@ -929,7 +929,7 @@ export function BranchCashTab() {
                                   <button
                                     onClick={() => handleApprovePettyRequest(r.id)}
                                     disabled={pettySubmitting}
-                                    className="px-2 py-1 text-[10px] font-bold rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+                                    className="px-2 py-1 text-[10px] font-bold rounded bg-brand-primary text-white hover:bg-brand-navy disabled:opacity-50"
                                   >
                                     Approve
                                   </button>
@@ -970,7 +970,7 @@ export function BranchCashTab() {
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
                     <button type="button" onClick={() => setPettyCashTab("LIST")} className="px-4 py-2 text-xs rounded-xl bg-zinc-100">Cancel</button>
-                    <button type="submit" disabled={pettySubmitting} className="px-4 py-2 text-xs rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold">
+                    <button type="submit" disabled={pettySubmitting} className="px-4 py-2 text-xs rounded-xl bg-brand-gold hover:bg-brand-gold-dark text-white font-semibold">
                       Submit Request
                     </button>
                   </div>
@@ -1025,7 +1025,7 @@ export function BranchCashTab() {
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
                     <button type="button" onClick={() => setPettyCashTab("LIST")} className="px-4 py-2 text-xs rounded-xl bg-zinc-100">Cancel</button>
-                    <button type="submit" disabled={pettySubmitting} className="px-4 py-2 text-xs rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold">
+                    <button type="submit" disabled={pettySubmitting} className="px-4 py-2 text-xs rounded-xl bg-brand-gold hover:bg-brand-gold-dark text-white font-semibold">
                       Record Claim
                     </button>
                   </div>
@@ -1042,7 +1042,7 @@ export function BranchCashTab() {
           <div className="relative w-full max-w-3xl max-h-[90vh] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
+                <div className="p-2.5 rounded-xl bg-brand-light text-brand-primary dark:bg-brand-navy/60 dark:text-brand-primary">
                   <Building className="w-5 h-5" />
                 </div>
                 <div>
@@ -1084,13 +1084,13 @@ export function BranchCashTab() {
                     </div>
                     <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40">
                       <span className="text-[11px] text-zinc-500">Active Drawer Custody:</span>
-                      <div className="text-base font-bold font-mono text-indigo-600 dark:text-indigo-400 mt-1">
+                      <div className="text-base font-bold font-mono text-brand-primary dark:text-brand-primary mt-1">
                         ₹{reconcileDetail.active_drawer_cash.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </div>
                     </div>
                     <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40">
                       <span className="text-[11px] text-zinc-500">Vault Custody:</span>
-                      <div className="text-base font-bold font-mono text-violet-600 dark:text-violet-400 mt-1">
+                      <div className="text-base font-bold font-mono text-brand-primary dark:text-brand-primary mt-1">
                         ₹{(reconcileDetail.vault_cash || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </div>
                     </div>
@@ -1104,9 +1104,9 @@ export function BranchCashTab() {
 
                   {/* Reconciliation Status Alert */}
                   {reconcileDetail.reconciliation_status === "VARIANCE_DETECTED" ? (
-                    <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs space-y-1">
-                      <div className="flex items-center gap-2 font-bold text-amber-800">
-                        <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <div className="p-4 rounded-xl bg-brand-gold-light border border-brand-gold/40 text-brand-gold-dark text-xs space-y-1">
+                      <div className="flex items-center gap-2 font-bold text-brand-gold-dark">
+                        <AlertTriangle className="w-4 h-4 text-brand-gold shrink-0" />
                         <span>RECONCILIATION VARIANCE DETECTED: ₹{Math.abs(reconcileDetail.variance).toFixed(2)}</span>
                       </div>
                       <p>
@@ -1139,7 +1139,7 @@ export function BranchCashTab() {
                   {/* Active Till Sessions */}
                   <div className="space-y-3">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5">
-                      <Wallet className="w-4 h-4 text-indigo-600" />
+                      <Wallet className="w-4 h-4 text-brand-primary" />
                       Active Till Sessions ({reconcileDetail.active_sessions.length})
                     </h4>
                     {reconcileDetail.active_sessions.length === 0 ? (
@@ -1172,7 +1172,7 @@ export function BranchCashTab() {
                                 <td className="py-2.5 px-3 text-right font-mono text-rose-600">
                                   -₹{s.outflows.toFixed(2)}
                                 </td>
-                                <td className="py-2.5 px-3 text-right font-mono font-bold text-indigo-600">
+                                <td className="py-2.5 px-3 text-right font-mono font-bold text-brand-primary">
                                   ₹{s.expected_cash.toFixed(2)}
                                 </td>
                               </tr>

@@ -179,6 +179,11 @@ export const DEFAULT_SYNONYMS: SearchSynonym[] = [
   { id: "syn_5", term: "fruit", synonyms: ["fresh fruit", "fruits", "mixed fruit", "berry", "strawberry"], is_bidirectional: true },
   { id: "syn_6", term: "eggless", synonyms: ["pure veg", "vegetarian", "no egg"], is_bidirectional: true },
   { id: "syn_7", term: "rasmalai", synonyms: ["ras malai", "indian sweet", "kesar pistah"], is_bidirectional: true },
+  // Flavour families (one-way): a search for the family also finds the cakes that belong to it.
+  { id: "fam_chocolate", term: "chocolate", synonyms: ["black forest", "truffle", "dark chocolate", "dutch truffle", "choco", "cocoa", "ferrero", "kitkat", "nutella", "brownie", "mocha", "death by chocolate", "chocochip", "german chocolate"], is_bidirectional: false },
+  { id: "fam_fruit", term: "fruit", synonyms: ["mango", "strawberry", "pineapple", "blueberry", "kiwi", "orange", "litchi", "mixed fruit", "fresh fruit"], is_bidirectional: false },
+  { id: "fam_vanilla", term: "vanilla", synonyms: ["butterscotch", "white forest", "french vanilla"], is_bidirectional: false },
+  { id: "fam_coffee", term: "coffee", synonyms: ["mocha", "tiramisu", "cappuccino", "espresso"], is_bidirectional: false },
 ];
 
 export class SearchEngine {
@@ -344,7 +349,10 @@ export class SearchEngine {
       tag_ids: prod.tag_ids || existing?.tag_ids || [],
       tags: cleanTags.length > 0 ? cleanTags : (existing?.tags || []),
       occasions: prod.occasions || existing?.occasions || [],
-      keywords: prod.keywords || existing?.keywords || [],
+      keywords: Array.from(new Set([
+        ...(Array.isArray(prod.keywords) ? prod.keywords : []),
+        ...String((prod as any).search_keywords || "").split(","),
+      ].map((k) => String(k).trim().toLowerCase()).filter(Boolean))),
       image: prod.image || (prod as any).thumbnail || existing?.image || "",
       images: prod.images || (prod as any).images || (existing?.images || [prod.image || (prod as any).thumbnail || ""]).filter(Boolean),
       base_price: Number(prod.base_price || prod.selling_price || (prod as any).price || variants[0]?.price || 649),
@@ -477,6 +485,7 @@ export class SearchEngine {
       const flavourLower = (product.flavour || "").toLowerCase();
       const tagsLower = (Array.isArray(product.tags) ? product.tags : []).map((t) => (t || "").toLowerCase());
       const occasionsLower = (Array.isArray(product.occasions) ? product.occasions : []).map((o) => (o || "").toLowerCase());
+      const keywordsLower = (Array.isArray(product.keywords) ? product.keywords : []).map((k) => String(k || "").toLowerCase());
 
       if (normalized.length > 0) {
         // A. Exact Name Match
@@ -509,7 +518,7 @@ export class SearchEngine {
         const effectiveTokens = meaningfulTokens.length > 0 ? meaningfulTokens : tokens;
 
         const productWords = new Set<string>(
-          `${nameLower} ${allCatNames} ${flavourLower} ${tagsLower.join(" ")} ${occasionsLower.join(" ")}`
+          `${nameLower} ${allCatNames} ${flavourLower} ${tagsLower.join(" ")} ${occasionsLower.join(" ")} ${keywordsLower.join(" ")} ${descLower}`
             .split(/[\s\-_\/,\.]+/)
             .filter((w) => w.length > 0)
         );
@@ -539,10 +548,19 @@ export class SearchEngine {
           return syns;
         };
 
+        // Multi-word synonyms ("black forest") are matched as whole phrases against the product text.
+        const productText = ` ${nameLower} ${allCatNames} ${flavourLower} ${tagsLower.join(" ")} ${occasionsLower.join(" ")} ${keywordsLower.join(" ")} ${descLower} `
+          .replace(/[\-_\/,\.]+/g, " ")
+          .replace(/\s+/g, " ");
+        const matchesSynonym = (st: string): boolean =>
+          st.includes(" ") ? productText.includes(` ${st} `) : checkTokenMatch(st);
+
+        const synonymOnlyTokens = new Set<string>();
         const checkTokenWithSynonyms = (tok: string): boolean => {
           if (checkTokenMatch(tok)) return true;
-          const tokenSyns = getSynonymsForToken(tok);
-          return tokenSyns.some((st) => checkTokenMatch(st));
+          const hit = getSynonymsForToken(tok).some(matchesSynonym);
+          if (hit) synonymOnlyTokens.add(tok);
+          return hit;
         };
 
         const matchedTokensCount = effectiveTokens.filter((tok) => checkTokenWithSynonyms(tok)).length;
@@ -559,6 +577,8 @@ export class SearchEngine {
             if (allCatNames.includes(tok)) score += this.rankingWeights.category_match_weight;
             if (flavourLower.includes(tok)) score += this.rankingWeights.flavour_match_weight;
             if (descLower.includes(tok)) score += 5;
+            if (synonymOnlyTokens.has(tok)) score += this.rankingWeights.synonym_match_weight;
+            if (keywordsLower.some((k) => k === tok || k.split(/\s+/).includes(tok))) score += this.rankingWeights.tag_match_weight;
           });
 
           // Tag Matches (Weighted by Tag Type)
@@ -818,6 +838,19 @@ export class SearchEngine {
   }
 
   // ── 6. Admin Configuration Getters & Setters ───────────────────────────────
+  /** Replace admin settings with saved ones (used on startup by search-settings-store). */
+  public static replaceSettings(saved: {
+    weights?: Partial<SearchRankingWeights>;
+    tags?: ProductTag[];
+    synonyms?: SearchSynonym[];
+    rules?: MerchandisingRule[];
+  }) {
+    this.rankingWeights = { ...DEFAULT_RANKING_WEIGHTS, ...(saved.weights || {}) };
+    if (Array.isArray(saved.tags)) this.tags = saved.tags;
+    if (Array.isArray(saved.synonyms)) this.synonyms = saved.synonyms;
+    if (Array.isArray(saved.rules)) this.merchandisingRules = saved.rules;
+  }
+
   public static getRankingWeights(): SearchRankingWeights {
     return { ...this.rankingWeights };
   }

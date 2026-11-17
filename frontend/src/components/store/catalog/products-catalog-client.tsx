@@ -230,7 +230,7 @@ export function ProductsCatalogClient({
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <Cake className="w-7 h-7 text-[#1D2F5D] dark:text-[#D4AF37]" /> Handcrafted Gourmet Cakes
+            <Cake className="w-7 h-7 text-brand-navy dark:text-brand-gold" /> Handcrafted Gourmet Cakes
           </h1>
           <p className="text-slate-600 dark:text-slate-300 text-sm mt-1">
             Freshly baked in Kerala with 100% real ingredients • Express & Scheduled Delivery Available
@@ -267,10 +267,10 @@ export function ProductsCatalogClient({
             onClick={() => setMobileDrawerOpen(true)}
             className="md:hidden flex items-center gap-1.5 h-10 px-4 rounded-xl text-xs font-bold shrink-0 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 hover:bg-slate-50 transition shadow-sm"
           >
-            <SlidersHorizontal className="w-4 h-4 text-[#1D2F5D]" />
+            <SlidersHorizontal className="w-4 h-4 text-brand-navy" />
             <span>Filters</span>
             {activeCount > 0 && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full ml-0.5 bg-[#1D2F5D] text-white font-bold">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full ml-0.5 bg-brand-navy text-white font-bold">
                 {activeCount}
               </span>
             )}
@@ -284,7 +284,7 @@ export function ProductsCatalogClient({
         <aside className="hidden md:flex w-64 shrink-0 flex-col gap-4 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm h-fit sticky top-24">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <span className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-              <SlidersHorizontal className="w-4 h-4 text-[#1D2F5D]" /> Filters
+              <SlidersHorizontal className="w-4 h-4 text-brand-navy" /> Filters
             </span>
             {activeCount > 0 && (
               <Badge color="grey" className="text-[10px] px-2 py-0.5 rounded-full font-bold">
@@ -301,11 +301,11 @@ export function ProductsCatalogClient({
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 font-medium">
               <span>
-                Showing <strong className="text-slate-900 dark:text-amber-300 font-bold">{results.length}</strong> of{" "}
-                <strong className="text-slate-900 dark:text-amber-300 font-bold">{count || results.length}</strong> artisan cakes & treats
+                Showing <strong className="text-slate-900 dark:text-brand-gold/40 font-bold">{results.length}</strong> of{" "}
+                <strong className="text-slate-900 dark:text-brand-gold/40 font-bold">{count || results.length}</strong> artisan cakes & treats
               </span>
               <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300">
-                <MapPin className="w-3.5 h-3.5 text-[#D4AF37]" /> Serviceable in Kerala
+                <MapPin className="w-3.5 h-3.5 text-brand-gold" /> Serviceable in Kerala
               </span>
             </div>
 
@@ -323,7 +323,7 @@ export function ProductsCatalogClient({
             </div>
           ) : results.length === 0 ? (
             <div data-testid="catalog-empty-state" className="flex flex-col items-center justify-center py-20 px-4 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl bg-slate-50/50 dark:bg-slate-900/50 text-center">
-              <div className="w-16 h-16 rounded-full bg-brand-gold-soft dark:bg-[#0c1326]/40 flex items-center justify-center text-3xl mb-4">
+              <div className="w-16 h-16 rounded-full bg-brand-gold-soft dark:bg-brand-deep/40 flex items-center justify-center text-3xl mb-4">
                 🎂
               </div>
               <Heading level="h3" className="text-lg font-bold text-slate-900 dark:text-white mb-1">
@@ -335,7 +335,7 @@ export function ProductsCatalogClient({
               <Button
                 variant="secondary"
                 onClick={() => handleFilterChange({})}
-                className="text-xs font-bold px-6 py-2 rounded-xl bg-[#1D2F5D] text-white hover:bg-[#152347]"
+                className="text-xs font-bold px-6 py-2 rounded-xl bg-brand-navy text-white hover:bg-brand-deep"
               >
                 Clear All Filters
               </Button>

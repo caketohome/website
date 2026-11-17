@@ -100,7 +100,7 @@ export function ProductGridEditor({
 
       {/* 2. PIM Data Source Configuration */}
       <div className="p-3.5 bg-ui-bg-subtle rounded-2xl border border-ui-border-base flex flex-col gap-3">
-        <Text className="text-xs font-bold uppercase tracking-wider text-purple-600 flex items-center gap-1.5">
+        <Text className="text-xs font-bold uppercase tracking-wider text-brand-primary flex items-center gap-1.5">
           <Database className="w-3.5 h-3.5" /> Product Data Source & Query
         </Text>
 
@@ -371,7 +371,7 @@ export function ProductGridEditor({
 
         {isCarousel && (
           <div className="p-3 bg-ui-bg-base rounded-xl border border-ui-border-base flex flex-col gap-2.5 mt-2">
-            <Text className="text-xs font-bold text-amber-600 uppercase">Carousel Settings</Text>
+            <Text className="text-xs font-bold text-brand-gold uppercase">Carousel Settings</Text>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="flex items-center justify-between">
                 <span>Autoplay</span>

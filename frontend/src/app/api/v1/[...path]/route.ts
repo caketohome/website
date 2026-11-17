@@ -6624,6 +6624,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const permErr = verifyApiPermission(req, "TELEMARKETING", "VIEW");
       if (permErr) return permErr;
       const q = Object.fromEntries(url.searchParams);
+      // Reminders are always derived from real order history (no seeded/sample candidates).
+      TelemarketingEngine.evaluateHistoricalOrders(ApiEngine.getAdminOrders({ limit: 1000 })?.orders || [], new Date().toISOString());
       return jsonWithDataSource(TelemarketingEngine.listCandidates(q), "postgres");
     }
     if (path === "admin/telemarketing/eligible-staff" || path === "admin/outreach/eligible-staff") {
@@ -11616,14 +11618,19 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     // ── Search & Merchandising Engine Endpoints (POST) ──
+    // Search ranking/tags/synonyms/rules are admin settings: staff with PRODUCTS.EDIT only.
+    if (path.startsWith("search/")) {
+      const permErr = verifyApiPermission(req, "PRODUCTS", "EDIT");
+      if (permErr) return permErr;
+    }
     if (path === "search/tags") {
-      return jsonWithDataSource({ success: true, tag: ApiEngine.saveSearchTag(body) }, "postgres");
+      return jsonWithDataSource({ success: true, tag: await ApiEngine.saveSearchTag(body) }, "postgres");
     }
     if (path === "search/synonyms") {
-      return jsonWithDataSource({ success: true, synonym: ApiEngine.saveSearchSynonym(body) }, "postgres");
+      return jsonWithDataSource({ success: true, synonym: await ApiEngine.saveSearchSynonym(body) }, "postgres");
     }
     if (path === "search/rules" || path === "search/merchandising-rules") {
-      return jsonWithDataSource({ success: true, rule: ApiEngine.saveSearchMerchandisingRule(body) }, "postgres");
+      return jsonWithDataSource({ success: true, rule: await ApiEngine.saveSearchMerchandisingRule(body) }, "postgres");
     }
     if (path.startsWith("cms/pages/") && path.endsWith("/duplicate")) {
       const pageId = path.replace("cms/pages/", "").replace("/duplicate", "");
@@ -11765,7 +11772,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       if (permErr) return permErr;
       const ordersRes = ApiEngine.getAdminOrders({ limit: 1000 });
       const ordersList = ordersRes?.orders || [];
-      const result = TelemarketingEngine.evaluateHistoricalOrders(ordersList, body.currentDate || "2026-08-17");
+      const result = TelemarketingEngine.evaluateHistoricalOrders(ordersList, body.currentDate || new Date().toISOString());
       return jsonWithDataSource({ ...result, success: true }, "postgres");
     }
     if (path.startsWith("admin/telemarketing/candidates/") && path.endsWith("/call")) {
@@ -12902,20 +12909,25 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     }
 
     // ── Search & Merchandising Engine Endpoints (PUT) ──
+    // Search ranking/tags/synonyms/rules are admin settings: staff with PRODUCTS.EDIT only.
+    if (path.startsWith("search/")) {
+      const permErr = verifyApiPermission(req, "PRODUCTS", "EDIT");
+      if (permErr) return permErr;
+    }
     if (path === "search/config" || path === "search/weights") {
-      return jsonWithDataSource({ success: true, weights: ApiEngine.updateSearchWeights(body) }, "postgres");
+      return jsonWithDataSource({ success: true, weights: await ApiEngine.updateSearchWeights(body) }, "postgres");
     }
     if (path.startsWith("search/tags/")) {
       const tagId = path.replace("search/tags/", "");
-      return jsonWithDataSource({ success: true, tag: ApiEngine.saveSearchTag({ ...body, tag_id: tagId }) }, "postgres");
+      return jsonWithDataSource({ success: true, tag: await ApiEngine.saveSearchTag({ ...body, tag_id: tagId }) }, "postgres");
     }
     if (path.startsWith("search/synonyms/")) {
       const synId = path.replace("search/synonyms/", "");
-      return jsonWithDataSource({ success: true, synonym: ApiEngine.saveSearchSynonym({ ...body, id: synId }) }, "postgres");
+      return jsonWithDataSource({ success: true, synonym: await ApiEngine.saveSearchSynonym({ ...body, id: synId }) }, "postgres");
     }
     if (path.startsWith("search/rules/")) {
       const ruleId = path.replace("search/rules/", "");
-      return jsonWithDataSource({ success: true, rule: ApiEngine.saveSearchMerchandisingRule({ ...body, id: ruleId }) }, "postgres");
+      return jsonWithDataSource({ success: true, rule: await ApiEngine.saveSearchMerchandisingRule({ ...body, id: ruleId }) }, "postgres");
     }
 
     if (path.startsWith("cms/pages/")) {
@@ -13590,17 +13602,22 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     }
 
     // ── Search & Merchandising Engine Endpoints (DELETE) ──
+    // Search ranking/tags/synonyms/rules are admin settings: staff with PRODUCTS.EDIT only.
+    if (path.startsWith("search/")) {
+      const permErr = verifyApiPermission(req, "PRODUCTS", "EDIT");
+      if (permErr) return permErr;
+    }
     if (path.startsWith("search/tags/")) {
       const tagId = path.replace("search/tags/", "");
-      return jsonWithDataSource(ApiEngine.deleteSearchTag(tagId), "postgres");
+      return jsonWithDataSource(await ApiEngine.deleteSearchTag(tagId), "postgres");
     }
     if (path.startsWith("search/synonyms/")) {
       const synId = path.replace("search/synonyms/", "");
-      return jsonWithDataSource(ApiEngine.deleteSearchSynonym(synId), "postgres");
+      return jsonWithDataSource(await ApiEngine.deleteSearchSynonym(synId), "postgres");
     }
     if (path.startsWith("search/rules/")) {
       const ruleId = path.replace("search/rules/", "");
-      return jsonWithDataSource(ApiEngine.deleteSearchMerchandisingRule(ruleId), "postgres");
+      return jsonWithDataSource(await ApiEngine.deleteSearchMerchandisingRule(ruleId), "postgres");
     }
 
     if (path.startsWith("admin/abandoned-carts/campaigns/")) {

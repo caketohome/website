@@ -178,12 +178,12 @@ export const DeliveryPanel = memo(function DeliveryPanel() {
           <CheckCircle2 className="w-8 h-8 text-emerald-600 opacity-80" />
         </div>
 
-        <div className="p-4 bg-amber-50/60 dark:bg-amber-950/20 rounded-2xl border border-amber-200 shadow-sm flex items-center justify-between">
+        <div className="p-4 bg-brand-gold-light/60 dark:bg-brand-gold-dark/20 rounded-2xl border border-brand-gold/40 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-extrabold text-amber-700 dark:text-amber-300 uppercase tracking-wider block">On Active Delivery / Busy</span>
-            <span className="text-2xl font-extrabold text-amber-800 dark:text-amber-200">{busyCount}</span>
+            <span className="text-[10px] font-extrabold text-brand-gold-dark dark:text-brand-gold/40 uppercase tracking-wider block">On Active Delivery / Busy</span>
+            <span className="text-2xl font-extrabold text-brand-gold-dark dark:text-brand-gold/40">{busyCount}</span>
           </div>
-          <Clock className="w-8 h-8 text-amber-600 opacity-80" />
+          <Clock className="w-8 h-8 text-brand-gold opacity-80" />
         </div>
 
         <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border shadow-sm flex items-center justify-between">
@@ -333,7 +333,7 @@ export const DeliveryPanel = memo(function DeliveryPanel() {
                           <td className="p-3.5 whitespace-nowrap">
                             <span className="font-bold text-slate-800 dark:text-slate-200 block">{p.primary_branch_name || "—"}</span>
                             {(p.associated_branches?.length > 1) && (
-                              <span className="text-[10px] text-purple-600 font-semibold block">+{p.associated_branches.length - 1} secondary hub(s)</span>
+                              <span className="text-[10px] text-brand-primary font-semibold block">+{p.associated_branches.length - 1} secondary hub(s)</span>
                             )}
                           </td>
 
@@ -352,7 +352,7 @@ export const DeliveryPanel = memo(function DeliveryPanel() {
                                 isOnline
                                   ? "bg-emerald-600 text-white hover:bg-emerald-700"
                                   : p.availability_status === "BUSY"
-                                  ? "bg-amber-500 text-white hover:bg-amber-600"
+                                  ? "bg-brand-gold text-white hover:bg-brand-gold"
                                   : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300"
                               }`}
                             >
@@ -380,7 +380,7 @@ export const DeliveryPanel = memo(function DeliveryPanel() {
                           </td>
 
                           {/* Rating */}
-                          <td className="p-3.5 whitespace-nowrap text-center font-bold text-amber-600">
+                          <td className="p-3.5 whitespace-nowrap text-center font-bold text-brand-gold">
                             ⭐ {p.rating || "5.0"}
                           </td>
 

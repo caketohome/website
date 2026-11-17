@@ -52,7 +52,7 @@ export const MarketingAutomationPanel = memo(function MarketingAutomationPanel()
         </Container>
         <Container className="p-5 flex flex-col gap-1">
           <Text className="text-xs font-semibold text-ui-fg-subtle uppercase tracking-wider">Automation Revenue</Text>
-          <Text className="text-2xl font-bold text-purple-600">₹3,42,800</Text>
+          <Text className="text-2xl font-bold text-brand-primary">₹3,42,800</Text>
           <Text className="text-[10px] text-emerald-600 font-medium">Generated automatically</Text>
         </Container>
       </div>

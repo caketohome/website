@@ -281,6 +281,20 @@ export function setSessionCookies(res: NextResponse, session: { token: string; r
   for (const name of LEGACY_AUTH_COOKIES) res.cookies.set(name, "", { path: "/", maxAge: 0 });
 }
 
+/**
+ * Re-issue the app session token after the user edits their own profile, so the
+ * name shown in the header/menus updates immediately instead of after token expiry.
+ * The Supabase refresh token is left as is.
+ */
+export async function reissueSessionToken(res: NextResponse, userId: string, phoneDigits: string) {
+  const claims = await revalidateClaims(userId, phoneDigits);
+  if (!claims) return;
+  const secure = process.env.NODE_ENV === "production";
+  res.cookies.set(APP_SESSION_COOKIE, mintToken(claims), {
+    httpOnly: true, secure, sameSite: "lax", path: "/", maxAge: APP_SESSION_TTL,
+  });
+}
+
 export function clearSessionCookies(res: NextResponse) {
   for (const name of [APP_SESSION_COOKIE, REFRESH_COOKIE, ...LEGACY_AUTH_COOKIES]) {
     res.cookies.set(name, "", { path: "/", maxAge: 0, expires: new Date(0) });

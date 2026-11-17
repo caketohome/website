@@ -304,14 +304,14 @@ export const TellerCustodyPanel = memo(function TellerCustodyPanel() {
             onClick={() => setActiveSubTab("work_queue")}
             className={`py-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
               activeSubTab === "work_queue"
-                ? "border-purple-600 text-purple-600"
+                ? "border-brand-primary text-brand-primary"
                 : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
             }`}
           >
             <FileCheck2 className="w-4 h-4" />
             <span>Verification & Settlement Queue</span>
             {pendingCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-purple-100 text-purple-700 border border-purple-200">
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-brand-light text-brand-navy border border-brand-primary/30">
                 {pendingCount}
               </span>
             )}
@@ -333,7 +333,7 @@ export const TellerCustodyPanel = memo(function TellerCustodyPanel() {
             onClick={() => setActiveSubTab("stations")}
             className={`py-3 px-4 text-xs font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors ${
               activeSubTab === "stations"
-                ? "border-indigo-600 text-indigo-600"
+                ? "border-brand-primary text-brand-primary"
                 : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
             }`}
           >

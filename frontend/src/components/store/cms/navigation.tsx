@@ -74,11 +74,11 @@ export async function HeaderNavigation({ lang = "en" }: { lang?: string }) {
                 <div key={item.id || `${item.label}-${idx}`} className="relative group">
                     <Link
                         href={resolveHref(item)}
-                        className="font-sans text-xs lg:text-sm font-semibold tracking-tight text-[#1D2F5D]/90 hover:text-[#1D2F5D] transition-colors"
+                        className="font-sans text-xs lg:text-sm font-semibold tracking-tight text-brand-navy/90 hover:text-brand-navy transition-colors"
                     >
                         {item.label}
                         {item.badge && (
-                            <span className="ml-1.5 text-[10px] bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                            <span className="ml-1.5 text-[10px] bg-brand-gold/20 text-brand-gold border border-brand-gold/40 font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
                                 {item.badge}
                             </span>
                         )}
@@ -118,7 +118,7 @@ export async function FooterNavigation({ lang = "en" }: { lang?: string }) {
                 <Link
                     key={item.id || `${item.label}-${idx}`}
                     href={resolveHref(item)}
-                    className="text-xs sm:text-sm text-slate-400 hover:text-[#D4AF37] transition-colors hover:underline"
+                    className="text-xs sm:text-sm text-slate-400 hover:text-brand-gold transition-colors hover:underline"
                 >
                     {item.label}
                 </Link>

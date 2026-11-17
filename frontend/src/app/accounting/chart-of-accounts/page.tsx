@@ -122,8 +122,8 @@ export default function ChartOfAccountsPage() {
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#1D2F5D] flex items-center justify-center text-white shadow-xs">
-                <FolderTree className="w-5 h-5 text-[#D4AF37]" />
+              <div className="w-10 h-10 rounded-xl bg-brand-navy flex items-center justify-center text-white shadow-xs">
+                <FolderTree className="w-5 h-5 text-brand-gold" />
               </div>
               <div>
                 <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
@@ -144,10 +144,10 @@ export default function ChartOfAccountsPage() {
               </Button>
               <Button
                 size="small"
-                className="bg-[#1D2F5D] text-white flex items-center gap-1.5"
+                className="bg-brand-navy text-white flex items-center gap-1.5"
                 onClick={() => router.push("/dashboard?tab=general_ledger")}
               >
-                <BookOpen className="w-3.5 h-3.5 text-[#D4AF37]" /> View General Ledger
+                <BookOpen className="w-3.5 h-3.5 text-brand-gold" /> View General Ledger
               </Button>
             </div>
           </div>
@@ -161,7 +161,7 @@ export default function ChartOfAccountsPage() {
             </div>
             <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Group Heads</span>
-              <div className="text-xl font-bold text-purple-600 dark:text-purple-400 mt-0.5">{summary.groups}</div>
+              <div className="text-xl font-bold text-brand-primary dark:text-brand-primary mt-0.5">{summary.groups}</div>
               <span className="text-[10px] text-slate-400">Structural parent tiers</span>
             </div>
             <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
@@ -175,13 +175,13 @@ export default function ChartOfAccountsPage() {
               <span className="text-[10px] text-slate-400">Bank, Cash, Clearing</span>
             </div>
             <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-              <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">2xxx Liabilities</span>
-              <div className="text-xl font-bold text-amber-600 mt-0.5">{summary.liabilities}</div>
+              <span className="text-[10px] font-bold text-brand-gold uppercase tracking-wider">2xxx Liabilities</span>
+              <div className="text-xl font-bold text-brand-gold mt-0.5">{summary.liabilities}</div>
               <span className="text-[10px] text-slate-400">GST, Payables, Advance</span>
             </div>
             <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-              <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">3xxx Equity</span>
-              <div className="text-xl font-bold text-indigo-600 mt-0.5">{summary.equity}</div>
+              <span className="text-[10px] font-bold text-brand-primary uppercase tracking-wider">3xxx Equity</span>
+              <div className="text-xl font-bold text-brand-primary mt-0.5">{summary.equity}</div>
               <span className="text-[10px] text-slate-400">Share capital, Offset</span>
             </div>
             <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
@@ -281,12 +281,12 @@ export default function ChartOfAccountsPage() {
                             acc.is_group ? "bg-slate-50/30 dark:bg-slate-900/30" : ""
                           }`}
                         >
-                          <td className="py-2.5 px-3 font-bold text-[#1D2F5D] dark:text-[#D4AF37]">
+                          <td className="py-2.5 px-3 font-bold text-brand-navy dark:text-brand-gold">
                             {acc.code}
                           </td>
                           <td className={`py-2.5 px-3 font-sans ${indentClass} flex items-center gap-1.5`}>
                             {acc.is_group ? (
-                              <Layers className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                              <Layers className="w-3.5 h-3.5 text-brand-primary shrink-0" />
                             ) : (
                               <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 inline-block shrink-0" />
                             )}
@@ -298,9 +298,9 @@ export default function ChartOfAccountsPage() {
                                 acc.type === "ASSET"
                                   ? "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200"
                                   : acc.type === "LIABILITY"
-                                  ? "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200"
+                                  ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold/40 border border-brand-gold/40"
                                   : acc.type === "EQUITY"
-                                  ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200"
+                                  ? "bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary/30 border border-brand-primary/30"
                                   : acc.type === "REVENUE"
                                   ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200"
                                   : "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200"

@@ -426,7 +426,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-[#1D2F5D]/15 text-[#D4AF37] border border-[#1D2F5D]/30">
+            <div className="p-2.5 rounded-xl bg-brand-navy/15 text-brand-gold border border-brand-navy/30">
               <Tag className="w-6 h-6" />
             </div>
             <div>
@@ -439,7 +439,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                     status === "active"
                       ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                       : status === "scheduled"
-                      ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                      ? "bg-brand-gold/10 text-brand-gold border border-brand-gold/20"
                       : "bg-slate-800 text-slate-400 border border-slate-700"
                   }`}
                 >
@@ -456,7 +456,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 bg-[#1D2F5D] hover:bg-[#152347] text-white text-sm font-semibold rounded-lg shadow-md border border-[#D4AF37]/40 transition-all disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-brand-navy hover:bg-brand-deep text-white text-sm font-semibold rounded-lg shadow-md border border-brand-gold/40 transition-all disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               {saving ? "Saving..." : "Save Coupon"}
@@ -472,7 +472,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
 
         {/* Toast Alert */}
         {toastMessage && (
-          <div className="mx-6 mt-4 p-3 bg-[#1D2F5D]/15 border border-[#1D2F5D]/40 text-slate-200 rounded-lg text-sm flex items-center gap-2 animate-in fade-in">
+          <div className="mx-6 mt-4 p-3 bg-brand-navy/15 border border-brand-navy/40 text-slate-200 rounded-lg text-sm flex items-center gap-2 animate-in fade-in">
             <Sparkles className="w-4 h-4 flex-shrink-0" />
             <span>{toastMessage}</span>
           </div>
@@ -502,7 +502,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center gap-1.5 px-3.5 py-3 text-xs font-medium border-b-2 whitespace-nowrap transition-colors ${
                   isActive
-                    ? "border-[#D4AF37] text-[#D4AF37] bg-[#1D2F5D]/10 font-semibold"
+                    ? "border-brand-gold text-brand-gold bg-brand-navy/10 font-semibold"
                     : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
                 }`}
               >
@@ -517,7 +517,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-64 text-slate-400 gap-3">
-              <div className="w-8 h-8 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-brand-gold border-t-transparent rounded-full animate-spin" />
               <p className="text-sm">Loading promotion configuration...</p>
             </div>
           ) : (
@@ -533,7 +533,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="e.g. Monsoon Celebration 50% Off"
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                       />
                     </div>
                     <div>
@@ -544,12 +544,12 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                           value={code}
                           onChange={(e) => setCode(e.target.value.toUpperCase())}
                           placeholder="e.g. MONSOON50"
-                          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white uppercase font-mono tracking-wider focus:outline-none focus:border-[#D4AF37]"
+                          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white uppercase font-mono tracking-wider focus:outline-none focus:border-brand-gold"
                         />
                         <button
                           type="button"
                           onClick={() => setCode(`PROMO${Math.floor(1000 + Math.random() * 9000)}`)}
-                          className="absolute right-2 top-2 text-xs text-[#D4AF37] hover:text-slate-200"
+                          className="absolute right-2 top-2 text-xs text-brand-gold hover:text-slate-200"
                         >
                           Generate
                         </button>
@@ -562,7 +562,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                     <select
                       value={type}
                       onChange={(e) => setType(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                     >
                       {COUPON_TYPES.map((t) => (
                         <option key={t.value} value={t.value}>
@@ -582,7 +582,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         min="1"
                         value={discountValue}
                         onChange={(e) => setDiscountValue(Number(e.target.value))}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                       />
                     </div>
                     <div>
@@ -593,7 +593,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         value={maxDiscountValue}
                         onChange={(e) => setMaxDiscountValue(e.target.value ? Number(e.target.value) : "")}
                         placeholder="e.g. 200 (optional)"
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                       />
                     </div>
                     <div>
@@ -601,7 +601,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                       <select
                         value={status}
                         onChange={(e) => setStatus(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                       >
                         <option value="active">Active (Live on store)</option>
                         <option value="scheduled">Scheduled</option>
@@ -619,7 +619,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="e.g. Use code CAKE50 at checkout to get 50% discount on all artisan cakes."
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                     />
                   </div>
 
@@ -629,7 +629,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         type="checkbox"
                         checked={autoApply}
                         onChange={(e) => setAutoApply(e.target.checked)}
-                        className="w-4 h-4 text-[#D4AF37] rounded bg-slate-900 border-slate-700 focus:ring-[#D4AF37]"
+                        className="w-4 h-4 text-brand-gold rounded bg-slate-900 border-slate-700 focus:ring-brand-gold"
                       />
                       <div>
                         <div className="text-xs font-semibold text-white">Auto-Apply at Checkout</div>
@@ -642,7 +642,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         type="checkbox"
                         checked={isPublic}
                         onChange={(e) => setIsPublic(e.target.checked)}
-                        className="w-4 h-4 text-[#D4AF37] rounded bg-slate-900 border-slate-700 focus:ring-[#D4AF37]"
+                        className="w-4 h-4 text-brand-gold rounded bg-slate-900 border-slate-700 focus:ring-brand-gold"
                       />
                       <div>
                         <div className="text-xs font-semibold text-white">Public Promo Banner</div>
@@ -655,7 +655,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         type="checkbox"
                         checked={isStackable}
                         onChange={(e) => setIsStackable(e.target.checked)}
-                        className="w-4 h-4 text-[#D4AF37] rounded bg-slate-900 border-slate-700 focus:ring-[#D4AF37]"
+                        className="w-4 h-4 text-brand-gold rounded bg-slate-900 border-slate-700 focus:ring-brand-gold"
                       />
                       <div>
                         <div className="text-xs font-semibold text-white">Stackable Promotion</div>
@@ -668,7 +668,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         type="checkbox"
                         checked={excludeDiscounted}
                         onChange={(e) => setExcludeDiscounted(e.target.checked)}
-                        className="w-4 h-4 text-[#D4AF37] rounded bg-slate-900 border-slate-700 focus:ring-[#D4AF37]"
+                        className="w-4 h-4 text-brand-gold rounded bg-slate-900 border-slate-700 focus:ring-brand-gold"
                       />
                       <div>
                         <div className="text-xs font-semibold text-white">Exclude Discounted Items</div>
@@ -691,7 +691,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                       type="checkbox"
                       checked={neverExpires}
                       onChange={(e) => setNeverExpires(e.target.checked)}
-                      className="w-5 h-5 text-[#D4AF37] rounded bg-slate-900 border-slate-700 focus:ring-[#D4AF37] cursor-pointer"
+                      className="w-5 h-5 text-brand-gold rounded bg-slate-900 border-slate-700 focus:ring-brand-gold cursor-pointer"
                     />
                   </div>
 
@@ -703,7 +703,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                           type="datetime-local"
                           value={startsAt}
                           onChange={(e) => setStartsAt(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                         />
                       </div>
                       <div>
@@ -712,7 +712,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                           type="datetime-local"
                           value={endsAt}
                           onChange={(e) => setEndsAt(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                         />
                       </div>
                     </div>
@@ -720,7 +720,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
 
                   <div className="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-4">
                     <div className="flex items-center gap-2 text-sm font-semibold text-white">
-                      <Clock className="w-4 h-4 text-[#D4AF37]" />
+                      <Clock className="w-4 h-4 text-brand-gold" />
                       Daily Happy Hour / Time Window Restriction (Optional)
                     </div>
                     <p className="text-xs text-slate-400">
@@ -733,7 +733,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                           type="time"
                           value={startTime}
                           onChange={(e) => setStartTime(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                         />
                       </div>
                       <div>
@@ -742,7 +742,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                           type="time"
                           value={endTime}
                           onChange={(e) => setEndTime(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                         />
                       </div>
                       <div>
@@ -751,7 +751,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                           type="text"
                           value={timezone}
                           onChange={(e) => setTimezone(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                         />
                       </div>
                     </div>
@@ -771,7 +771,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         value={minOrderValue}
                         onChange={(e) => setMinOrderValue(Number(e.target.value))}
                         placeholder="e.g. 499"
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                       />
                       <p className="text-[11px] text-slate-400 mt-1">Cart value before taxes and discounts.</p>
                     </div>
@@ -783,7 +783,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         min="1"
                         value={minQuantity}
                         onChange={(e) => setMinQuantity(Number(e.target.value))}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                       />
                       <p className="text-[11px] text-slate-400 mt-1">Total quantity of products required in cart.</p>
                     </div>
@@ -796,7 +796,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         type="checkbox"
                         checked={excludeFlashSales}
                         onChange={(e) => setExcludeFlashSales(e.target.checked)}
-                        className="w-4 h-4 text-[#D4AF37] rounded bg-slate-900 border-slate-700 focus:ring-[#D4AF37]"
+                        className="w-4 h-4 text-brand-gold rounded bg-slate-900 border-slate-700 focus:ring-brand-gold"
                       />
                       <div>
                         <div className="text-xs font-semibold text-white">Exclude Flash Sale Items</div>
@@ -839,7 +839,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                               key={b.id}
                               className={`p-3 rounded-lg border flex items-center justify-between cursor-pointer transition-all ${
                                 isChecked
-                                  ? "bg-[#1D2F5D]/15 border-[#1D2F5D]/50 text-slate-200"
+                                  ? "bg-brand-navy/15 border-brand-navy/50 text-slate-200"
                                   : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
                               }`}
                             >
@@ -851,7 +851,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                                     if (e.target.checked) setSelectedBranches([...selectedBranches, b.id]);
                                     else setSelectedBranches(selectedBranches.filter((x) => x !== b.id));
                                   }}
-                                  className="w-4 h-4 text-[#D4AF37] rounded bg-slate-950 border-slate-700"
+                                  className="w-4 h-4 text-brand-gold rounded bg-slate-950 border-slate-700"
                                 />
                                 <div>
                                   <div className="text-xs font-semibold text-white">{b.name}</div>
@@ -899,7 +899,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                               }}
                               className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                                 isSel
-                                  ? "bg-[#1D2F5D]/20 text-slate-200 border-[#1D2F5D]/50 shadow-sm"
+                                  ? "bg-brand-navy/20 text-slate-200 border-brand-navy/50 shadow-sm"
                                   : "bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700"
                               }`}
                             >
@@ -923,7 +923,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                       value={pincodesInput}
                       onChange={(e) => setPincodesInput(e.target.value)}
                       placeholder="e.g. 691001, 691002, 691003 or 'all'"
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-brand-gold"
                     />
                     <p className="text-[11px] text-slate-400 mt-1">Separate 6-digit Indian pincodes with commas, or write &apos;all&apos;.</p>
                   </div>
@@ -935,7 +935,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                       value={excludedPincodesInput}
                       onChange={(e) => setExcludedPincodesInput(e.target.value)}
                       placeholder="e.g. 691020, 691021"
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-brand-gold"
                     />
                     <p className="text-[11px] text-slate-400 mt-1">These pincodes will be rejected even if city or branch matches.</p>
                   </div>
@@ -943,7 +943,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                   {/* Pincode Live Test Tool */}
                   <div className="p-4 bg-slate-950/80 rounded-xl border border-slate-800 space-y-3">
                     <h4 className="text-xs font-semibold text-slate-200 flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-[#D4AF37]" />
+                      <MapPin className="w-4 h-4 text-brand-gold" />
                       Live Pincode Verification Simulator
                     </h4>
                     <div className="flex gap-2">
@@ -988,7 +988,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                     <select
                       value={customerEligibility}
                       onChange={(e) => setCustomerEligibility(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                     >
                       <option value="all">Everyone (All registered and guest customers)</option>
                       <option value="new_customers">New Customers Only (First order only)</option>
@@ -1007,7 +1007,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         value={allowedPhonesInput}
                         onChange={(e) => setAllowedPhonesInput(e.target.value)}
                         placeholder="e.g. +91 9876543210, +91 9876543211"
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-[#D4AF37]"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-brand-gold"
                       />
                     </div>
                     <div>
@@ -1017,7 +1017,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         value={allowedEmailsInput}
                         onChange={(e) => setAllowedEmailsInput(e.target.value)}
                         placeholder="e.g. vip@customer.com, ceo@corporate.com"
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-[#D4AF37]"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-brand-gold"
                       />
                     </div>
                   </div>
@@ -1042,7 +1042,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                             }}
                             className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                               isSel
-                                ? "bg-[#1D2F5D]/20 text-slate-200 border-[#1D2F5D]/50"
+                                ? "bg-brand-navy/20 text-slate-200 border-brand-navy/50"
                                 : "bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700"
                             }`}
                           >
@@ -1068,7 +1068,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                             }}
                             className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                               isSel
-                                ? "bg-[#1D2F5D]/20 text-slate-200 border-[#1D2F5D]/50"
+                                ? "bg-brand-navy/20 text-slate-200 border-brand-navy/50"
                                 : "bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700"
                             }`}
                           >
@@ -1094,7 +1094,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                             }}
                             className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                               isSel
-                                ? "bg-[#1D2F5D]/20 text-slate-200 border-[#1D2F5D]/50"
+                                ? "bg-brand-navy/20 text-slate-200 border-brand-navy/50"
                                 : "bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700"
                             }`}
                           >
@@ -1119,7 +1119,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         value={usageLimit}
                         onChange={(e) => setUsageLimit(e.target.value ? Number(e.target.value) : "")}
                         placeholder="e.g. 1000 (leave blank for unlimited)"
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                       />
                       <p className="text-[11px] text-slate-400 mt-1">Total redemptions allowed across all customers before auto-expiring.</p>
                     </div>
@@ -1131,7 +1131,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         min="1"
                         value={perCustomerLimit}
                         onChange={(e) => setPerCustomerLimit(Number(e.target.value))}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                       />
                       <p className="text-[11px] text-slate-400 mt-1">Max times each individual phone number/account can use this code.</p>
                     </div>
@@ -1146,7 +1146,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         value={dailyLimit}
                         onChange={(e) => setDailyLimit(e.target.value ? Number(e.target.value) : "")}
                         placeholder="e.g. 50 per day"
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                       />
                     </div>
 
@@ -1158,7 +1158,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         value={monthlyLimit}
                         onChange={(e) => setMonthlyLimit(e.target.value ? Number(e.target.value) : "")}
                         placeholder="e.g. 500 per month"
-                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                       />
                     </div>
                   </div>
@@ -1173,7 +1173,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                     <select
                       value={deliveryMode}
                       onChange={(e) => setDeliveryMode(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                     >
                       <option value="all">Both Home Delivery & Counter Pickup</option>
                       <option value="delivery">Home Doorstep Delivery Only</option>
@@ -1191,7 +1191,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                             key={pm.id}
                             className={`p-3 rounded-lg border flex items-center justify-between cursor-pointer transition-all ${
                               isChecked
-                                ? "bg-[#1D2F5D]/15 border-[#1D2F5D]/50 text-slate-200"
+                                ? "bg-brand-navy/15 border-brand-navy/50 text-slate-200"
                                 : "bg-slate-900 border-slate-800 text-slate-400"
                             }`}
                           >
@@ -1203,7 +1203,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                                 if (e.target.checked) setAllowedPaymentMethods([...allowedPaymentMethods, pm.id]);
                                 else setAllowedPaymentMethods(allowedPaymentMethods.filter((x) => x !== pm.id));
                               }}
-                              className="w-4 h-4 text-[#D4AF37] rounded bg-slate-950 border-slate-700"
+                              className="w-4 h-4 text-brand-gold rounded bg-slate-950 border-slate-700"
                             />
                           </label>
                         );
@@ -1231,7 +1231,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                     </div>
                     <div className="p-4 bg-slate-950/80 rounded-xl border border-slate-800">
                       <div className="text-xs text-slate-400">Marketing ROI</div>
-                      <div className="text-xl font-bold text-cyan-400 mt-1">
+                      <div className="text-xl font-bold text-brand-primary mt-1">
                         {totalDiscountGiven > 0 ? `${Math.round(((totalRevenue - totalDiscountGiven) / totalDiscountGiven) * 100)}%` : "N/A"}
                       </div>
                     </div>
@@ -1269,7 +1269,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                             <tr key={idx} className="hover:bg-slate-800/40 transition-colors">
                               <td className="px-3 py-2.5 text-slate-400">{new Date(r.created_at || Date.now()).toLocaleDateString()}</td>
                               <td className="px-3 py-2.5 font-medium text-white">{r.customer_phone || r.customer_id || "Guest User"}</td>
-                              <td className="px-3 py-2.5 font-mono text-[#D4AF37]">{r.order_number || r.order_id || "—"}</td>
+                              <td className="px-3 py-2.5 font-mono text-brand-gold">{r.order_number || r.order_id || "—"}</td>
                               <td className="px-3 py-2.5">{r.branch_name || r.city || "Kollam"}</td>
                               <td className="px-3 py-2.5 text-right font-semibold text-rose-400">₹{r.discount_amount}</td>
                               <td className="px-3 py-2.5 text-right font-semibold text-emerald-400">₹{r.order_total}</td>
@@ -1296,7 +1296,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                         <div key={idx} className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-semibold uppercase text-[#D4AF37]">{log.action}</span>
+                              <span className="font-semibold uppercase text-brand-gold">{log.action}</span>
                               <span className="text-slate-400">by {log.actor_email || log.actor_id || "Admin"}</span>
                             </div>
                             <div className="text-[11px] text-slate-500 mt-0.5">IP: {log.ip_address || "127.0.0.1"}</div>
@@ -1327,7 +1327,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-5 py-2 bg-[#1D2F5D] hover:bg-[#152347] text-white text-xs font-semibold rounded-lg shadow-md border border-[#D4AF37]/40 transition-all disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-2 bg-brand-navy hover:bg-brand-deep text-white text-xs font-semibold rounded-lg shadow-md border border-brand-gold/40 transition-all disabled:opacity-50"
             >
               <Save className="w-3.5 h-3.5" />
               {saving ? "Saving Changes..." : "Save & Publish"}

@@ -101,16 +101,16 @@ export function DeliverySimulator() {
   return (
     <div className="space-y-6">
       {/* Banner */}
-      <div className="p-4 bg-gradient-to-r from-purple-900 to-indigo-900 text-white rounded-xl shadow-lg border border-purple-700/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="p-4 bg-gradient-to-r from-brand-navy to-brand-navy text-white rounded-xl shadow-lg border border-brand-navy/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <Heading level="h2" className="text-base font-bold flex items-center gap-2 text-amber-300">
-            <Compass className="w-5 h-5 text-amber-400 animate-spin-slow" /> Enterprise Delivery Serviceability Simulator
+          <Heading level="h2" className="text-base font-bold flex items-center gap-2 text-brand-gold/40">
+            <Compass className="w-5 h-5 text-brand-gold animate-spin-slow" /> Enterprise Delivery Serviceability Simulator
           </Heading>
-          <Text className="text-xs text-purple-200 mt-1">
+          <Text className="text-xs text-brand-primary/30 mt-1">
             Simulate customer checkout routing, 5-factor weighted branch scoring, zone intersection, prep time resolution, and fee calculation.
           </Text>
         </div>
-        <Button size="small" onClick={runSimulation} isLoading={simulating} className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-md shrink-0">
+        <Button size="small" onClick={runSimulation} isLoading={simulating} className="bg-brand-gold hover:bg-brand-gold/40 text-slate-950 font-bold text-xs shadow-md shrink-0">
           <Play className="w-4 h-4 mr-1.5 fill-current" /> Run Routing Test
         </Button>
       </div>
@@ -244,7 +244,7 @@ export function DeliverySimulator() {
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {(simulation.candidates || []).map((c: any) => (
-                    <tr key={c.branch_id} className={c.branch_id === simulation.winner?.branch_id ? "bg-amber-50/70 dark:bg-amber-950/30 font-semibold" : ""}>
+                    <tr key={c.branch_id} className={c.branch_id === simulation.winner?.branch_id ? "bg-brand-gold-light/70 dark:bg-brand-gold-dark/30 font-semibold" : ""}>
                       <td className="p-2.5">
                         <Badge color={c.eligible ? "green" : "red"} className="text-[9px]">
                           {c.eligible ? "Eligible" : "Excluded"}
@@ -257,12 +257,12 @@ export function DeliverySimulator() {
                         {c.zone_name} <span className="text-slate-400 text-[10px]">(Order {c.zone_order})</span>
                       </td>
                       <td className="p-2.5">
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded capitalize ${c.inventory_status === "available" ? "bg-emerald-100 text-emerald-800" : c.inventory_status === "low_stock" ? "bg-amber-100 text-amber-800" : "bg-rose-100 text-rose-800"}`}>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded capitalize ${c.inventory_status === "available" ? "bg-emerald-100 text-emerald-800" : c.inventory_status === "low_stock" ? "bg-brand-gold-light text-brand-gold-dark" : "bg-rose-100 text-rose-800"}`}>
                           {c.inventory_status || "available"}
                         </span>
                       </td>
                       <td className="p-2.5 font-mono">{c.load_pct ?? 0}%</td>
-                      <td className="p-2.5 font-bold text-amber-600 font-mono text-sm">{c.total_score ?? 0} pts</td>
+                      <td className="p-2.5 font-bold text-brand-gold font-mono text-sm">{c.total_score ?? 0} pts</td>
                       <td className="p-2.5 font-bold text-emerald-600 font-mono">₹{c.delivery_charge ?? 0}</td>
                     </tr>
                   ))}

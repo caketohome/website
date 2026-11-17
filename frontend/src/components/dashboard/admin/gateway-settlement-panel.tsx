@@ -132,7 +132,7 @@ const STATUS_CONFIG: Record<
   },
   APPROVED: {
     label: "Approved",
-    badge: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200 dark:border-amber-800",
+    badge: "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold/40 border-brand-gold/40 dark:border-brand-gold-dark",
     icon: CheckCircle2,
   },
   POSTED: {
@@ -576,7 +576,7 @@ export default function GatewaySettlementPanel() {
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Gross Volume
             </span>
-            <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+            <div className="p-2 rounded-lg bg-brand-light dark:bg-brand-navy/50 text-brand-primary dark:text-brand-primary">
               <CreditCard className="w-4 h-4" />
             </div>
           </div>
@@ -608,11 +608,11 @@ export default function GatewaySettlementPanel() {
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               MDR Fees & Tax
             </span>
-            <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400">
+            <div className="p-2 rounded-lg bg-brand-gold-light dark:bg-brand-gold-dark/50 text-brand-gold dark:text-brand-gold">
               <Receipt className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-2">
+          <div className="text-2xl font-black text-brand-gold dark:text-brand-gold mt-2">
             ₹{kpis.totalMdr.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">Dr 5290 Payment Gateway MDR</div>
@@ -807,7 +807,7 @@ export default function GatewaySettlementPanel() {
                         ₹{Number(batch.gross_amount).toFixed(2)}
                       </td>
 
-                      <td className="py-3.5 px-4 text-right font-medium text-amber-600 dark:text-amber-400">
+                      <td className="py-3.5 px-4 text-right font-medium text-brand-gold dark:text-brand-gold">
                         ₹{mdrTotal.toFixed(2)}
                       </td>
 
@@ -836,7 +836,7 @@ export default function GatewaySettlementPanel() {
                             title={batch.approved_by ? `Approved by: ${batch.approved_by}` : "Pending Approval"}
                             className={`px-1.5 py-0.5 rounded font-mono ${
                               batch.approved_by
-                                ? "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300"
+                                ? "bg-brand-gold-light dark:bg-brand-gold-dark text-brand-gold-dark dark:text-brand-gold/40"
                                 : "bg-slate-100 dark:bg-slate-800 text-slate-400"
                             }`}
                           >
@@ -944,12 +944,12 @@ export default function GatewaySettlementPanel() {
                           <div className="text-sm font-bold mt-0.5">₹{selectedMath.gross.toFixed(2)}</div>
                         </div>
                         <div>
-                          <div className="text-[10px] text-amber-300 uppercase">- Fee (₹)</div>
-                          <div className="text-sm font-bold text-amber-300 mt-0.5">₹{selectedMath.fee.toFixed(2)}</div>
+                          <div className="text-[10px] text-brand-gold/40 uppercase">- Fee (₹)</div>
+                          <div className="text-sm font-bold text-brand-gold/40 mt-0.5">₹{selectedMath.fee.toFixed(2)}</div>
                         </div>
                         <div>
-                          <div className="text-[10px] text-amber-300 uppercase">- Tax (₹)</div>
-                          <div className="text-sm font-bold text-amber-300 mt-0.5">₹{selectedMath.tax.toFixed(2)}</div>
+                          <div className="text-[10px] text-brand-gold/40 uppercase">- Tax (₹)</div>
+                          <div className="text-sm font-bold text-brand-gold/40 mt-0.5">₹{selectedMath.tax.toFixed(2)}</div>
                         </div>
                         <div>
                           <div className="text-[10px] text-rose-300 uppercase">- Other (₹)</div>
@@ -1017,7 +1017,7 @@ export default function GatewaySettlementPanel() {
                     {/* SoD Governance Card */}
                     <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
                       <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
-                        <Lock className="w-4 h-4 text-amber-500" />
+                        <Lock className="w-4 h-4 text-brand-gold" />
                         <span>3-Tier Segregation of Duties</span>
                       </div>
                       <div className="space-y-1.5 text-xs">
@@ -1030,7 +1030,7 @@ export default function GatewaySettlementPanel() {
                         <div className="flex justify-between items-center">
                           <span className="text-slate-400">2. Approved By:</span>
                           {selectedBatch.approved_by ? (
-                            <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 font-bold">
+                            <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold/40 font-bold">
                               {selectedBatch.approved_by}
                             </span>
                           ) : (
@@ -1138,10 +1138,10 @@ export default function GatewaySettlementPanel() {
                                   <td className="py-2.5 px-3 text-right font-medium text-slate-900 dark:text-white">
                                     ₹{Number(ord.allocated_gross_amount).toFixed(2)}
                                   </td>
-                                  <td className="py-2.5 px-3 text-right text-amber-600 dark:text-amber-400 font-medium">
+                                  <td className="py-2.5 px-3 text-right text-brand-gold dark:text-brand-gold font-medium">
                                     ₹{Number(ord.identified_fee_amount).toFixed(2)}
                                   </td>
-                                  <td className="py-2.5 px-3 text-right text-amber-600 dark:text-amber-400 font-medium">
+                                  <td className="py-2.5 px-3 text-right text-brand-gold dark:text-brand-gold font-medium">
                                     ₹{Number(ord.reported_tax_amount).toFixed(2)}
                                   </td>
                                   <td className="py-2.5 px-3 text-right font-bold text-emerald-600 dark:text-emerald-400">
@@ -1244,7 +1244,7 @@ export default function GatewaySettlementPanel() {
                   {detailSubTab === "exceptions" && (
                     <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-3">
                       <div className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                        <AlertTriangle className="w-4 h-4 text-amber-500" />
+                        <AlertTriangle className="w-4 h-4 text-brand-gold" />
                         <span>Deductions, Holdbacks & Variance Audit</span>
                       </div>
                       <div className="space-y-2 text-xs">
@@ -1298,7 +1298,7 @@ export default function GatewaySettlementPanel() {
                   <button
                     type="button"
                     onClick={() => handleApproveBatch(selectedBatch.id)}
-                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 active:bg-amber-800 rounded-xl shadow-xs transition-colors"
+                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-brand-gold hover:bg-brand-gold-dark active:bg-brand-gold-dark rounded-xl shadow-xs transition-colors"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Approve Batch</span>
@@ -1481,7 +1481,7 @@ export default function GatewaySettlementPanel() {
                     placeholder="0.00"
                     value={ingestForm.identified_fee_amount}
                     onChange={(e) => setIngestForm({ ...ingestForm, identified_fee_amount: e.target.value })}
-                    className="w-full py-1.5 px-2.5 text-xs font-bold text-amber-600 dark:text-amber-400 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full py-1.5 px-2.5 text-xs font-bold text-brand-gold dark:text-brand-gold bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
@@ -1496,7 +1496,7 @@ export default function GatewaySettlementPanel() {
                     placeholder="0.00"
                     value={ingestForm.reported_tax_amount}
                     onChange={(e) => setIngestForm({ ...ingestForm, reported_tax_amount: e.target.value })}
-                    className="w-full py-1.5 px-2.5 text-xs font-bold text-amber-600 dark:text-amber-400 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full py-1.5 px-2.5 text-xs font-bold text-brand-gold dark:text-brand-gold bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 

@@ -125,10 +125,10 @@ export const FeatureFlagsPanel = memo(function FeatureFlagsPanel() {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 border border-sky-900/40 text-white shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-brand-navy to-slate-900 border border-brand-navy/40 text-white shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30">
+            <span className="p-2 rounded-xl bg-brand-primary/20 text-brand-primary border border-brand-primary/30">
               <Sliders className="w-5 h-5" />
             </span>
             <Heading level="h2" className="text-xl font-bold tracking-tight text-white">
@@ -211,7 +211,7 @@ export const FeatureFlagsPanel = memo(function FeatureFlagsPanel() {
                       <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
                         {flag.name}
                         {flag.is_system_mandatory && (
-                          <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          <Lock className="w-3.5 h-3.5 text-brand-gold shrink-0" />
                         )}
                       </div>
                       <div className="text-[11px] text-slate-500 font-mono">{flag.key}</div>
@@ -227,7 +227,7 @@ export const FeatureFlagsPanel = memo(function FeatureFlagsPanel() {
                     <td className="py-3 px-4 text-slate-500">{flag.category}</td>
                     <td className="py-3 px-4 text-center">
                       {flag.is_system_mandatory ? (
-                        <span className="text-[10px] font-bold text-amber-500 px-2 py-0.5 bg-amber-500/10 rounded-full border border-amber-500/20">
+                        <span className="text-[10px] font-bold text-brand-gold px-2 py-0.5 bg-brand-gold/10 rounded-full border border-brand-gold/20">
                           MANDATORY
                         </span>
                       ) : (
@@ -282,7 +282,7 @@ export const FeatureFlagsPanel = memo(function FeatureFlagsPanel() {
       {/* Audit History Log */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
-          <History className="w-4 h-4 text-sky-500" />
+          <History className="w-4 h-4 text-brand-primary" />
           <Text className="text-sm font-semibold text-slate-800 dark:text-slate-200">
             Immutable Feature Flag Audit Log
           </Text>
@@ -345,7 +345,7 @@ export const FeatureFlagsPanel = memo(function FeatureFlagsPanel() {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-md w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <Heading level="h3" className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Sliders className="w-5 h-5 text-sky-500" />
+                <Sliders className="w-5 h-5 text-brand-primary" />
                 Confirm Feature State Change
               </Heading>
               <button
@@ -364,7 +364,7 @@ export const FeatureFlagsPanel = memo(function FeatureFlagsPanel() {
               <div className="mt-2 text-slate-600 dark:text-slate-300">
                 Action: Switching from{" "}
                 <span className="font-bold">{toggleTarget.is_enabled ? "ENABLED" : "DISABLED"}</span> to{" "}
-                <span className="font-bold text-sky-500">{!toggleTarget.is_enabled ? "ENABLED" : "DISABLED"}</span>
+                <span className="font-bold text-brand-primary">{!toggleTarget.is_enabled ? "ENABLED" : "DISABLED"}</span>
               </div>
             </div>
 
@@ -393,7 +393,7 @@ export const FeatureFlagsPanel = memo(function FeatureFlagsPanel() {
                 type="button"
                 variant="primary"
                 onClick={handleConfirmToggle}
-                className="bg-sky-600 hover:bg-sky-500 text-white"
+                className="bg-brand-primary hover:bg-brand-primary text-white"
                 disabled={submittingToggle}
               >
                 Confirm & Commit Toggle

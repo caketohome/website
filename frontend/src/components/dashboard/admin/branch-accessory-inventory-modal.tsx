@@ -51,12 +51,12 @@ export function BranchAccessoryInventoryModal({ branch, onClose }: BranchAccesso
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col my-8">
         {/* Header */}
-        <div className="p-5 border-b bg-purple-50/70 dark:bg-purple-950/40 flex items-center justify-between">
+        <div className="p-5 border-b bg-brand-light/70 dark:bg-brand-navy/40 flex items-center justify-between">
           <div>
-            <Heading level="h3" className="text-base font-bold flex items-center gap-2 text-purple-900 dark:text-purple-200">
-              <ShoppingBag className="w-5 h-5 text-purple-600" /> Branch Accessory Physical Inventory Tracker
+            <Heading level="h3" className="text-base font-bold flex items-center gap-2 text-brand-navy dark:text-brand-primary/30">
+              <ShoppingBag className="w-5 h-5 text-brand-primary" /> Branch Accessory Physical Inventory Tracker
             </Heading>
-            <Text className="text-xs text-purple-700 dark:text-purple-300">
+            <Text className="text-xs text-brand-navy dark:text-brand-primary/30">
               Hub: <span className="font-bold">{branch.name}</span> ({branch.code}) • Track physical stock, reserved items, low stock alerts & stock transfers.
             </Text>
           </div>
@@ -113,7 +113,7 @@ export function BranchAccessoryInventoryModal({ branch, onClose }: BranchAccesso
                       </div>
                       <div>
                         <span className="text-[10px] text-slate-400 block font-semibold">Reserved (Active Orders)</span>
-                        <span className="font-extrabold text-sm text-amber-600">{bStock.reserved_stock}</span>
+                        <span className="font-extrabold text-sm text-brand-gold">{bStock.reserved_stock}</span>
                       </div>
                       <div>
                         <span className="text-[10px] text-slate-400 block font-semibold">Net Available</span>
@@ -127,8 +127,8 @@ export function BranchAccessoryInventoryModal({ branch, onClose }: BranchAccesso
 
                     {/* Adjust Form */}
                     {isAdjusting ? (
-                      <div className="p-3 bg-purple-50 dark:bg-purple-950/30 rounded-xl border border-purple-200 space-y-3">
-                        <div className="flex items-center justify-between font-bold text-purple-900 dark:text-purple-200">
+                      <div className="p-3 bg-brand-light dark:bg-brand-navy/30 rounded-xl border border-brand-primary/30 space-y-3">
+                        <div className="flex items-center justify-between font-bold text-brand-navy dark:text-brand-primary/30">
                           <span>Adjust Stock for "{acc.name}"</span>
                           <Button size="small" variant="transparent" onClick={() => setAdjustingId(null)}>Cancel</Button>
                         </div>
@@ -161,7 +161,7 @@ export function BranchAccessoryInventoryModal({ branch, onClose }: BranchAccesso
                     ) : (
                       <div className="flex justify-end">
                         <Button size="small" variant="secondary" onClick={() => setAdjustingId(acc.id)} className="font-bold text-xs">
-                          <ArrowRightLeft className="w-3.5 h-3.5 mr-1 text-purple-600" /> Stock Adjustment / Transfer
+                          <ArrowRightLeft className="w-3.5 h-3.5 mr-1 text-brand-primary" /> Stock Adjustment / Transfer
                         </Button>
                       </div>
                     )}

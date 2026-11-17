@@ -18,23 +18,22 @@ const ScrollFrameHero = dynamic(
   {
     ssr: false,
     loading: () => (
-      <section className="relative w-full min-h-[500px] flex items-center justify-center overflow-hidden bg-[#07090E] text-white">
-        <div className="absolute inset-0 bg-gradient-to-t from-[#07090E]/95 via-[#1D2F5D]/30 to-[#07090E]/80 pointer-events-none" />
+      <section className="relative w-full min-h-[500px] flex items-center justify-center overflow-hidden bg-brand-warm-white text-brand-navy">
         <div className="relative z-10 p-6 sm:p-12 max-w-3xl flex flex-col items-center text-center gap-4">
-          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-1 shadow-xl bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/35">
-            <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-1 bg-brand-gold-light text-brand-gold-dark border border-brand-gold/30">
+            <Sparkles className="w-3.5 h-3.5 text-brand-gold" />
             Artisanal Cakes • Express Delivery
           </span>
-          <Heading level="h1" className="font-serif text-3xl sm:text-5xl md:text-6xl font-normal sm:font-semibold tracking-[-0.025em] leading-[1.1] text-[#FAF9F6] drop-shadow-2xl">
+          <Heading level="h1" className="font-serif text-3xl sm:text-5xl md:text-6xl font-normal sm:font-semibold tracking-[-0.025em] leading-[1.1] text-brand-navy">
             Freshly Baked Happiness
           </Heading>
-          <Text className="font-sans text-sm sm:text-base text-stone-200/90 max-w-xl font-normal leading-relaxed drop-shadow-sm">
+          <Text className="font-sans text-sm sm:text-base text-brand-text-muted max-w-xl font-normal leading-relaxed">
             Handcrafted gourmet cakes, chocolates, and pastries baked fresh from scratch and delivered to your doorstep.
           </Text>
           <div className="flex items-center gap-3 pt-2">
             <Link
               href="/search"
-              className="rounded-full px-8 py-3.5 font-sans font-medium text-xs sm:text-sm uppercase tracking-[0.15em] bg-[#D4AF37] hover:bg-[#c59e2b] text-[#07090E] shadow-[0_10px_30px_rgba(212,175,55,0.3)] transition-all flex items-center gap-1.5"
+              className="rounded-lg px-7 py-3.5 font-sans font-semibold text-xs sm:text-sm uppercase tracking-[0.12em] bg-brand-navy hover:bg-brand-primary text-white shadow-sm transition-colors flex items-center gap-1.5"
             >
               Explore Cakes <ArrowRight className="w-4 h-4 ml-1" />
             </Link>
@@ -284,7 +283,7 @@ function CarouselContainer({
             type="button"
             onClick={() => scroll("left")}
             aria-label="Scroll left"
-            className="absolute -left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/95 dark:bg-ui-bg-base shadow-lg border border-ui-border-base flex items-center justify-center text-ui-fg-base hover:bg-brand-gold-soft hover:text-[#1D2F5D] transition-all opacity-0 group-hover:opacity-100 z-20 cursor-pointer"
+            className="absolute -left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/95 dark:bg-ui-bg-base shadow-lg border border-ui-border-base flex items-center justify-center text-ui-fg-base hover:bg-brand-gold-soft hover:text-brand-navy transition-all opacity-0 group-hover:opacity-100 z-20 cursor-pointer"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -292,7 +291,7 @@ function CarouselContainer({
             type="button"
             onClick={() => scroll("right")}
             aria-label="Scroll right"
-            className="absolute -right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/95 dark:bg-ui-bg-base shadow-lg border border-ui-border-base flex items-center justify-center text-ui-fg-base hover:bg-brand-gold-soft hover:text-[#1D2F5D] transition-all opacity-0 group-hover:opacity-100 z-20 cursor-pointer"
+            className="absolute -right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/95 dark:bg-ui-bg-base shadow-lg border border-ui-border-base flex items-center justify-center text-ui-fg-base hover:bg-brand-gold-soft hover:text-brand-navy transition-all opacity-0 group-hover:opacity-100 z-20 cursor-pointer"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -313,7 +312,7 @@ function CarouselContainer({
                 container.scrollTo({ left: dotIdx * cardWidth, behavior: "smooth" });
               }}
               className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                activeIndex === dotIdx ? "w-6 bg-[#D4AF37]" : "w-1.5 bg-ui-border-base hover:bg-ui-fg-muted"
+                activeIndex === dotIdx ? "w-6 bg-brand-gold" : "w-1.5 bg-ui-border-base hover:bg-ui-fg-muted"
               }`}
               aria-label={`Go to slide ${dotIdx + 1}`}
             />
@@ -362,7 +361,7 @@ function BeforeAfterSlider({
 
       {/* Draggable Divider line */}
       <div className="absolute top-0 bottom-0 z-20 w-1 bg-white shadow-xl cursor-ew-resize flex items-center justify-center" style={{ left: `calc(${sliderPos}% - 2px)` }}>
-        <div className="w-8 h-8 rounded-full bg-white text-[#1D2F5D] shadow-xl flex items-center justify-center text-xs font-black">
+        <div className="w-8 h-8 rounded-full bg-white text-brand-navy shadow-xl flex items-center justify-center text-xs font-black">
           ⇄
         </div>
       </div>
@@ -467,8 +466,8 @@ function InteractiveLeadForm({
           <div className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xl shadow-md">
             ✓
           </div>
-          <h3 className="font-bold text-sm text-emerald-800 dark:text-emerald-300">Enquiry Confirmed!</h3>
-          <p className="text-xs text-emerald-700 dark:text-emerald-400 max-w-md">{successMsg}</p>
+          <h3 className="font-bold text-sm text-emerald-800 dark:text-[#16834A]">Enquiry Confirmed!</h3>
+          <p className="text-xs text-emerald-700 dark:text-[#16834A] max-w-md">{successMsg}</p>
           <span className="text-[11px] font-mono font-semibold bg-white dark:bg-ui-bg-base px-3 py-1 rounded-lg border border-emerald-300 mt-2 text-emerald-800">
             Ref ID: {referenceId}
           </span>
@@ -490,7 +489,7 @@ function InteractiveLeadForm({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Priya Sharma"
-                className="w-full px-3 py-2 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
+                className="w-full px-3 py-2 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-brand-gold/50"
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -501,7 +500,7 @@ function InteractiveLeadForm({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+91 98765 43210"
-                className="w-full px-3 py-2 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
+                className="w-full px-3 py-2 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-brand-gold/50"
               />
             </div>
           </div>
@@ -513,7 +512,7 @@ function InteractiveLeadForm({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="priya@example.com"
-                className="w-full px-3 py-2 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
+                className="w-full px-3 py-2 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-brand-gold/50"
               />
             </div>
           )}
@@ -525,7 +524,7 @@ function InteractiveLeadForm({
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
                 placeholder="Cake flavour, size (kg), date of celebration, delivery area..."
-                className="w-full px-3 py-2 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
+                className="w-full px-3 py-2 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-brand-gold/50"
               />
             </div>
           )}
@@ -534,7 +533,7 @@ function InteractiveLeadForm({
             size="large"
             variant="primary"
             disabled={status === "loading"}
-            className="rounded-xl font-bold bg-[#1D2F5D] hover:bg-[#152347] text-white mt-1"
+            className="rounded-xl font-bold bg-brand-navy hover:bg-brand-deep text-white mt-1"
           >
             {status === "loading" ? (
               <span className="flex items-center gap-2">Submitting...</span>
@@ -605,20 +604,20 @@ function PincodeServiceabilityWidget({
           value={pincode}
           onChange={(e) => setPincode(e.target.value)}
           placeholder="e.g. 560038"
-          className="flex-1 px-4 py-2.5 text-sm font-mono font-bold bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
+          className="flex-1 px-4 py-2.5 text-sm font-mono font-bold bg-ui-bg-subtle border border-ui-border-base rounded-xl outline-none focus:ring-2 focus:ring-brand-gold/50"
           onKeyDown={(e) => { if (e.key === "Enter") handleCheck(); }}
         />
-        <Button onClick={handleCheck} variant="primary" className="bg-[#1D2F5D] hover:bg-[#152347] text-white rounded-xl font-bold">
+        <Button onClick={handleCheck} variant="primary" className="bg-brand-navy hover:bg-brand-deep text-white rounded-xl font-bold">
           Check Speed
         </Button>
       </div>
       {error && <p className="text-xs text-red-600 font-semibold">{error}</p>}
       {result && (
-        <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 text-xs flex flex-col gap-1 text-emerald-800 dark:text-emerald-300 animate-in fade-in">
+        <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 text-xs flex flex-col gap-1 text-emerald-800 dark:text-[#16834A] animate-in fade-in">
           <div className="flex items-center gap-1.5 font-bold">
             <span>⚡ {result.speed}</span>
           </div>
-          <p className="text-[11px] text-emerald-700 dark:text-emerald-400">Nearest Kitchen: {result.hub}</p>
+          <p className="text-[11px] text-emerald-700 dark:text-[#16834A]">Nearest Kitchen: {result.hub}</p>
           <p className="text-[11px] text-emerald-600 font-semibold">🕒 {result.cutoff}</p>
         </div>
       )}
@@ -656,19 +655,19 @@ function DeliveryTimeSlotPicker({
             key={s.id}
             onClick={() => setSelectedSlot(s.id)}
             className={`p-3.5 rounded-2xl border cursor-pointer flex items-center justify-between transition-all ${
-              selectedSlot === s.id ? "bg-brand-gold-soft dark:bg-[#D4AF37]/10 border-[#D4AF37] shadow-sm" : "hover:bg-ui-bg-subtle border-ui-border-base"
+              selectedSlot === s.id ? "bg-brand-gold-soft dark:bg-brand-gold/10 border-brand-gold shadow-sm" : "hover:bg-ui-bg-subtle border-ui-border-base"
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectedSlot === s.id ? "border-[#D4AF37]" : "border-ui-border-base"}`}>
-                {selectedSlot === s.id && <div className="w-2 h-2 rounded-full bg-[#D4AF37]" />}
+              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectedSlot === s.id ? "border-brand-gold" : "border-ui-border-base"}`}>
+                {selectedSlot === s.id && <div className="w-2 h-2 rounded-full bg-brand-gold" />}
               </div>
               <div className="flex flex-col">
                 <span className="text-xs font-bold text-ui-fg-base">{s.name}</span>
                 <span className="text-[10px] text-ui-fg-muted">{s.time}</span>
               </div>
             </div>
-            <span className="text-xs font-black text-[#1D2F5D] dark:text-[#D4AF37]">{s.fee}</span>
+            <span className="text-xs font-black text-brand-navy dark:text-brand-gold">{s.fee}</span>
           </div>
         ))}
       </div>
@@ -695,7 +694,7 @@ function StoreBranchLocator({
   return (
     <div className="w-full max-w-3xl mx-auto p-6 sm:p-8 rounded-3xl bg-ui-bg-base border border-ui-border-base shadow-lg flex flex-col gap-5">
       <div className="text-center flex flex-col gap-1">
-        <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">Live Hubs</span>
+        <span className="text-xs font-bold text-brand-gold uppercase tracking-wider">Live Hubs</span>
         <h3 className="text-xl font-bold text-ui-fg-base">{heading}</h3>
       </div>
       <div className="flex flex-wrap gap-2 justify-center">
@@ -704,7 +703,7 @@ function StoreBranchLocator({
             key={b.id}
             onClick={() => setSelectedBranch(b.id)}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all border ${
-              selectedBranch === b.id ? "bg-[#1D2F5D] text-white border-[#1D2F5D] shadow-md" : "bg-ui-bg-subtle text-ui-fg-muted border-ui-border-base hover:text-ui-fg-base"
+              selectedBranch === b.id ? "bg-brand-navy text-white border-brand-navy shadow-md" : "bg-ui-bg-subtle text-ui-fg-muted border-ui-border-base hover:text-ui-fg-base"
             }`}
           >
             {b.name.split(" ")[0]} Hub
@@ -718,15 +717,15 @@ function StoreBranchLocator({
           </span>
           <h4 className="font-bold text-sm text-ui-fg-base">{cur.name}</h4>
           <p className="text-xs text-ui-fg-muted flex items-center justify-center sm:justify-start gap-1">
-            <MapPin className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" /> {cur.addr}
+            <MapPin className="w-3.5 h-3.5 text-brand-gold shrink-0" /> {cur.addr}
           </p>
           <p className="text-xs text-ui-fg-muted flex items-center justify-center sm:justify-start gap-1">
-            <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" /> {cur.hours}
+            <Clock className="w-3.5 h-3.5 text-brand-gold shrink-0" /> {cur.hours}
           </p>
         </div>
         <a
           href={`tel:${cur.phone}`}
-          className="px-4 py-2.5 rounded-xl bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold text-xs flex items-center gap-2 shadow whitespace-nowrap"
+          className="px-4 py-2.5 rounded-xl bg-brand-navy hover:bg-brand-deep text-white font-bold text-xs flex items-center gap-2 shadow whitespace-nowrap"
         >
           <Phone className="w-3.5 h-3.5" /> Call Hub ({cur.phone})
         </a>
@@ -755,7 +754,7 @@ function ProductComparisonTable({
   return (
     <div className="w-full max-w-5xl mx-auto p-6 rounded-3xl bg-ui-bg-base border border-ui-border-base shadow-md flex flex-col gap-6 overflow-x-auto">
       <div className="text-center flex flex-col gap-1">
-        <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">Comparison</span>
+        <span className="text-xs font-bold text-brand-gold uppercase tracking-wider">Comparison</span>
         <h3 className="text-2xl font-bold text-ui-fg-base">{heading}</h3>
         <p className="text-xs text-ui-fg-muted">{subheading}</p>
       </div>
@@ -772,7 +771,7 @@ function ProductComparisonTable({
           <tr>
             <td className="p-3 font-semibold text-ui-fg-muted">Starting Price</td>
             {items.map((it, i) => (
-              <td key={i} className="p-3 font-black text-[#1D2F5D] dark:text-[#D4AF37] text-sm">{it.price}</td>
+              <td key={i} className="p-3 font-black text-brand-navy dark:text-brand-gold text-sm">{it.price}</td>
             ))}
           </tr>
           <tr>
@@ -785,7 +784,7 @@ function ProductComparisonTable({
           <tr>
             <td className="p-3 font-semibold text-ui-fg-muted">Preparation & Delivery</td>
             {items.map((it, i) => (
-              <td key={i} className="p-3 text-amber-600 font-semibold">⚡ {it.prep}</td>
+              <td key={i} className="p-3 text-brand-gold font-semibold">⚡ {it.prep}</td>
             ))}
           </tr>
           <tr>
@@ -799,7 +798,7 @@ function ProductComparisonTable({
             {items.map((_, i) => (
               <td key={i} className="p-3">
                 <Link href="/products">
-                  <Button size="small" variant="primary" className="bg-[#1D2F5D] hover:bg-[#152347] text-white rounded-lg text-xs font-bold border border-[#D4AF37]/30 shadow-xs">
+                  <Button size="small" variant="primary" className="bg-brand-navy hover:bg-brand-deep text-white rounded-lg text-xs font-bold border border-brand-gold/30 shadow-xs">
                     View Product
                   </Button>
                 </Link>
@@ -839,7 +838,7 @@ export function PageRenderer({
   const isLuxuryTheme =
     theme?.card_style === "luxury" ||
     (typeof theme?.bg_color === "string" && (theme.bg_color.includes("142040") || theme.bg_color.includes("0c1326") || theme.bg_color.includes("gradient"))) ||
-    theme?.text_color === "#FAF9F6" ||
+    theme?.text_color === "#FFFCF8" ||
     (typeof theme?.heading_font === "string" && theme.heading_font.includes("Playfair"));
 
   return (
@@ -851,13 +850,13 @@ export function PageRenderer({
         color: theme?.text_color || "inherit",
         fontFamily: theme?.font_family && theme.font_family !== "inherit" ? theme.font_family : undefined,
         ["--theme-primary" as any]: theme?.accent_color || "#1D2F5D",
-        ["--theme-secondary" as any]: theme?.heading_color || "#07090E",
-        ["--theme-accent" as any]: theme?.accent_color || "#D4AF37",
-        ["--theme-background" as any]: theme?.bg_color || "#FDFBF7",
+        ["--theme-secondary" as any]: theme?.heading_color || "#152347",
+        ["--theme-accent" as any]: theme?.accent_color || "#C28A2C",
+        ["--theme-background" as any]: theme?.bg_color || "#FFFCF8",
         ["--theme-surface" as any]: "#FFFFFF",
-        ["--theme-text" as any]: theme?.text_color || "#07090E",
-        ["--theme-muted" as any]: "#64748B",
-        ["--theme-border" as any]: "#E2E8F0",
+        ["--theme-text" as any]: theme?.text_color || "#152347",
+        ["--theme-muted" as any]: "#6B7280",
+        ["--theme-border" as any]: "#E5E7EB",
         ["--theme-heading-font" as any]: theme?.heading_font && theme.heading_font !== "inherit" ? theme.heading_font : "inherit",
         ["--theme-body-font" as any]: theme?.font_family && theme.font_family !== "inherit" ? theme.font_family : "inherit",
         ["--theme-button-radius" as any]: theme?.border_radius || "12px",
@@ -866,11 +865,14 @@ export function PageRenderer({
     >
       {/* Dynamic Edge-to-Edge Announcement Bar */}
       {announcementBar && announcementBar.enabled !== false && (
-        <AnnouncementBarSection
-          sectionId="page_announcement_bar"
-          config={announcementBar}
-          isPreview={isPreview}
-        />
+        // -mb-10 cancels the section gap so the bar sits flush on the hero (no empty strip).
+        <div className="-mb-10">
+          <AnnouncementBarSection
+            sectionId="page_announcement_bar"
+            config={announcementBar}
+            isPreview={isPreview}
+          />
+        </div>
       )}
 
       {/* Optional Page Heading for Static / Landing Pages (only when no Hero banner is active) */}
@@ -1120,7 +1122,7 @@ export function PageRenderer({
                         <span
                           className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] font-semibold tracking-wider uppercase shadow-sm ${
                             isLuxuryTheme
-                              ? "bg-[#142040]/70 backdrop-blur-md text-[#D4AF37] border border-[#D4AF37]/30"
+                              ? "bg-brand-navy/70 backdrop-blur-md text-brand-gold border border-brand-gold/30"
                               : "bg-white/20 backdrop-blur-md text-white"
                           }`}
                           style={{
@@ -1128,10 +1130,10 @@ export function PageRenderer({
                             color: config.badge_color || undefined,
                           }}
                         >
-                          <Sparkles className={`w-3.5 h-3.5 ${isLuxuryTheme ? "text-[#D4AF37]" : "text-amber-300"}`} /> {badgeText}
+                          <Sparkles className={`w-3.5 h-3.5 ${isLuxuryTheme ? "text-brand-gold" : "text-brand-gold/40"}`} /> {badgeText}
                         </span>
                       )}
-                      <h1 className={`text-3xl sm:text-5xl lg:text-6xl tracking-tight drop-shadow-md leading-tight ${isLuxuryTheme ? "font-serif font-normal text-[#FAF9F6]" : "font-extrabold text-white"}`}>
+                      <h1 className={`text-3xl sm:text-5xl lg:text-6xl tracking-tight drop-shadow-md leading-tight ${isLuxuryTheme ? "font-serif font-normal text-brand-warm-white" : "font-extrabold text-white"}`}>
                         {headline}
                       </h1>
                       {subheadline && (
@@ -1147,8 +1149,8 @@ export function PageRenderer({
                               size="large"
                               className={
                                 isLuxuryTheme
-                                  ? "bg-[#D4AF37]/20 hover:bg-[#D4AF37] text-[#FAF9F6] hover:text-[#0c1326] font-sans rounded-full px-8 py-3.5 text-[13px] uppercase tracking-[0.15em] font-medium transition-all duration-500 shadow-[0_20px_50px_rgba(20,32,64,0.35)] border border-[#D4AF37]/40"
-                                  : "bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold shadow-lg shadow-[#1D2F5D]/30 px-6 py-2.5 rounded-xl border-none"
+                                  ? "bg-brand-gold/20 hover:bg-brand-gold text-brand-warm-white hover:text-brand-deep font-sans rounded-full px-8 py-3.5 text-[13px] uppercase tracking-[0.15em] font-medium transition-all duration-500 shadow-[0_20px_50px_rgba(20,32,64,0.35)] border border-brand-gold/40"
+                                  : "bg-brand-navy hover:bg-brand-deep text-white font-bold shadow-lg shadow-brand-navy/30 px-6 py-2.5 rounded-xl border-none"
                               }
                               style={!isLuxuryTheme ? {
                                 backgroundColor: config.cta_primary_bg || theme?.accent_color || undefined,
@@ -1166,7 +1168,7 @@ export function PageRenderer({
                               size="large"
                               className={
                                 isLuxuryTheme
-                                  ? "bg-[#142040]/50 hover:bg-[#142040]/80 text-[#FAF9F6] font-sans rounded-full px-8 py-3.5 text-[13px] uppercase tracking-[0.15em] font-medium border border-white/20 backdrop-blur-lg transition-all"
+                                  ? "bg-brand-navy/50 hover:bg-brand-navy/80 text-brand-warm-white font-sans rounded-full px-8 py-3.5 text-[13px] uppercase tracking-[0.15em] font-medium border border-white/20 backdrop-blur-lg transition-all"
                                   : "bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-semibold px-5 py-2.5 rounded-xl border border-white/40"
                               }
                               style={!isLuxuryTheme ? {
@@ -1227,7 +1229,7 @@ export function PageRenderer({
                   <div className="relative z-10 p-6 sm:p-12 max-w-3xl flex flex-col items-center text-center gap-4">
                     {badgeText && (
                       <span className="inline-flex items-center gap-2 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 backdrop-blur-md text-white border border-white/30">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                        <Sparkles className="w-3.5 h-3.5 text-brand-gold/40" />
                         {badgeText}
                       </span>
                     )}
@@ -1239,7 +1241,7 @@ export function PageRenderer({
                     </Text>
                     <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                       <Link href={primaryCtaUrl}>
-                        <Button size="large" className="bg-[#1D2F5D] hover:bg-[#152347] text-white font-extrabold px-8 py-3 rounded-xl shadow-lg border-none">
+                        <Button size="large" className="bg-brand-navy hover:bg-brand-deep text-white font-extrabold px-8 py-3 rounded-xl shadow-lg border-none">
                           {primaryCtaText} →
                         </Button>
                       </Link>
@@ -1331,20 +1333,20 @@ export function PageRenderer({
                   <div className={`${vertAlignClass} gap-8 lg:gap-12 ${stackClass}`}>
                     <div className={`${contentRatioClass} flex flex-col ${alignClasses} gap-4 w-full`}>
                       {eyebrow && (
-                        <span className={isLuxuryTheme ? "font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-semibold block" : "text-xs font-bold tracking-wider uppercase text-[#D4AF37]"}>
+                        <span className={isLuxuryTheme ? "font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-brand-gold font-semibold block" : "text-xs font-bold tracking-wider uppercase text-brand-gold"}>
                           {eyebrow}
                         </span>
                       )}
                       {badgeText && (
                         <span className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold shadow-sm ${
                           isLuxuryTheme
-                            ? "bg-[#0c1326]/80 text-[#D4AF37] border border-[#D4AF37]/40 backdrop-blur-md font-sans uppercase tracking-wider"
-                            : "bg-brand-gold-soft text-[#1D2F5D] border border-[#D4AF37]/30"
+                            ? "bg-brand-deep/80 text-brand-gold border border-brand-gold/40 backdrop-blur-md font-sans uppercase tracking-wider"
+                            : "bg-brand-gold-soft text-brand-navy border border-brand-gold/30"
                         }`}>
                           <Sparkles className="w-3.5 h-3.5" /> {badgeText}
                         </span>
                       )}
-                      <Heading level="h1" className={`text-3xl sm:text-4xl lg:text-5xl leading-tight ${isLuxuryTheme ? "font-serif text-[#FAF9F6] font-normal" : "font-extrabold text-ui-fg-base"}`}>
+                      <Heading level="h1" className={`text-3xl sm:text-4xl lg:text-5xl leading-tight ${isLuxuryTheme ? "font-serif text-brand-warm-white font-normal" : "font-extrabold text-ui-fg-base"}`}>
                         {headline}
                       </Heading>
                       {subheadline && (
@@ -1366,20 +1368,20 @@ export function PageRenderer({
                               key={feat.id || fi}
                               className={`p-2.5 rounded-xl flex items-start gap-2.5 text-left ${
                                 isLuxuryTheme
-                                  ? "bg-[#142040]/30 backdrop-blur-xl border border-white/10"
+                                  ? "bg-brand-navy/30 backdrop-blur-xl border border-white/10"
                                   : "bg-ui-bg-subtle/70 border border-ui-border-base"
                               }`}
                             >
                               <div
                                 className={`p-1.5 rounded-lg shrink-0 flex items-center justify-center ${
-                                  isLuxuryTheme ? "bg-[#0c1326]/60 text-[#D4AF37]" : ""
+                                  isLuxuryTheme ? "bg-brand-deep/60 text-brand-gold" : ""
                                 }`}
                                 style={!isLuxuryTheme ? { backgroundColor: feat.icon_color ? `${feat.icon_color}15` : "#fff1f2", color: feat.icon_color || "#e11d48" } : undefined}
                               >
                                 <Sparkles className="w-4 h-4" />
                               </div>
                               <div className="min-w-0">
-                                <span className={`text-xs block truncate ${isLuxuryTheme ? "font-serif text-[#FAF9F6] font-medium" : "font-bold text-ui-fg-base"}`} style={!isLuxuryTheme ? { color: feat.text_color || undefined } : undefined}>
+                                <span className={`text-xs block truncate ${isLuxuryTheme ? "font-serif text-brand-warm-white font-medium" : "font-bold text-ui-fg-base"}`} style={!isLuxuryTheme ? { color: feat.text_color || undefined } : undefined}>
                                   {feat.title}
                                 </span>
                                 {feat.description && (
@@ -1404,8 +1406,8 @@ export function PageRenderer({
                               size="large"
                               className={
                                 isLuxuryTheme
-                                  ? "bg-[#D4AF37]/20 hover:bg-[#D4AF37] text-[#FAF9F6] hover:text-[#0c1326] font-sans rounded-full px-8 py-3.5 text-[13px] uppercase tracking-[0.15em] font-medium transition-all duration-500 shadow-[0_20px_50px_rgba(20,32,64,0.35)] border border-[#D4AF37]/40"
-                                  : "bg-[#1D2F5D] hover:bg-[#152347] text-white font-extrabold px-6 py-3 rounded-xl shadow-lg border-none"
+                                  ? "bg-brand-gold/20 hover:bg-brand-gold text-brand-warm-white hover:text-brand-deep font-sans rounded-full px-8 py-3.5 text-[13px] uppercase tracking-[0.15em] font-medium transition-all duration-500 shadow-[0_20px_50px_rgba(20,32,64,0.35)] border border-brand-gold/40"
+                                  : "bg-brand-navy hover:bg-brand-deep text-white font-extrabold px-6 py-3 rounded-xl shadow-lg border-none"
                               }
                             >
                               {primaryCta.text} →
@@ -1423,7 +1425,7 @@ export function PageRenderer({
                               variant="secondary"
                               className={
                                 isLuxuryTheme
-                                  ? "bg-[#142040]/50 hover:bg-[#142040]/80 text-[#FAF9F6] font-sans rounded-full px-8 py-3.5 text-[13px] uppercase tracking-[0.15em] font-medium border border-white/20 backdrop-blur-lg transition-all"
+                                  ? "bg-brand-navy/50 hover:bg-brand-navy/80 text-brand-warm-white font-sans rounded-full px-8 py-3.5 text-[13px] uppercase tracking-[0.15em] font-medium border border-white/20 backdrop-blur-lg transition-all"
                                   : "px-6 py-3 rounded-xl font-bold"
                               }
                             >
@@ -1437,7 +1439,7 @@ export function PageRenderer({
                     <div className={`${mediaRatioClass} w-full relative`}>
                       <div className={`relative rounded-3xl overflow-hidden shadow-2xl aspect-[4/3] ${
                         isLuxuryTheme
-                          ? "border border-white/10 bg-[#0c1326]/50 shadow-[0_25px_60px_rgba(12,19,38,0.5)]"
+                          ? "border border-white/10 bg-brand-deep/50 shadow-[0_25px_60px_rgba(12,19,38,0.5)]"
                           : "border border-ui-border-base bg-ui-bg-subtle"
                       }`}>
                         {videoUrl ? (
@@ -1467,14 +1469,14 @@ export function PageRenderer({
                         {showFloatingBadge && (
                           <div className={`absolute bottom-4 left-4 right-4 p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold ${
                             isLuxuryTheme
-                              ? "bg-[#0c1326]/85 backdrop-blur-md border border-white/15 text-[#FAF9F6] shadow-[0_15px_35px_rgba(0,0,0,0.4)]"
+                              ? "bg-brand-deep/85 backdrop-blur-md border border-white/15 text-brand-warm-white shadow-[0_15px_35px_rgba(0,0,0,0.4)]"
                               : "bg-white/90 backdrop-blur-md shadow-lg border border-white/40 text-ui-fg-base"
                           }`}>
                             <span className="flex items-center gap-2">
-                              <Clock className={`w-4 h-4 ${isLuxuryTheme ? "text-[#D4AF37]" : "text-[#D4AF37]"}`} />
+                              <Clock className={`w-4 h-4 ${isLuxuryTheme ? "text-brand-gold" : "text-brand-gold"}`} />
                               <span className={isLuxuryTheme ? "text-[#C5CEE0] font-light text-xs" : ""}>{trustText}</span>
                             </span>
-                            <span className={`flex items-center gap-1 ${isLuxuryTheme ? "text-[#D4AF37] font-semibold" : "text-emerald-600"}`}>{ratingText}</span>
+                            <span className={`flex items-center gap-1 ${isLuxuryTheme ? "text-brand-gold font-semibold" : "text-emerald-600"}`}>{ratingText}</span>
                           </div>
                         )}
                       </div>
@@ -1503,7 +1505,7 @@ export function PageRenderer({
                       {subheadline && <Text className="text-sm sm:text-base text-white/90">{subheadline}</Text>}
                       {ctaText && (
                         <Link href={ctaUrl} className="pt-2">
-                          <Button size="large" className="bg-white hover:bg-white/90 text-[#1D2F5D] font-extrabold px-6 py-2.5 rounded-xl shadow-md border-none">
+                          <Button size="large" className="bg-white hover:bg-white/90 text-brand-navy font-extrabold px-6 py-2.5 rounded-xl shadow-md border-none">
                             {ctaText} →
                           </Button>
                         </Link>
@@ -1531,11 +1533,11 @@ export function PageRenderer({
                       </video>
                     </div>
                     <div className="flex-1 flex flex-col items-start gap-3">
-                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">Artisan Kitchen</span>
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-brand-gold-light text-brand-gold-dark">Artisan Kitchen</span>
                       <Heading level="h2" className="text-2xl sm:text-3xl font-extrabold text-ui-fg-base">{headline}</Heading>
                       <Text className="text-sm text-ui-fg-subtle leading-relaxed">{subheadline}</Text>
                       <Link href={primaryCtaUrl} className="pt-2">
-                        <Button className="bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold rounded-xl px-6 py-2.5">
+                        <Button className="bg-brand-navy hover:bg-brand-deep text-white font-bold rounded-xl px-6 py-2.5">
                           {primaryCtaText} →
                         </Button>
                       </Link>
@@ -1595,10 +1597,10 @@ export function PageRenderer({
                 <Link
                   key={cat.id}
                   href={catHref}
-                  className={`group relative rounded-2xl overflow-hidden aspect-[4/3] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2 ${
+                  className={`group relative rounded-2xl overflow-hidden aspect-[4/3] focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 ${
                     isLuxuryTheme
-                      ? "bg-[#142040]/30 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/50 shadow-[0_20px_50px_rgba(20,32,64,0.35)]"
-                      : "bg-[#07090E] border border-[#1D2F5D]/20 hover:border-[#D4AF37]/50 shadow-lg hover:shadow-xl"
+                      ? "bg-brand-navy/30 backdrop-blur-xl border border-white/10 hover:border-brand-gold/50 shadow-[0_20px_50px_rgba(20,32,64,0.35)]"
+                      : "bg-brand-deep border border-brand-navy/20 hover:border-brand-gold/50 shadow-lg hover:shadow-xl"
                   } transition-all duration-500 flex flex-col justify-end p-5 shrink-0 ${
                     layoutMode === "carousel" ? "w-[240px] sm:w-[280px] snap-start" : ""
                   }`}
@@ -1610,12 +1612,12 @@ export function PageRenderer({
                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#07090E]/95 via-[#1D2F5D]/35 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-brand-deep/95 via-brand-navy/35 to-transparent" />
                   <div className="relative z-10 text-white">
-                    <span className="font-sans text-[10px] uppercase tracking-[0.25em] text-[#D4AF37] font-semibold mb-1 block">
+                    <span className="font-sans text-[10px] uppercase tracking-[0.25em] text-brand-gold font-semibold mb-1 block">
                       Category
                     </span>
-                    <h3 className="font-serif text-base sm:text-lg leading-tight transition-colors text-[#FAF9F6] font-semibold group-hover:text-[#D4AF37]">
+                    <h3 className="font-serif text-base sm:text-lg leading-tight transition-colors text-brand-warm-white font-semibold group-hover:text-brand-gold">
                       {cat.name}
                     </h3>
                     {cat.description && (
@@ -1655,16 +1657,16 @@ export function PageRenderer({
                   />
                   <div className="flex items-center justify-between">
                     <div className="flex flex-col gap-1">
-                      <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-semibold block">
+                      <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-brand-gold font-semibold block">
                         Our Offerings
                       </span>
-                      <Heading level="h2" className="font-serif text-xl sm:text-2xl lg:text-3xl tracking-tight text-[#0F172A] font-bold">
+                      <Heading level="h2" className="font-serif text-xl sm:text-2xl lg:text-3xl tracking-tight text-brand-text font-bold">
                         {heading}
                       </Heading>
-                      {subheading && <Text className="font-sans text-xs sm:text-sm text-[#64748B] font-normal">{subheading}</Text>}
+                      {subheading && <Text className="font-sans text-xs sm:text-sm text-brand-text-muted font-normal">{subheading}</Text>}
                     </div>
                     {config.view_all_url && (
-                      <Link href={config.view_all_url} className="font-sans text-xs font-bold flex items-center gap-1 text-[#0F172A] hover:text-[#1D2F5D] transition-colors">
+                      <Link href={config.view_all_url} className="font-sans text-xs font-bold flex items-center gap-1 text-brand-text hover:text-brand-navy transition-colors">
                         {config.view_all_text || "View All"} <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     )}
@@ -1827,10 +1829,10 @@ export function PageRenderer({
                 if (isPreview) {
                   return (
                     <section className="py-12 px-4 text-center border-2 border-dashed border-ui-border-base rounded-2xl my-6 bg-ui-bg-subtle/40 mx-auto max-w-4xl">
-                      <div className="w-12 h-12 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center mx-auto mb-3 text-xl">
+                      <div className="w-12 h-12 rounded-full bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold flex items-center justify-center mx-auto mb-3 text-xl">
                         🎁
                       </div>
-                      <h3 className="font-bold text-sm text-[#1D2F5D] dark:text-[#D4AF37]">{heading}</h3>
+                      <h3 className="font-bold text-sm text-brand-navy dark:text-brand-gold">{heading}</h3>
                       <p className="text-xs text-ui-fg-muted mt-1 max-w-md mx-auto">
                         No manual occasion cards selected yet. Choose or add occasion cards in the right configuration panel.
                       </p>
@@ -1884,7 +1886,7 @@ export function PageRenderer({
                       <div className="scrapbook-polaroid relative flex flex-col h-full bg-[#FFFFFF]">
                         <span className="scrapbook-tape" />
                         <span className="scrapbook-pin" />
-                        <div className={`relative w-full ${aspectRatio} overflow-hidden rounded-sm mb-3 bg-[#FDFBF7]`}>
+                        <div className={`relative w-full ${aspectRatio} overflow-hidden rounded-sm mb-3 bg-brand-warm-white`}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={cardImg}
@@ -1901,7 +1903,7 @@ export function PageRenderer({
                         <div className="px-1 pb-1">
                           <div className="flex items-center justify-between gap-1">
                             {showTitle && (
-                              <h3 className="font-serif font-bold text-[#1D2F5D] text-base group-hover:text-[#AA771C] transition-colors leading-tight">
+                              <h3 className="font-serif font-bold text-brand-navy text-base group-hover:text-[#AA771C] transition-colors leading-tight">
                                 {cardTitle}
                               </h3>
                             )}
@@ -1924,7 +1926,7 @@ export function PageRenderer({
                     <Link
                       key={cardKey}
                       href={cardHref}
-                      className={`group relative overflow-hidden ${aspectRatio} ${cardRadius} coquette-blush-card transition-all duration-500 flex flex-col justify-end p-5 shrink-0 hover:shadow-[0_15px_35px_rgba(29,47,93,0.2)] hover:border-[#D4AF37]/50 ${
+                      className={`group relative overflow-hidden ${aspectRatio} ${cardRadius} coquette-blush-card transition-all duration-500 flex flex-col justify-end p-5 shrink-0 hover:shadow-[0_15px_35px_rgba(29,47,93,0.2)] hover:border-brand-gold/50 ${
                         isCarousel ? "w-[240px] sm:w-[280px] snap-start" : ""
                       }`}
                     >
@@ -1936,13 +1938,13 @@ export function PageRenderer({
                         style={{ objectFit: imageFit as any, objectPosition: focalPos }}
                         loading="lazy"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#1D2F5D]/95 via-[#0D152B]/50 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/95 via-brand-deep/50 to-transparent" />
                       <div className="relative z-10 text-white">
-                        <span className="inline-flex items-center gap-1 text-[10px] uppercase font-sans tracking-wider px-2.5 py-0.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 mb-1.5 shadow-sm font-semibold">
+                        <span className="inline-flex items-center gap-1 text-[10px] uppercase font-sans tracking-wider px-2.5 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold border border-brand-gold/40 mb-1.5 shadow-sm font-semibold">
                           🎀 Special Occasion
                         </span>
                         {showTitle && (
-                          <h3 className="font-serif text-base sm:text-lg text-[#FAF9F6] font-bold group-hover:text-[#D4AF37] transition-colors leading-tight">
+                          <h3 className="font-serif text-base sm:text-lg text-brand-warm-white font-bold group-hover:text-brand-gold transition-colors leading-tight">
                             {cardTitle}
                           </h3>
                         )}
@@ -1962,7 +1964,7 @@ export function PageRenderer({
                     <Link
                       key={cardKey}
                       href={cardHref}
-                      className={`group relative overflow-hidden ${aspectRatio} ${cardRadius} tenebrism-contrast-card transition-all duration-500 flex flex-col justify-end p-5 shrink-0 hover:border-[#D4AF37]/60 ${
+                      className={`group relative overflow-hidden ${aspectRatio} ${cardRadius} tenebrism-contrast-card transition-all duration-500 flex flex-col justify-end p-5 shrink-0 hover:border-brand-gold/60 ${
                         isCarousel ? "w-[240px] sm:w-[280px] snap-start" : ""
                       }`}
                     >
@@ -1974,13 +1976,13 @@ export function PageRenderer({
                         style={{ objectFit: imageFit as any, objectPosition: focalPos }}
                         loading="lazy"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#07090E] via-[#0D152B]/75 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-brand-deep via-brand-deep/75 to-transparent" />
                       <div className="relative z-10 text-white">
-                        <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#D4AF37] font-semibold mb-1 block">
+                        <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-brand-gold font-semibold mb-1 block">
                           🕯️ Artisanal Spotlight
                         </span>
                         {showTitle && (
-                          <h3 className="font-serif text-base sm:text-lg text-[#FAF9F6] font-medium group-hover:text-[#D4AF37] transition-colors leading-tight">
+                          <h3 className="font-serif text-base sm:text-lg text-brand-warm-white font-medium group-hover:text-brand-gold transition-colors leading-tight">
                             {cardTitle}
                           </h3>
                         )}
@@ -2038,7 +2040,7 @@ export function PageRenderer({
                     <Link
                       key={cardKey}
                       href={cardHref}
-                      className={`group relative overflow-hidden ${aspectRatio} ${cardRadius} bg-[#0D152B]/40 backdrop-blur-xl border border-white/20 hover:border-white/40 shadow-2xl transition-all duration-500 flex flex-col justify-end p-5 shrink-0 ${
+                      className={`group relative overflow-hidden ${aspectRatio} ${cardRadius} bg-brand-deep/40 backdrop-blur-xl border border-white/20 hover:border-white/40 shadow-2xl transition-all duration-500 flex flex-col justify-end p-5 shrink-0 ${
                         isCarousel ? "w-[240px] sm:w-[280px] snap-start" : ""
                       }`}
                     >
@@ -2050,13 +2052,13 @@ export function PageRenderer({
                         style={{ objectFit: imageFit as any, objectPosition: focalPos }}
                         loading="lazy"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0D152B]/90 via-[#0D152B]/40 to-transparent backdrop-blur-[2px]" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-brand-deep/90 via-brand-deep/40 to-transparent backdrop-blur-[2px]" />
                       <div className="relative z-10 text-white">
                         <span className="font-sans text-[10px] uppercase tracking-[0.2em] text-white/80 font-medium mb-1 block">
                           🪟 Frosted Selection
                         </span>
                         {showTitle && (
-                          <h3 className="font-serif text-base sm:text-lg text-white font-medium group-hover:text-[#D4AF37] transition-colors leading-tight">
+                          <h3 className="font-serif text-base sm:text-lg text-white font-medium group-hover:text-brand-gold transition-colors leading-tight">
                             {cardTitle}
                           </h3>
                         )}
@@ -2075,10 +2077,10 @@ export function PageRenderer({
                   <Link
                     key={cardKey}
                     href={cardHref}
-                    className={`group relative overflow-hidden ${aspectRatio} ${cardRadius} focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:ring-offset-2 ${
+                    className={`group relative overflow-hidden ${aspectRatio} ${cardRadius} focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 ${
                       isLuxuryTheme
-                        ? "bg-[#142040]/30 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/50 shadow-[0_20px_50px_rgba(20,32,64,0.35)]"
-                        : "bg-[#07090E] border border-[#1D2F5D]/20 hover:shadow-2xl hover:border-[#D4AF37]/50"
+                        ? "bg-brand-navy/30 backdrop-blur-xl border border-white/10 hover:border-brand-gold/50 shadow-[0_20px_50px_rgba(20,32,64,0.35)]"
+                        : "bg-brand-deep border border-brand-navy/20 hover:shadow-2xl hover:border-brand-gold/50"
                     } transition-all duration-500 flex flex-col justify-end p-5 shrink-0 ${
                       isCarousel ? "w-[240px] sm:w-[280px] snap-start" : ""
                     }`}
@@ -2100,11 +2102,11 @@ export function PageRenderer({
                       }}
                     />
                     <div className="relative z-10 text-white">
-                      <span className="font-sans text-[10px] uppercase tracking-[0.25em] text-[#D4AF37] font-semibold mb-1 block">
+                      <span className="font-sans text-[10px] uppercase tracking-[0.25em] text-brand-gold font-semibold mb-1 block">
                         Celebration
                       </span>
                       {showTitle && (
-                        <h3 className="font-serif text-base sm:text-lg font-semibold text-[#FAF9F6] group-hover:text-[#D4AF37] leading-tight transition-colors drop-shadow-sm">
+                        <h3 className="font-serif text-base sm:text-lg font-semibold text-brand-warm-white group-hover:text-brand-gold leading-tight transition-colors drop-shadow-sm">
                           {cardTitle}
                         </h3>
                       )}
@@ -2122,16 +2124,16 @@ export function PageRenderer({
                 <section key={sectionKey} className="flex flex-col gap-6">
                   <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
                     <div className="flex flex-col gap-1">
-                      <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-semibold block">
+                      <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-brand-gold font-semibold block">
                         {sectionLabel || "Curated Moments"}
                       </span>
-                      <Heading level="h2" className="font-serif text-xl sm:text-2xl lg:text-3xl tracking-tight text-[#1D2F5D] dark:text-[#FAF9F6] font-bold">
+                      <Heading level="h2" className="font-serif text-xl sm:text-2xl lg:text-3xl tracking-tight text-brand-navy dark:text-brand-warm-white font-bold">
                         {heading}
                       </Heading>
                       {subheading && <Text className="font-sans text-xs sm:text-sm text-[#606C88] dark:text-[#C5CEE0] font-normal">{subheading}</Text>}
                     </div>
                     {viewAllUrl && (
-                      <Link href={viewAllUrl} className="font-sans text-xs font-bold flex items-center gap-1 text-[#1D2F5D] dark:text-[#D4AF37] hover:text-[#D4AF37] transition-colors">
+                      <Link href={viewAllUrl} className="font-sans text-xs font-bold flex items-center gap-1 text-brand-navy dark:text-brand-gold hover:text-brand-gold transition-colors">
                         {viewAllText} <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     )}
@@ -2248,10 +2250,10 @@ export function PageRenderer({
               const renderProductCard = (product: any) => {
                 const pid = product.id || product.product_id;
                 const slug = product.slug || product.handle || pid;
-                const price = product.price || product.base_price || 499;
+                const price = Number(product.price || product.base_price) || 0;
                 const originalPrice = product.original_price || product.compare_at_price || price;
-                const rating = product.rating || 4.8;
-                const reviewCount = product.review_count || product.reviews_count || 42;
+                const rating = Number(product.rating) || 0;
+                const reviewCount = Number(product.review_count || product.reviews_count) || 0;
                 const image = product.thumbnail || product.image_url || product.images?.[0]?.url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=600";
                 const flavour = product.flavour || product.metadata?.flavour;
                 const weight = product.weight || product.weights?.[0];
@@ -2261,7 +2263,7 @@ export function PageRenderer({
                     key={pid}
                     data-testid="product-card"
                     data-product-id={pid}
-                    className={`product-card-${sectionKey} group relative overflow-hidden flex flex-col justify-between transition-all duration-300 shrink-0 bg-white border border-[#E2E8F0] hover:border-slate-300 shadow-[0_4px_20px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)] ${
+                    className={`product-card-${sectionKey} group relative overflow-hidden flex flex-col justify-between transition-all duration-300 shrink-0 bg-white border border-brand-border hover:border-slate-300 shadow-[0_4px_20px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)] ${
                       layoutMode === "carousel" ? "w-[240px] sm:w-[280px] snap-start" : ""
                     }`}
                     style={{ borderRadius: cardRadius }}
@@ -2269,12 +2271,12 @@ export function PageRenderer({
                     {/* Stretched Link: Makes entire product card clickable to PDP with accessible focus */}
                     <Link
                       href={`/products/${slug}`}
-                      className="absolute inset-0 z-10 rounded-[inherit] focus:outline-none focus:ring-2 focus:ring-[#0F172A] focus:ring-offset-2"
+                      className="absolute inset-0 z-10 rounded-[inherit] focus:outline-none focus:ring-2 focus:ring-brand-text focus:ring-offset-2"
                       aria-label={`View details for ${product.title}`}
                     />
 
                     {showImage && (
-                      <div className={`product-img-box-${sectionKey} relative w-full overflow-hidden bg-[#F8FAFC]`}>
+                      <div className={`product-img-box-${sectionKey} relative w-full overflow-hidden bg-brand-surface-muted`}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={image}
@@ -2284,7 +2286,7 @@ export function PageRenderer({
                         />
                         {showBadge && (product.is_bestseller || product.is_featured || product.is_new_arrival) && (
                           <div className="absolute top-2.5 left-2.5 pointer-events-none">
-                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-semibold uppercase tracking-wider shadow-xs bg-[#0F172A] text-white">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-semibold uppercase tracking-wider shadow-xs bg-brand-text text-white">
                               {product.is_bestseller ? "Bestseller" : product.is_new_arrival ? "New" : "Featured"}
                             </span>
                           </div>
@@ -2310,11 +2312,11 @@ export function PageRenderer({
                     <div className="p-3.5 sm:p-4 flex flex-col gap-2 flex-1 justify-between">
                       <div className="flex flex-col gap-1.5">
                         <div className="flex items-center gap-2 flex-wrap">
-                          {showRating && (
-                            <div className="flex items-center gap-1 text-[11px] font-semibold text-[#D97706]">
-                              <Star className="w-3 h-3 fill-[#F59E0B] text-[#F59E0B]" />
+                          {showRating && rating > 0 && reviewCount > 0 && (
+                            <div className="flex items-center gap-1 text-[11px] font-semibold text-brand-gold-dark">
+                              <Star className="w-3 h-3 fill-brand-gold text-brand-gold" />
                               <span>{rating}</span>
-                              {showReviewCount && <span className="text-[#64748B] font-normal">({reviewCount})</span>}
+                              {showReviewCount && <span className="text-brand-text-muted font-normal">({reviewCount})</span>}
                             </div>
                           )}
                           {showFlavour && flavour && (
@@ -2323,46 +2325,46 @@ export function PageRenderer({
                             </span>
                           )}
                           {showWeight && weight && (
-                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border text-[#64748B] bg-[#F8FAFC] border-[#E2E8F0]">
+                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border text-brand-text-muted bg-brand-surface-muted border-brand-border">
                               {weight}
                             </span>
                           )}
                         </div>
 
                         {showTitle && (
-                          <h3 className="font-serif text-sm sm:text-base font-semibold text-[#0F172A] leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#1D2F5D] transition-colors">
+                          <h3 className="font-serif text-sm sm:text-base font-semibold text-brand-text leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-brand-navy transition-colors">
                             {product.title}
                           </h3>
                         )}
                         {showDesc && product.description && (
-                          <p className="font-sans text-[11px] sm:text-[12px] text-[#64748B] leading-relaxed line-clamp-2 min-h-[2rem]">
+                          <p className="font-sans text-[11px] sm:text-[12px] text-brand-text-muted leading-relaxed line-clamp-2 min-h-[2rem]">
                             {product.description}
                           </p>
                         )}
                         {showStock && (
                           <span className={`text-[10px] font-semibold ${
-                            product.in_stock !== false ? "text-emerald-600" : "text-amber-600"
+                            product.in_stock !== false ? "text-emerald-600" : "text-brand-gold"
                           }`}>
                             {product.in_stock !== false ? "● In Stock" : "● Made to Order"}
                           </span>
                         )}
                       </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t border-[#E2E8F0]">
-                        {showPrice && (
+                      <div className="flex items-center justify-between pt-2 border-t border-brand-border">
+                        {showPrice && price > 0 && (
                           <div className="flex flex-col">
-                            <span className="text-base sm:text-lg font-bold font-sans text-[#0F172A]">
-                              ₹{price.toLocaleString()}
+                            <span className="text-base sm:text-lg font-bold font-sans text-brand-text tabular-nums">
+                              ₹{price.toLocaleString("en-IN")}
                             </span>
                             {showComparePrice && originalPrice > price && (
-                              <span className="text-[10px] sm:text-xs line-through font-sans text-[#64748B]">
+                              <span className="text-[10px] sm:text-xs line-through font-sans text-brand-text-muted">
                                 ₹{originalPrice.toLocaleString()}
                               </span>
                             )}
                           </div>
                         )}
                         {/* Non-interactive Action Hint instead of separate Order button */}
-                        <span className="inline-flex items-center gap-1 text-xs font-sans font-semibold tracking-wide transition-transform group-hover:translate-x-1 text-[#1D2F5D] group-hover:text-[#0F172A]">
+                        <span className="inline-flex items-center gap-1 text-xs font-sans font-semibold tracking-wide transition-transform group-hover:translate-x-1 text-brand-navy group-hover:text-brand-text">
                           Explore cake <ArrowRight className="w-3 h-3" />
                         </span>
                       </div>
@@ -2405,16 +2407,16 @@ export function PageRenderer({
                   />
                   <div className="flex items-center justify-between">
                     <div className="flex flex-col gap-1">
-                      <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-semibold block">
+                      <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-brand-gold font-semibold block">
                         Patisserie Selection
                       </span>
-                      <Heading level="h2" className="font-serif text-xl sm:text-2xl lg:text-3xl tracking-tight text-[#0F172A] font-bold">
+                      <Heading level="h2" className="font-serif text-xl sm:text-2xl lg:text-3xl tracking-tight text-brand-text font-bold">
                         {heading}
                       </Heading>
-                      {subheading && <Text className="font-sans text-xs sm:text-sm text-[#64748B] font-normal">{subheading}</Text>}
+                      {subheading && <Text className="font-sans text-xs sm:text-sm text-brand-text-muted font-normal">{subheading}</Text>}
                     </div>
                     {config.view_all_url && (
-                      <Link href={config.view_all_url} className="font-sans text-xs font-bold flex items-center gap-1 text-[#0F172A] hover:text-[#1D2F5D] transition-colors">
+                      <Link href={config.view_all_url} className="font-sans text-xs font-bold flex items-center gap-1 text-brand-text hover:text-brand-navy transition-colors">
                         {config.view_all_text || "View All"} <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     )}
@@ -2444,7 +2446,7 @@ export function PageRenderer({
               const phone = config.phone || "+91 98765 43210";
 
               return (
-                <header key={sectionKey} className="w-full bg-white/95 dark:bg-[#07090E]/95 backdrop-blur-md sticky top-0 z-40 border-b border-[#E2E8F0] dark:border-white/10 py-3 px-4 sm:px-6 shadow-sm rounded-2xl mb-4">
+                <header key={sectionKey} className="w-full bg-white/95 dark:bg-brand-deep/95 backdrop-blur-md sticky top-0 z-40 border-b border-brand-border dark:border-white/10 py-3 px-4 sm:px-6 shadow-sm rounded-2xl mb-4">
                   <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
                     <Link href="/" className="flex items-center gap-2">
                       <CakeToHomeLogo
@@ -2464,27 +2466,27 @@ export function PageRenderer({
                     </Link>
 
                     {/* Navigation items */}
-                    <nav className="hidden md:flex items-center gap-6 text-xs sm:text-sm font-semibold font-sans text-[#1D2F5D] dark:text-[#FAF9F6]">
-                      <Link href="/products" className="hover:text-[#D4AF37] transition-colors">All Cakes</Link>
-                      <Link href="/products?mode=best_sellers" className="hover:text-[#D4AF37] transition-colors">Best Sellers</Link>
-                      <Link href="/occasions/birthday" className="hover:text-[#D4AF37] transition-colors">Birthday Cakes</Link>
-                      <Link href="/occasions/anniversary" className="hover:text-[#D4AF37] transition-colors">Anniversary</Link>
+                    <nav className="hidden md:flex items-center gap-6 text-xs sm:text-sm font-semibold font-sans text-brand-navy dark:text-brand-warm-white">
+                      <Link href="/products" className="hover:text-brand-gold transition-colors">All Cakes</Link>
+                      <Link href="/products?mode=best_sellers" className="hover:text-brand-gold transition-colors">Best Sellers</Link>
+                      <Link href="/occasions/birthday" className="hover:text-brand-gold transition-colors">Birthday Cakes</Link>
+                      <Link href="/occasions/anniversary" className="hover:text-brand-gold transition-colors">Anniversary</Link>
                     </nav>
 
                     {/* Action buttons */}
                     <div className="flex items-center gap-3">
                       {showSearch && (
-                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F8FAFC] dark:bg-white/5 text-xs text-[#606C88] dark:text-[#A0AEC0] border border-[#E2E8F0] dark:border-white/10">
+                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-surface-muted dark:bg-white/5 text-xs text-[#606C88] dark:text-[#A0AEC0] border border-brand-border dark:border-white/10">
                           <Search className="w-3.5 h-3.5" /> Search cakes...
                         </div>
                       )}
-                      <a href={`tel:${phone}`} className="hidden lg:flex items-center gap-1.5 text-xs font-semibold text-[#1D2F5D] dark:text-[#FAF9F6] hover:text-[#D4AF37]">
-                        <Phone className="w-3.5 h-3.5 text-[#D4AF37]" /> {phone}
+                      <a href={`tel:${phone}`} className="hidden lg:flex items-center gap-1.5 text-xs font-semibold text-brand-navy dark:text-brand-warm-white hover:text-brand-gold">
+                        <Phone className="w-3.5 h-3.5 text-brand-gold" /> {phone}
                       </a>
                       {showCart && (
-                        <Link href="/cart" className="relative p-2 rounded-xl bg-[#F8FAFC] dark:bg-white/10 text-[#1D2F5D] dark:text-[#FAF9F6] hover:bg-[#F1F5F9] transition-colors">
+                        <Link href="/cart" className="relative p-2 rounded-xl bg-brand-surface-muted dark:bg-white/10 text-brand-navy dark:text-brand-warm-white hover:bg-[#F1F5F9] transition-colors">
                           <ShoppingBag className="w-5 h-5" />
-                          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#D4AF37] text-[#07090E] text-[10px] font-bold flex items-center justify-center">2</span>
+                          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-brand-gold text-brand-deep text-[10px] font-bold flex items-center justify-center">2</span>
                         </Link>
                       )}
                     </div>
@@ -2497,44 +2499,44 @@ export function PageRenderer({
             case "mega_menu": {
               const heading = config.heading || "Explore Our Complete Bakery Catalog";
               return (
-                <section key={sectionKey} className="w-full bg-white dark:bg-[#142040]/30 border border-[#E2E8F0] dark:border-white/10 rounded-2xl p-6 shadow-md mb-4">
-                  <div className="flex items-center justify-between border-b border-[#E2E8F0] dark:border-white/10 pb-3 mb-4">
-                    <span className="font-serif font-bold text-base text-[#1D2F5D] dark:text-[#FAF9F6]">{heading}</span>
-                    <span className="font-sans text-xs font-semibold text-[#1D2F5D] dark:text-[#D4AF37]">⚡ 2-Hour Express Delivery Available</span>
+                <section key={sectionKey} className="w-full bg-white dark:bg-brand-navy/30 border border-brand-border dark:border-white/10 rounded-2xl p-6 shadow-md mb-4">
+                  <div className="flex items-center justify-between border-b border-brand-border dark:border-white/10 pb-3 mb-4">
+                    <span className="font-serif font-bold text-base text-brand-navy dark:text-brand-warm-white">{heading}</span>
+                    <span className="font-sans text-xs font-semibold text-brand-navy dark:text-brand-gold">⚡ 2-Hour Express Delivery Available</span>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-xs">
                     <div>
-                      <span className="font-sans font-bold text-[#1D2F5D] dark:text-[#FAF9F6] mb-2 block uppercase tracking-wider text-[11px]">By Occasion</span>
+                      <span className="font-sans font-bold text-brand-navy dark:text-brand-warm-white mb-2 block uppercase tracking-wider text-[11px]">By Occasion</span>
                       <ul className="flex flex-col gap-2 text-[#606C88] dark:text-[#A0AEC0]">
-                        <li><Link href="/occasions/birthday" className="hover:text-[#D4AF37] transition-colors">Birthday Cakes</Link></li>
-                        <li><Link href="/occasions/anniversary" className="hover:text-[#D4AF37] transition-colors">Anniversary Cakes</Link></li>
-                        <li><Link href="/occasions/wedding" className="hover:text-[#D4AF37] transition-colors">Wedding Cakes</Link></li>
-                        <li><Link href="/occasions/birthday" className="hover:text-[#D4AF37] transition-colors">Kids Cartoon Cakes</Link></li>
+                        <li><Link href="/occasions/birthday" className="hover:text-brand-gold transition-colors">Birthday Cakes</Link></li>
+                        <li><Link href="/occasions/anniversary" className="hover:text-brand-gold transition-colors">Anniversary Cakes</Link></li>
+                        <li><Link href="/occasions/wedding" className="hover:text-brand-gold transition-colors">Wedding Cakes</Link></li>
+                        <li><Link href="/occasions/birthday" className="hover:text-brand-gold transition-colors">Kids Cartoon Cakes</Link></li>
                       </ul>
                     </div>
                     <div>
-                      <span className="font-sans font-bold text-[#1D2F5D] dark:text-[#FAF9F6] mb-2 block uppercase tracking-wider text-[11px]">By Flavour</span>
+                      <span className="font-sans font-bold text-brand-navy dark:text-brand-warm-white mb-2 block uppercase tracking-wider text-[11px]">By Flavour</span>
                       <ul className="flex flex-col gap-2 text-[#606C88] dark:text-[#A0AEC0]">
-                        <li><Link href="/products?flavor=chocolate" className="hover:text-[#D4AF37] transition-colors">Belgian Chocolate</Link></li>
-                        <li><Link href="/products?flavor=red-velvet" className="hover:text-[#D4AF37] transition-colors">Red Velvet Heart</Link></li>
-                        <li><Link href="/products?flavor=butterscotch" className="hover:text-[#D4AF37] transition-colors">Crunchy Butterscotch</Link></li>
-                        <li><Link href="/products?flavor=fruit" className="hover:text-[#D4AF37] transition-colors">Fresh Exotic Fruit</Link></li>
+                        <li><Link href="/products?flavor=chocolate" className="hover:text-brand-gold transition-colors">Belgian Chocolate</Link></li>
+                        <li><Link href="/products?flavor=red-velvet" className="hover:text-brand-gold transition-colors">Red Velvet Heart</Link></li>
+                        <li><Link href="/products?flavor=butterscotch" className="hover:text-brand-gold transition-colors">Crunchy Butterscotch</Link></li>
+                        <li><Link href="/products?flavor=fruit" className="hover:text-brand-gold transition-colors">Fresh Exotic Fruit</Link></li>
                       </ul>
                     </div>
                     <div>
-                      <span className="font-sans font-bold text-[#1D2F5D] dark:text-[#FAF9F6] mb-2 block uppercase tracking-wider text-[11px]">Special Diet</span>
+                      <span className="font-sans font-bold text-brand-navy dark:text-brand-warm-white mb-2 block uppercase tracking-wider text-[11px]">Special Diet</span>
                       <ul className="flex flex-col gap-2 text-[#606C88] dark:text-[#A0AEC0]">
-                        <li><Link href="/products?diet=sugar-free" className="hover:text-[#D4AF37] transition-colors">Sugar-Free Delights</Link></li>
-                        <li><Link href="/products?diet=gluten-free" className="hover:text-[#D4AF37] transition-colors">Gluten-Free Cakes</Link></li>
+                        <li><Link href="/products?diet=sugar-free" className="hover:text-brand-gold transition-colors">Sugar-Free Delights</Link></li>
+                        <li><Link href="/products?diet=gluten-free" className="hover:text-brand-gold transition-colors">Gluten-Free Cakes</Link></li>
                       </ul>
                     </div>
-                    <div className="bg-[#FDFBF7] dark:bg-white/5 p-3.5 rounded-xl border border-[#E2E8F0] dark:border-white/10 flex flex-col justify-between">
+                    <div className="bg-brand-warm-white dark:bg-white/5 p-3.5 rounded-xl border border-brand-border dark:border-white/10 flex flex-col justify-between">
                       <div>
-                        <span className="text-[10px] font-bold uppercase text-[#D4AF37] tracking-wider">Chef Special</span>
-                        <p className="font-serif font-semibold text-xs text-[#1D2F5D] dark:text-[#FAF9F6] mt-1">Celebration Surprise Hamper</p>
+                        <span className="text-[10px] font-bold uppercase text-brand-gold tracking-wider">Chef Special</span>
+                        <p className="font-serif font-semibold text-xs text-brand-navy dark:text-brand-warm-white mt-1">Celebration Surprise Hamper</p>
                         <p className="font-sans text-[11px] text-[#606C88] dark:text-[#A0AEC0] mt-0.5">Cake + Rose Bouquet + Candles</p>
                       </div>
-                      <Link href="/products" className="font-sans text-xs font-bold text-[#1D2F5D] dark:text-[#D4AF37] mt-2 hover:underline">Shop Special →</Link>
+                      <Link href="/products" className="font-sans text-xs font-bold text-brand-navy dark:text-brand-gold mt-2 hover:underline">Shop Special →</Link>
                     </div>
                   </div>
                 </section>
@@ -2560,7 +2562,7 @@ export function PageRenderer({
                           {isLast || !item.url ? (
                             <span className="font-bold text-ui-fg-base">{item.label}</span>
                           ) : (
-                            <Link href={item.url} className="hover:text-[#D4AF37] transition-colors">
+                            <Link href={item.url} className="hover:text-brand-gold transition-colors">
                               {item.label}
                             </Link>
                           )}
@@ -2643,7 +2645,7 @@ export function PageRenderer({
                   key={sectionKey}
                   className={`grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center p-6 sm:p-12 rounded-3xl transition-all duration-500 ${
                     isLuxuryTheme
-                      ? "bg-gradient-to-br from-[#142040]/70 via-[#0c1326] to-[#1D2F5D]/80 border border-white/15 shadow-[0_25px_60px_rgba(12,19,38,0.5)] text-[#FAF9F6]"
+                      ? "bg-gradient-to-br from-brand-navy/70 via-brand-deep to-brand-navy/80 border border-white/15 shadow-[0_25px_60px_rgba(12,19,38,0.5)] text-brand-warm-white"
                       : "bg-ui-bg-subtle/40 border border-ui-border-base text-ui-fg-base"
                   } ${imagePosition === "right" ? "lg:grid-flow-dense" : ""}`}
                 >
@@ -2667,8 +2669,8 @@ export function PageRenderer({
                     {badgeText && (
                       <span className={`inline-flex items-center gap-1.5 self-start px-3.5 py-1 rounded-full text-[11px] font-semibold tracking-wider uppercase ${
                         isLuxuryTheme
-                          ? "bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30"
-                          : "bg-brand-gold-soft text-[#1D2F5D] border border-[#D4AF37]/30"
+                          ? "bg-brand-gold/15 text-brand-gold border border-brand-gold/30"
+                          : "bg-brand-gold-soft text-brand-navy border border-brand-gold/30"
                       }`}>
                         <Sparkles className="w-3.5 h-3.5" /> {badgeText}
                       </span>
@@ -2676,9 +2678,9 @@ export function PageRenderer({
                     <Heading
                       level="h2"
                       className={`text-2xl sm:text-4xl tracking-tight leading-tight ${
-                        isLuxuryTheme ? "font-serif text-[#FAF9F6] font-normal" : "font-extrabold"
+                        isLuxuryTheme ? "font-serif text-brand-warm-white font-normal" : "font-extrabold"
                       }`}
-                      style={{ color: isLuxuryTheme ? "#FAF9F6" : theme?.heading_color }}
+                      style={{ color: isLuxuryTheme ? "#FFFCF8" : theme?.heading_color }}
                     >
                       {heading}
                     </Heading>
@@ -2691,12 +2693,12 @@ export function PageRenderer({
                     {/* Artisanal Quality Pillars */}
                     <div className="grid grid-cols-2 gap-3 pt-2">
                       <div className={`p-3 rounded-xl flex items-center gap-2.5 ${isLuxuryTheme ? "bg-white/5 border border-white/10" : "bg-white border border-ui-border-base"}`}>
-                        <Award className={`w-4 h-4 shrink-0 ${isLuxuryTheme ? "text-[#D4AF37]" : "text-[#D4AF37]"}`} />
-                        <span className={`text-xs font-medium ${isLuxuryTheme ? "text-[#FAF9F6]" : "text-ui-fg-base"}`}>100% Belgian Cocoa</span>
+                        <Award className={`w-4 h-4 shrink-0 ${isLuxuryTheme ? "text-brand-gold" : "text-brand-gold"}`} />
+                        <span className={`text-xs font-medium ${isLuxuryTheme ? "text-brand-warm-white" : "text-ui-fg-base"}`}>100% Belgian Cocoa</span>
                       </div>
                       <div className={`p-3 rounded-xl flex items-center gap-2.5 ${isLuxuryTheme ? "bg-white/5 border border-white/10" : "bg-white border border-ui-border-base"}`}>
-                        <Clock className={`w-4 h-4 shrink-0 ${isLuxuryTheme ? "text-[#D4AF37]" : "text-[#D4AF37]"}`} />
-                        <span className={`text-xs font-medium ${isLuxuryTheme ? "text-[#FAF9F6]" : "text-ui-fg-base"}`}>Baked Fresh on Order</span>
+                        <Clock className={`w-4 h-4 shrink-0 ${isLuxuryTheme ? "text-brand-gold" : "text-brand-gold"}`} />
+                        <span className={`text-xs font-medium ${isLuxuryTheme ? "text-brand-warm-white" : "text-ui-fg-base"}`}>Baked Fresh on Order</span>
                       </div>
                     </div>
 
@@ -2707,7 +2709,7 @@ export function PageRenderer({
                           size="large"
                           className={
                             isLuxuryTheme
-                              ? "bg-[#D4AF37] hover:bg-[#c59e2b] text-[#0c1326] font-sans font-medium uppercase tracking-[0.15em] text-xs px-8 py-3.5 rounded-full shadow-lg border-none transition-all duration-300"
+                              ? "bg-brand-gold hover:bg-[#c59e2b] text-brand-deep font-sans font-medium uppercase tracking-[0.15em] text-xs px-8 py-3.5 rounded-full shadow-lg border-none transition-all duration-300"
                               : "rounded-xl px-6 font-bold"
                           }
                         >
@@ -2861,12 +2863,12 @@ export function PageRenderer({
                   {(heading || subtitle) && (
                     <div className={`flex flex-col gap-1.5 w-full ${alignClass}`}>
                       {isLuxuryTheme && (
-                        <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-semibold block">
+                        <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-brand-gold font-semibold block">
                           The Patisserie Standard
                         </span>
                       )}
                       {heading && (
-                        <Heading level="h2" className={`text-xl sm:text-2xl lg:text-3xl tracking-tight ${isLuxuryTheme ? "font-serif text-[#FAF9F6] font-normal" : "font-bold"}`} style={{ color: isLuxuryTheme ? "#FAF9F6" : theme?.heading_color }}>
+                        <Heading level="h2" className={`text-xl sm:text-2xl lg:text-3xl tracking-tight ${isLuxuryTheme ? "font-serif text-brand-warm-white font-normal" : "font-bold"}`} style={{ color: isLuxuryTheme ? "#FFFCF8" : theme?.heading_color }}>
                           {heading}
                         </Heading>
                       )}
@@ -2896,7 +2898,7 @@ export function PageRenderer({
                           key={feat.id || i}
                           className={`p-6 rounded-2xl flex flex-col gap-3 transition-all duration-500 h-full ${
                             isLuxuryTheme
-                              ? "bg-[#142040]/30 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/50 shadow-[0_20px_50px_rgba(20,32,64,0.35)]"
+                              ? "bg-brand-navy/30 backdrop-blur-xl border border-white/10 hover:border-brand-gold/50 shadow-[0_20px_50px_rgba(20,32,64,0.35)]"
                               : "bg-ui-bg-base border border-ui-border-base shadow-sm hover:shadow-md"
                           }`}
                           style={!isLuxuryTheme ? cardStyle : undefined}
@@ -2904,23 +2906,23 @@ export function PageRenderer({
                           <div
                             className={`p-3.5 rounded-xl w-fit ${
                               isLuxuryTheme
-                                ? "bg-[#0c1326]/60 border border-white/10 text-[#D4AF37]"
+                                ? "bg-brand-deep/60 border border-white/10 text-brand-gold"
                                 : "bg-slate-100"
                             }`}
                             style={!isLuxuryTheme ? {
-                              backgroundColor: feat.bg_color ? "rgba(0,0,0,0.05)" : "#f8fafc",
+                              backgroundColor: feat.bg_color ? "rgba(0,0,0,0.05)" : "#F5F6F8",
                             } : undefined}
                           >
-                            {getIcon(feat.icon, isLuxuryTheme ? "#D4AF37" : feat.icon_color)}
+                            {getIcon(feat.icon, isLuxuryTheme ? "#C28A2C" : feat.icon_color)}
                           </div>
-                          <h4 className={`text-sm sm:text-base leading-tight ${isLuxuryTheme ? "font-serif text-[#FAF9F6] font-medium" : "font-bold text-ui-fg-base"}`} style={titleStyle}>
+                          <h4 className={`text-sm sm:text-base leading-tight ${isLuxuryTheme ? "font-serif text-brand-warm-white font-medium" : "font-bold text-ui-fg-base"}`} style={titleStyle}>
                             {feat.title}
                           </h4>
                           <p className={`text-xs leading-relaxed ${isLuxuryTheme ? "text-[#C5CEE0] font-light" : "text-ui-fg-muted"}`} style={descStyle}>
                             {feat.description || feat.desc}
                           </p>
                           {feat.link_url && (
-                            <span className={`text-xs font-bold mt-auto pt-1 flex items-center gap-1 ${isLuxuryTheme ? "text-[#D4AF37] hover:underline uppercase tracking-wider text-[11px] font-medium" : "text-[#1D2F5D] hover:underline"}`}>
+                            <span className={`text-xs font-bold mt-auto pt-1 flex items-center gap-1 ${isLuxuryTheme ? "text-brand-gold hover:underline uppercase tracking-wider text-[11px] font-medium" : "text-brand-navy hover:underline"}`}>
                               {feat.link_text || "Learn more"} →
                             </span>
                           )}
@@ -3051,7 +3053,7 @@ export function PageRenderer({
               return (
                 <section key={sectionKey} className="flex flex-col gap-5 p-6 sm:p-8 bg-ui-bg-subtle/60 rounded-3xl border border-ui-border-base text-center">
                   <div className="max-w-xl mx-auto flex flex-col gap-1.5">
-                    <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">{config.badge || "Coverage Area"}</span>
+                    <span className="text-xs font-bold text-brand-gold uppercase tracking-wider">{config.badge || "Coverage Area"}</span>
                     <Heading level="h2" className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: theme?.heading_color }}>
                       {heading}
                     </Heading>
@@ -3063,9 +3065,9 @@ export function PageRenderer({
                     {areas.map((area: string, ai: number) => (
                       <span
                         key={ai}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-ui-bg-base border border-ui-border-base shadow-xs text-ui-fg-base hover:border-[#D4AF37] hover:text-[#1D2F5D] transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-ui-bg-base border border-ui-border-base shadow-xs text-ui-fg-base hover:border-brand-gold hover:text-brand-navy transition-colors"
                       >
-                        <MapPin className="w-3 h-3 text-[#D4AF37]" />
+                        <MapPin className="w-3 h-3 text-brand-gold" />
                         {area}
                       </span>
                     ))}
@@ -3162,7 +3164,7 @@ export function PageRenderer({
                       <div className="relative aspect-[16/10] rounded-2xl overflow-hidden shadow-md">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={article.image} alt={article.title} className="w-full h-full object-cover" loading="lazy" />
-                        <span className="absolute top-3 left-3 px-2.5 py-1 bg-[#1D2F5D] text-white text-[10px] font-bold uppercase rounded-full">Featured Article</span>
+                        <span className="absolute top-3 left-3 px-2.5 py-1 bg-brand-navy text-white text-[10px] font-bold uppercase rounded-full">Featured Article</span>
                       </div>
                       <div className="flex flex-col gap-3">
                         <div className="flex items-center gap-2 text-xs text-ui-fg-muted">
@@ -3174,7 +3176,7 @@ export function PageRenderer({
                         </div>
                         <h3 className="text-xl sm:text-2xl font-extrabold text-ui-fg-base">{article.title}</h3>
                         <p className="text-sm text-ui-fg-muted leading-relaxed">{article.excerpt}</p>
-                        <Link href={`/blog/${article.slug}`} className="text-xs font-bold text-[#1D2F5D] hover:text-[#152347] pt-2 flex items-center gap-1">
+                        <Link href={`/blog/${article.slug}`} className="text-xs font-bold text-brand-navy hover:text-brand-deep pt-2 flex items-center gap-1">
                           Read Full Article →
                         </Link>
                       </div>
@@ -3192,7 +3194,7 @@ export function PageRenderer({
                       </Heading>
                       {subheading && <Text className="text-xs sm:text-sm text-ui-fg-muted mt-1">{subheading}</Text>}
                     </div>
-                    <Link href="/blog" className="text-xs font-bold text-[#1D2F5D] hover:text-[#152347]">
+                    <Link href="/blog" className="text-xs font-bold text-brand-navy hover:text-brand-deep">
                       View All Articles →
                     </Link>
                   </div>
@@ -3212,7 +3214,7 @@ export function PageRenderer({
                           <h4 className="font-bold text-sm text-ui-fg-base line-clamp-2 leading-snug">{art.title}</h4>
                           <p className="text-xs text-ui-fg-muted line-clamp-2 mt-1">{art.excerpt}</p>
                         </div>
-                        <Link href={`/blog/${art.slug}`} className="text-xs font-bold text-[#1D2F5D] hover:underline mt-3 block">
+                        <Link href={`/blog/${art.slug}`} className="text-xs font-bold text-brand-navy hover:underline mt-3 block">
                           Read More →
                         </Link>
                       </article>
@@ -3239,7 +3241,7 @@ export function PageRenderer({
                       <Link
                         key={ii}
                         href={it.url}
-                        className="px-3 py-1.5 rounded-full bg-white dark:bg-ui-bg-base border border-ui-border-base text-xs font-semibold text-ui-fg-base hover:border-[#D4AF37] hover:text-[#1D2F5D] transition-colors shadow-xs"
+                        className="px-3 py-1.5 rounded-full bg-white dark:bg-ui-bg-base border border-ui-border-base text-xs font-semibold text-ui-fg-base hover:border-brand-gold hover:text-brand-navy transition-colors shadow-xs"
                       >
                         {it.label}
                       </Link>
@@ -3265,15 +3267,15 @@ export function PageRenderer({
               return (
                 <section key={sectionKey} className={`w-full p-6 sm:p-10 lg:p-12 rounded-3xl flex flex-col gap-8 transition-all duration-500 ${
                   isLuxuryTheme
-                    ? "bg-gradient-to-b from-[#142040]/50 to-[#0c1326] border border-white/10 shadow-[0_20px_50px_rgba(20,32,64,0.3)] text-[#FAF9F6]"
+                    ? "bg-gradient-to-b from-brand-navy/50 to-brand-deep border border-white/10 shadow-[0_20px_50px_rgba(20,32,64,0.3)] text-brand-warm-white"
                     : "bg-ui-bg-subtle/40 border border-ui-border-base text-ui-fg-base"
                 }`}>
                   <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div className="flex flex-col gap-2 max-w-2xl">
-                      <span className={`font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] font-semibold ${isLuxuryTheme ? "text-[#D4AF37]" : "text-[#D4AF37]"}`}>
+                      <span className={`font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] font-semibold ${isLuxuryTheme ? "text-brand-gold" : "text-brand-gold"}`}>
                         Artisan Commissions
                       </span>
-                      <Heading level="h2" className={`text-2xl sm:text-3xl lg:text-4xl tracking-tight leading-tight ${isLuxuryTheme ? "font-serif font-normal text-[#FAF9F6]" : "font-extrabold"}`}>
+                      <Heading level="h2" className={`text-2xl sm:text-3xl lg:text-4xl tracking-tight leading-tight ${isLuxuryTheme ? "font-serif font-normal text-brand-warm-white" : "font-extrabold"}`}>
                         {heading}
                       </Heading>
                       <Text className={`text-xs sm:text-sm leading-relaxed ${isLuxuryTheme ? "text-[#C5CEE0] font-light" : "text-ui-fg-muted"}`}>
@@ -3282,13 +3284,13 @@ export function PageRenderer({
                     </div>
                     <div className="flex items-center gap-3 shrink-0 flex-wrap">
                       <Link href={ctaUrl}>
-                        <Button className={isLuxuryTheme ? "bg-[#D4AF37] hover:bg-[#c59e2b] text-[#0c1326] font-medium font-sans uppercase tracking-wider text-xs px-6 py-3 rounded-full shadow-md border-none" : "btn-brand-primary text-xs px-5 py-2.5"}>
+                        <Button className={isLuxuryTheme ? "bg-brand-gold hover:bg-[#c59e2b] text-brand-deep font-medium font-sans uppercase tracking-wider text-xs px-6 py-3 rounded-full shadow-md border-none" : "btn-brand-primary text-xs px-5 py-2.5"}>
                           {ctaText} →
                         </Button>
                       </Link>
                       <Link href="https://wa.me/919567789888" target="_blank" rel="noopener noreferrer">
                         <Button variant="secondary" className={isLuxuryTheme ? "bg-white/10 hover:bg-white/15 text-white border-white/20 rounded-full px-5 py-3 text-xs" : "rounded-xl text-xs px-4 py-2.5"}>
-                          <MessageCircle className="w-4 h-4 mr-1.5 text-emerald-400" /> WhatsApp Concierge (+91 95677 89888)
+                          <MessageCircle className="w-4 h-4 mr-1.5 text-[#16834A]" /> WhatsApp Concierge (+91 95677 89888)
                         </Button>
                       </Link>
                     </div>
@@ -3300,14 +3302,14 @@ export function PageRenderer({
                         key={idx}
                         className={`p-5 rounded-2xl flex flex-col gap-2 transition-all duration-300 ${
                           isLuxuryTheme
-                            ? "bg-[#142040]/30 border border-white/10 hover:border-[#D4AF37]/40 shadow-sm"
+                            ? "bg-brand-navy/30 border border-white/10 hover:border-brand-gold/40 shadow-sm"
                             : "bg-white border border-ui-border-base shadow-xs"
                         }`}
                       >
-                        <span className={`text-xs font-mono font-bold ${isLuxuryTheme ? "text-[#D4AF37]" : "text-[#D4AF37]"}`}>
+                        <span className={`text-xs font-mono font-bold ${isLuxuryTheme ? "text-brand-gold" : "text-brand-gold"}`}>
                           {st.step}
                         </span>
-                        <h4 className={`text-sm font-semibold ${isLuxuryTheme ? "text-[#FAF9F6]" : "text-ui-fg-base"}`}>
+                        <h4 className={`text-sm font-semibold ${isLuxuryTheme ? "text-brand-warm-white" : "text-ui-fg-base"}`}>
                           {st.title}
                         </h4>
                         <p className={`text-xs leading-relaxed ${isLuxuryTheme ? "text-[#C5CEE0]/70" : "text-ui-fg-muted"}`}>
@@ -3364,56 +3366,56 @@ export function PageRenderer({
                 context: string;
               }> = {
                 navy: {
-                  container: "bg-gradient-to-br from-[#142040] via-[#0c1326] to-[#1D2F5D] border border-[#D4AF37]/30 text-[#FAF9F6] shadow-[0_25px_60px_rgba(12,19,38,0.5)]",
-                  overline: "text-[#D4AF37]",
-                  heading: "text-[#FAF9F6]",
+                  container: "bg-gradient-to-br from-brand-navy via-brand-deep to-brand-navy border border-brand-gold/30 text-brand-warm-white shadow-[0_25px_60px_rgba(12,19,38,0.5)]",
+                  overline: "text-brand-gold",
+                  heading: "text-brand-warm-white",
                   subheading: "text-[#C5CEE0]",
-                  primaryBtn: "bg-[#D4AF37] hover:bg-[#c59e2b] text-[#0c1326] font-sans font-bold shadow-[0_15px_35px_rgba(212,175,55,0.3)]",
-                  secondaryBtn: "bg-[#142040]/60 hover:bg-[#142040] text-[#FAF9F6] font-sans border border-white/20",
+                  primaryBtn: "bg-brand-gold hover:bg-[#c59e2b] text-brand-deep font-sans font-bold shadow-[0_15px_35px_rgba(212,175,55,0.3)]",
+                  secondaryBtn: "bg-brand-navy/60 hover:bg-brand-navy text-brand-warm-white font-sans border border-white/20",
                   context: "text-[#C5CEE0]/80",
                 },
                 cream: {
-                  container: "bg-[#FDFBF7] border border-[#E8E1D5] text-[#1D2F5D] shadow-[0_20px_50px_rgba(29,47,93,0.08)]",
+                  container: "bg-brand-warm-white border border-[#E8E1D5] text-brand-navy shadow-[0_20px_50px_rgba(29,47,93,0.08)]",
                   overline: "text-[#AA771C]",
-                  heading: "text-[#1D2F5D]",
+                  heading: "text-brand-navy",
                   subheading: "text-[#4A5568]",
-                  primaryBtn: "bg-[#1D2F5D] hover:bg-[#142040] text-[#FAF9F6] font-sans font-bold shadow-[0_15px_35px_rgba(29,47,93,0.2)]",
-                  secondaryBtn: "bg-white hover:bg-[#F4EFE6] text-[#1D2F5D] font-sans border border-[#DCD3C1]",
+                  primaryBtn: "bg-brand-navy hover:bg-brand-navy text-brand-warm-white font-sans font-bold shadow-[0_15px_35px_rgba(29,47,93,0.2)]",
+                  secondaryBtn: "bg-white hover:bg-[#F4EFE6] text-brand-navy font-sans border border-[#DCD3C1]",
                   context: "text-[#606C88]",
                 },
                 chocolate: {
                   container: "bg-gradient-to-br from-[#2D1B18] via-[#1A0E0D] to-[#3B221E] border border-[#8C6D62]/40 text-[#FFF8F0] shadow-2xl",
-                  overline: "text-[#D4AF37]",
+                  overline: "text-brand-gold",
                   heading: "text-[#FFF8F0]",
                   subheading: "text-[#D8C7C4]",
-                  primaryBtn: "bg-[#D4AF37] hover:bg-[#c59e2b] text-[#1A0E0D] font-sans font-bold shadow-[0_15px_35px_rgba(212,175,55,0.25)]",
+                  primaryBtn: "bg-brand-gold hover:bg-[#c59e2b] text-[#1A0E0D] font-sans font-bold shadow-[0_15px_35px_rgba(212,175,55,0.25)]",
                   secondaryBtn: "bg-white/10 hover:bg-white/20 text-[#FFF8F0] font-sans border border-white/20",
                   context: "text-[#D8C7C4]/80",
                 },
                 minimal_gold: {
-                  container: "bg-[#07090E] border-2 border-[#D4AF37]/50 text-white shadow-2xl",
-                  overline: "text-[#D4AF37]",
+                  container: "bg-brand-deep border-2 border-brand-gold/50 text-white shadow-2xl",
+                  overline: "text-brand-gold",
                   heading: "text-white",
                   subheading: "text-[#C5CEE0]",
-                  primaryBtn: "bg-[#D4AF37] hover:bg-[#c59e2b] text-[#07090E] font-sans font-bold",
-                  secondaryBtn: "bg-transparent hover:bg-white/5 text-[#D4AF37] font-sans border border-[#D4AF37]/60",
+                  primaryBtn: "bg-brand-gold hover:bg-[#c59e2b] text-brand-deep font-sans font-bold",
+                  secondaryBtn: "bg-transparent hover:bg-white/5 text-brand-gold font-sans border border-brand-gold/60",
                   context: "text-[#C5CEE0]/70",
                 },
                 soft_pink: {
-                  container: "bg-[#FFF5F7] border border-[#FBCFE8] text-[#1D2F5D] shadow-xl",
+                  container: "bg-[#FFF5F7] border border-[#FBCFE8] text-brand-navy shadow-xl",
                   overline: "text-[#BE185D]",
-                  heading: "text-[#1D2F5D]",
+                  heading: "text-brand-navy",
                   subheading: "text-[#4A5568]",
                   primaryBtn: "bg-[#BE185D] hover:bg-[#9D174D] text-white font-sans font-bold shadow-[0_15px_35px_rgba(190,24,93,0.2)]",
-                  secondaryBtn: "bg-white hover:bg-[#FDFBF7] text-[#BE185D] font-sans border border-[#FBCFE8]",
+                  secondaryBtn: "bg-white hover:bg-brand-warm-white text-[#BE185D] font-sans border border-[#FBCFE8]",
                   context: "text-[#606C88]",
                 },
                 celebration: {
-                  container: "bg-gradient-to-br from-[#142040] via-[#0c1326] to-[#1D2F5D] border border-white/20 text-white shadow-2xl",
-                  overline: "text-[#D4AF37]",
+                  container: "bg-gradient-to-br from-brand-navy via-brand-deep to-brand-navy border border-white/20 text-white shadow-2xl",
+                  overline: "text-brand-gold",
                   heading: "text-white",
-                  subheading: "text-[#E2E8F0]",
-                  primaryBtn: "bg-[#D4AF37] hover:bg-[#c59e2b] text-[#0c1326] font-sans font-bold shadow-[0_15px_35px_rgba(212,175,55,0.3)]",
+                  subheading: "text-brand-border",
+                  primaryBtn: "bg-brand-gold hover:bg-[#c59e2b] text-brand-deep font-sans font-bold shadow-[0_15px_35px_rgba(212,175,55,0.3)]",
                   secondaryBtn: "bg-white/15 hover:bg-white/25 text-white font-sans border border-white/30",
                   context: "text-white/80",
                 },
@@ -3421,7 +3423,7 @@ export function PageRenderer({
 
               const activeStyle = isWhatsapp
                 ? {
-                    container: "bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-2xl",
+                    container: "bg-gradient-to-r from-emerald-600 to-brand-navy text-white shadow-2xl",
                     overline: "text-emerald-100",
                     heading: "text-white",
                     subheading: "text-white/90",
@@ -3491,13 +3493,13 @@ export function PageRenderer({
               const ctaUrl = config.cta_url || "/products";
 
               return (
-                <section key={sectionKey} className="w-full p-6 sm:p-10 rounded-3xl bg-gradient-to-br from-[#D4AF37] via-[#1D2F5D] to-[#0c1326] text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+                <section key={sectionKey} className="w-full p-6 sm:p-10 rounded-3xl bg-gradient-to-br from-brand-gold via-brand-navy to-brand-deep text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
                   <div className="flex flex-col gap-2 max-w-xl text-center md:text-left z-10">
                     <div className="flex items-center gap-2 justify-center md:justify-start">
                       <span className="px-3 py-1 rounded-full text-xs font-black bg-white/20 backdrop-blur-md uppercase tracking-wider text-white">
                         {discountText}
                       </span>
-                      <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-200">
+                      <span className="inline-flex items-center gap-1 text-xs font-bold text-brand-gold/40">
                         <Clock className="w-3.5 h-3.5" /> Limited Time
                       </span>
                     </div>
@@ -3512,12 +3514,12 @@ export function PageRenderer({
                   <div className="flex flex-col sm:flex-row items-center gap-3 z-10">
                     {couponCode && (
                       <div className="flex items-center gap-2 bg-black/30 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20">
-                        <Tag className="w-4 h-4 text-amber-300" />
+                        <Tag className="w-4 h-4 text-brand-gold/40" />
                         <span className="font-mono font-bold text-sm tracking-wider">{couponCode}</span>
                       </div>
                     )}
                     <Link href={ctaUrl}>
-                      <Button size="large" className="bg-white hover:bg-white/90 text-[#1D2F5D] font-extrabold px-6 py-2.5 rounded-xl shadow-lg border-none whitespace-nowrap">
+                      <Button size="large" className="bg-white hover:bg-white/90 text-brand-navy font-extrabold px-6 py-2.5 rounded-xl shadow-lg border-none whitespace-nowrap">
                         {ctaText} →
                       </Button>
                     </Link>
@@ -3545,7 +3547,7 @@ export function PageRenderer({
                 <section key={sectionKey} className="w-full bg-ui-bg-subtle/50 p-6 sm:p-10 rounded-3xl border border-ui-border-base flex flex-col gap-6">
                   {heading && (
                     <div className="text-center max-w-xl mx-auto flex flex-col gap-1">
-                      <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">Spotlight</span>
+                      <span className="text-xs font-bold text-brand-gold uppercase tracking-wider">Spotlight</span>
                       <Heading level="h2" className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: theme?.heading_color }}>
                         {heading}
                       </Heading>
@@ -3555,13 +3557,13 @@ export function PageRenderer({
                     <div className="relative rounded-2xl overflow-hidden aspect-[4/3] shadow-lg border border-ui-border-base group">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={image} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-                      <div className="absolute top-3 left-3 bg-[#1D2F5D] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-md">
+                      <div className="absolute top-3 left-3 bg-brand-navy text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-md">
                         Signature Recipe
                       </div>
                     </div>
                     <div className="flex flex-col gap-4">
-                      <div className="flex items-center gap-1.5 text-amber-500 text-xs font-bold">
-                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                      <div className="flex items-center gap-1.5 text-brand-gold text-xs font-bold">
+                        <Star className="w-4 h-4 fill-brand-gold text-brand-gold" />
                         <span>4.9 / 5.0</span>
                         <span className="text-ui-fg-muted font-normal">(184 verified reviews)</span>
                       </div>
@@ -3585,7 +3587,7 @@ export function PageRenderer({
                       </div>
                       <div className="pt-2">
                         <Link href={`/products/${slug}`}>
-                          <Button variant="primary" size="large" className="rounded-xl px-8 font-bold bg-[#1D2F5D] hover:bg-[#152347] text-white shadow-md">
+                          <Button variant="primary" size="large" className="rounded-xl px-8 font-bold bg-brand-navy hover:bg-brand-deep text-white shadow-md">
                             <ShoppingBag className="w-4 h-4 mr-2" /> Order This Cake
                           </Button>
                         </Link>
@@ -3632,7 +3634,7 @@ export function PageRenderer({
                         <tr>
                           <td className="p-4 font-semibold text-ui-fg-muted">Starting Price</td>
                           {compareProducts.map((p: any) => (
-                            <td key={p.id} className="p-4 text-center font-black text-[#1D2F5D] dark:text-[#D4AF37]">
+                            <td key={p.id} className="p-4 text-center font-black text-brand-navy dark:text-brand-gold">
                               ₹{(p.price || p.base_price || 499).toLocaleString()}
                             </td>
                           ))}
@@ -3640,7 +3642,7 @@ export function PageRenderer({
                         <tr>
                           <td className="p-4 font-semibold text-ui-fg-muted">Customer Rating</td>
                           {compareProducts.map((p: any) => (
-                            <td key={p.id} className="p-4 text-center font-bold text-amber-500">
+                            <td key={p.id} className="p-4 text-center font-bold text-brand-gold">
                               ★ {p.rating || "4.9"}
                             </td>
                           ))}
@@ -3667,7 +3669,7 @@ export function PageRenderer({
                           {compareProducts.map((p: any) => (
                             <td key={p.id} className="p-4 text-center">
                               <Link href={`/products/${p.slug || p.id}`}>
-                                <Button size="small" variant="primary" className="rounded-xl px-4 text-xs font-bold bg-[#1D2F5D] hover:bg-[#152347] text-white border border-[#D4AF37]/30 shadow-xs">
+                                <Button size="small" variant="primary" className="rounded-xl px-4 text-xs font-bold bg-brand-navy hover:bg-brand-deep text-white border border-brand-gold/30 shadow-xs">
                                   View Details
                                 </Button>
                               </Link>
@@ -3703,7 +3705,7 @@ export function PageRenderer({
                     <Heading level="h2" className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: theme?.heading_color }}>
                       {heading}
                     </Heading>
-                    <Link href="/products" className="text-xs font-bold text-[#1D2F5D] dark:text-[#D4AF37] hover:underline flex items-center gap-1">
+                    <Link href="/products" className="text-xs font-bold text-brand-navy dark:text-brand-gold hover:underline flex items-center gap-1">
                       View Catalog <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
@@ -3712,9 +3714,9 @@ export function PageRenderer({
                       <Link
                         key={cat.id}
                         href={`/products?category=${cat.slug || cat.id}`}
-                        className="px-4 py-2 rounded-2xl bg-ui-bg-base border border-ui-border-base hover:border-[#D4AF37]/60 hover:bg-[#1D2F5D]/5 hover:text-[#1D2F5D] dark:hover:bg-[#1D2F5D]/20 dark:hover:text-[#D4AF37] text-xs sm:text-sm font-semibold transition-all shadow-xs flex items-center gap-2 group"
+                        className="px-4 py-2 rounded-2xl bg-ui-bg-base border border-ui-border-base hover:border-brand-gold/60 hover:bg-brand-navy/5 hover:text-brand-navy dark:hover:bg-brand-navy/20 dark:hover:text-brand-gold text-xs sm:text-sm font-semibold transition-all shadow-xs flex items-center gap-2 group"
                       >
-                        <Sparkles className="w-3.5 h-3.5 text-[#D4AF37] group-hover:rotate-12 transition-transform" />
+                        <Sparkles className="w-3.5 h-3.5 text-brand-gold group-hover:rotate-12 transition-transform" />
                         <span>{cat.name}</span>
                       </Link>
                     ))}
@@ -3739,22 +3741,22 @@ export function PageRenderer({
                 <section key={sectionKey} className="w-full flex flex-col gap-8 py-6">
                   <div className="text-center max-w-xl mx-auto flex flex-col gap-2">
                     {isLuxuryTheme && (
-                      <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-[#D4AF37] font-semibold block">
+                      <span className="font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] text-brand-gold font-semibold block">
                         Verified Experiences
                       </span>
                     )}
-                    <div className="flex items-center justify-center gap-1.5 text-amber-500 text-xs font-bold">
+                    <div className="flex items-center justify-center gap-1.5 text-brand-gold text-xs font-bold">
                       {Array.from({ length: 5 }).map((_, si) => (
-                        <Star key={si} className={`w-4 h-4 ${isLuxuryTheme ? "fill-[#D4AF37] text-[#D4AF37]" : "fill-amber-400 text-amber-400"}`} />
+                        <Star key={si} className={`w-4 h-4 ${isLuxuryTheme ? "fill-brand-gold text-brand-gold" : "fill-brand-gold text-brand-gold"}`} />
                       ))}
                       <span className={`ml-1 text-xs font-medium ${isLuxuryTheme ? "text-[#C5CEE0]" : "text-ui-fg-base"}`}>4.9 / 5.0 Rating (1,200+ Reviews)</span>
                     </div>
                     <Heading
                       level="h2"
                       className={`text-2xl sm:text-3xl lg:text-4xl tracking-tight ${
-                        isLuxuryTheme ? "font-serif text-[#FAF9F6] font-normal" : "font-bold"
+                        isLuxuryTheme ? "font-serif text-brand-warm-white font-normal" : "font-bold"
                       }`}
-                      style={{ color: isLuxuryTheme ? "#FAF9F6" : theme?.heading_color }}
+                      style={{ color: isLuxuryTheme ? "#FFFCF8" : theme?.heading_color }}
                     >
                       {heading}
                     </Heading>
@@ -3765,14 +3767,14 @@ export function PageRenderer({
                         key={ri}
                         className={`p-6 sm:p-7 rounded-3xl flex flex-col justify-between gap-5 transition-all duration-500 ${
                           isLuxuryTheme
-                            ? "bg-[#142040]/40 backdrop-blur-xl border border-white/10 hover:border-[#D4AF37]/40 shadow-[0_15px_35px_rgba(20,32,64,0.35)] hover:-translate-y-1"
+                            ? "bg-brand-navy/40 backdrop-blur-xl border border-white/10 hover:border-brand-gold/40 shadow-[0_15px_35px_rgba(20,32,64,0.35)] hover:-translate-y-1"
                             : "bg-ui-bg-base border border-ui-border-base shadow-sm hover:shadow-md"
                         }`}
                       >
                         <div className="flex flex-col gap-3">
                           <div className="flex items-center gap-1">
                             {Array.from({ length: rev.rating || 5 }).map((_, si) => (
-                              <Star key={si} className={`w-3.5 h-3.5 ${isLuxuryTheme ? "fill-[#D4AF37] text-[#D4AF37]" : "fill-amber-400 text-amber-400"}`} />
+                              <Star key={si} className={`w-3.5 h-3.5 ${isLuxuryTheme ? "fill-brand-gold text-brand-gold" : "fill-brand-gold text-brand-gold"}`} />
                             ))}
                           </div>
                           <p className={`text-xs sm:text-sm leading-relaxed italic ${
@@ -3786,13 +3788,13 @@ export function PageRenderer({
                         }`}>
                           <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs ${
                             isLuxuryTheme
-                              ? "bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30"
-                              : "bg-brand-gold-soft text-[#1D2F5D]"
+                              ? "bg-brand-gold/20 text-brand-gold border border-brand-gold/30"
+                              : "bg-brand-gold-soft text-brand-navy"
                           }`}>
                             {rev.name ? rev.name.charAt(0) : "C"}
                           </div>
                           <div>
-                            <h4 className={`font-semibold text-xs ${isLuxuryTheme ? "text-[#FAF9F6]" : "text-ui-fg-base"}`}>
+                            <h4 className={`font-semibold text-xs ${isLuxuryTheme ? "text-brand-warm-white" : "text-ui-fg-base"}`}>
                               {rev.name || "Happy Customer"}
                             </h4>
                             <p className={`text-[10px] ${isLuxuryTheme ? "text-[#C5CEE0]/70" : "text-ui-fg-subtle"}`}>
@@ -3819,11 +3821,11 @@ export function PageRenderer({
               const statsList = (config.stats && config.stats.length > 0) ? config.stats : defaultStats;
 
               return (
-                <section key={sectionKey} className="w-full py-8 px-6 bg-gradient-to-r from-[#FDFBF7] via-[#FFF8E7] to-amber-50 dark:from-[#0c1326] dark:via-[#142040] dark:to-[#1D2F5D]/20 rounded-3xl border border-ui-border-base">
+                <section key={sectionKey} className="w-full py-8 px-6 bg-gradient-to-r from-brand-warm-white via-[#FFF8E7] to-brand-gold-light dark:from-brand-deep dark:via-brand-navy dark:to-brand-navy/20 rounded-3xl border border-ui-border-base">
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
                     {statsList.map((st: any, idx: number) => (
                       <div key={idx} className="flex flex-col gap-1">
-                        <span className="text-2xl sm:text-4xl font-black text-[#1D2F5D] dark:text-[#D4AF37] tracking-tight">
+                        <span className="text-2xl sm:text-4xl font-black text-brand-navy dark:text-brand-gold tracking-tight">
                           {st.value}
                         </span>
                         <span className="text-xs sm:text-sm font-semibold text-ui-fg-muted">
@@ -3851,19 +3853,19 @@ export function PageRenderer({
               return (
                 <section key={sectionKey} className="w-full flex flex-col gap-8 max-w-4xl mx-auto">
                   <div className="text-center flex flex-col gap-1">
-                    <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">Heritage</span>
+                    <span className="text-xs font-bold text-brand-gold uppercase tracking-wider">Heritage</span>
                     <Heading level="h2" className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: theme?.heading_color }}>
                       {heading}
                     </Heading>
                   </div>
-                  <div className="flex flex-col gap-6 relative before:absolute before:left-4 md:before:left-1/2 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#D4AF37]/30 dark:before:bg-[#D4AF37]/20">
+                  <div className="flex flex-col gap-6 relative before:absolute before:left-4 md:before:left-1/2 before:top-2 before:bottom-2 before:w-0.5 before:bg-brand-gold/30 dark:before:bg-brand-gold/20">
                     {events.map((ev: any, ei: number) => (
                       <div key={ei} className="flex items-start gap-4 md:gap-8 relative">
-                        <div className="w-8 h-8 rounded-full bg-[#1D2F5D] text-white font-bold text-xs flex items-center justify-center shrink-0 z-10 shadow-md">
+                        <div className="w-8 h-8 rounded-full bg-brand-navy text-white font-bold text-xs flex items-center justify-center shrink-0 z-10 shadow-md">
                           {ei + 1}
                         </div>
                         <div className="flex-1 p-5 rounded-2xl bg-ui-bg-base border border-ui-border-base shadow-sm">
-                          <span className="text-xs font-black text-[#D4AF37]">{ev.year}</span>
+                          <span className="text-xs font-black text-brand-gold">{ev.year}</span>
                           <h4 className="font-bold text-sm text-ui-fg-base mt-0.5">{ev.title}</h4>
                           <p className="text-xs text-ui-fg-muted mt-1 leading-relaxed">{ev.desc}</p>
                         </div>
@@ -3923,7 +3925,7 @@ export function PageRenderer({
 
               return (
                 <section key={sectionKey} className="max-w-3xl mx-auto w-full p-8 rounded-3xl bg-ui-bg-subtle/50 border border-ui-border-base text-center flex flex-col items-center gap-4">
-                  <QuoteIcon className="w-8 h-8 text-[#D4AF37] rotate-180 opacity-60" />
+                  <QuoteIcon className="w-8 h-8 text-brand-gold rotate-180 opacity-60" />
                   <p className="text-base sm:text-xl font-serif italic text-ui-fg-base leading-relaxed">
                     {quoteText}
                   </p>
@@ -3992,7 +3994,7 @@ export function PageRenderer({
                 <section key={sectionKey} className="w-full py-8 border-t border-ui-border-base text-center flex flex-col items-center gap-3 text-xs text-ui-fg-muted">
                   <span className="font-bold text-sm text-ui-fg-base">{heading}</span>
                   <div className="flex items-center gap-4">
-                    <Link href="https://instagram.com" className="p-2 rounded-full bg-ui-bg-subtle hover:text-[#D4AF37] transition-colors">Instagram</Link>
+                    <Link href="https://instagram.com" className="p-2 rounded-full bg-ui-bg-subtle hover:text-brand-gold transition-colors">Instagram</Link>
                     <Link href="https://wa.me/919567789888" className="p-2 rounded-full bg-ui-bg-subtle hover:text-emerald-600 transition-colors">WhatsApp</Link>
                     <Link href="https://facebook.com" className="p-2 rounded-full bg-ui-bg-subtle hover:text-blue-600 transition-colors">Facebook</Link>
                   </div>
@@ -4021,8 +4023,8 @@ export function PageRenderer({
             data-section-id={sectionKey}
             onClick={() => onSectionClick?.(sectionKey)}
             className={`transition-all ${
-              isSelected ? "ring-2 ring-[#1D2F5D] ring-offset-2 rounded-2xl cursor-pointer shadow-md" : ""
-            } ${isPreview ? "hover:outline-dashed hover:outline-2 hover:outline-[#D4AF37]" : ""}`}
+              isSelected ? "ring-2 ring-brand-navy ring-offset-2 rounded-2xl cursor-pointer shadow-md" : ""
+            } ${isPreview ? "hover:outline-dashed hover:outline-2 hover:outline-brand-gold" : ""}`}
           >
             {wrapperStyle}
             <div className={`sec-wrap-${sectionKey}`}>

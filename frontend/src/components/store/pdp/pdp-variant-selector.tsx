@@ -93,7 +93,7 @@ export function PdpVariantSelector({
       {showWeight && validWeights.length > 0 && (
         <div className="flex flex-col gap-3">
           <div className="flex justify-between items-center">
-            <label className="text-xs uppercase tracking-wider font-bold text-[#0F172A] flex items-center gap-1">
+            <label className="text-xs uppercase tracking-wider font-bold text-brand-text flex items-center gap-1">
               Select Size & Weight {requiredWeight && <span className="text-rose-500">*</span>}
             </label>
             {selectedWeight && (
@@ -114,16 +114,16 @@ export function PdpVariantSelector({
                   aria-pressed={Boolean(isSelected)}
                   className={`relative flex flex-col items-center justify-center p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 text-center ${
                     isSelected
-                      ? "border-[#2563EB] bg-[#2563EB] text-white shadow-md scale-[1.02] ring-2 ring-blue-400/30"
+                      ? "border-brand-primary bg-brand-primary text-white shadow-md scale-[1.02] ring-2 ring-blue-400/30"
                       : "border-slate-200 bg-white text-slate-800 hover:border-slate-300 hover:bg-slate-50 shadow-2xs"
                   }`}
                 >
                   <span className="text-sm font-bold tracking-tight">{w.name}</span>
-                  <span className={`text-xs mt-1 font-semibold ${isSelected ? "text-amber-200" : "text-[#0F172A]"}`}>
+                  <span className={`text-xs mt-1 font-semibold ${isSelected ? "text-brand-gold/40" : "text-brand-text"}`}>
                     ₹{w.price}
                   </span>
                   {isSelected && (
-                    <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#2563EB] flex items-center justify-center text-[10px] text-white">
+                    <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-brand-primary flex items-center justify-center text-[10px] text-white">
                       <Check className="w-2.5 h-2.5 stroke-[3]" />
                     </div>
                   )}
@@ -137,7 +137,7 @@ export function PdpVariantSelector({
       {/* 2. Shape Selector */}
       {showShape && shapes.length > 0 && onSelectShape && (
         <div className="flex flex-col gap-3 pt-3 border-t border-slate-200/80">
-          <label className="text-xs uppercase tracking-wider font-bold text-[#0F172A] flex items-center gap-1">
+          <label className="text-xs uppercase tracking-wider font-bold text-brand-text flex items-center gap-1">
             Cake Shape {requiredShape && <span className="text-rose-500">*</span>}
           </label>
           <div className="flex flex-wrap gap-2.5">
@@ -152,7 +152,7 @@ export function PdpVariantSelector({
                   aria-pressed={Boolean(isSelected)}
                   className={`px-4 py-2.5 rounded-full text-xs font-semibold border transition-all ${
                     isSelected
-                      ? "border-[#2563EB] bg-[#2563EB] text-white shadow-sm"
+                      ? "border-brand-primary bg-brand-primary text-white shadow-sm"
                       : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
                   }`}
                 >
@@ -169,7 +169,7 @@ export function PdpVariantSelector({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-200/80">
           {showFlavour && flavours.length > 0 && onSelectFlavour && (
             <div className="flex flex-col gap-2">
-              <label className="text-xs uppercase tracking-wider font-bold text-[#0F172A]">
+              <label className="text-xs uppercase tracking-wider font-bold text-brand-text">
                 Cake Flavour {requiredFlavour && <span className="text-rose-500">*</span>}
               </label>
               <select
@@ -178,7 +178,7 @@ export function PdpVariantSelector({
                   const found = flavours.find((f) => f.name === e.target.value);
                   if (found) onSelectFlavour(found);
                 }}
-                className="w-full text-sm py-2.5 px-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2563EB] shadow-2xs"
+                className="w-full text-sm py-2.5 px-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary shadow-2xs"
               >
                 {flavours.map((f) => {
                   const pMod = Number(f.price_modifier || f.extra_price || 0);
@@ -194,7 +194,7 @@ export function PdpVariantSelector({
 
           {showFilling && fillings.length > 0 && onSelectFilling && (
             <div className="flex flex-col gap-2">
-              <label className="text-xs uppercase tracking-wider font-bold text-[#0F172A]">
+              <label className="text-xs uppercase tracking-wider font-bold text-brand-text">
                 Inner Filling {requiredFilling && <span className="text-rose-500">*</span>}
               </label>
               <select
@@ -203,7 +203,7 @@ export function PdpVariantSelector({
                   const found = fillings.find((fil) => fil.name === e.target.value);
                   if (found) onSelectFilling(found);
                 }}
-                className="w-full text-sm py-2.5 px-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2563EB] shadow-2xs"
+                className="w-full text-sm py-2.5 px-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary shadow-2xs"
               >
                 {fillings.map((fil) => {
                   const pMod = Number(fil.price_modifier || fil.extra_price || 0);
@@ -222,7 +222,7 @@ export function PdpVariantSelector({
       {/* 4. Cream & Frosting Selector */}
       {showCream && creams.length > 0 && onSelectCream && (
         <div className="flex flex-col gap-2 pt-3 border-t border-slate-200/80">
-          <label className="text-xs uppercase tracking-wider font-bold text-[#0F172A]">
+          <label className="text-xs uppercase tracking-wider font-bold text-brand-text">
             Cream & Frosting {requiredCream && <span className="text-rose-500">*</span>}
           </label>
           <select
@@ -231,7 +231,7 @@ export function PdpVariantSelector({
               const found = creams.find((c) => c.name === e.target.value);
               if (found) onSelectCream(found);
             }}
-            className="w-full text-sm py-2.5 px-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2563EB] shadow-2xs"
+            className="w-full text-sm py-2.5 px-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary shadow-2xs"
           >
             {creams.map((c) => {
               const pMod = Number(c.price_modifier || c.extra_price || 0);

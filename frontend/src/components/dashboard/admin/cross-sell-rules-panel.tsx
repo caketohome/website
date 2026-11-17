@@ -98,17 +98,17 @@ export function CrossSellRulesPanel() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-purple-50/60 dark:bg-purple-950/30 p-4 rounded-xl border border-purple-200 dark:border-purple-900">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-brand-light/60 dark:bg-brand-navy/30 p-4 rounded-xl border border-brand-primary/30 dark:border-brand-navy">
         <div>
-          <Heading level="h2" className="text-lg font-bold flex items-center gap-2 text-purple-900 dark:text-purple-200">
-            <Wand2 className="w-5 h-5 text-purple-600" /> Smart Auto-Mapping Rule Engine ({rules.length})
+          <Heading level="h2" className="text-lg font-bold flex items-center gap-2 text-brand-navy dark:text-brand-primary/30">
+            <Wand2 className="w-5 h-5 text-brand-primary" /> Smart Auto-Mapping Rule Engine ({rules.length})
           </Heading>
-          <Text className="text-xs text-purple-700 dark:text-purple-300">
+          <Text className="text-xs text-brand-navy dark:text-brand-primary/30">
             Automatically maps accessories to cake products based on structured occasion taxonomy and category rules.
           </Text>
         </div>
 
-        <Button onClick={handleOpenCreate} className="bg-purple-600 hover:bg-purple-700 text-white font-bold shrink-0">
+        <Button onClick={handleOpenCreate} className="bg-brand-primary hover:bg-brand-navy text-white font-bold shrink-0">
           <Plus className="w-4 h-4 mr-1" /> Create Cross-Sell Rule
         </Button>
       </div>
@@ -173,7 +173,7 @@ export function CrossSellRulesPanel() {
           <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full border shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
             <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border-b flex items-center justify-between">
               <Heading level="h3" className="text-sm font-bold flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-purple-600" />
+                <Sliders className="w-4 h-4 text-brand-primary" />
                 {editingRule ? "Edit Cross-Sell Rule" : "Create Smart Cross-Sell Rule"}
               </Heading>
               <Button size="small" variant="transparent" onClick={() => setShowModal(false)}>Close</Button>
@@ -204,11 +204,11 @@ export function CrossSellRulesPanel() {
                         key={acc.id}
                         onClick={() => toggleAccessorySelection(acc.id)}
                         className={`p-2 rounded-lg border cursor-pointer flex items-center justify-between text-xs transition ${
-                          isSelected ? "border-purple-600 bg-purple-50 text-purple-900 font-bold" : "border-slate-200 bg-white hover:bg-slate-100 text-slate-800"
+                          isSelected ? "border-brand-primary bg-brand-light text-brand-navy font-bold" : "border-slate-200 bg-white hover:bg-slate-100 text-slate-800"
                         }`}
                       >
                         <span>{acc.name} • ₹{acc.price}</span>
-                        {isSelected && <CheckCircle className="w-4 h-4 text-purple-600" />}
+                        {isSelected && <CheckCircle className="w-4 h-4 text-brand-primary" />}
                       </div>
                     );
                   })}
@@ -235,7 +235,7 @@ export function CrossSellRulesPanel() {
 
               <div className="pt-3 border-t flex justify-end gap-2">
                 <Button type="button" variant="transparent" onClick={() => setShowModal(false)}>Cancel</Button>
-                <Button type="submit" isLoading={submitting} className="bg-purple-600 hover:bg-purple-700 text-white font-bold">
+                <Button type="submit" isLoading={submitting} className="bg-brand-primary hover:bg-brand-navy text-white font-bold">
                   {editingRule ? "Save Rule" : "Create Rule"}
                 </Button>
               </div>

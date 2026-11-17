@@ -175,7 +175,7 @@ export function AiChatAssistant() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:bottom-6 left-3 sm:left-6 z-50 flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs sm:text-sm rounded-full shadow-2xl hover:shadow-amber-500/30 transition-all hover:scale-105 active:scale-95 group"
+          className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:bottom-6 left-3 sm:left-6 z-50 flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-brand-gold to-brand-gold hover:from-brand-gold hover:to-brand-gold-dark text-slate-950 font-bold text-xs sm:text-sm rounded-full shadow-2xl hover:shadow-brand-gold/30 transition-all hover:scale-105 active:scale-95 group"
           aria-label="Open AI Bakery Concierge"
         >
           <div className="w-5 h-5 rounded-full bg-slate-950/20 flex items-center justify-center">
@@ -191,11 +191,11 @@ export function AiChatAssistant() {
 
       {/* Interactive Chat Dialog Modal */}
       {isOpen && (
-        <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] sm:bottom-20 left-3 sm:left-6 z-[100] w-[calc(100vw-24px)] max-w-[390px] md:max-w-[420px] h-[520px] sm:h-[560px] bg-slate-900 border-2 border-amber-500/30 text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5">
+        <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] sm:bottom-20 left-3 sm:left-6 z-[100] w-[calc(100vw-24px)] max-w-[390px] md:max-w-[420px] h-[520px] sm:h-[560px] bg-slate-900 border-2 border-brand-gold/30 text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5">
           {/* Header */}
           <div className="p-3.5 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center text-amber-400">
+              <div className="w-8 h-8 rounded-full bg-brand-gold/20 border border-brand-gold flex items-center justify-center text-brand-gold">
                 <Sparkles className="w-4 h-4" />
               </div>
               <div>
@@ -222,7 +222,7 @@ export function AiChatAssistant() {
                 <div
                   className={`p-3 rounded-2xl text-xs max-w-[88%] leading-relaxed whitespace-pre-line ${
                     msg.sender === "user"
-                      ? "bg-amber-600 text-white rounded-br-none font-medium"
+                      ? "bg-brand-gold text-white rounded-br-none font-medium"
                       : "bg-slate-800 border border-slate-700 text-slate-100 rounded-bl-none shadow-md"
                   }`}
                 >
@@ -238,7 +238,7 @@ export function AiChatAssistant() {
                       return (
                         <div
                           key={p.productId}
-                          className="p-2.5 bg-slate-800/95 border border-slate-700/80 rounded-xl flex items-center justify-between gap-2.5 hover:border-amber-500/50 transition-colors shadow-lg"
+                          className="p-2.5 bg-slate-800/95 border border-slate-700/80 rounded-xl flex items-center justify-between gap-2.5 hover:border-brand-gold/50 transition-colors shadow-lg"
                         >
                           <div className="flex items-center gap-2.5 min-w-0 flex-1">
                             {p.thumbnail ? (
@@ -248,7 +248,7 @@ export function AiChatAssistant() {
                                 className="w-12 h-12 rounded-lg object-cover bg-slate-700 shrink-0 border border-white/10"
                               />
                             ) : (
-                              <div className="w-12 h-12 rounded-lg bg-amber-950/40 border border-amber-500/30 flex items-center justify-center text-lg shrink-0">
+                              <div className="w-12 h-12 rounded-lg bg-brand-gold-dark/40 border border-brand-gold/30 flex items-center justify-center text-lg shrink-0">
                                 🎂
                               </div>
                             )}
@@ -256,12 +256,12 @@ export function AiChatAssistant() {
                               <Link
                                 href={productHref}
                                 onClick={() => setIsOpen(false)}
-                                className="font-bold text-xs text-white hover:text-amber-400 transition-colors truncate block"
+                                className="font-bold text-xs text-white hover:text-brand-gold transition-colors truncate block"
                               >
                                 {p.name}
                               </Link>
                               <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
-                                <span className="text-emerald-400 font-bold">₹{p.price}</span>
+                                <span className="text-[#16834A] font-bold">₹{p.price}</span>
                                 {p.rating && <span>⭐ {p.rating}</span>}
                               </div>
                             </div>
@@ -272,7 +272,7 @@ export function AiChatAssistant() {
                             <Link
                               href={productHref}
                               onClick={() => setIsOpen(false)}
-                              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 text-[11px] rounded-lg transition-all font-bold flex items-center gap-1 shadow-sm"
+                              className="px-3 py-1.5 bg-brand-gold hover:bg-brand-gold active:scale-95 text-slate-950 text-[11px] rounded-lg transition-all font-bold flex items-center gap-1 shadow-sm"
                             >
                               View →
                             </Link>
@@ -292,7 +292,7 @@ export function AiChatAssistant() {
                           <button
                             key={i}
                             onClick={() => handleSend(`Apply coupon ${act.payload?.code || ""}`)}
-                            className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold rounded-xl transition-colors flex items-center justify-between gap-2"
+                            className="px-3 py-1.5 bg-brand-gold/10 hover:bg-brand-gold/20 border border-brand-gold/40 text-brand-gold/40 text-xs font-bold rounded-xl transition-colors flex items-center justify-between gap-2"
                           >
                             <span className="flex items-center gap-1.5">
                               <Tag className="w-3.5 h-3.5" />
@@ -331,12 +331,12 @@ export function AiChatAssistant() {
                     {msg.offers.map((off) => (
                       <div
                         key={off.id}
-                        className="p-2 bg-gradient-to-r from-amber-950/40 to-slate-800 border border-amber-500/40 rounded-xl flex items-center justify-between gap-2"
+                        className="p-2 bg-gradient-to-r from-brand-gold-dark/40 to-slate-800 border border-brand-gold/40 rounded-xl flex items-center justify-between gap-2"
                       >
                         <div className="flex items-center gap-2">
-                          <Tag className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                          <Tag className="w-3.5 h-3.5 text-brand-gold shrink-0" />
                           <div>
-                            <span className="font-mono font-bold text-xs text-amber-300">
+                            <span className="font-mono font-bold text-xs text-brand-gold/40">
                               {off.code}
                             </span>
                             <p className="text-[10px] text-slate-300 line-clamp-1">{off.name}</p>
@@ -344,7 +344,7 @@ export function AiChatAssistant() {
                         </div>
                         <button
                           onClick={() => handleSend(`Apply coupon ${off.code}`)}
-                          className="px-2 py-0.5 bg-amber-500 hover:bg-amber-600 text-slate-950 text-[10px] font-bold rounded-md transition-colors shrink-0"
+                          className="px-2 py-0.5 bg-brand-navy hover:bg-brand-primary text-white text-[10px] font-bold rounded-md transition-colors shrink-0"
                         >
                           Apply
                         </button>
@@ -360,7 +360,7 @@ export function AiChatAssistant() {
                       <button
                         key={i}
                         onClick={() => handleSend(opt)}
-                        className="px-2.5 py-1 bg-slate-800 hover:bg-amber-500/20 border border-slate-700 hover:border-amber-500 text-amber-300 text-[11px] rounded-full transition-colors text-left"
+                        className="px-2.5 py-1 bg-slate-800 hover:bg-brand-gold/20 border border-slate-700 hover:border-brand-gold text-brand-gold/40 text-[11px] rounded-full transition-colors text-left"
                       >
                         {opt}
                       </button>
@@ -371,7 +371,7 @@ export function AiChatAssistant() {
             ))}
 
             {loading && (
-              <div className="flex items-center gap-2 p-3 bg-slate-800/80 border border-slate-700/80 rounded-2xl rounded-bl-none text-xs text-amber-400 w-fit animate-pulse">
+              <div className="flex items-center gap-2 p-3 bg-slate-800/80 border border-slate-700/80 rounded-2xl rounded-bl-none text-xs text-brand-gold w-fit animate-pulse">
                 <Sparkles className="w-3.5 h-3.5 animate-spin" />
                 <span>Checking live bakery inventory & delivery slots...</span>
               </div>
@@ -393,12 +393,12 @@ export function AiChatAssistant() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={loading}
-              className="flex-1 bg-slate-900 text-xs text-white placeholder-slate-400 px-3 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-500"
+              className="flex-1 bg-slate-900 text-xs text-white placeholder-slate-400 px-3 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:border-brand-gold"
             />
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="p-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 rounded-xl transition-colors shrink-0"
+              className="p-2.5 bg-brand-gold hover:bg-brand-gold disabled:opacity-50 text-slate-950 rounded-xl transition-colors shrink-0"
               aria-label="Send Message"
             >
               <Send className="w-4 h-4" />

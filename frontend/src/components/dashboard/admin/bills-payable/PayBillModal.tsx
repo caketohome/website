@@ -254,7 +254,7 @@ export function PayBillModal({ bills, onClose, onSuccess }: PayBillModalProps) {
                 className={`w-full px-3 py-2 text-sm rounded-xl border bg-white dark:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 ${
                   isOverpayment
                     ? "border-rose-500 focus:ring-rose-400"
-                    : "border-zinc-300 dark:border-zinc-700 focus:ring-indigo-500"
+                    : "border-zinc-300 dark:border-zinc-700 focus:ring-brand-primary"
                 }`}
                 required
               />
@@ -262,12 +262,12 @@ export function PayBillModal({ bills, onClose, onSuccess }: PayBillModalProps) {
                 <button
                   type="button"
                   onClick={() => setPaymentAmount(totalOutstanding.toFixed(2))}
-                  className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 underline"
+                  className="text-brand-primary hover:text-brand-navy dark:text-brand-primary underline"
                 >
                   Pay Full Balance
                 </button>
                 {parsedAmount < totalOutstanding && parsedAmount > 0 && (
-                  <span className="text-amber-600 dark:text-amber-400">
+                  <span className="text-brand-gold dark:text-brand-gold">
                     Partial: ₹{(totalOutstanding - parsedAmount).toFixed(2)} remaining
                   </span>
                 )}
@@ -282,7 +282,7 @@ export function PayBillModal({ bills, onClose, onSuccess }: PayBillModalProps) {
                 type="date"
                 value={paymentDate}
                 onChange={(e) => setPaymentDate(e.target.value)}
-                className="w-full px-3 py-2 text-sm rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-sm rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-brand-primary"
                 required
               />
             </div>
@@ -306,7 +306,7 @@ export function PayBillModal({ bills, onClose, onSuccess }: PayBillModalProps) {
                   onClick={() => setPaymentMethod(m.id as any)}
                   className={`py-2 px-2 text-xs font-medium rounded-xl border text-center transition ${
                     paymentMethod === m.id
-                      ? "bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-950/60 dark:border-indigo-400 dark:text-indigo-300 shadow-sm"
+                      ? "bg-brand-light border-brand-primary text-brand-navy dark:bg-brand-navy/60 dark:border-brand-primary dark:text-brand-primary/30 shadow-sm"
                       : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
                   }`}
                 >
@@ -325,7 +325,7 @@ export function PayBillModal({ bills, onClose, onSuccess }: PayBillModalProps) {
               <select
                 value={bankAccountId}
                 onChange={(e) => setBankAccountId(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-brand-primary"
                 required
               >
                 {bankAccounts.map((ba) => (
@@ -356,7 +356,7 @@ export function PayBillModal({ bills, onClose, onSuccess }: PayBillModalProps) {
                     Active Drawer Connected
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-brand-gold-light text-brand-gold-dark border border-brand-gold/40 dark:bg-brand-gold-dark/60 dark:text-brand-gold/40 dark:border-brand-gold-dark">
                     Branch Safe / Petty Cash
                   </span>
                 )}
@@ -381,7 +381,7 @@ export function PayBillModal({ bills, onClose, onSuccess }: PayBillModalProps) {
               placeholder={paymentMethod === "CASH" ? "e.g. CV-2026-001" : "e.g. UTR9928374615"}
               value={reference}
               onChange={(e) => setReference(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 font-mono focus:outline-none focus:ring-2 focus:ring-brand-primary"
               required={paymentMethod !== "CASH"}
             />
           </div>
@@ -396,12 +396,12 @@ export function PayBillModal({ bills, onClose, onSuccess }: PayBillModalProps) {
               placeholder="e.g. Settlement for raw ingredient invoices"
               value={narration}
               onChange={(e) => setNarration(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-brand-primary"
             />
           </div>
 
           {/* Segregation of Duties Notice */}
-          <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50/60 border border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/40 text-[11px] text-amber-800 dark:text-amber-300">
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-brand-gold-light/60 border border-brand-gold/40 dark:bg-brand-gold-dark/20 dark:border-brand-gold-dark/40 text-[11px] text-brand-gold-dark dark:text-brand-gold/40">
             <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
             <div>
               <span className="font-semibold">Segregation of Duties:</span> Payment disbursement

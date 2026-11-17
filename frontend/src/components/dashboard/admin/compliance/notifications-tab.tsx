@@ -42,7 +42,7 @@ export function NotificationsTab() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-amber-600" />
+            <Bell className="w-5 h-5 text-brand-gold" />
             <Heading level="h3" className="text-base font-bold">Notifications & Compliance Alerting</Heading>
           </div>
           <Text className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -52,7 +52,7 @@ export function NotificationsTab() {
         <Button
           type="submit"
           isLoading={saving}
-          className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1.5 shrink-0"
+          className="bg-brand-gold hover:bg-brand-gold-dark text-white flex items-center gap-1.5 shrink-0"
         >
           <Save className="w-4 h-4" /> Save Alert Settings
         </Button>
@@ -62,7 +62,7 @@ export function NotificationsTab() {
         {/* Statutory Alerts */}
         <Container className="p-5 flex flex-col gap-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <AlertTriangle className="w-4 h-4 text-brand-gold" />
             <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
               Statutory Expiry Alarms
             </Text>
@@ -78,7 +78,7 @@ export function NotificationsTab() {
                 type="checkbox"
                 checked={channels.fssai_expiry_90d}
                 onChange={(e) => setChannels({ ...channels, fssai_expiry_90d: e.target.checked })}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                className="w-4 h-4 rounded text-brand-gold focus:ring-brand-gold"
               />
             </label>
 
@@ -91,7 +91,7 @@ export function NotificationsTab() {
                 type="checkbox"
                 checked={channels.fssai_expiry_30d}
                 onChange={(e) => setChannels({ ...channels, fssai_expiry_30d: e.target.checked })}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                className="w-4 h-4 rounded text-brand-gold focus:ring-brand-gold"
               />
             </label>
 
@@ -104,7 +104,7 @@ export function NotificationsTab() {
                 type="checkbox"
                 checked={channels.invoice_dispatch_customer}
                 onChange={(e) => setChannels({ ...channels, invoice_dispatch_customer: e.target.checked })}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                className="w-4 h-4 rounded text-brand-gold focus:ring-brand-gold"
               />
             </label>
           </div>
@@ -113,7 +113,7 @@ export function NotificationsTab() {
         {/* Customer Channels */}
         <Container className="p-5 flex flex-col gap-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <MessageSquare className="w-4 h-4 text-amber-600" />
+            <MessageSquare className="w-4 h-4 text-brand-gold" />
             <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
               Communication Gateways
             </Text>
@@ -129,7 +129,7 @@ export function NotificationsTab() {
                 type="checkbox"
                 checked={channels.whatsapp_enabled}
                 onChange={(e) => setChannels({ ...channels, whatsapp_enabled: e.target.checked })}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                className="w-4 h-4 rounded text-brand-gold focus:ring-brand-gold"
               />
             </label>
 
@@ -142,7 +142,7 @@ export function NotificationsTab() {
                 type="checkbox"
                 checked={channels.email_enabled}
                 onChange={(e) => setChannels({ ...channels, email_enabled: e.target.checked })}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                className="w-4 h-4 rounded text-brand-gold focus:ring-brand-gold"
               />
             </label>
 
@@ -155,7 +155,7 @@ export function NotificationsTab() {
                 type="checkbox"
                 checked={channels.sms_enabled}
                 onChange={(e) => setChannels({ ...channels, sms_enabled: e.target.checked })}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                className="w-4 h-4 rounded text-brand-gold focus:ring-brand-gold"
               />
             </label>
           </div>

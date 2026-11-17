@@ -282,10 +282,10 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-900/40 text-white shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-brand-navy to-slate-900 border border-brand-navy/40 text-white shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+            <span className="p-2 rounded-xl bg-brand-primary/20 text-brand-primary border border-brand-primary/30">
               <Store className="w-5 h-5" />
             </span>
             <Heading level="h2" className="text-xl font-bold tracking-tight text-white">
@@ -318,7 +318,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
             variant="primary"
             size="small"
             onClick={() => setShowOnboardModal(true)}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white border-0 shadow-md shadow-indigo-600/30"
+            className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary text-white border-0 shadow-md shadow-brand-primary/30"
           >
             <Plus className="w-4 h-4" />
             Onboard Partner
@@ -346,7 +346,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
           onClick={() => setActiveSubTab("partners")}
           className={`pb-3 px-2 text-sm font-semibold border-b-2 flex items-center gap-2 transition-colors ${
             activeSubTab === "partners"
-              ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
+              ? "border-brand-primary text-brand-primary dark:text-brand-primary"
               : "border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
           }`}
         >
@@ -357,7 +357,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
           onClick={() => setActiveSubTab("reconciliation")}
           className={`pb-3 px-2 text-sm font-semibold border-b-2 flex items-center gap-2 transition-colors ${
             activeSubTab === "reconciliation"
-              ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
+              ? "border-brand-primary text-brand-primary dark:text-brand-primary"
               : "border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
           }`}
         >
@@ -368,7 +368,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
           onClick={() => setActiveSubTab("invoices")}
           className={`pb-3 px-2 text-sm font-semibold border-b-2 flex items-center gap-2 transition-colors ${
             activeSubTab === "invoices"
-              ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
+              ? "border-brand-primary text-brand-primary dark:text-brand-primary"
               : "border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
           }`}
         >
@@ -428,7 +428,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
                           className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
                             partner.status === "ACTIVE"
                               ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                              : "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                              : "bg-brand-gold/10 text-brand-gold border border-brand-gold/20"
                           }`}
                         >
                           {partner.status}
@@ -451,7 +451,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
                             setSelectedPartnerId(partner.id);
                             setActiveSubTab("reconciliation");
                           }}
-                          className="px-2.5 py-1 text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200 dark:border-indigo-800"
+                          className="px-2.5 py-1 text-[11px] font-semibold bg-brand-light dark:bg-brand-navy/60 text-brand-primary dark:text-brand-primary hover:bg-brand-light rounded-lg transition-colors border border-brand-primary/30 dark:border-brand-navy"
                         >
                           Reconcile
                         </button>
@@ -472,7 +472,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
           <div className="lg:col-span-1 space-y-4">
             <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <Heading level="h3" className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Calculator className="w-4 h-4 text-indigo-500" />
+                <Calculator className="w-4 h-4 text-brand-primary" />
                 Statement Parameters
               </Heading>
 
@@ -516,7 +516,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
 
                 <Button
                   variant="primary"
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white mt-2"
+                  className="w-full bg-brand-primary hover:bg-brand-primary text-white mt-2"
                   onClick={handleGenerateStatement}
                   disabled={reconciling || !selectedPartnerId}
                 >
@@ -652,7 +652,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
                     </div>
                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                       <div className="text-slate-500 font-medium">Marketplace Commission</div>
-                      <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400 mt-1">
+                      <div className="text-lg font-bold text-brand-primary dark:text-brand-primary mt-1">
                         ₹{statement.totalCommission.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </div>
                     </div>
@@ -681,7 +681,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
                     </div>
                     <div className="flex justify-between py-1 border-b border-slate-200 dark:border-slate-800">
                       <span>Marketplace Commission Retained</span>
-                      <span className="font-semibold text-indigo-500">-₹{statement.totalCommission.toFixed(2)}</span>
+                      <span className="font-semibold text-brand-primary">-₹{statement.totalCommission.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between py-2 font-bold text-slate-900 dark:text-white">
                       <span>Net Calculated Entitlement</span>
@@ -776,7 +776,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
                             size="small"
                             variant="primary"
                             onClick={() => handleApproveInvoice(inv.id)}
-                            className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-2.5 py-1"
+                            className="bg-brand-primary hover:bg-brand-primary text-white text-xs px-2.5 py-1"
                           >
                             Approve to Bills Payable
                           </Button>
@@ -802,7 +802,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-lg w-full p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <Heading level="h3" className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Store className="w-5 h-5 text-indigo-500" />
+                <Store className="w-5 h-5 text-brand-primary" />
                 Onboard Commercial Marketplace Partner
               </Heading>
               <button
@@ -911,7 +911,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
                 <Button
                   type="submit"
                   variant="primary"
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white"
+                  className="bg-brand-primary hover:bg-brand-primary text-white"
                   disabled={loading}
                 >
                   Onboard & Save to PostgreSQL

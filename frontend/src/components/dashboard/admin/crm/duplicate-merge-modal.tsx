@@ -74,9 +74,9 @@ export function DuplicateMergeModal({ isOpen, onClose, onMergedSuccess }: Duplic
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
       <div className="relative w-full max-w-4xl bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="p-5 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between bg-amber-50/50 dark:bg-amber-950/20">
+        <div className="p-5 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between bg-brand-gold-light/50 dark:bg-brand-gold-dark/20">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-amber-600 flex items-center justify-center text-white">
+            <div className="w-9 h-9 rounded-full bg-brand-gold flex items-center justify-center text-white">
               <Users className="w-5 h-5" />
             </div>
             <div>
@@ -100,7 +100,7 @@ export function DuplicateMergeModal({ isOpen, onClose, onMergedSuccess }: Duplic
         <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-48 text-neutral-400 gap-2">
-              <RefreshCw className="w-6 h-6 animate-spin text-amber-600" />
+              <RefreshCw className="w-6 h-6 animate-spin text-brand-gold" />
               <span className="text-xs">Scanning customer database for duplicates...</span>
             </div>
           ) : duplicates.length === 0 ? (
@@ -130,7 +130,7 @@ export function DuplicateMergeModal({ isOpen, onClose, onMergedSuccess }: Duplic
                       }}
                       className={`p-3 rounded-xl border text-left flex flex-col gap-1 min-w-[240px] transition-all ${
                         selectedCandidate === cand
-                          ? "border-amber-500 bg-amber-50/50 dark:bg-amber-950/30 ring-1 ring-amber-500"
+                          ? "border-brand-gold bg-brand-gold-light/50 dark:bg-brand-gold-dark/30 ring-1 ring-brand-gold"
                           : "border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:border-neutral-300"
                       }`}
                     >
@@ -153,7 +153,7 @@ export function DuplicateMergeModal({ isOpen, onClose, onMergedSuccess }: Duplic
               {/* Side-by-Side Comparison */}
               {selectedCandidate && (
                 <div className="flex flex-col gap-4">
-                  <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-300 flex items-center justify-between">
+                  <div className="p-4 rounded-xl bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 dark:border-brand-gold-dark/60 text-xs text-brand-gold-dark dark:text-brand-gold/40 flex items-center justify-between">
                     <span>
                       Matching fields: <strong className="uppercase">{(selectedCandidate.matching_fields || []).join(", ")}</strong> • Confidence: <strong>{selectedCandidate.confidence_score}%</strong>
                     </span>
@@ -249,7 +249,7 @@ export function DuplicateMergeModal({ isOpen, onClose, onMergedSuccess }: Duplic
               size="small"
               onClick={handleMerge}
               isLoading={merging}
-              className="bg-amber-600 hover:bg-amber-700 text-white text-xs flex items-center gap-1.5"
+              className="bg-brand-gold hover:bg-brand-gold-dark text-white text-xs flex items-center gap-1.5"
             >
               <ArrowRight className="w-3.5 h-3.5" /> Execute Safe Merge
             </Button>

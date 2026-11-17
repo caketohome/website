@@ -259,7 +259,7 @@ export const WebhooksPanel = memo(function WebhooksPanel() {
       {/* ── HEADER & SUBTITLE ────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-slate-950 via-slate-900 to-rose-950 p-6 rounded-2xl border border-slate-800 text-white shadow-xl">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 flex items-center justify-center shadow-lg shadow-rose-600/30">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-rose-600 to-brand-gold flex items-center justify-center shadow-lg shadow-rose-600/30">
             <Zap className="w-6 h-6 text-white" />
           </div>
           <div>
@@ -311,7 +311,7 @@ export const WebhooksPanel = memo(function WebhooksPanel() {
           </div>
           <ArrowRight className="w-4 h-4 text-slate-600 shrink-0" />
           <div className="flex items-center gap-2 px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg shrink-0">
-            <CheckCircle2 className="w-4 h-4 text-cyan-400" />
+            <CheckCircle2 className="w-4 h-4 text-brand-primary" />
             <div>
               <p className="font-bold text-[11px] text-white">EVENT SUBSCRIPTIONS</p>
               <p className="text-[10px] text-slate-400">34+ Granular Events</p>
@@ -319,7 +319,7 @@ export const WebhooksPanel = memo(function WebhooksPanel() {
           </div>
           <ArrowRight className="w-4 h-4 text-slate-600 shrink-0" />
           <div className="flex items-center gap-2 px-3 py-2 bg-slate-800/80 border border-slate-700 rounded-lg shrink-0">
-            <Database className="w-4 h-4 text-amber-400" />
+            <Database className="w-4 h-4 text-brand-gold" />
             <div>
               <p className="font-bold text-[11px] text-white">TRANSACTIONAL OUTBOX</p>
               <p className="text-[10px] text-slate-400">Atomic & Resilient</p>
@@ -392,7 +392,7 @@ export const WebhooksPanel = memo(function WebhooksPanel() {
         <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex flex-col gap-1">
           <div className="flex justify-between items-center text-slate-500">
             <span className="text-[10px] uppercase font-bold tracking-wider">Pending Outbox</span>
-            <Clock className="w-3.5 h-3.5 text-amber-500" />
+            <Clock className="w-3.5 h-3.5 text-brand-gold" />
           </div>
           <p className="text-base font-extrabold text-slate-900 dark:text-white">
             {metrics?.pending_outbox || 0}
@@ -416,7 +416,7 @@ export const WebhooksPanel = memo(function WebhooksPanel() {
         <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex flex-col gap-1">
           <div className="flex justify-between items-center text-slate-500">
             <span className="text-[10px] uppercase font-bold tracking-wider">Average Latency</span>
-            <Activity className="w-3.5 h-3.5 text-purple-500" />
+            <Activity className="w-3.5 h-3.5 text-brand-primary" />
           </div>
           <p className="text-base font-extrabold text-slate-900 dark:text-white">
             {metrics?.average_latency_ms || 139} ms
@@ -491,7 +491,7 @@ export const WebhooksPanel = memo(function WebhooksPanel() {
                 </Badge>
               </div>
 
-              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+              <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/30 border border-brand-gold/40 dark:border-brand-gold-dark/50 rounded-xl text-[11px] text-brand-gold-dark dark:text-brand-gold/40 leading-relaxed">
                 <strong>Architectural Standard:</strong> All enabled CakeToHome events are dispatched through this ONE primary endpoint and routed by <code>event_type</code> inside n8n workflows.
               </div>
 
@@ -618,7 +618,7 @@ export const WebhooksPanel = memo(function WebhooksPanel() {
                       variant="secondary"
                       onClick={handleRotateSecret}
                       isLoading={isRotating}
-                      className="text-xs shrink-0 text-amber-700 hover:text-amber-800 border-amber-300"
+                      className="text-xs shrink-0 text-brand-gold-dark hover:text-brand-gold-dark border-brand-gold/40"
                     >
                       <RotateCw className="w-3.5 h-3.5" />
                     </Button>
@@ -814,7 +814,7 @@ export const WebhooksPanel = memo(function WebhooksPanel() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                  <Database className="w-4 h-4 text-amber-500" />
+                  <Database className="w-4 h-4 text-brand-gold" />
                   TRANSACTIONAL EVENT OUTBOX & DEAD-LETTER QUEUE
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
@@ -944,7 +944,7 @@ export const WebhooksPanel = memo(function WebhooksPanel() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-purple-500" />
+                  <Terminal className="w-4 h-4 text-brand-primary" />
                   REAL-TIME WEBHOOK DELIVERY & EXECUTION LOGS
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
@@ -1037,7 +1037,7 @@ export const WebhooksPanel = memo(function WebhooksPanel() {
           <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex flex-col gap-4">
             <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                <Box className="w-4 h-4 text-indigo-500" />
+                <Box className="w-4 h-4 text-brand-primary" />
                 CANONICAL EVENT CATALOGUE ({ALL_WEBHOOK_EVENT_TYPES.length} EVENTS)
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -1090,7 +1090,7 @@ export const WebhooksPanel = memo(function WebhooksPanel() {
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div>
                   <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    <Sparkles className="w-4 h-4 text-brand-gold" />
                     10-POINT AUTOMATED DIAGNOSTIC SUITE
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
@@ -1267,7 +1267,7 @@ export const WebhooksPanel = memo(function WebhooksPanel() {
                 </pre>
               )}
               {inspectModalTab === "HEADERS" && (
-                <pre className="p-3 bg-slate-950 text-cyan-400 rounded-xl overflow-x-auto text-[11px] leading-relaxed">
+                <pre className="p-3 bg-slate-950 text-brand-primary rounded-xl overflow-x-auto text-[11px] leading-relaxed">
                   {JSON.stringify(inspectItem.request_headers || { "Content-Type": "application/json", "User-Agent": "CakeToHome-Event-Gateway/3.0" }, null, 2)}
                 </pre>
               )}

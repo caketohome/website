@@ -55,10 +55,10 @@ export function PdpFaqSection({ customFaqs, showFaq = true }: PdpFaqSectionProps
   return (
     <section className="w-full pt-12 mt-12 border-t border-slate-200/90" aria-label="Frequently Asked Questions">
       <div className="flex flex-col gap-2 mb-8 text-center sm:text-left">
-        <span className="text-xs uppercase tracking-[0.2em] font-bold text-[#2563EB] flex items-center justify-center sm:justify-start gap-1.5">
+        <span className="text-xs uppercase tracking-[0.2em] font-bold text-brand-primary flex items-center justify-center sm:justify-start gap-1.5">
           <HelpCircle className="w-3.5 h-3.5" /> Ordering Assistance
         </span>
-        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#0F172A]">
+        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-brand-text">
           Frequently Asked Questions
         </h2>
       </div>
@@ -75,12 +75,12 @@ export function PdpFaqSection({ customFaqs, showFaq = true }: PdpFaqSectionProps
                 type="button"
                 onClick={() => toggleFaq(idx)}
                 aria-expanded={isOpen}
-                className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 font-semibold text-[#0F172A] text-sm sm:text-base hover:bg-slate-50 transition-colors"
+                className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 font-semibold text-brand-text text-sm sm:text-base hover:bg-slate-50 transition-colors"
               >
                 <span>{faq.question}</span>
                 <ChevronDown
                   className={`w-5 h-5 text-slate-400 shrink-0 transition-transform duration-200 ${
-                    isOpen ? "rotate-180 text-[#0F172A]" : ""
+                    isOpen ? "rotate-180 text-brand-text" : ""
                   }`}
                 />
               </button>

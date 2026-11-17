@@ -76,7 +76,7 @@ function calcSeoScore(page: any): { score: number; label: string; color: string 
   if (page.sitemap_include) score += 5;
   if (page.robots_tag === "index, follow") score += 10;
   const label = score >= 80 ? "Excellent" : score >= 60 ? "Good" : score >= 40 ? "Fair" : "Poor";
-  const color = score >= 80 ? "text-emerald-600" : score >= 60 ? "text-blue-600" : score >= 40 ? "text-amber-600" : "text-red-600";
+  const color = score >= 80 ? "text-emerald-600" : score >= 60 ? "text-blue-600" : score >= 40 ? "text-brand-gold" : "text-red-600";
   return { score, label, color };
 }
 
@@ -113,7 +113,7 @@ function blankPage(): any {
     hide_from_nav: false,
     visibility_rules: { audience: "public", devices: "all", locations: "all" },
     announcement_bar: { enabled: false, text: "", cta_text: "", cta_url: "", bg_color: "#1D2F5D" },
-    theme: { bg_color: "#FDFBF7", text_color: "#07090E", heading_color: "#1D2F5D", accent_color: "#D4AF37" },
+    theme: { bg_color: "#FFFCF8", text_color: "#152347", heading_color: "#1D2F5D", accent_color: "#C28A2C" },
     header_config: { show_header: true, style: "default" },
     sections: [],
     draft_config: { sections: [], banners: [], products_mode: "best_sellers", product_ids: [], category_ids: [] },
@@ -137,7 +137,7 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${checked ? "bg-[#1D2F5D]" : "bg-ui-bg-component border border-ui-border-base"}`}
+      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${checked ? "bg-brand-navy" : "bg-ui-bg-component border border-ui-border-base"}`}
       aria-label={label}
     >
       <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow ${checked ? "translate-x-4" : "translate-x-0.5"}`} />
@@ -736,7 +736,7 @@ export function PageConfigurator() {
               <select
                 value={newPageForm.page_type}
                 onChange={e => setNewPageForm(prev => ({ ...prev, page_type: e.target.value }))}
-                className="w-full py-2 px-3 text-xs font-semibold text-slate-900 dark:text-white bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs cursor-pointer"
+                className="w-full py-2 px-3 text-xs font-semibold text-slate-900 dark:text-white bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-navy shadow-xs cursor-pointer"
               >
                 {PAGE_TYPES.map(t => (
                   <option key={t.value} value={t.value} className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 py-1">
@@ -804,7 +804,7 @@ export function PageConfigurator() {
                     onClick={() => { setActiveSectionCategory("all"); setSectionSearchQuery(""); }}
                     className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all ${
                       activeSectionCategory === "all" && !sectionSearchQuery
-                        ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/40"
+                        ? "bg-brand-navy text-white shadow-sm border border-brand-gold/40"
                         : "text-ui-fg-muted hover:bg-ui-bg-subtle hover:text-ui-fg-base"
                     }`}
                   >
@@ -818,7 +818,7 @@ export function PageConfigurator() {
                         onClick={() => { setActiveSectionCategory(cat.id); setSectionSearchQuery(""); }}
                         className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-between ${
                           activeSectionCategory === cat.id && !sectionSearchQuery
-                            ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/40"
+                            ? "bg-brand-navy text-white shadow-sm border border-brand-gold/40"
                             : "text-ui-fg-muted hover:bg-ui-bg-subtle hover:text-ui-fg-base"
                         }`}
                       >
@@ -848,11 +848,11 @@ export function PageConfigurator() {
                         <button
                           key={st.value}
                           onClick={() => addSection(st.value)}
-                          className="p-3 rounded-xl text-left flex items-start gap-3 transition-all border bg-ui-bg-subtle/30 border-ui-border-base hover:bg-[#1D2F5D]/5 hover:border-[#1D2F5D]/30 hover:shadow-sm dark:hover:bg-[#1D2F5D]/20 group"
+                          className="p-3 rounded-xl text-left flex items-start gap-3 transition-all border bg-ui-bg-subtle/30 border-ui-border-base hover:bg-brand-navy/5 hover:border-brand-navy/30 hover:shadow-sm dark:hover:bg-brand-navy/20 group"
                         >
                           <span className="text-xl shrink-0 mt-0.5">{st.icon}</span>
                           <div className="min-w-0">
-                            <Text className="text-xs font-bold group-hover:text-[#1D2F5D] dark:group-hover:text-[#D4AF37] truncate">{st.label}</Text>
+                            <Text className="text-xs font-bold group-hover:text-brand-navy dark:group-hover:text-brand-gold truncate">{st.label}</Text>
                             <Text className="text-[10px] text-ui-fg-muted line-clamp-2 leading-relaxed mt-0.5">{st.description}</Text>
                           </div>
                         </button>
@@ -882,7 +882,7 @@ export function PageConfigurator() {
           <div className="bg-ui-bg-base border border-ui-border-base rounded-2xl shadow-2xl w-full max-w-xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-4 border-b border-ui-border-base flex items-center justify-between bg-ui-bg-subtle/40">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-amber-500/10 text-[#D4AF37] border border-[#D4AF37]/30">
+                <div className="p-2 rounded-xl bg-brand-gold/10 text-brand-gold border border-brand-gold/30">
                   <Clock className="w-5 h-5" />
                 </div>
                 <div>
@@ -917,7 +917,7 @@ export function PageConfigurator() {
                       className="p-3.5 rounded-xl border border-ui-border-base bg-ui-bg-subtle/30 hover:border-ui-border-strong transition-all flex items-center justify-between gap-3"
                     >
                       <div className="flex items-start gap-3">
-                        <span className="px-2 py-1 rounded-md bg-[#1D2F5D] text-[#FAF9F6] text-xs font-mono font-bold">
+                        <span className="px-2 py-1 rounded-md bg-brand-navy text-brand-warm-white text-xs font-mono font-bold">
                           v{verNum}
                         </span>
                         <div>
@@ -965,7 +965,7 @@ export function PageConfigurator() {
           <select
             value={selectedPageId}
             onChange={e => handleSelectPage(e.target.value)}
-            className="px-2.5 py-1.5 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs max-w-[180px] sm:max-w-[240px] truncate cursor-pointer"
+            className="px-2.5 py-1.5 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-navy shadow-xs max-w-[180px] sm:max-w-[240px] truncate cursor-pointer"
           >
             {pages.map(p => (
               <option key={p.id} value={p.id} className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 py-1">
@@ -980,7 +980,7 @@ export function PageConfigurator() {
           {/* Status Indicator */}
           <div className="flex items-center gap-1.5 ml-1 shrink-0">
             {isDirty ? (
-              <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-bold animate-pulse">
+              <span className="px-2 py-0.5 rounded-full bg-brand-gold text-white text-[10px] font-bold animate-pulse">
                 Unsaved Changes
               </span>
             ) : (
@@ -996,7 +996,7 @@ export function PageConfigurator() {
           <button
             onClick={() => setCanvasDevice("desktop")}
             className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
-              canvasDevice === "desktop" ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted hover:text-ui-fg-base"
+              canvasDevice === "desktop" ? "bg-brand-navy text-white shadow-sm border border-brand-gold/30" : "text-ui-fg-muted hover:text-ui-fg-base"
             }`}
           >
             <Monitor className="w-3.5 h-3.5" /> <span className="hidden md:inline">Desktop</span> <span className="text-[10px] sm:text-xs opacity-75">(1440)</span>
@@ -1004,7 +1004,7 @@ export function PageConfigurator() {
           <button
             onClick={() => setCanvasDevice("tablet")}
             className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
-              canvasDevice === "tablet" ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted hover:text-ui-fg-base"
+              canvasDevice === "tablet" ? "bg-brand-navy text-white shadow-sm border border-brand-gold/30" : "text-ui-fg-muted hover:text-ui-fg-base"
             }`}
           >
             <Tablet className="w-3.5 h-3.5" /> <span className="hidden md:inline">Tablet</span> <span className="text-[10px] sm:text-xs opacity-75">(768)</span>
@@ -1012,7 +1012,7 @@ export function PageConfigurator() {
           <button
             onClick={() => setCanvasDevice("mobile")}
             className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
-              canvasDevice === "mobile" ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted hover:text-ui-fg-base"
+              canvasDevice === "mobile" ? "bg-brand-navy text-white shadow-sm border border-brand-gold/30" : "text-ui-fg-muted hover:text-ui-fg-base"
             }`}
           >
             <Smartphone className="w-3.5 h-3.5" /> <span className="hidden md:inline">Mobile</span> <span className="text-[10px] sm:text-xs opacity-75">(375)</span>
@@ -1020,7 +1020,7 @@ export function PageConfigurator() {
           <button
             onClick={() => setCanvasDevice("full")}
             className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
-              canvasDevice === "full" ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted hover:text-ui-fg-base"
+              canvasDevice === "full" ? "bg-brand-navy text-white shadow-sm border border-brand-gold/30" : "text-ui-fg-muted hover:text-ui-fg-base"
             }`}
           >
             Full
@@ -1053,7 +1053,7 @@ export function PageConfigurator() {
             title="Revision History & Rollback"
             className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold"
           >
-            <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <Clock className="w-3.5 h-3.5 text-brand-gold" />
             <span>Revisions ({editingPage.version_history?.length || 0})</span>
           </Button>
 
@@ -1081,16 +1081,16 @@ export function PageConfigurator() {
             onClick={handleSaveDraft}
             disabled={!isDirty || saving}
             data-testid="cms-save-draft-btn"
-            className="border-slate-300 text-[#07090E] dark:text-white dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold disabled:opacity-40 disabled:cursor-not-allowed text-xs flex items-center gap-1.5"
+            className="border-slate-300 text-brand-deep dark:text-white dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold disabled:opacity-40 disabled:cursor-not-allowed text-xs flex items-center gap-1.5"
           >
             {saving ? (
               <>
-                <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#1D2F5D] dark:text-[#D4AF37]" />
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-brand-navy dark:text-brand-gold" />
                 <span>Saving...</span>
               </>
             ) : (
               <>
-                <Save className="w-3.5 h-3.5 text-[#1D2F5D] dark:text-[#D4AF37]" />
+                <Save className="w-3.5 h-3.5 text-brand-navy dark:text-brand-gold" />
                 <span>Save Draft</span>
               </>
             )}
@@ -1102,9 +1102,9 @@ export function PageConfigurator() {
               size="small"
               onClick={handleUnpublish}
               data-testid="cms-unpublish-btn"
-              className="border-amber-300 text-amber-800 hover:bg-amber-50 font-semibold text-xs"
+              className="border-brand-gold/40 text-brand-gold-dark hover:bg-brand-gold-light font-semibold text-xs"
             >
-              <EyeOff className="w-3.5 h-3.5 mr-1 text-amber-600" /> Unpublish
+              <EyeOff className="w-3.5 h-3.5 mr-1 text-brand-gold" /> Unpublish
             </Button>
           )}
 
@@ -1114,16 +1114,16 @@ export function PageConfigurator() {
             onClick={handlePublish}
             disabled={publishing}
             data-testid="cms-publish-btn"
-            className="bg-[#1D2F5D] hover:bg-[#152347] text-white border border-[#D4AF37]/50 font-bold shadow-sm disabled:opacity-50 text-xs flex items-center gap-1.5"
+            className="bg-brand-navy hover:bg-brand-deep text-white border border-brand-gold/50 font-bold shadow-sm disabled:opacity-50 text-xs flex items-center gap-1.5"
           >
             {publishing ? (
               <>
-                <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-brand-gold" />
                 <span>Publishing to PostgreSQL...</span>
               </>
             ) : (
               <>
-                <Send className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <Send className="w-3.5 h-3.5 text-brand-gold" />
                 <span>{editingPage.status === "published" ? "Publish Changes" : "Publish"}</span>
               </>
             )}
@@ -1135,19 +1135,19 @@ export function PageConfigurator() {
       <div className="shrink-0 flex lg:hidden items-center justify-around bg-ui-bg-subtle p-1 rounded-xl border border-ui-border-base text-xs font-bold">
         <button
           onClick={() => setMobilePanelTab("sections")}
-          className={`flex-1 py-2 text-center rounded-lg ${mobilePanelTab === "sections" ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted"}`}
+          className={`flex-1 py-2 text-center rounded-lg ${mobilePanelTab === "sections" ? "bg-brand-navy text-white shadow-sm border border-brand-gold/30" : "text-ui-fg-muted"}`}
         >
           📑 Sections ({getSections().length})
         </button>
         <button
           onClick={() => setMobilePanelTab("preview")}
-          className={`flex-1 py-2 text-center rounded-lg ${mobilePanelTab === "preview" ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted"}`}
+          className={`flex-1 py-2 text-center rounded-lg ${mobilePanelTab === "preview" ? "bg-brand-navy text-white shadow-sm border border-brand-gold/30" : "text-ui-fg-muted"}`}
         >
           👁️ Preview Canvas
         </button>
         <button
           onClick={() => setMobilePanelTab("settings")}
-          className={`flex-1 py-2 text-center rounded-lg ${mobilePanelTab === "settings" ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted"}`}
+          className={`flex-1 py-2 text-center rounded-lg ${mobilePanelTab === "settings" ? "bg-brand-navy text-white shadow-sm border border-brand-gold/30" : "text-ui-fg-muted"}`}
         >
           ⚙️ Inspector
         </button>
@@ -1161,14 +1161,14 @@ export function PageConfigurator() {
           {/* Navigator Header */}
           <div className="flex items-center justify-between pb-2 border-b border-ui-border-base">
             <div className="flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-[#1D2F5D] dark:text-[#D4AF37]" />
+              <Layers className="w-4 h-4 text-brand-navy dark:text-brand-gold" />
               <Text className="text-xs font-bold text-ui-fg-base">
                 Layers ({getSections().length})
               </Text>
             </div>
             <button
               onClick={() => setShowAddSectionModal(true)}
-              className="px-2 py-1 rounded-lg bg-[#1D2F5D] text-white hover:bg-[#152347] font-bold text-xs flex items-center gap-1 shadow-sm border border-[#D4AF37]/30 transition-all"
+              className="px-2 py-1 rounded-lg bg-brand-navy text-white hover:bg-brand-deep font-bold text-xs flex items-center gap-1 shadow-sm border border-brand-gold/30 transition-all"
               title="Add Section"
             >
               <Plus className="w-3.5 h-3.5" /> Add
@@ -1181,16 +1181,16 @@ export function PageConfigurator() {
             onClick={() => setConfiguringSection(null)}
             className={`w-full p-2.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between border transition-all ${
               configuringSection === null
-                ? "bg-[#1D2F5D]/10 border-[#1D2F5D] text-[#1D2F5D] dark:bg-[#1D2F5D]/30 dark:border-[#D4AF37] dark:text-[#FAF9F6] shadow-sm"
+                ? "bg-brand-navy/10 border-brand-navy text-brand-navy dark:bg-brand-navy/30 dark:border-brand-gold dark:text-brand-warm-white shadow-sm"
                 : "bg-ui-bg-subtle/50 border-ui-border-base text-ui-fg-muted hover:text-ui-fg-base hover:border-ui-border-strong"
             }`}
           >
             <span className="flex items-center gap-2">
-              <Settings className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <Settings className="w-3.5 h-3.5 text-brand-gold" />
               <span>Page Global Settings</span>
             </span>
             {configuringSection === null && (
-              <Badge color="blue" className="text-[9px] px-1.5 py-0.5 bg-[#1D2F5D] text-[#D4AF37] border border-[#D4AF37]/30">Editing</Badge>
+              <Badge color="blue" className="text-[9px] px-1.5 py-0.5 bg-brand-navy text-brand-gold border border-brand-gold/30">Editing</Badge>
             )}
           </button>
 
@@ -1202,7 +1202,7 @@ export function PageConfigurator() {
               placeholder="Filter sections..."
               value={sectionListFilter}
               onChange={(e) => setSectionListFilter(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-lg outline-none focus:ring-1 focus:ring-[#D4AF37] text-ui-fg-base"
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-lg outline-none focus:ring-1 focus:ring-brand-gold text-ui-fg-base"
             />
           </div>
 
@@ -1240,11 +1240,11 @@ export function PageConfigurator() {
                       }}
                       className={`p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col gap-1.5 ${
                         isDragOver
-                          ? "border-[#D4AF37] border-2 scale-[1.02] shadow-lg bg-[#1D2F5D]/20 dark:bg-[#1D2F5D]/40"
+                          ? "border-brand-gold border-2 scale-[1.02] shadow-lg bg-brand-navy/20 dark:bg-brand-navy/40"
                           : isSelected
-                          ? "bg-[#1D2F5D]/10 border-[#1D2F5D] shadow-md dark:bg-[#1D2F5D]/30 dark:border-[#D4AF37] ring-1 ring-[#D4AF37]"
+                          ? "bg-brand-navy/10 border-brand-navy shadow-md dark:bg-brand-navy/30 dark:border-brand-gold ring-1 ring-brand-gold"
                           : sec.enabled !== false
-                          ? "bg-ui-bg-subtle/50 border-ui-border-base hover:border-[#D4AF37]/40"
+                          ? "bg-ui-bg-subtle/50 border-ui-border-base hover:border-brand-gold/40"
                           : "bg-ui-bg-subtle/20 border-dashed border-ui-border-base opacity-50"
                       }`}
                     >
@@ -1313,7 +1313,7 @@ export function PageConfigurator() {
           {/* Canvas Header */}
           <div className="shrink-0 p-3 bg-ui-bg-base border-b border-ui-border-base flex items-center justify-between text-xs font-semibold text-ui-fg-muted rounded-t-xl">
             <span className="flex items-center gap-1.5">
-              <Eye className="w-4 h-4 text-[#1D2F5D] dark:text-[#D4AF37]" />
+              <Eye className="w-4 h-4 text-brand-navy dark:text-brand-gold" />
               Viewport: {canvasDevice === "mobile" ? "375px (Mobile)" : canvasDevice === "tablet" ? "768px (Tablet)" : canvasDevice === "desktop" ? "1100px (Desktop)" : "Full Width"}
             </span>
             <span className="text-[11px] text-ui-fg-subtle">Click any element to inspect & configure</span>
@@ -1369,7 +1369,7 @@ export function PageConfigurator() {
                 <button
                   type="button"
                   onClick={() => setConfiguringSection(null)}
-                  className="text-xs font-bold text-[#1D2F5D] hover:text-[#152347] dark:text-[#D4AF37] flex items-center gap-1 transition-colors"
+                  className="text-xs font-bold text-brand-navy hover:text-brand-deep dark:text-brand-gold flex items-center gap-1 transition-colors"
                 >
                   ← Page Settings
                 </button>
@@ -1417,7 +1417,7 @@ export function PageConfigurator() {
                     key={t.id}
                     onClick={() => setActiveTab(t.id as PageTab)}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                      activeTab === t.id ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted hover:bg-ui-bg-subtle"
+                      activeTab === t.id ? "bg-brand-navy text-white shadow-sm border border-brand-gold/30" : "text-ui-fg-muted hover:bg-ui-bg-subtle"
                     }`}
                   >
                     {t.label}
@@ -1434,7 +1434,7 @@ export function PageConfigurator() {
                       value={editingPage.title || ""}
                       onChange={e => updateField("title", e.target.value)}
                       placeholder="Page Title"
-                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs"
+                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-navy shadow-xs"
                     />
                   </Field>
                   <Field label="URL Slug">
@@ -1443,14 +1443,14 @@ export function PageConfigurator() {
                       value={editingPage.slug || ""}
                       onChange={e => updateField("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
                       placeholder="e.g. birthday-cakes"
-                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs"
+                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-navy shadow-xs"
                     />
                   </Field>
                   <Field label="Page Type">
                     <select
                       value={editingPage.page_type || "landing"}
                       onChange={e => updateField("page_type", e.target.value)}
-                      className="w-full py-2 px-3 text-xs font-semibold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs cursor-pointer"
+                      className="w-full py-2 px-3 text-xs font-semibold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-navy shadow-xs cursor-pointer"
                     >
                       {PAGE_TYPES.map(t => (
                         <option key={t.value} value={t.value} className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 py-1">
@@ -1465,7 +1465,7 @@ export function PageConfigurator() {
                       value={editingPage.h1 || ""}
                       onChange={e => updateField("h1", e.target.value)}
                       placeholder={editingPage.title || "Page H1 Headline"}
-                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs"
+                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-navy shadow-xs"
                     />
                   </Field>
                   <Field label="Subheading">
@@ -1474,7 +1474,7 @@ export function PageConfigurator() {
                       value={editingPage.subheading || ""}
                       onChange={e => updateField("subheading", e.target.value)}
                       placeholder="Descriptive subheading"
-                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs"
+                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-navy shadow-xs"
                     />
                   </Field>
                   <Field label="Intro Content">
@@ -1483,7 +1483,7 @@ export function PageConfigurator() {
                       onChange={e => updateField("intro_content", e.target.value)}
                       rows={3}
                       placeholder="Introductory body text..."
-                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs resize-y"
+                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-navy shadow-xs resize-y"
                     />
                   </Field>
                 </div>
@@ -1511,7 +1511,7 @@ export function PageConfigurator() {
                       value={editingPage.meta_title || ""}
                       onChange={e => updateField("meta_title", e.target.value)}
                       placeholder="Page title for search engines (50-60 chars)"
-                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs"
+                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-navy shadow-xs"
                     />
                   </Field>
                   <Field label="Meta Description">
@@ -1520,7 +1520,7 @@ export function PageConfigurator() {
                       onChange={e => updateField("meta_description", e.target.value)}
                       rows={3}
                       placeholder="Brief summary for search snippets (120-160 chars)"
-                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs resize-y"
+                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-navy shadow-xs resize-y"
                     />
                   </Field>
                   <Field label="Canonical URL">
@@ -1529,14 +1529,14 @@ export function PageConfigurator() {
                       value={editingPage.canonical_url || ""}
                       onChange={e => updateField("canonical_url", e.target.value)}
                       placeholder="https://caketohome.com/..."
-                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs"
+                      className="w-full py-2 px-3 text-xs font-medium text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-navy shadow-xs"
                     />
                   </Field>
                   <Field label="Robots Meta">
                     <select
                       value={editingPage.robots || "index, follow"}
                       onChange={e => updateField("robots", e.target.value)}
-                      className="w-full py-2 px-3 text-xs font-semibold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs cursor-pointer"
+                      className="w-full py-2 px-3 text-xs font-semibold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-navy shadow-xs cursor-pointer"
                     >
                       {ROBOTS_OPTIONS.map(r => (
                         <option key={r} value={r} className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 py-1">
@@ -1549,7 +1549,7 @@ export function PageConfigurator() {
                     <select
                       value={editingPage.structured_data_type || "WebPage"}
                       onChange={e => updateField("structured_data_type", e.target.value)}
-                      className="w-full py-2 px-3 text-xs font-semibold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] shadow-xs cursor-pointer"
+                      className="w-full py-2 px-3 text-xs font-semibold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-navy shadow-xs cursor-pointer"
                     >
                       {STRUCTURED_DATA_TYPES.map(s => (
                         <option key={s} value={s} className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 py-1">
@@ -1584,17 +1584,17 @@ export function PageConfigurator() {
                         type="button"
                         onClick={() => {
                           const royalNavyTheme = {
-                            bg_color: "#FDFBF7",
-                            text_color: "#07090E",
+                            bg_color: "#FFFCF8",
+                            text_color: "#152347",
                             heading_color: "#1D2F5D",
-                            accent_color: "#D4AF37",
+                            accent_color: "#C28A2C",
                             font_family: "'Plus Jakarta Sans', sans-serif",
                             heading_font: "'Playfair Display', serif",
                             card_style: "luxury",
                           };
                           setEditingPage((prev: any) => ({ ...prev, theme: royalNavyTheme }));
                         }}
-                        className="text-[10px] px-2 py-1 rounded-md bg-[#1D2F5D] text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#142040] font-semibold transition-all shadow-sm"
+                        className="text-[10px] px-2 py-1 rounded-md bg-brand-navy text-brand-gold border border-brand-gold/50 hover:bg-brand-navy font-semibold transition-all shadow-sm"
                       >
                         👑 Royal Navy & Gold (#1D2F5D)
                       </button>
@@ -1602,17 +1602,17 @@ export function PageConfigurator() {
                         type="button"
                         onClick={() => {
                           const tenebrismTheme = {
-                            bg_color: "radial-gradient(ellipse at top right, #1d2f5d 0%, #0d152b 50%, #07090E 100%)",
-                            text_color: "#FAF9F6",
-                            heading_color: "#D4AF37",
-                            accent_color: "#D4AF37",
+                            bg_color: "radial-gradient(ellipse at top right, #1D2F5D 0%, #152347 50%, #152347 100%)",
+                            text_color: "#FFFCF8",
+                            heading_color: "#C28A2C",
+                            accent_color: "#C28A2C",
                             font_family: "'Outfit', sans-serif",
                             heading_font: "'Playfair Display', serif",
                             card_style: "tenebrism",
                           };
                           setEditingPage((prev: any) => ({ ...prev, theme: tenebrismTheme }));
                         }}
-                        className="text-[10px] px-2 py-1 rounded-md bg-[#07090E] text-[#D4AF37] border border-[#D4AF37]/40 hover:bg-[#142040] font-medium transition-all"
+                        className="text-[10px] px-2 py-1 rounded-md bg-brand-deep text-brand-gold border border-brand-gold/40 hover:bg-brand-navy font-medium transition-all"
                       >
                         🕯️ Tenebrism Chiaroscuro
                       </button>
@@ -1630,7 +1630,7 @@ export function PageConfigurator() {
                           };
                           setEditingPage((prev: any) => ({ ...prev, theme: coquetteTheme }));
                         }}
-                        className="text-[10px] px-2 py-1 rounded-md bg-[#FFF5F7] text-[#BE185D] border border-pink-200 hover:bg-pink-100 font-medium transition-all"
+                        className="text-[10px] px-2 py-1 rounded-md bg-[#FFF5F7] text-[#BE185D] border border-brand-primary/30 hover:bg-brand-light font-medium transition-all"
                       >
                         🎀 Coquette Blush
                       </button>
@@ -1638,17 +1638,17 @@ export function PageConfigurator() {
                         type="button"
                         onClick={() => {
                           const scrapbookTheme = {
-                            bg_color: "#FDFBF7",
+                            bg_color: "#FFFCF8",
                             text_color: "#1E293B",
                             heading_color: "#1D2F5D",
-                            accent_color: "#D4AF37",
+                            accent_color: "#C28A2C",
                             font_family: "'Plus Jakarta Sans', sans-serif",
                             heading_font: "'Playfair Display', serif",
                             card_style: "scrapbook",
                           };
                           setEditingPage((prev: any) => ({ ...prev, theme: scrapbookTheme }));
                         }}
-                        className="text-[10px] px-2 py-1 rounded-md bg-[#FDFBF7] text-[#997A1E] border border-[#D4AF37]/30 hover:bg-amber-50 font-medium transition-all"
+                        className="text-[10px] px-2 py-1 rounded-md bg-brand-warm-white text-[#997A1E] border border-brand-gold/30 hover:bg-brand-gold-light font-medium transition-all"
                       >
                         📖 Memory Scrapbook
                       </button>
@@ -1656,17 +1656,17 @@ export function PageConfigurator() {
                         type="button"
                         onClick={() => {
                           const japandiTheme = {
-                            bg_color: "#FDFBF7",
+                            bg_color: "#FFFCF8",
                             text_color: "#1E293B",
-                            heading_color: "#0F172A",
-                            accent_color: "#64748B",
+                            heading_color: "#172033",
+                            accent_color: "#6B7280",
                             font_family: "'Plus Jakarta Sans', sans-serif",
                             heading_font: "'Plus Jakarta Sans', sans-serif",
                             card_style: "japandi",
                           };
                           setEditingPage((prev: any) => ({ ...prev, theme: japandiTheme }));
                         }}
-                        className="text-[10px] px-2 py-1 rounded-md bg-[#F8FAFC] text-slate-700 border border-slate-200 hover:bg-slate-100 font-medium transition-all"
+                        className="text-[10px] px-2 py-1 rounded-md bg-brand-surface-muted text-slate-700 border border-slate-200 hover:bg-slate-100 font-medium transition-all"
                       >
                         🌿 Japandi Wabi-Sabi
                       </button>
@@ -1753,19 +1753,19 @@ export function PageConfigurator() {
                       <div className="flex gap-2">
                         <input
                           type="color"
-                          value={editingPage.theme?.accent_color || "#D4AF37"}
+                          value={editingPage.theme?.accent_color || "#C28A2C"}
                           onChange={e => updateNestedField("theme", "accent_color", e.target.value)}
                           className="h-8 w-10 rounded border border-ui-border-base cursor-pointer"
                         />
                         <Input
-                          value={editingPage.theme?.accent_color || "#D4AF37"}
+                          value={editingPage.theme?.accent_color || "#C28A2C"}
                           onChange={e => updateNestedField("theme", "accent_color", e.target.value)}
                         />
                       </div>
                     </Field>
                   </div>
 
-                  <Text className="text-xs font-bold text-[#1D2F5D] dark:text-[#D4AF37] pt-2">Typography & Style</Text>
+                  <Text className="text-xs font-bold text-brand-navy dark:text-brand-gold pt-2">Typography & Style</Text>
                   <div className="grid grid-cols-2 gap-2">
                     <Field label="Body Font Family">
                       <Select
@@ -1851,7 +1851,7 @@ export function PageConfigurator() {
               {/* Publish Tab */}
               {activeTab === "publish" && (
                 <div className="flex flex-col gap-3">
-                  <Text className="text-xs font-bold text-[#1D2F5D] dark:text-[#D4AF37]">Pre-Publish Checklist</Text>
+                  <Text className="text-xs font-bold text-brand-navy dark:text-brand-gold">Pre-Publish Checklist</Text>
                   <div className="flex flex-col gap-1.5 text-xs">
                     <div className={`p-2 rounded-lg flex items-center justify-between ${editingPage.title ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
                       <span>Page Title Set</span>
@@ -1861,7 +1861,7 @@ export function PageConfigurator() {
                       <span>URL Slug Valid</span>
                       {editingPage.slug ? <Check className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
                     </div>
-                    <div className={`p-2 rounded-lg flex items-center justify-between ${editingPage.meta_title ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                    <div className={`p-2 rounded-lg flex items-center justify-between ${editingPage.meta_title ? "bg-emerald-50 text-emerald-700" : "bg-brand-gold-light text-brand-gold-dark"}`}>
                       <span>Meta Title (SEO)</span>
                       {editingPage.meta_title ? <Check className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
                     </div>
@@ -1874,16 +1874,16 @@ export function PageConfigurator() {
                     type="button"
                     disabled={publishing || saving}
                     onClick={handlePublish}
-                    className="w-full mt-2 inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg bg-[#1D2F5D] text-white hover:bg-[#152347] active:scale-[0.99] disabled:opacity-50 transition shadow-sm border border-[#1D2F5D]"
+                    className="w-full mt-2 inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg bg-brand-navy text-white hover:bg-brand-deep active:scale-[0.99] disabled:opacity-50 transition shadow-sm border border-brand-navy"
                   >
                     {publishing ? (
                       <>
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-brand-gold" />
                         <span>Publishing to PostgreSQL...</span>
                       </>
                     ) : (
                       <>
-                        <Send className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <Send className="w-3.5 h-3.5 text-brand-gold" />
                         <span>Publish Storefront Now</span>
                       </>
                     )}

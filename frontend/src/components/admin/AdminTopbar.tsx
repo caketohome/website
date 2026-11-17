@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Bell, Search, Menu } from "lucide-react";
-import { useAdminShell } from "./AdminShell";
+import { adminDisplayName, useAdminShell } from "./AdminShell";
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * AdminTopbar — Compact top bar with hamburger, search, notifications, user
@@ -50,7 +50,7 @@ export function AdminTopbar({ user, breadcrumbs }: AdminTopbarProps) {
       {/* Right: search + notifications + user avatar */}
       <div className="flex items-center gap-2 shrink-0">
         {/* Global search */}
-        <div className="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 w-56 lg:w-72 focus-within:ring-2 focus-within:ring-[#D4AF37]/50 focus-within:border-[#D4AF37] transition-all">
+        <div className="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 w-56 lg:w-72 focus-within:ring-2 focus-within:ring-brand-gold/50 focus-within:border-brand-gold transition-all">
           <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
           <input
             type="text"
@@ -74,12 +74,12 @@ export function AdminTopbar({ user, breadcrumbs }: AdminTopbarProps) {
 
         {/* User avatar */}
         <button className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-lg hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-200">
-          <div className="w-7 h-7 rounded-full bg-[#1D2F5D] flex items-center justify-center text-[10px] font-bold text-[#D4AF37]">
+          <div className="w-7 h-7 rounded-full bg-brand-navy flex items-center justify-center text-[10px] font-bold text-brand-gold">
             {user?.role?.[0] || "A"}
           </div>
           <div className="hidden lg:block text-left min-w-0">
             <div className="text-xs font-semibold text-slate-700 truncate max-w-[100px]">
-              {user?.userId || "Admin"}
+              {adminDisplayName(user)}
             </div>
           </div>
         </button>

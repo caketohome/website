@@ -36,6 +36,8 @@
 | **Milestone M9** | **Razorpay Test Mode Credentials Validation** | Live upstream order creation on Razorpay (`rzp_test_TxymYPGydaHJBL`), timing-safe HMAC-SHA256 signature verification, AES-256-GCM encryption at rest | `CHECKPOINTS/CAKETOHOME_RAZORPAY_TEST_MODE_VALIDATION.md` | **`VERIFIED & OPERATIONAL`** |
 | **Milestone M10** | **Manual Bank Verification & Ledger Equilibrium** | 6-state manual accounting bank verification pipeline (Penny-Drop non-mandatory), `ba_hdfc_primary` verified, Double-Entry General Ledger balanced (Δ = ₹0.00) | `CHECKPOINTS/CAKETOHOME_ACCOUNTING_SETTLEMENT_AUDIT.md` | **`VERIFIED & EQUILIBRATED`** |
 | **Milestone M11** | **Final Production Readiness & Operational Gate** | Master production readiness audit, environment release matrix, cutover runbook, Gate E merchant KYC blocker strictly active | `CHECKPOINTS/CAKETOHOME_FINAL_PRODUCTION_READINESS.md` | **`VERIFIED — TEST MODE ONLY`** |
+| **Milestone M12** | **PWA Install & Order Alert Notifications** | Web Push (VAPID) + in-app alert sound for customers, branch managers and delivery partners; installable PWA (Android/desktop prompt, iOS Add to Home Screen) | `frontend/src/lib/services/push-notification.service.ts`, `public.push_subscription`, `frontend/scripts/push-test.ts` | **`IN PROGRESS — local testing, not deployed`** |
+| **Milestone M13** | **Complete Application UI/UX Redesign** (starts after M12) | Brand tokens, public site (scroll animations preserved), cart/checkout, auth/OTP, customer panel, admin, CMS builder, teller & invoice UIs — UI only, no business-logic changes | `docs/27-ui-ux-redesign-brief.md`, `docs/redesign-checkpoints/` | **`PLANNED`** |
 
 ---
 

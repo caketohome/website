@@ -482,7 +482,7 @@ export function BranchZoneManager() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <Heading level="h3" className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
-            <Layers className="w-4 h-4 text-amber-600" />
+            <Layers className="w-4 h-4 text-brand-gold" />
             Branch Delivery Zone Manager
           </Heading>
           <Text className="text-[11px] text-slate-500 mt-0.5">
@@ -516,7 +516,7 @@ export function BranchZoneManager() {
         <select
           value={selectedBranchId}
           onChange={(e) => setSelectedBranchId(e.target.value)}
-          className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-xs font-semibold bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-400 focus:border-transparent outline-none"
+          className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-xs font-semibold bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-gold focus:border-transparent outline-none"
         >
           {branches.map((b) => (
             <option key={b.id} value={b.id}>
@@ -528,14 +528,14 @@ export function BranchZoneManager() {
 
       {/* Store Identity & Radius Matrix Header */}
       {selectedBranch && (
-        <div className="p-4 bg-gradient-to-r from-amber-50/80 to-orange-50/60 dark:from-slate-800 dark:to-slate-800/80 rounded-2xl border border-amber-200 dark:border-slate-700 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/60 dark:border-slate-700 pb-3">
+        <div className="p-4 bg-gradient-to-r from-brand-gold-light/80 to-brand-gold-light/60 dark:from-slate-800 dark:to-slate-800/80 rounded-2xl border border-brand-gold/40 dark:border-slate-700 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-brand-gold/60 dark:border-slate-700 pb-3">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
                   🏪 {selectedBranch.name}
                 </span>
-                <span className="font-mono text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 px-2 py-0.5 rounded font-bold">
+                <span className="font-mono text-[10px] bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40 px-2 py-0.5 rounded font-bold">
                   {selectedBranch.code}
                 </span>
               </div>
@@ -551,7 +551,7 @@ export function BranchZoneManager() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button size="small" onClick={openCreateZone} className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs gap-1.5 shadow-sm">
+              <Button size="small" onClick={openCreateZone} className="bg-brand-gold hover:bg-brand-gold-dark text-white font-bold text-xs gap-1.5 shadow-sm">
                 <Plus className="w-3.5 h-3.5" /> + Add Delivery Area
               </Button>
             </div>
@@ -559,13 +559,13 @@ export function BranchZoneManager() {
 
           <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
             <div className="flex items-center gap-2.5">
-              <div className="p-1.5 bg-amber-500/10 rounded-lg text-amber-600 dark:text-amber-400">
+              <div className="p-1.5 bg-brand-gold/10 rounded-lg text-brand-gold dark:text-brand-gold">
                 <Shield className="w-4 h-4" />
               </div>
               <div>
                 <div className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
                   <span>Store Maximum Service Radius:</span>
-                  <span className="text-amber-700 dark:text-amber-300 font-extrabold">{selectedBranch.max_delivery_radius_km ?? 15} km</span>
+                  <span className="text-brand-gold-dark dark:text-brand-gold/40 font-extrabold">{selectedBranch.max_delivery_radius_km ?? 15} km</span>
                 </div>
                 <p className="text-[10px] text-slate-500 dark:text-slate-400">
                   Global Ceiling: 25 km · All delivery areas for {selectedBranch.name} are capped by this store-level boundary.
@@ -619,13 +619,13 @@ export function BranchZoneManager() {
             <div className="flex items-center justify-between">
               <div>
                 <Heading level="h3" className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-amber-600" /> Delivery Areas ({zones.length})
+                  <Layers className="w-4 h-4 text-brand-gold" /> Delivery Areas ({zones.length})
                 </Heading>
                 <Text className="text-xs text-slate-500">
                   Configured service areas for {selectedBranch?.name || "this store"}. Map boundaries (Polygon and Radius) strictly govern customer serviceability.
                 </Text>
               </div>
-              <Button size="small" onClick={openCreateZone} className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs gap-1.5 shadow-sm">
+              <Button size="small" onClick={openCreateZone} className="bg-brand-gold hover:bg-brand-gold-dark text-white font-bold text-xs gap-1.5 shadow-sm">
                 <Plus className="w-3.5 h-3.5" /> + Add Delivery Area
               </Button>
             </div>
@@ -635,7 +635,7 @@ export function BranchZoneManager() {
                 <Truck className="w-10 h-10 mx-auto text-slate-300 mb-2" />
                 <Text className="text-sm text-slate-500 font-bold">No delivery areas configured</Text>
                 <Text className="text-xs text-slate-400 mt-1">Add delivery areas to establish real map-first delivery boundaries for this store.</Text>
-                <Button size="small" onClick={openCreateZone} className="mt-3 bg-amber-600 text-white text-xs font-bold">
+                <Button size="small" onClick={openCreateZone} className="mt-3 bg-brand-gold text-white text-xs font-bold">
                   <Plus className="w-3.5 h-3.5 mr-1" /> Create First Delivery Area
                 </Button>
               </div>
@@ -667,7 +667,7 @@ export function BranchZoneManager() {
                           onClick={() => setActiveZoneId(zone.id)}
                           className={`cursor-pointer transition-colors ${
                             isSelected
-                              ? "bg-amber-50/70 dark:bg-amber-950/30"
+                              ? "bg-brand-gold-light/70 dark:bg-brand-gold-dark/30"
                               : "hover:bg-slate-50 dark:hover:bg-slate-700/50"
                           }`}
                         >
@@ -675,7 +675,7 @@ export function BranchZoneManager() {
                             <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                               <span>{zone.name}</span>
                               {isSelected && (
-                                <span className="text-[9px] bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-200 px-1.5 py-0.2 rounded font-bold">
+                                <span className="text-[9px] bg-brand-gold/40 text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40 px-1.5 py-0.2 rounded font-bold">
                                   Selected
                                 </span>
                               )}
@@ -686,10 +686,10 @@ export function BranchZoneManager() {
                           <td className="p-3">
                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                               isPolygon
-                                ? "bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                                ? "bg-brand-light text-brand-navy dark:bg-brand-navy dark:text-brand-primary/30"
                                 : isRadius
                                 ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                                : "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                                : "bg-brand-light text-brand-navy dark:bg-brand-navy dark:text-brand-primary/30"
                             }`}>
                               {zone.boundary_type || zone.fence_type || "hybrid"}
                             </span>
@@ -702,7 +702,7 @@ export function BranchZoneManager() {
                               </span>
                             ) : hasPolyPoints ? (
                               <span className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-                                <Pentagon className="w-3 h-3 text-purple-600 inline" /> {(zone.polygon_coordinates as any[]).length} pts
+                                <Pentagon className="w-3 h-3 text-brand-primary inline" /> {(zone.polygon_coordinates as any[]).length} pts
                                 {zone.exclusion_polygons && (zone.exclusion_polygons as any[]).length > 0 && (
                                   <span className="text-[10px] text-rose-600 font-bold ml-1">
                                     (+{(zone.exclusion_polygons as any[]).length} excl)
@@ -729,7 +729,7 @@ export function BranchZoneManager() {
                           <td className="p-3">
                             <div className="flex items-center gap-1 flex-wrap">
                               {zone.same_day_allowed && <span className="text-[9px] bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 px-1.5 py-0.5 rounded font-bold">SameDay</span>}
-                              {zone.express_allowed && <span className="text-[9px] bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 px-1.5 py-0.5 rounded font-bold">Express</span>}
+                              {zone.express_allowed && <span className="text-[9px] bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold/40 px-1.5 py-0.5 rounded font-bold">Express</span>}
                               
                               {zone.scheduled_allowed && <span className="text-[9px] bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 px-1.5 py-0.5 rounded font-bold">Slot</span>}
                             </div>
@@ -766,7 +766,7 @@ export function BranchZoneManager() {
                                   e.stopPropagation();
                                   openEditZone(zone);
                                 }}
-                                className="px-2.5 py-1 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 hover:bg-amber-100 rounded-lg text-xs font-bold flex items-center gap-1"
+                                className="px-2.5 py-1 bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold/40 hover:bg-brand-gold-light rounded-lg text-xs font-bold flex items-center gap-1"
                               >
                                 <Edit3 className="w-3 h-3" /> Edit
                               </button>
@@ -815,7 +815,7 @@ export function BranchZoneManager() {
             ) : (
               <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-800 shadow-sm">
                 {/* Zone Header */}
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-amber-900/20 border-b border-amber-200/50 px-4 py-3 flex items-center justify-between">
+                <div className="bg-gradient-to-r from-brand-gold-light to-brand-gold-light dark:from-brand-gold-dark/30 dark:to-brand-gold-dark/20 border-b border-brand-gold/50 px-4 py-3 flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
                       <Heading level="h3" className="text-sm font-bold text-slate-900 dark:text-white">{activeZone.name}</Heading>
@@ -857,9 +857,9 @@ export function BranchZoneManager() {
                         <div className="text-[9px] text-slate-500">Delivery Fee</div>
                         <div className="font-bold text-emerald-700 text-sm">₹{activeZone.delivery_charge}</div>
                       </div>
-                      <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-2">
+                      <div className="bg-brand-gold-light dark:bg-brand-gold-dark/30 rounded-lg p-2">
                         <div className="text-[9px] text-slate-500">Express Fee</div>
-                        <div className="font-bold text-amber-700 text-sm">₹{activeZone.express_charge}</div>
+                        <div className="font-bold text-brand-gold-dark text-sm">₹{activeZone.express_charge}</div>
                       </div>
 
                       <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2">
@@ -924,7 +924,7 @@ export function BranchZoneManager() {
                       <Text className="font-bold text-[10px] uppercase tracking-wide text-slate-500">
                         Address / Pincode Reference ({(activeZone.pincodes ?? []).length})
                       </Text>
-                      <button onClick={() => openPincodeManager(activeZone)} className="text-[10px] text-amber-600 font-semibold hover:underline flex items-center gap-1">
+                      <button onClick={() => openPincodeManager(activeZone)} className="text-[10px] text-brand-gold font-semibold hover:underline flex items-center gap-1">
                         <MapPin className="w-3 h-3" /> Manage Pincodes <ArrowRight className="w-2.5 h-2.5" />
                       </button>
                     </div>
@@ -939,7 +939,7 @@ export function BranchZoneManager() {
                         );
                       }
                       return (activeZone.pincodes ?? []).length === 0 ? (
-                        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded-lg p-3 text-[10px] text-amber-700 font-medium flex items-center gap-2">
+                        <div className="bg-brand-gold-light dark:bg-brand-gold-dark/20 border border-brand-gold/40 rounded-lg p-3 text-[10px] text-brand-gold-dark font-medium flex items-center gap-2">
                           <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                           <span>No map boundary configured yet. Draw a polygon or set delivery radius on the map below.</span>
                         </div>
@@ -965,7 +965,7 @@ export function BranchZoneManager() {
                       </Text>
                       <button
                         onClick={() => setShowMapFence(!showMapFence)}
-                        className="text-[10px] text-amber-600 font-semibold hover:underline flex items-center gap-1"
+                        className="text-[10px] text-brand-gold font-semibold hover:underline flex items-center gap-1"
                       >
                         {showMapFence ? "Hide Map" : "Show Map"}
                       </button>
@@ -1060,7 +1060,7 @@ export function BranchZoneManager() {
             <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-5 py-4 flex items-center justify-between z-10">
               <div>
                 <Heading level="h3" className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Map className="w-4 h-4 text-amber-600" />
+                  <Map className="w-4 h-4 text-brand-gold" />
                   {editingZone ? `Edit Delivery Area: ${editingZone.name}` : "Create New Delivery Area"}
                 </Heading>
                 <Text className="text-[11px] text-slate-500">
@@ -1155,7 +1155,7 @@ export function BranchZoneManager() {
                 <div className="space-y-1.5 mt-3">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                      <Map className="w-3.5 h-3.5 text-amber-600" /> Interactive Map Boundary Editor
+                      <Map className="w-3.5 h-3.5 text-brand-gold" /> Interactive Map Boundary Editor
                     </Label>
                     <span className="text-[10px] text-slate-500">
                       {zoneForm.fence_type === "radius" ? "Adjust radius slider/circle live on map" : "Draw polygon boundaries and exclusion sub-polygons"}
@@ -1242,7 +1242,7 @@ export function BranchZoneManager() {
                       onClick={() => zf("pricing_type" as any, "flat")}
                       className={`px-3 py-1 rounded text-[10px] font-bold transition-colors ${
                         (!zoneForm.pricing_type || zoneForm.pricing_type === "flat")
-                          ? "bg-indigo-500 text-white" : "text-slate-500 hover:bg-slate-100"
+                          ? "bg-brand-primary text-white" : "text-slate-500 hover:bg-slate-100"
                       }`}
                     >
                       <DollarSign className="w-3 h-3 inline mr-1" />Flat Rate
@@ -1470,7 +1470,7 @@ export function BranchZoneManager() {
                 <button
                   key={t}
                   onClick={() => setPincodeTab(t)}
-                  className={`px-5 py-2.5 text-xs font-semibold transition-colors capitalize ${pincodeTab === t ? "border-b-2 border-amber-500 text-amber-600" : "text-slate-500 hover:text-slate-800"}`}
+                  className={`px-5 py-2.5 text-xs font-semibold transition-colors capitalize ${pincodeTab === t ? "border-b-2 border-brand-gold text-brand-gold" : "text-slate-500 hover:text-slate-800"}`}
                 >
                   {t === "pincodes" ? `Pincodes (${filteredPincodes.length})` : "Cities & Areas"}
                 </button>
@@ -1506,7 +1506,7 @@ export function BranchZoneManager() {
                       onChange={(e) => setBulkPincodesText(e.target.value)}
                       placeholder="560034, 560095, 560068&#10;560047&#10;560076"
                       rows={3}
-                      className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-xs font-mono bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-400 outline-none resize-y"
+                      className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-xs font-mono bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-gold outline-none resize-y"
                     />
                     <Button size="small" variant="secondary" onClick={bulkImportPincodes} className="mt-1.5" disabled={!bulkPincodesText.trim() || saving}>
                       <Upload className="w-3 h-3 mr-1" /> Bulk Import
@@ -1597,7 +1597,7 @@ export function BranchZoneManager() {
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {(pincodeZone.service_areas ?? []).map((s) => (
-                        <span key={s} className="flex items-center gap-1 bg-orange-100 text-orange-700 text-[10px] font-semibold px-2 py-1 rounded-full">
+                        <span key={s} className="flex items-center gap-1 bg-brand-gold-light text-brand-gold-dark text-[10px] font-semibold px-2 py-1 rounded-full">
                           {s}
                           <button onClick={async () => {
                             const updated = zones.map((z) => z.id === pincodeZone.id ? { ...z, service_areas: (z.service_areas ?? []).filter((x) => x !== s) } : z);

@@ -1,6 +1,7 @@
 import { dbQuery, dbTransaction } from "../db";
 import { OrderDomain, OrderItemDomain } from "../types/domain";
 import { InventoryService } from "../services/inventory.service";
+import { notifyDeliveryAssigned, notifyOrderStatus } from "../services/push-notification.service";
 
 export class OrderRepository {
   private static readonly VALID_TRANSITIONS: Record<string, string[]> = {
@@ -893,6 +894,7 @@ export class OrderRepository {
     }
 
     const updated = await OrderRepository.findById(existing.id);
+    notifyOrderStatus(updated || existing, targetStatus);
     return updated || { ...existing, status: targetStatus as any };
   }
 
@@ -1035,6 +1037,7 @@ export class OrderRepository {
     });
 
     const updated = await OrderRepository.findById(existing.id);
+    notifyDeliveryAssigned(updated || existing, partnerId);
     return updated || existing;
   }
 
@@ -1345,6 +1348,7 @@ export class OrderRepository {
     });
 
     const updated = await OrderRepository.findById(existing.id);
+    notifyOrderStatus(updated || existing, "cancelled");
     return updated || { ...existing, status: "cancelled" as any };
   }
 

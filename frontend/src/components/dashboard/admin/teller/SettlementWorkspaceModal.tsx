@@ -224,7 +224,7 @@ export function SettlementWorkspaceModal({
                         ? "text-emerald-700"
                         : varianceNum < 0
                         ? "text-rose-700"
-                        : "text-teal-700"
+                        : "text-brand-navy"
                     }`}
                   >
                     {varianceNum > 0 ? "+" : ""}₹{formatAmount(session.variance)}

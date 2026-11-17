@@ -220,7 +220,7 @@ export function PromotionalBannerEditor({
   return (
     <div className="flex flex-col gap-3">
       {/* SECTION HEADER & QUICK PREVIEW */}
-      <div className="p-3 bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-purple-500/10 rounded-xl border border-amber-200/50 dark:border-amber-900/30 flex items-center justify-between">
+      <div className="p-3 bg-gradient-to-r from-brand-gold/10 via-rose-500/10 to-brand-primary/10 rounded-xl border border-brand-gold/50 dark:border-brand-gold-dark/30 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-xl">🎉</span>
           <div>
@@ -300,10 +300,10 @@ export function PromotionalBannerEditor({
       {activeSubTab === "content" && (
         <div className="flex flex-col gap-3">
           {/* MARKETING OFFERS SOURCE OF TRUTH CARD */}
-          <div className="p-3.5 bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-ui-bg-subtle rounded-xl border border-amber-300 dark:border-amber-800 flex flex-col gap-2.5 shadow-sm">
+          <div className="p-3.5 bg-gradient-to-r from-brand-gold/10 via-rose-500/10 to-ui-bg-subtle rounded-xl border border-brand-gold/40 dark:border-brand-gold-dark flex flex-col gap-2.5 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <Database className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <Database className="w-4 h-4 text-brand-gold dark:text-brand-gold" />
                 <Text className="text-xs font-bold text-ui-fg-base">
                   Marketing Offers (Single Source of Truth)
                 </Text>
@@ -363,7 +363,7 @@ export function PromotionalBannerEditor({
                   <span>Min Order: <strong className="text-ui-fg-base">₹{linkedOffer.min_order_value || 0}</strong></span>
                   <span>Expiry: <strong className="text-ui-fg-base">{linkedOffer.never_expires ? "Never" : linkedOffer.ends_at ? new Date(linkedOffer.ends_at).toLocaleDateString() : "Active"}</strong></span>
                 </div>
-                <div className="text-[10px] text-amber-700 dark:text-amber-400 mt-1 flex items-center gap-1">
+                <div className="text-[10px] text-brand-gold-dark dark:text-brand-gold mt-1 flex items-center gap-1">
                   <ShieldCheck className="w-3 h-3 shrink-0" />
                   <span>Enforced at checkout by backend PostgreSQL engine.</span>
                 </div>
@@ -477,17 +477,17 @@ export function PromotionalBannerEditor({
               />
               <ColorInput
                 label="Pill Text Color"
-                value={config.coupon_text_color || "#8A3F00"}
+                value={config.coupon_text_color || "#1D2F5D"}
                 onChange={(val) => handleUpdate("coupon_text_color", val)}
-                fallback="#8A3F00"
+                fallback="#1D2F5D"
               />
             </div>
             <div className="grid grid-cols-3 gap-2">
               <ColorInput
                 label="Pill Border Color"
-                value={config.coupon_border_color || "#F6C85F"}
+                value={config.coupon_border_color || "#E5E7EB"}
                 onChange={(val) => handleUpdate("coupon_border_color", val)}
-                fallback="#F6C85F"
+                fallback="#E5E7EB"
               />
               <Field label="Border Radius (px)">
                 <Input
@@ -532,9 +532,9 @@ export function PromotionalBannerEditor({
               />
               <ColorInput
                 label="Badge Text Color"
-                value={config.badge_text_color || "#92400e"}
+                value={config.badge_text_color || "#9B6A19"}
                 onChange={(val) => handleUpdate("badge_text_color", val)}
-                fallback="#92400e"
+                fallback="#9B6A19"
               />
               <ColorInput
                 label="Badge Border Color"
@@ -747,9 +747,9 @@ export function PromotionalBannerEditor({
           <div className="grid grid-cols-2 gap-2">
             <ColorInput
               label="Banner Card Background"
-              value={config.bg_color || "#FFF2C2"}
+              value={config.bg_color || "#F8F3EB"}
               onChange={(val) => handleUpdate("bg_color", val)}
-              fallback="#FFF2C2"
+              fallback="#F8F3EB"
             />
             <ColorInput
               label="Outer Section Background"
@@ -764,25 +764,25 @@ export function PromotionalBannerEditor({
             <div className="flex items-center justify-between">
               <Text className="text-xs font-bold">Gradient Background on Card</Text>
               <Toggle
-                checked={config.gradient_enabled !== false}
+                checked={config.gradient_enabled === true}
                 onChange={(v) => handleUpdate("gradient_enabled", v)}
                 label="Toggle Gradient"
               />
             </div>
-            {config.gradient_enabled !== false && (
+            {config.gradient_enabled === true && (
               <div className="flex flex-col gap-2 pt-1">
                 <div className="grid grid-cols-2 gap-2">
                   <ColorInput
                     label="Gradient Start"
-                    value={config.gradient_start || "#FFF2C2"}
+                    value={config.gradient_start || "#F8F3EB"}
                     onChange={(val) => handleUpdate("gradient_start", val)}
-                    fallback="#FFF2C2"
+                    fallback="#F8F3EB"
                   />
                   <ColorInput
                     label="Gradient End"
-                    value={config.gradient_end || "#FFE494"}
+                    value={config.gradient_end || "#F5E8CC"}
                     onChange={(val) => handleUpdate("gradient_end", val)}
-                    fallback="#FFE494"
+                    fallback="#F5E8CC"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -917,9 +917,9 @@ export function PromotionalBannerEditor({
                 </Field>
                 <ColorInput
                   label="Border Color"
-                  value={config.border_color || "#F6C85F"}
+                  value={config.border_color || "#E8D3A8"}
                   onChange={(val) => handleUpdate("border_color", val)}
-                  fallback="#F6C85F"
+                  fallback="#E8D3A8"
                 />
               </div>
             )}
@@ -1030,12 +1030,12 @@ export function PromotionalBannerEditor({
             <div className="grid grid-cols-2 gap-2">
               <ColorInput
                 label="Headline Text Color"
-                value={config.text_color || config.headline_color || "#8A3F00"}
+                value={config.text_color || config.headline_color || "#1D2F5D"}
                 onChange={(val) => {
                   handleUpdate("text_color", val);
                   handleUpdate("headline_color", val);
                 }}
-                fallback="#8A3F00"
+                fallback="#1D2F5D"
               />
               <Field label="Text Alignment">
                 <Select
@@ -1070,9 +1070,9 @@ export function PromotionalBannerEditor({
               </Field>
               <ColorInput
                 label="Subtitle Text Color"
-                value={config.subtitle_color || "#6B3100"}
+                value={config.subtitle_color || "#4B5563"}
                 onChange={(val) => handleUpdate("subtitle_color", val)}
-                fallback="#6B3100"
+                fallback="#4B5563"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -1103,9 +1103,9 @@ export function PromotionalBannerEditor({
           <div className="grid grid-cols-2 gap-2">
             <ColorInput
               label="CTA Background Color"
-              value={config.cta_bg_color || "#E11D48"}
+              value={config.cta_bg_color || "#1D2F5D"}
               onChange={(val) => handleUpdate("cta_bg_color", val)}
-              fallback="#E11D48"
+              fallback="#1D2F5D"
             />
             <ColorInput
               label="CTA Text Color"
@@ -1118,9 +1118,9 @@ export function PromotionalBannerEditor({
           <div className="grid grid-cols-2 gap-2">
             <ColorInput
               label="CTA Hover Background"
-              value={config.cta_hover_bg || "#BE123C"}
+              value={config.cta_hover_bg || "#245A96"}
               onChange={(val) => handleUpdate("cta_hover_bg", val)}
-              fallback="#BE123C"
+              fallback="#245A96"
             />
             <ColorInput
               label="CTA Hover Text Color"

@@ -423,7 +423,7 @@ export function MapFenceEditor({
       icon: storeIcon,
       zIndexOffset: 1000,
     }).addTo(map);
-    marker.bindPopup(`<strong>🏪 ${storeName}</strong><br/><span style="font-size:11px;color:#64748b;">Physical Bakery Hub Location<br/>Drag to reposition</span>`);
+    marker.bindPopup(`<strong>🏪 ${storeName}</strong><br/><span style="font-size:11px;color:#6B7280;">Physical Bakery Hub Location<br/>Drag to reposition</span>`);
 
     if (!readOnly) {
       marker.on("dragend", () => {
@@ -582,7 +582,7 @@ export function MapFenceEditor({
         weight: 2,
         dashArray: "8 4",
       }).addTo(mapRef.current);
-      circle.bindPopup(`<b>Current Delivery Radius:</b> ${clampedRadius} km<br/><span style="font-size:10px; color:#64748b;">Centered on 🏪 ${storeName}</span>`);
+      circle.bindPopup(`<b>Current Delivery Radius:</b> ${clampedRadius} km<br/><span style="font-size:10px; color:#6B7280;">Centered on 🏪 ${storeName}</span>`);
       radiusLayerRef.current = circle;
     }
   }, [localRadius, maxRadiusKm, L, mapReady, showRadius, storePosition, storeName]);
@@ -727,7 +727,7 @@ export function MapFenceEditor({
   if (!leafletLoaded) {
     return (
       <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-8 text-center bg-slate-50 dark:bg-slate-800/50">
-        <MapPin className="w-8 h-8 mx-auto text-amber-500 animate-pulse mb-2" />
+        <MapPin className="w-8 h-8 mx-auto text-brand-gold animate-pulse mb-2" />
         <Text className="text-xs text-slate-500 font-semibold">Loading interactive map and spatial boundaries...</Text>
       </div>
     );
@@ -753,10 +753,10 @@ export function MapFenceEditor({
       )}
 
       {/* ── STORE LOCATION CONTROLS & UNSAVED PREVIEW BANNER ── */}
-      <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 dark:from-slate-800 dark:to-slate-800/90 rounded-xl border border-amber-300 dark:border-slate-700 p-3 space-y-2">
+      <div className="bg-gradient-to-r from-brand-gold/10 via-brand-gold/10 to-brand-gold/5 dark:from-slate-800 dark:to-slate-800/90 rounded-xl border border-brand-gold/40 dark:border-slate-700 p-3 space-y-2">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-amber-500 text-white rounded-lg shadow-sm">
+            <div className="p-1.5 bg-brand-gold text-white rounded-lg shadow-sm">
               <Store className="w-4 h-4" />
             </div>
             <div>
@@ -764,7 +764,7 @@ export function MapFenceEditor({
                 <span className="text-xs font-extrabold text-slate-900 dark:text-white">
                   🏪 Store Physical Location:
                 </span>
-                <span className="font-mono text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/80 px-2 py-0.5 rounded">
+                <span className="font-mono text-xs font-bold text-brand-gold-dark dark:text-brand-gold/40 bg-brand-gold-light dark:bg-brand-gold-dark/80 px-2 py-0.5 rounded">
                   {storePosition[0].toFixed(6)}° N, {storePosition[1].toFixed(6)}° E
                 </span>
               </div>
@@ -794,11 +794,11 @@ export function MapFenceEditor({
               disabled={readOnly}
               className={`text-[11px] font-bold gap-1 ${
                 activeMode === "pick_store"
-                  ? "bg-amber-500 text-white hover:bg-amber-600 border-amber-600"
+                  ? "bg-brand-gold text-white hover:bg-brand-gold border-brand-gold"
                   : "bg-white dark:bg-slate-700 hover:bg-slate-50 border border-slate-200 dark:border-slate-600"
               }`}
             >
-              <Crosshair className="w-3.5 h-3.5 text-amber-600" />
+              <Crosshair className="w-3.5 h-3.5 text-brand-gold" />
               {activeMode === "pick_store" ? "Click map to place..." : "Pick on Map"}
             </Button>
           </div>
@@ -806,7 +806,7 @@ export function MapFenceEditor({
 
         {/* Unsaved Store Location Actions */}
         {pendingStoreLocation && (
-          <div className="flex items-center justify-between gap-3 pt-2 border-t border-amber-200 dark:border-slate-700 bg-amber-50/90 dark:bg-amber-950/40 -mx-3 -mb-3 p-3 rounded-b-xl">
+          <div className="flex items-center justify-between gap-3 pt-2 border-t border-brand-gold/40 dark:border-slate-700 bg-brand-gold-light/90 dark:bg-brand-gold-dark/40 -mx-3 -mb-3 p-3 rounded-b-xl">
             <div className="flex items-center gap-2 min-w-0">
               <Badge color="orange" className="text-[10px] font-bold animate-pulse">
                 Unsaved Location Change
@@ -851,9 +851,9 @@ export function MapFenceEditor({
               onChange={(e) => handleSearchInput(e.target.value)}
               onFocus={() => { if (searchResults.length > 0) setShowSearchResults(true); }}
               placeholder="🔍 Search store location, area, street, landmark..."
-              className="w-full pl-9 pr-8 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 shadow-sm"
+              className="w-full pl-9 pr-8 py-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold shadow-sm"
             />
-            {searchLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500 animate-spin" />}
+            {searchLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gold animate-spin" />}
           </div>
         </div>
 
@@ -865,10 +865,10 @@ export function MapFenceEditor({
                 key={r.id}
                 type="button"
                 onClick={() => handleSearchSelect(r)}
-                className="w-full text-left px-3.5 py-2.5 text-xs hover:bg-amber-50/80 dark:hover:bg-slate-700 transition-colors flex items-center justify-between gap-3"
+                className="w-full text-left px-3.5 py-2.5 text-xs hover:bg-brand-gold-light/80 dark:hover:bg-slate-700 transition-colors flex items-center justify-between gap-3"
               >
                 <div className="flex items-start gap-2.5 min-w-0">
-                  <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                  <MapPin className="w-4 h-4 text-brand-gold shrink-0 mt-0.5" />
                   <div className="min-w-0">
                     <div className="font-bold text-slate-800 dark:text-slate-100 truncate">{r.displayName}</div>
                     <div className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -879,7 +879,7 @@ export function MapFenceEditor({
                     </div>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded shrink-0">
+                <span className="text-[10px] font-bold text-brand-gold dark:text-brand-gold bg-brand-gold-light dark:bg-brand-gold-dark/60 px-2 py-0.5 rounded shrink-0">
                   Center View
                 </span>
               </button>
@@ -898,14 +898,14 @@ export function MapFenceEditor({
 
       {/* Selected Search Result Action Banner */}
       {selectedSearchResult && (
-        <div className="flex items-center justify-between gap-3 p-3 bg-amber-50/90 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-900/50 text-xs">
+        <div className="flex items-center justify-between gap-3 p-3 bg-brand-gold-light/90 dark:bg-brand-gold-dark/40 rounded-xl border border-brand-gold/40 dark:border-brand-gold-dark/50 text-xs">
           <div className="flex items-center gap-2.5 min-w-0">
-            <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
+            <MapPin className="w-4 h-4 text-brand-gold shrink-0" />
             <div className="min-w-0">
-              <span className="font-bold text-amber-900 dark:text-amber-200 truncate block">
+              <span className="font-bold text-brand-gold-dark dark:text-brand-gold/40 truncate block">
                 {selectedSearchResult.displayName}
               </span>
-              <span className="text-[10px] text-amber-700/80 dark:text-amber-300/80">
+              <span className="text-[10px] text-brand-gold-dark/80 dark:text-brand-gold/80">
                 Coords: {selectedSearchResult.latitude.toFixed(6)}, {selectedSearchResult.longitude.toFixed(6)} · Map centered (Store location unchanged)
               </span>
             </div>
@@ -914,7 +914,7 @@ export function MapFenceEditor({
             <Button
               size="small"
               onClick={() => applySearchResultAsStoreLocation(selectedSearchResult)}
-              className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-600 hover:bg-amber-700 text-white shadow-xs"
+              className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-brand-gold hover:bg-brand-gold-dark text-white shadow-xs"
             >
               Set as Store Location
             </Button>
@@ -937,7 +937,7 @@ export function MapFenceEditor({
               onClick={startDrawPolygon}
               disabled={activeMode !== "view"}
               className={`px-2.5 py-1.5 rounded-md text-[10px] font-bold flex items-center gap-1 transition-colors ${
-                activeMode === "polygon" ? "bg-amber-500 text-white" : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                activeMode === "polygon" ? "bg-brand-gold text-white" : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
               } disabled:opacity-50`}
             >
               <Pentagon className="w-3 h-3" /> Draw Zone
@@ -1039,11 +1039,11 @@ export function MapFenceEditor({
         {activeMode !== "view" && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] bg-black/85 text-white px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 backdrop-blur-sm shadow-xl">
             {activeMode === "polygon" ? (
-              <><Pentagon className="w-3.5 h-3.5 text-amber-400" /> Click to add polygon points — Double-click to complete</>
+              <><Pentagon className="w-3.5 h-3.5 text-brand-gold" /> Click to add polygon points — Double-click to complete</>
             ) : activeMode === "exclusion" ? (
               <><Plus className="w-3.5 h-3.5 text-rose-400" /> Click to add exclusion points — Double-click to complete</>
             ) : (
-              <><Crosshair className="w-3.5 h-3.5 text-amber-400" /> Click anywhere on map to set 🏪 Store Location</>
+              <><Crosshair className="w-3.5 h-3.5 text-brand-gold" /> Click anywhere on map to set 🏪 Store Location</>
             )}
             <button
               onClick={() => {

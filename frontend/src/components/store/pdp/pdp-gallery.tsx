@@ -91,7 +91,7 @@ export function PdpGallery({
                 orientation === "vertical" ? "w-20 h-20 sm:w-22 sm:h-22" : "w-20 h-20 sm:w-24 sm:h-24"
               } ${
                 isActive
-                  ? "border-2 border-[#2563EB] ring-2 ring-blue-400/30 shadow-md scale-[1.02]"
+                  ? "border-2 border-brand-primary ring-2 ring-blue-400/30 shadow-md scale-[1.02]"
                   : "border border-slate-200 opacity-70 hover:opacity-100 hover:border-slate-300"
               }`}
             >
@@ -159,12 +159,12 @@ export function PdpGallery({
           {/* Badges Overlay */}
           <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none z-10">
             {isBestseller && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#2563EB] text-white shadow-md">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-primary text-white shadow-md">
                 <Sparkles className="w-3 h-3" /> Bestseller
               </span>
             )}
             {isFeatured && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#2563EB] text-white shadow-md">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-primary text-white shadow-md">
                 Signature Choice
               </span>
             )}
@@ -177,7 +177,7 @@ export function PdpGallery({
                 type="button"
                 onClick={() => setIsLightboxOpen(true)}
                 aria-label="Open fullscreen image view"
-                className="w-10 h-10 rounded-full bg-white/90 hover:bg-white border border-slate-200 shadow-sm backdrop-blur-md flex items-center justify-center text-slate-700 hover:text-[#2563EB] transition-all hover:scale-105"
+                className="w-10 h-10 rounded-full bg-white/90 hover:bg-white border border-slate-200 shadow-sm backdrop-blur-md flex items-center justify-center text-slate-700 hover:text-brand-primary transition-all hover:scale-105"
               >
                 <Maximize2 className="w-4 h-4" />
               </button>
@@ -196,7 +196,7 @@ export function PdpGallery({
                 className={`w-5 h-5 transition-colors ${
                   isWishlisted
                     ? "fill-[#B76E79] text-[#B76E79]"
-                    : "text-slate-600 hover:text-[#2563EB]"
+                    : "text-slate-600 hover:text-brand-primary"
                 }`}
               />
             </button>
@@ -212,7 +212,7 @@ export function PdpGallery({
                   setActiveIndex((prev) => (prev - 1 + validImages.length) % validImages.length);
                 }}
                 aria-label="Previous image"
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 hover:text-[#2563EB] transition-all sm:opacity-0 group-hover:opacity-100"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 hover:text-brand-primary transition-all sm:opacity-0 group-hover:opacity-100"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -223,7 +223,7 @@ export function PdpGallery({
                   setActiveIndex((prev) => (prev + 1) % validImages.length);
                 }}
                 aria-label="Next image"
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 hover:text-[#2563EB] transition-all sm:opacity-0 group-hover:opacity-100"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 hover:text-brand-primary transition-all sm:opacity-0 group-hover:opacity-100"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>

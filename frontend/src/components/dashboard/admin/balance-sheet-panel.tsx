@@ -230,7 +230,7 @@ export function BalanceSheetPanel() {
               type="date"
               value={asOfDate}
               onChange={(e) => setAsOfDate(e.target.value)}
-              className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+              className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-navy"
             />
           </div>
 
@@ -270,7 +270,7 @@ export function BalanceSheetPanel() {
           <button
             onClick={fetchBalanceSheet}
             disabled={loading}
-            className="px-4 py-1.5 text-xs font-bold text-white bg-[#1D2F5D] hover:bg-[#162447] rounded-lg transition-colors disabled:opacity-50"
+            className="px-4 py-1.5 text-xs font-bold text-white bg-brand-navy hover:bg-[#162447] rounded-lg transition-colors disabled:opacity-50"
           >
             {loading ? "Refreshing…" : "Generate Statement"}
           </button>
@@ -293,13 +293,13 @@ export function BalanceSheetPanel() {
                 type="date"
                 value={compareDate}
                 onChange={(e) => setCompareDate(e.target.value)}
-                className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+                className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-navy"
               />
             </div>
             <button
               onClick={fetchBalanceSheet}
               disabled={loading || !compareDate}
-              className="px-3 py-1 text-xs font-bold text-[#1D2F5D] dark:text-blue-400 border border-[#1D2F5D] dark:border-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50"
+              className="px-3 py-1 text-xs font-bold text-brand-navy dark:text-blue-400 border border-brand-navy dark:border-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50"
             >
               Apply Comparison
             </button>
@@ -322,13 +322,13 @@ export function BalanceSheetPanel() {
             className={`border rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 ${
               data.reconciliation.is_balanced
                 ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/50 text-emerald-900 dark:text-emerald-200"
-                : "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/50 text-amber-900 dark:text-amber-200"
+                : "bg-brand-gold-light dark:bg-brand-gold-dark/20 border-brand-gold/40 dark:border-brand-gold-dark/50 text-brand-gold-dark dark:text-brand-gold/40"
             }`}
           >
             <div className="flex items-center gap-3">
               <div
                 className={`w-3 h-3 rounded-full ${
-                  data.reconciliation.is_balanced ? "bg-emerald-500 animate-pulse" : "bg-amber-500"
+                  data.reconciliation.is_balanced ? "bg-emerald-500 animate-pulse" : "bg-brand-gold"
                 }`}
               />
               <div>
@@ -398,7 +398,7 @@ export function BalanceSheetPanel() {
           {/* ── Main Balance Sheet Report ── */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
             {/* Report Banner */}
-            <div className="bg-[#1D2F5D] px-6 py-4 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+            <div className="bg-brand-navy px-6 py-4 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
               <div>
                 <h3 className="text-sm font-bold tracking-wide">STATEMENT OF FINANCIAL POSITION (BALANCE SHEET)</h3>
                 <p className="text-[11px] text-slate-300 mt-0.5">
@@ -899,7 +899,7 @@ export function BalanceSheetPanel() {
                         </span>
                         {data.sections.equity.opening_balance_offset.name}
                         {data.sections.equity.opening_balance_offset.amount !== 0 && (
-                          <span className="text-[9px] bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded font-semibold">
+                          <span className="text-[9px] bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold/40 px-1.5 py-0.5 rounded font-semibold">
                             Offset Reserve
                           </span>
                         )}

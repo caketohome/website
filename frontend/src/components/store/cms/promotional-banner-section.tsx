@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Check, Sparkles, Tag, ArrowRight } from "lucide-react";
+import { Copy, Check, Tag, ArrowRight } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { copyText, PENDING_COUPON_KEY } from "@/lib/util/clipboard";
 
@@ -119,32 +119,30 @@ export function PromotionalBannerSection({
   }
 
   // Badge settings
-  const badgeText = config.badge_text || "LIMITED TIME OFFER";
+  const badgeText = config.badge_text || ""; // no badge unless the CMS sets one
   const showBadge = config.badge_visible !== false && !!badgeText;
-  const badgeBg = config.badge_bg || "rgba(245, 158, 11, 0.18)";
-  const badgeTextColor = config.badge_text_color || "#92400e";
-  const badgeBorderColor = config.badge_border_color || "rgba(245, 158, 11, 0.35)";
+  const badgeTextColor = config.badge_text_color || "#9B6A19";
 
   // Offer Code Pill settings
   const couponBg = config.coupon_bg || "#ffffff";
-  const couponTextColor = config.coupon_text_color || "#8A3F00";
-  const couponBorderColor = config.coupon_border_color || "#F6C85F";
+  const couponTextColor = config.coupon_text_color || "#1D2F5D";
+  const couponBorderColor = config.coupon_border_color || "#E5E7EB";
   const couponRadius = config.coupon_border_radius ?? 10;
   const couponPadX = config.coupon_padding_x ?? 12;
   const couponPadY = config.coupon_padding_y ?? 6;
 
   // Icons & CTA
-  const icon = config.icon || (headline.startsWith("🎉") ? "" : "🎉");
+  const icon = config.icon || ""; // no automatic emoji
   const ctaText = config.cta_text || "Claim Offer";
   const ctaUrl = config.cta_url || config.cta_link || "/products";
   const graphicImage = config.graphic_image;
 
   // Background computation (Outer Section default is transparent, Inner Card default is rich/gradient)
-  const bgColor = config.bg_color || "#FFF2C2";
+  const bgColor = config.bg_color || "#F8F3EB";
   const sectionBgColor = config.section_bg_color || "transparent";
-  const gradientEnabled = config.gradient_enabled !== false;
+  const gradientEnabled = config.gradient_enabled === true; // solid card by default (brand: no heavy gradients)
   const gradientStart = config.gradient_start || bgColor;
-  const gradientEnd = config.gradient_end || "#FFE494";
+  const gradientEnd = config.gradient_end || "#F5E8CC";
   const gradientDirection = config.gradient_direction || "90deg";
 
   const effectiveBg = gradientEnabled
@@ -153,10 +151,10 @@ export function PromotionalBannerSection({
 
   // Border & Shadows
   const borderEnabled = config.border_enabled !== false;
-  const borderWidth = borderEnabled ? (config.border_width ?? 1.5) : 0;
+  const borderWidth = borderEnabled ? (config.border_width ?? 1) : 0;
   const borderStyle = config.border_style || "solid";
-  const borderColor = config.border_color || "#F6C85F";
-  const borderRadius = config.border_radius ?? 24;
+  const borderColor = config.border_color || "#E8D3A8";
+  const borderRadius = config.border_radius ?? 16;
 
   const shadowPresets = {
     none: "none",
@@ -168,21 +166,21 @@ export function PromotionalBannerSection({
   const boxShadow = shadowPresets[config.shadow_preset || "small"];
 
   // Typography
-  const textColor = config.text_color || config.headline_color || "#8A3F00";
-  const headlineWeight = config.headline_font_weight || "900";
-  const subtitleColor = config.subtitle_color || "#6B3100";
+  const textColor = config.text_color || config.headline_color || "#1D2F5D";
+  const headlineWeight = config.headline_font_weight || "600";
+  const subtitleColor = config.subtitle_color || "#4B5563";
   const subtitleLineHeight = config.subtitle_line_height || "1.45";
   const subtitleMaxWidth = config.subtitle_max_width || "680px";
 
   // CTA Button Styling
-  const ctaBgColor = config.cta_bg_color || "#E11D48";
+  const ctaBgColor = config.cta_bg_color || "#1D2F5D";
   const ctaTextColor = config.cta_text_color || "#FFFFFF";
-  const ctaHoverBg = config.cta_hover_bg || "#BE123C";
+  const ctaHoverBg = config.cta_hover_bg || "#245A96";
   const ctaHoverTextColor = config.cta_hover_text_color || "#FFFFFF";
-  const ctaBorderRadius = config.cta_border_radius ?? 14;
+  const ctaBorderRadius = config.cta_border_radius ?? 10;
   const ctaPaddingX = config.cta_padding_x ?? 24;
   const ctaPaddingY = config.cta_padding_y ?? 12;
-  const ctaFontWeight = config.cta_font_weight || "700";
+  const ctaFontWeight = config.cta_font_weight || "600";
 
   // Responsive Breakpoints: Desktop (dt), Tablet (tb), Mobile (mb)
   const dtPaddingTop = desktopConfig.padding_top ?? 22;
@@ -279,8 +277,8 @@ export function PromotionalBannerSection({
       id={`section-${sectionId}`}
       onClick={() => onSectionClick?.(sectionId)}
       className={`w-full transition-all relative ${
-        isSelected ? "ring-2 ring-[#D4AF37]/50 ring-offset-4 rounded-2xl cursor-pointer" : ""
-      } ${isPreview ? "hover:outline-dashed hover:outline-2 hover:outline-[#D4AF37]/60" : ""}`}
+        isSelected ? "ring-2 ring-brand-gold/50 ring-offset-4 rounded-2xl cursor-pointer" : ""
+      } ${isPreview ? "hover:outline-dashed hover:outline-2 hover:outline-brand-gold/60" : ""}`}
       style={{ backgroundColor: sectionBgColor }}
     >
       {/* Dynamic Scoped Responsive Stylesheet via dangerouslySetInnerHTML to prevent React hydration warnings */}
@@ -395,22 +393,14 @@ export function PromotionalBannerSection({
           <div className="flex flex-col gap-1.5 z-10 min-w-0 flex-1">
             {/* Optional Badge */}
             {showBadge && (
-              <div
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold tracking-wider uppercase w-fit mb-0.5 border"
-                style={{
-                  backgroundColor: badgeBg,
-                  color: badgeTextColor,
-                  borderColor: badgeBorderColor,
-                }}
-              >
-                <Sparkles className="w-3 h-3" style={{ color: badgeTextColor }} />
-                <span>{badgeText}</span>
-              </div>
+              <p className="text-xs font-semibold tracking-wide w-fit mb-0.5" style={{ color: badgeTextColor }}>
+                {badgeText}
+              </p>
             )}
 
             {/* Headline */}
             <h3
-              className="promo-headline tracking-tight leading-tight font-black"
+              className="promo-headline font-serif tracking-tight leading-tight"
               style={{
                 color: textColor,
                 fontWeight: headlineWeight,

@@ -167,9 +167,9 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
               size="small"
               variant="secondary"
               onClick={() => setIsCampaignModalOpen(true)}
-              className="flex items-center gap-1.5 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800"
+              className="flex items-center gap-1.5 text-xs bg-brand-gold/10 hover:bg-brand-gold/20 text-brand-gold-dark dark:text-brand-gold/40 border-brand-gold/40 dark:border-brand-gold-dark"
             >
-              <Zap className="w-3.5 h-3.5 text-amber-600" /> Automated Workflows
+              <Zap className="w-3.5 h-3.5 text-brand-gold" /> Automated Workflows
             </Button>
             <Button
               size="small"
@@ -201,8 +201,8 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
 
         {/* Dynamic Metric KPI Ribbon */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div className="bg-white dark:bg-neutral-900 border border-amber-200 dark:border-amber-900/60 rounded-xl p-3.5 shadow-xs">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 block mb-1">
+          <div className="bg-white dark:bg-neutral-900 border border-brand-gold/40 dark:border-brand-gold-dark/60 rounded-xl p-3.5 shadow-xs">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-brand-gold-dark dark:text-brand-gold block mb-1">
               Revenue At Risk
             </span>
             <div className="text-xl font-bold text-neutral-900 dark:text-white">
@@ -295,7 +295,7 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
                   <div className="text-base font-bold text-neutral-900 dark:text-white mt-0.5">
                     {(Number(step.count) || 0).toLocaleString("en-IN")}
                   </div>
-                  <div className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 mt-0.5">
+                  <div className="text-[11px] font-semibold text-brand-gold dark:text-brand-gold mt-0.5">
                     ₹{(Number(step.value) || 0).toLocaleString("en-IN")}
                   </div>
                   {idx > 0 && (
@@ -315,7 +315,7 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
             onClick={() => setActiveTab("carts")}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
               activeTab === "carts"
-                ? "bg-amber-600 text-white"
+                ? "bg-brand-gold text-white"
                 : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
             }`}
           >
@@ -325,7 +325,7 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
             onClick={() => setActiveTab("channels")}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
               activeTab === "channels"
-                ? "bg-amber-600 text-white"
+                ? "bg-brand-gold text-white"
                 : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
             }`}
           >
@@ -335,7 +335,7 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
             onClick={() => setActiveTab("products")}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
               activeTab === "products"
-                ? "bg-amber-600 text-white"
+                ? "bg-brand-gold text-white"
                 : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
             }`}
           >
@@ -598,7 +598,7 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
         {activeTab === "channels" && (
           <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden shadow-xs p-6 space-y-4">
             <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-amber-500" /> Omnichannel Recovery Attribution Breakdown
+              <BarChart3 className="w-4 h-4 text-brand-gold" /> Omnichannel Recovery Attribution Breakdown
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {channels.map((ch) => (
@@ -657,7 +657,7 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
           <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden shadow-xs">
             <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
               <h3 className="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                <Package className="w-4 h-4 text-amber-500" /> High-Drop Bakery Products
+                <Package className="w-4 h-4 text-brand-gold" /> High-Drop Bakery Products
               </h3>
               <span className="text-xs text-neutral-400">Aggregated dropped cake items & lost revenue</span>
             </div>
@@ -682,7 +682,7 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
                       <td className="py-3.5 px-4 font-mono text-neutral-700 dark:text-neutral-300">
                         ₹{(Number(p.unit_price) || 0).toLocaleString("en-IN")}
                       </td>
-                      <td className="py-3.5 px-4 text-amber-600 font-semibold">
+                      <td className="py-3.5 px-4 text-brand-gold font-semibold">
                         {p.abandoned_count ?? 0} checkouts
                       </td>
                       <td className="py-3.5 px-4 text-emerald-600 font-semibold">

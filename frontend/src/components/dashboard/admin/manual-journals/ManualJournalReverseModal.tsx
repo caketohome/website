@@ -72,7 +72,7 @@ export function ManualJournalReverseModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-gold-light text-brand-gold">
               <RotateCcw className="h-5 w-5" />
             </div>
             <div>
@@ -92,11 +92,11 @@ export function ManualJournalReverseModal({
         {/* Content */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Audit Warning */}
-          <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-3.5 flex gap-3 text-xs text-amber-800">
-            <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+          <div className="rounded-lg border border-brand-gold/40 bg-brand-gold-light/70 p-3.5 flex gap-3 text-xs text-brand-gold-dark">
+            <AlertTriangle className="h-4 w-4 text-brand-gold shrink-0 mt-0.5" />
             <div>
               <p className="font-medium">Compensating Reversal Invariant</p>
-              <p className="mt-0.5 text-amber-700">
+              <p className="mt-0.5 text-brand-gold-dark">
                 This operation creates a compensating journal voucher that strictly inverts all Debits and Credits and posts it atomically to the General Ledger. The original voucher will be marked as reversed with bidirectional audit linkage.
               </p>
             </div>
@@ -152,7 +152,7 @@ export function ManualJournalReverseModal({
               disabled={submitting || isCreator}
               rows={3}
               placeholder="e.g. Audit correction: reclassifying delivery vehicle fuel expense to operating branch 2..."
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary disabled:bg-slate-100 disabled:cursor-not-allowed"
             />
             <p className="text-[11px] text-slate-500">
               Required by audit policy. Will be recorded permanently on the compensating voucher.

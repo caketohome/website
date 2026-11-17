@@ -20,8 +20,8 @@ export function PdpDeliveryChecker({
   return (
     <div className="flex flex-col gap-3 p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
       <div className="flex items-center justify-between">
-        <span className="text-xs uppercase tracking-wider font-bold text-[#0F172A] flex items-center gap-1.5">
-          <Truck className="w-4 h-4 text-[#2563EB]" /> Delivery Availability & Slot
+        <span className="text-xs uppercase tracking-wider font-bold text-brand-text flex items-center gap-1.5">
+          <Truck className="w-4 h-4 text-brand-primary" /> Delivery Availability & Slot
         </span>
       </div>
 

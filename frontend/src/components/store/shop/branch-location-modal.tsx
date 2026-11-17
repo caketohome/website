@@ -71,12 +71,12 @@ export function BranchLocationModal({ currentBranch, onSelectBranch, onClose }: 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
-        <div className="p-5 border-b bg-brand-gold-soft/60 dark:bg-[#0c1326]/30 flex items-center justify-between">
+        <div className="p-5 border-b bg-brand-gold-soft/60 dark:bg-brand-deep/30 flex items-center justify-between">
           <div>
-            <Heading level="h3" className="text-base font-bold flex items-center gap-2 text-[#1D2F5D] dark:text-[#D4AF37]/60">
-              <MapPin className="w-5 h-5 text-[#1D2F5D]" /> Select Delivery Location
+            <Heading level="h3" className="text-base font-bold flex items-center gap-2 text-brand-navy dark:text-brand-gold/60">
+              <MapPin className="w-5 h-5 text-brand-navy" /> Select Delivery Location
             </Heading>
-            <Text className="text-xs text-[#152347] dark:text-[#D4AF37]/80">
+            <Text className="text-xs text-brand-deep dark:text-brand-gold/80">
               Enter your area or city to view active bakery inventory and instant ETAs.
             </Text>
           </div>
@@ -98,7 +98,7 @@ export function BranchLocationModal({ currentBranch, onSelectBranch, onClose }: 
           )}
 
           {errorMsg && (
-            <div className="p-3 bg-brand-gold-soft text-[#1D2F5D] text-xs font-semibold rounded-xl">
+            <div className="p-3 bg-brand-gold-soft text-brand-navy text-xs font-semibold rounded-xl">
               ⚠️ {errorMsg}
             </div>
           )}
@@ -114,7 +114,7 @@ export function BranchLocationModal({ currentBranch, onSelectBranch, onClose }: 
                 required
               />
             </div>
-            <Button type="submit" isLoading={loading} className="w-full bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold py-2.5">
+            <Button type="submit" isLoading={loading} className="w-full bg-brand-navy hover:bg-brand-deep text-white font-bold py-2.5">
               Find Matching Bakery Hub
             </Button>
           </form>
@@ -135,7 +135,7 @@ export function BranchLocationModal({ currentBranch, onSelectBranch, onClose }: 
           </Button>
 
           <div className="pt-2 text-[11px] text-slate-500 flex items-center justify-between">
-            <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-[#D4AF37]" /> 35-45 Min Express ETA</span>
+            <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-brand-gold" /> 35-45 Min Express ETA</span>
             <span className="flex items-center gap-1"><Truck className="w-3.5 h-3.5 text-emerald-500" /> Auto Partner Routing</span>
           </div>
         </div>

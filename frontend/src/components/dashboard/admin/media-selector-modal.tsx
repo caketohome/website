@@ -461,7 +461,7 @@ export function MediaSelectorModal({
                   <Text className="text-xs font-bold text-ui-fg-base truncate">{selectedItem.name || "Selected Image"}</Text>
                   <Text className="text-[10px] text-ui-fg-muted font-mono truncate">{selectedItem.url || urlInput}</Text>
                   <Text className="text-[10px] text-rose-700 dark:text-rose-400 font-medium truncate">
-                    ALT: {altInput || <span className="italic text-amber-600">None</span>}
+                    ALT: {altInput || <span className="italic text-brand-gold">None</span>}
                   </Text>
                 </div>
               </div>

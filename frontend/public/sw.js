@@ -1,104 +1,57 @@
-const CACHE_NAME = "caketohome-cache-v1";
-const STATIC_ASSETS = [
-  "/",
-  "/offline",
-  "/medusa-logo.svg",
-  "/next.svg",
-  "/notification.mp3",
-  "/pizza-loading.gif",
-];
+// CakeToHome service worker: installable PWA + push notifications.
+// Deliberately caches nothing: pages and /api responses are per-user and must never be served stale.
 
-// On install, pre-cache the offline page and static images
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
-  );
-  self.skipWaiting();
-});
+self.addEventListener("install", () => self.skipWaiting());
 
-// Clean up old caches
 self.addEventListener("activate", (event) => {
+  // Remove caches left by the old caching service worker.
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
-    })
+    caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Network First for catalog APIs & HTML pages, Cache First for static assets
-self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
-
-  // Skip non-GET requests
-  if (event.request.method !== "GET") {
-    return;
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { body: event.data ? event.data.text() : "" };
   }
+  const title = data.title || "CakeToHome";
+  const options = {
+    body: data.body || "",
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
+    tag: data.tag,
+    renotify: Boolean(data.tag),
+    vibrate: [200, 100, 200],
+    data: { url: data.url || "/" },
+  };
 
-  // Network First Strategy for pages/APIs
-  if (
-    event.request.mode === "navigate" ||
-    url.pathname.startsWith("/api/") ||
-    url.pathname.includes("/store/")
-  ) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          // Cache successful responses
-          if (response.status === 200) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, copy);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // If offline, check cache fallback
-          return caches.match(event.request).then((cachedResponse) => {
-            if (cachedResponse) {
-              return cachedResponse;
-            }
-            // If page navigation fails, return offline fallback page
-            if (event.request.mode === "navigate") {
-              return caches.match("/offline");
-            }
-            return new Response(
-              JSON.stringify({ error: "Offline mode. Cached data missing." }),
-              {
-                headers: { "Content-Type": "application/json" },
-                status: 503,
-              }
-            );
-          });
-        })
-    );
-    return;
-  }
+  event.waitUntil(
+    (async () => {
+      await self.registration.showNotification(title, options);
+      // If the app is open, ask it to play the in-app alert sound.
+      const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      for (const w of windows) w.postMessage({ type: "cth-push", title, body: options.body, url: options.data.url });
+    })()
+  );
+});
 
-  // Cache First Strategy for static assets and scripts
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((response) => {
-        if (response.status === 200) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, copy);
-          });
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = new URL(event.notification.data?.url || "/", self.location.origin).href;
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      for (const w of windows) {
+        if (new URL(w.url).origin === self.location.origin && "focus" in w) {
+          await w.focus();
+          if ("navigate" in w) await w.navigate(url).catch(() => null);
+          return;
         }
-        return response;
-      });
-    })
+      }
+      await self.clients.openWindow(url);
+    })()
   );
 });

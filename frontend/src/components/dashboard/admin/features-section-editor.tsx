@@ -356,7 +356,7 @@ export function FeaturesSectionEditor({ config, onChange }: FeaturesSectionEdito
                           label="Card Border Color"
                           value={item.border_color}
                           onChange={(val) => updateFeature(idx, "border_color", val)}
-                          fallback="#e2e8f0"
+                          fallback="#E5E7EB"
                         />
                       </div>
 

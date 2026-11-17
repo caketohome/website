@@ -213,7 +213,7 @@ export function PaymentConfigTab({
         <div className="text-[11px] text-slate-500 flex flex-col gap-0.5" aria-live="polite">
           <span>Last updated: {fmt(c.updated_at)}</span>
           <span>Last connection test: {fmt(c.last_tested_at)}{c.last_test_result ? ` - ${c.last_test_result.success ? "authenticated" : c.last_test_result.category}` : ""}</span>
-          {isDirty(env) && <span className="text-amber-700 font-semibold">Unsaved changes</span>}
+          {isDirty(env) && <span className="text-brand-gold-dark font-semibold">Unsaved changes</span>}
         </div>
 
         <div className="flex flex-wrap gap-2 pt-1">
@@ -227,7 +227,7 @@ export function PaymentConfigTab({
         </div>
 
         {confirmActivate === env && (
-          <div role="alertdialog" aria-label={`Confirm activating ${LABEL[env]}`} className="p-3 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/40 text-xs flex flex-col gap-2">
+          <div role="alertdialog" aria-label={`Confirm activating ${LABEL[env]}`} className="p-3 rounded-xl border border-brand-gold/40 bg-brand-gold-light dark:bg-brand-gold-dark/40 text-xs flex flex-col gap-2">
             <span>
               Switch the active payment environment to <strong>{LABEL[env]}</strong>? New checkouts will use {env === "LIVE" ? "Live credentials and real money" : "Test credentials"}.
               {env === "LIVE" && c.status !== "VERIFIED" && " Live payments stay blocked until the Live credentials pass Test Connection."}

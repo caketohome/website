@@ -21,15 +21,15 @@ export function OrderKotPrintModal({ order, onClose }: OrderKotPrintModalProps) 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="bg-white dark:bg-slate-900 border rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
         {/* Action Header */}
-        <div className="p-4 border-b flex items-center justify-between bg-amber-50 dark:bg-amber-950/40 print:hidden">
-          <Heading level="h3" className="text-sm font-bold flex items-center gap-2 text-amber-800 dark:text-amber-300">
-            <ChefHat className="w-5 h-5 text-amber-600" /> Kitchen Order Ticket (KOT)
+        <div className="p-4 border-b flex items-center justify-between bg-brand-gold-light dark:bg-brand-gold-dark/40 print:hidden">
+          <Heading level="h3" className="text-sm font-bold flex items-center gap-2 text-brand-gold-dark dark:text-brand-gold/40">
+            <ChefHat className="w-5 h-5 text-brand-gold" /> Kitchen Order Ticket (KOT)
           </Heading>
           <div className="flex items-center gap-2">
-            <Button size="small" variant="secondary" onClick={handlePrint} className="bg-amber-600 text-white hover:bg-amber-700">
+            <Button size="small" variant="secondary" onClick={handlePrint} className="bg-brand-gold text-white hover:bg-brand-gold-dark">
               <Printer className="w-3.5 h-3.5 mr-1" /> Print KOT Ticket
             </Button>
-            <button onClick={onClose} className="p-1 rounded hover:bg-amber-100 text-slate-500">
+            <button onClick={onClose} className="p-1 rounded hover:bg-brand-gold-light text-slate-500">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -72,7 +72,7 @@ export function OrderKotPrintModal({ order, onClose }: OrderKotPrintModalProps) 
             <div>
               <span className="font-bold text-slate-500">PREP TARGET:</span>
               <p className="font-bold flex items-center gap-1">
-                <Clock className="w-3 h-3 text-amber-600" /> {kitchen?.prep_time_minutes || 45} mins
+                <Clock className="w-3 h-3 text-brand-gold" /> {kitchen?.prep_time_minutes || 45} mins
               </p>
             </div>
           </div>
@@ -94,7 +94,7 @@ export function OrderKotPrintModal({ order, onClose }: OrderKotPrintModalProps) 
                 </div>
 
                 {item.cake_message && (
-                  <div className="mt-2 p-1.5 bg-amber-100 dark:bg-amber-950/60 rounded border border-amber-300 text-amber-900 dark:text-amber-200">
+                  <div className="mt-2 p-1.5 bg-brand-gold-light dark:bg-brand-gold-dark/60 rounded border border-brand-gold/40 text-brand-gold-dark dark:text-brand-gold/40">
                     <span className="text-[10px] font-bold block uppercase tracking-wider">Piping Text Message on Cake:</span>
                     <p className="font-extrabold text-xs">&ldquo;{item.cake_message}&rdquo;</p>
                   </div>

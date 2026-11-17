@@ -241,12 +241,12 @@ export function DeliveryCoverageMap() {
 
                 {/* Serviceability Result Box */}
                 {result && (
-                    <div className={`mt-4 p-4 rounded-lg border ${result.serviceable ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300" : "bg-brand-gold-soft dark:bg-[#0c1326]/40 border-[#D4AF37]/40"}`}>
+                    <div className={`mt-4 p-4 rounded-lg border ${result.serviceable ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300" : "bg-brand-gold-soft dark:bg-brand-deep/40 border-brand-gold/40"}`}>
                         <div className="flex items-start gap-3">
                             {result.serviceable ? (
                                 <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                             ) : (
-                                <XCircle className="w-5 h-5 text-[#1D2F5D] shrink-0 mt-0.5" />
+                                <XCircle className="w-5 h-5 text-brand-navy shrink-0 mt-0.5" />
                             )}
                             <div className="flex flex-col gap-1">
                                 <Text className="font-semibold text-sm">
@@ -279,7 +279,7 @@ export function DeliveryCoverageMap() {
                     <div className="flex items-center gap-4 text-xs">
                         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-emerald-500/30 border border-emerald-500 inline-block"></span> Express Zone</span>
                         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-blue-500/20 border border-blue-500 inline-block"></span> Standard Geofence</span>
-                        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500 inline-block"></span> Store Hub</span>
+                        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-brand-gold/20 border border-brand-gold inline-block"></span> Store Hub</span>
                     </div>
                 </div>
 

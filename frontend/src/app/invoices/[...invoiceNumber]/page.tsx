@@ -111,7 +111,7 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
         <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 print:hidden">
           <Link
             href="/dashboard?tab=orders"
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-[#1D2F5D] transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-brand-navy transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Orders
           </Link>
@@ -121,9 +121,9 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
             </span>
             <button
               type="button"
-              className="print-btn inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1D2F5D] text-white text-xs font-semibold rounded-lg shadow-xs hover:bg-[#162447] transition-all cursor-pointer"
+              className="print-btn inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-navy text-white text-xs font-semibold rounded-lg shadow-xs hover:bg-[#162447] transition-all cursor-pointer"
             >
-              <Printer className="w-3.5 h-3.5 text-[#D4AF37]" /> Print Tax Invoice
+              <Printer className="w-3.5 h-3.5 text-brand-gold" /> Print Tax Invoice
             </button>
           </div>
         </div>
@@ -204,7 +204,7 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
               <div className="inline-flex items-center gap-1.5 mt-1">
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${
-                    isPaid ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
+                    isPaid ? "bg-emerald-100 text-emerald-800" : "bg-brand-gold-light text-brand-gold-dark"
                   }`}
                 >
                   {isPaid ? "PAID IN FULL" : "PENDING PAYMENT"}
@@ -316,7 +316,7 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
               </div>
               <div className="flex justify-between py-2 border-b-2 border-slate-900 dark:border-white text-base font-black text-slate-900 dark:text-white">
                 <span>Total Invoice Value:</span>
-                <span className="text-[#1D2F5D] dark:text-[#D4AF37]">₹{grandTotal.toFixed(2)}</span>
+                <span className="text-brand-navy dark:text-brand-gold">₹{grandTotal.toFixed(2)}</span>
               </div>
             </div>
           </div>

@@ -165,11 +165,11 @@ export const SettingsPanel = memo(function SettingsPanel() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
                 isActive
-                  ? "bg-amber-600 text-white shadow-xs"
+                  ? "bg-brand-gold text-white shadow-xs"
                   : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-amber-600 dark:text-amber-400"}`} />
+              <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-brand-gold dark:text-brand-gold"}`} />
               <span>{tab.label}</span>
               {tab.badge && (
                 <span
@@ -177,7 +177,7 @@ export const SettingsPanel = memo(function SettingsPanel() {
                     isActive
                       ? "bg-white/20 text-white"
                       : tab.badgeColor === "orange"
-                      ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                      ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40"
                       : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
                   }`}
                 >
@@ -192,7 +192,7 @@ export const SettingsPanel = memo(function SettingsPanel() {
       {/* Tab Content Display */}
       {loading ? (
         <Container className="p-12 text-center flex flex-col items-center justify-center gap-3">
-          <RefreshCw className="w-6 h-6 text-amber-600 animate-spin" />
+          <RefreshCw className="w-6 h-6 text-brand-gold animate-spin" />
           <Text className="text-slate-500 text-sm">Loading business profile and statutory records...</Text>
         </Container>
       ) : (

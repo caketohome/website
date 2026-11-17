@@ -209,7 +209,7 @@ export function CategoryImageUploader({
         <button
           type="button"
           onClick={() => setShowUrlInput(!showUrlInput)}
-          className="text-[11px] text-purple-600 hover:text-purple-700 hover:underline flex items-center gap-1"
+          className="text-[11px] text-brand-primary hover:text-brand-navy hover:underline flex items-center gap-1"
         >
           <LinkIcon className="w-3 h-3" />
           {showUrlInput ? "Hide URL input" : "Paste URL instead"}
@@ -265,7 +265,7 @@ export function CategoryImageUploader({
             {/* Image Details & Action Buttons */}
             <div className="flex-1 min-w-0 space-y-1.5">
               <div className="flex items-center gap-2">
-                <FileImage className="w-4 h-4 text-purple-600 shrink-0" />
+                <FileImage className="w-4 h-4 text-brand-primary shrink-0" />
                 <Text className="text-xs font-semibold text-ui-fg-base truncate">
                   {fileMeta?.name || "Uploaded Category Asset"}
                 </Text>
@@ -319,19 +319,19 @@ export function CategoryImageUploader({
           onClick={() => !uploading && fileInputRef.current?.click()}
           className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-2.5 ${
             isDragging
-              ? "border-purple-500 bg-purple-50/50 dark:bg-purple-950/20"
-              : "border-ui-border-base hover:border-purple-400 bg-ui-bg-subtle/30 hover:bg-purple-50/20"
+              ? "border-brand-primary bg-brand-light/50 dark:bg-brand-navy/20"
+              : "border-ui-border-base hover:border-brand-primary bg-ui-bg-subtle/30 hover:bg-brand-light/20"
           } ${uploading ? "pointer-events-none opacity-80" : ""}`}
         >
           {uploading ? (
             <div className="w-full max-w-xs space-y-2 py-2">
-              <div className="flex items-center justify-between text-xs font-semibold text-purple-600">
+              <div className="flex items-center justify-between text-xs font-semibold text-brand-primary">
                 <span>Optimizing & Uploading to WebP...</span>
                 <span>{progress}%</span>
               </div>
-              <div className="w-full bg-purple-100 rounded-full h-2 overflow-hidden">
+              <div className="w-full bg-brand-light rounded-full h-2 overflow-hidden">
                 <div
-                  className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                  className="bg-brand-primary h-2 rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -339,12 +339,12 @@ export function CategoryImageUploader({
             </div>
           ) : (
             <>
-              <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-600 flex items-center justify-center shadow-sm">
+              <div className="w-10 h-10 rounded-full bg-brand-light dark:bg-brand-navy/40 text-brand-primary flex items-center justify-center shadow-sm">
                 <Upload className="w-5 h-5" />
               </div>
               <div>
                 <Text className="text-xs font-bold text-ui-fg-base">
-                  📷 Drop image here or <span className="text-purple-600 underline">Choose Image</span>
+                  📷 Drop image here or <span className="text-brand-primary underline">Choose Image</span>
                 </Text>
                 <Text className="text-[11px] text-ui-fg-subtle mt-0.5">
                   Supports JPG, PNG, or WebP • Max 10 MB (Auto-compressed to WebP)

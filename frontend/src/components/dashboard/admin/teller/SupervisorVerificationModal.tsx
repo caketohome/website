@@ -83,9 +83,9 @@ export function SupervisorVerificationModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
       <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-purple-50/50">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-brand-light/50">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-brand-light text-brand-navy flex items-center justify-center">
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div>
@@ -160,7 +160,7 @@ export function SupervisorVerificationModal({
                       ? "text-emerald-700"
                       : varianceNum < 0
                       ? "text-rose-700"
-                      : "text-teal-700"
+                      : "text-brand-navy"
                   }`}
                 >
                   {varianceNum > 0 ? "+" : ""}₹{formatAmount(session.variance)}
@@ -180,7 +180,7 @@ export function SupervisorVerificationModal({
                   <AlertTriangle className="w-3.5 h-3.5" /> Cash Shortage (-₹{formatAmount(Math.abs(varianceNum))})
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 text-teal-700 font-semibold">
+                <span className="inline-flex items-center gap-1 text-brand-navy font-semibold">
                   <CheckCircle2 className="w-3.5 h-3.5" /> Cash Excess (+₹{formatAmount(varianceNum)})
                 </span>
               )}
@@ -197,7 +197,7 @@ export function SupervisorVerificationModal({
               placeholder="e.g. Physical count verified and coins re-counted in presence of cashier."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+              className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary"
             />
           </div>
 
@@ -214,7 +214,7 @@ export function SupervisorVerificationModal({
             <button
               type="submit"
               disabled={loading || !!hasSodViolation}
-              className="px-4 py-2 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50"
+              className="px-4 py-2 text-xs font-semibold text-white bg-brand-primary hover:bg-brand-navy rounded-xl shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50"
             >
               {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               <span>Confirm & Verify Count</span>

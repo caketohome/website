@@ -44,7 +44,7 @@ export default async function DeliveryPartnerDashboardPage() {
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3 flex-wrap">
             <Heading level="h1" className="text-xl md:text-2xl font-bold flex items-center gap-2 text-ui-fg-base">
-              <Truck className="w-6 h-6 text-[#1D2F5D]" />
+              <Truck className="w-6 h-6 text-brand-navy" />
               {delivery_partner.full_name || `${delivery_partner.first_name} ${delivery_partner.last_name}`}
             </Heading>
             <Badge color="blue" className="font-mono text-xs px-2.5 py-0.5 rounded-md">
@@ -60,9 +60,9 @@ export default async function DeliveryPartnerDashboardPage() {
             <span>•</span>
             <span>📞 {delivery_partner.phone}</span>
             <span>•</span>
-            <span>⭐ Rating: <strong className="text-amber-600">{ratingText}</strong></span>
+            <span>⭐ Rating: <strong className="text-brand-gold">{ratingText}</strong></span>
             <span>•</span>
-            <span>📦 Capacity: <strong className="text-[#1D2F5D]">{delivery_partner.current_active_orders || transitCount} / {delivery_partner.maximum_concurrent_orders || 2} Active</strong></span>
+            <span>📦 Capacity: <strong className="text-brand-navy">{delivery_partner.current_active_orders || transitCount} / {delivery_partner.maximum_concurrent_orders || 2} Active</strong></span>
           </p>
           <RealtimeClient delivery_partnerId={delivery_partner.id} />
         </div>
@@ -71,7 +71,7 @@ export default async function DeliveryPartnerDashboardPage() {
           <AccountBadge data={delivery_partner} type="delivery_partner" />
           <LogoutButton
             redirectUrl="/dashboard/delivery-partner/login"
-            className="bg-brand-gold-soft hover:bg-brand-gold-soft text-[#152347] dark:bg-[#0c1326]/40 dark:text-rose-300 border border-[#D4AF37]/30 dark:border-rose-900/50 shadow-sm"
+            className="bg-brand-gold-soft hover:bg-brand-gold-soft text-brand-deep dark:bg-brand-deep/40 dark:text-rose-300 border border-brand-gold/30 dark:border-rose-900/50 shadow-sm"
           />
         </div>
       </div>
@@ -80,7 +80,7 @@ export default async function DeliveryPartnerDashboardPage() {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
         <div className="bg-ui-bg-base border border-ui-border-base rounded-xl p-3.5 flex flex-col gap-1 shadow-sm">
           <span className="text-[11px] font-semibold text-ui-fg-subtle uppercase tracking-wider">Available Jobs</span>
-          <span className="text-xl font-bold text-[#1D2F5D]">{availableCount}</span>
+          <span className="text-xl font-bold text-brand-navy">{availableCount}</span>
         </div>
         <div className="bg-ui-bg-base border border-ui-border-base rounded-xl p-3.5 flex flex-col gap-1 shadow-sm">
           <span className="text-[11px] font-semibold text-ui-fg-subtle uppercase tracking-wider">Claimed Jobs</span>
@@ -88,11 +88,11 @@ export default async function DeliveryPartnerDashboardPage() {
         </div>
         <div className="bg-ui-bg-base border border-ui-border-base rounded-xl p-3.5 flex flex-col gap-1 shadow-sm">
           <span className="text-[11px] font-semibold text-ui-fg-subtle uppercase tracking-wider">Ready at Kitchen</span>
-          <span className="text-xl font-bold text-amber-600">{readyCount}</span>
+          <span className="text-xl font-bold text-brand-gold">{readyCount}</span>
         </div>
         <div className="bg-ui-bg-base border border-ui-border-base rounded-xl p-3.5 flex flex-col gap-1 shadow-sm">
           <span className="text-[11px] font-semibold text-ui-fg-subtle uppercase tracking-wider">In Transit</span>
-          <span className="text-xl font-bold text-purple-600">{transitCount}</span>
+          <span className="text-xl font-bold text-brand-primary">{transitCount}</span>
         </div>
         <div className="bg-ui-bg-base border border-ui-border-base rounded-xl p-3.5 flex flex-col gap-1 shadow-sm">
           <span className="text-[11px] font-semibold text-ui-fg-subtle uppercase tracking-wider">Completed Today</span>

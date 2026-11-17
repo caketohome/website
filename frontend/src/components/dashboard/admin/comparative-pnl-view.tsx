@@ -138,7 +138,7 @@ export function ComparativePnLView({ branchId }: { branchId?: string }) {
                 id="comp-pnl-current-fy"
                 value={currentFY}
                 onChange={(e) => setCurrentFY(e.target.value)}
-                className="py-1.5 px-3 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+                className="py-1.5 px-3 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-navy"
               >
                 {FY_OPTIONS.map((fy) => (
                   <option key={fy} value={fy}>{fy}</option>
@@ -158,7 +158,7 @@ export function ComparativePnLView({ branchId }: { branchId?: string }) {
                 id="comp-pnl-compare-fy"
                 value={compareFY}
                 onChange={(e) => setCompareFY(e.target.value)}
-                className="py-1.5 px-3 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+                className="py-1.5 px-3 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-navy"
               >
                 {FY_OPTIONS.map((fy) => (
                   <option key={fy} value={fy}>{fy}</option>
@@ -171,7 +171,7 @@ export function ComparativePnLView({ branchId }: { branchId?: string }) {
                 type="button"
                 onClick={fetchData}
                 disabled={loading}
-                className="inline-flex items-center gap-1.5 py-1.5 px-4 text-xs font-bold text-white bg-[#1D2F5D] hover:bg-[#162447] rounded-lg transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 py-1.5 px-4 text-xs font-bold text-white bg-brand-navy hover:bg-[#162447] rounded-lg transition-colors disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
                 <span>{loading ? "Loading…" : "Compare Periods"}</span>
@@ -279,7 +279,7 @@ export function ComparativePnLView({ branchId }: { branchId?: string }) {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hidden sm:inline">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-light dark:bg-brand-navy/40 text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy hidden sm:inline">
                   {data.current_fiscal_year} vs {data.compare_fiscal_year}
                 </span>
                 <button

@@ -225,7 +225,7 @@ export const BillsPayablePanel = memo(function BillsPayablePanel() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+              <div className="p-2 rounded-xl bg-brand-primary/10 text-brand-primary dark:text-brand-primary">
                 <Receipt className="w-5 h-5" />
               </div>
               <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
@@ -258,7 +258,7 @@ export const BillsPayablePanel = memo(function BillsPayablePanel() {
           <div className="p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
             <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
               <span>Total Outstanding</span>
-              <DollarSign className="w-4 h-4 text-indigo-500" />
+              <DollarSign className="w-4 h-4 text-brand-primary" />
             </div>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -285,17 +285,17 @@ export const BillsPayablePanel = memo(function BillsPayablePanel() {
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl border border-amber-200/60 dark:border-amber-900/40 bg-amber-50/30 dark:bg-amber-950/20 shadow-sm">
-            <div className="flex items-center justify-between text-xs text-amber-700 dark:text-amber-400 font-medium">
+          <div className="p-4 rounded-2xl border border-brand-gold/60 dark:border-brand-gold-dark/40 bg-brand-gold-light/30 dark:bg-brand-gold-dark/20 shadow-sm">
+            <div className="flex items-center justify-between text-xs text-brand-gold-dark dark:text-brand-gold font-medium">
               <span>Due Soon / Current</span>
-              <Clock className="w-4 h-4 text-amber-500" />
+              <Clock className="w-4 h-4 text-brand-gold" />
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-amber-700 dark:text-amber-300">
+              <span className="text-2xl font-bold text-brand-gold-dark dark:text-brand-gold/40">
                 ₹{Number(summary.due_soon_amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </span>
             </div>
-            <p className="mt-1 text-[11px] text-amber-600/80 dark:text-amber-400/80">
+            <p className="mt-1 text-[11px] text-brand-gold/80 dark:text-brand-gold/80">
               Within authorized credit period
             </p>
           </div>
@@ -331,7 +331,7 @@ export const BillsPayablePanel = memo(function BillsPayablePanel() {
                   setSearch(e.target.value);
                   setPage(1);
                 }}
-                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-brand-primary"
               />
             </div>
 
@@ -343,7 +343,7 @@ export const BillsPayablePanel = memo(function BillsPayablePanel() {
                   setSelectedBranchId(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-brand-primary"
               >
                 <option value="">All Operating Branches</option>
                 {branches.map((b) => (
@@ -362,7 +362,7 @@ export const BillsPayablePanel = memo(function BillsPayablePanel() {
                   setSelectedSupplierId(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-brand-primary"
               >
                 <option value="">All Suppliers</option>
                 {suppliers.map((s) => (
@@ -381,7 +381,7 @@ export const BillsPayablePanel = memo(function BillsPayablePanel() {
                   setSelectedStatus(e.target.value as any);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-brand-primary"
               >
                 <option value="ALL">All Statuses</option>
                 <option value="UNPAID">Unpaid (Full)</option>
@@ -395,26 +395,26 @@ export const BillsPayablePanel = memo(function BillsPayablePanel() {
 
         {/* Batch Selection Banner */}
         {selectedBillIds.size > 0 && (
-          <div className="flex items-center justify-between p-3.5 rounded-2xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/60 dark:bg-indigo-950/40 text-xs animate-in slide-in-from-top-2 duration-150">
+          <div className="flex items-center justify-between p-3.5 rounded-2xl border border-brand-primary/30 dark:border-brand-navy/60 bg-brand-light/60 dark:bg-brand-navy/40 text-xs animate-in slide-in-from-top-2 duration-150">
             <div className="flex items-center gap-3">
-              <span className="font-semibold text-indigo-900 dark:text-indigo-200">
+              <span className="font-semibold text-brand-navy dark:text-brand-primary/30">
                 {selectedBillIds.size} bill(s) selected
               </span>
               <span className="text-zinc-400">•</span>
-              <span className="text-indigo-800 dark:text-indigo-300">
+              <span className="text-brand-navy dark:text-brand-primary/30">
                 Combined Payable: <strong className="font-bold">₹{totalSelectedPayable.toFixed(2)}</strong>
               </span>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setSelectedBillIds(new Set())}
-                className="px-3 py-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-indigo-100/60 dark:hover:bg-indigo-900/60 transition"
+                className="px-3 py-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-brand-light/60 dark:hover:bg-brand-navy/60 transition"
               >
                 Clear
               </button>
               <button
                 onClick={handleOpenBatchPay}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 font-semibold text-white bg-brand-primary hover:bg-brand-navy rounded-xl shadow-sm transition"
               >
                 <CreditCard className="w-3.5 h-3.5" />
                 <span>Pay Selected Bills</span>
@@ -445,7 +445,7 @@ export const BillsPayablePanel = memo(function BillsPayablePanel() {
                         selectedBillIds.size === bills.filter((b) => b.outstanding_amount > 0).length
                       }
                       onChange={toggleSelectAll}
-                      className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500"
+                      className="rounded border-zinc-300 text-brand-primary focus:ring-brand-primary"
                     />
                   </th>
                   <th className="py-3 px-3">Invoice #</th>
@@ -464,7 +464,7 @@ export const BillsPayablePanel = memo(function BillsPayablePanel() {
                 {loading && (
                   <tr>
                     <td colSpan={11} className="py-12 text-center text-zinc-400">
-                      <Clock className="w-5 h-5 animate-spin mx-auto mb-2 text-indigo-500" />
+                      <Clock className="w-5 h-5 animate-spin mx-auto mb-2 text-brand-primary" />
                       Loading bills payable register...
                     </td>
                   </tr>
@@ -488,7 +488,7 @@ export const BillsPayablePanel = memo(function BillsPayablePanel() {
                       <tr
                         key={bill.purchase_id}
                         className={`hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40 transition ${
-                          isSelected ? "bg-indigo-50/30 dark:bg-indigo-950/20" : ""
+                          isSelected ? "bg-brand-light/30 dark:bg-brand-navy/20" : ""
                         }`}
                       >
                         <td className="py-3 px-3 text-center">
@@ -497,13 +497,13 @@ export const BillsPayablePanel = memo(function BillsPayablePanel() {
                             disabled={!canPay}
                             checked={isSelected}
                             onChange={() => toggleSelectBill(bill.purchase_id)}
-                            className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-30"
+                            className="rounded border-zinc-300 text-brand-primary focus:ring-brand-primary disabled:opacity-30"
                           />
                         </td>
                         <td className="py-3 px-3 font-mono font-medium text-zinc-900 dark:text-zinc-100">
                           <button
                             onClick={() => setDetailModalPurchaseId(bill.purchase_id)}
-                            className="hover:underline hover:text-indigo-600 text-left"
+                            className="hover:underline hover:text-brand-primary text-left"
                           >
                             {bill.invoice_no || bill.purchase_id.substring(0, 8)}
                           </button>
@@ -563,7 +563,7 @@ export const BillsPayablePanel = memo(function BillsPayablePanel() {
                                 : bill.status === "OVERDUE"
                                 ? "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400"
                                 : bill.status === "PARTIALLY_PAID"
-                                ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400"
+                                ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold"
                                 : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                             }`}
                           >
@@ -575,7 +575,7 @@ export const BillsPayablePanel = memo(function BillsPayablePanel() {
                             {canPay && (
                               <button
                                 onClick={() => handleOpenSinglePay(bill)}
-                                className="px-2.5 py-1 text-[11px] font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition"
+                                className="px-2.5 py-1 text-[11px] font-medium rounded-lg text-white bg-brand-primary hover:bg-brand-navy shadow-sm transition"
                               >
                                 Pay
                               </button>

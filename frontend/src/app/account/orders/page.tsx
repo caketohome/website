@@ -70,7 +70,7 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
     const s = (status || "").toLowerCase();
     if (s === "delivered") {
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#EAF7EF] text-[#16834A] border border-emerald-500/20">
           <CheckCircle2 className="w-3.5 h-3.5" /> Delivered
         </span>
       );
@@ -84,13 +84,13 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
     }
     if (s === "preparing" || s === "processing" || s === "baking") {
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-brand-gold/10 text-brand-gold border border-brand-gold/20">
           <Clock className="w-3.5 h-3.5" /> Preparing in Kitchen
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
         <Package className="w-3.5 h-3.5" /> Confirmed
       </span>
     );
@@ -99,20 +99,20 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-brand-border">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-            <ShoppingBag className="w-6 h-6 text-amber-400" />
+          <h2 className="text-xl sm:text-2xl font-black text-brand-text tracking-tight flex items-center gap-2.5">
+            <ShoppingBag className="w-6 h-6 text-brand-gold" />
             <span>Order History</span>
           </h2>
-          <p className="text-xs text-neutral-400 mt-1">
+          <p className="text-xs text-brand-text-muted mt-1">
             Real-time kitchen status, delivery rider tracking, and 1-click reordering.
           </p>
         </div>
 
         <Link
           href="/shop"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-black transition-all shadow-md shadow-amber-500/20 active:scale-95 shrink-0"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-brand-navy hover:bg-brand-primary text-white text-xs font-black transition-all shadow-md shadow-brand-gold/20 active:scale-95 shrink-0"
         >
           <Sparkles className="w-3.5 h-3.5" /> Order Fresh Cake
         </Link>
@@ -120,19 +120,19 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
 
       {/* Orders List */}
       {sortedOrders.length === 0 ? (
-        <div className="bg-neutral-900/80 border border-neutral-800 rounded-3xl p-12 text-center space-y-4">
-          <div className="w-16 h-16 rounded-3xl bg-neutral-800/80 text-neutral-400 mx-auto flex items-center justify-center">
+        <div className="bg-white border border-brand-border rounded-3xl p-12 text-center space-y-4">
+          <div className="w-16 h-16 rounded-3xl bg-brand-surface-muted text-brand-text-muted mx-auto flex items-center justify-center">
             <Package className="w-8 h-8" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-lg font-bold text-white">No Orders Found Yet</h3>
-            <p className="text-xs text-neutral-400 max-w-sm mx-auto">
+            <h3 className="text-lg font-bold text-brand-text">No Orders Found Yet</h3>
+            <p className="text-xs text-brand-text-muted max-w-sm mx-auto">
               Your freshly baked celebrations will appear here with live tracking once you place an order.
             </p>
           </div>
           <Link
             href="/shop"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-[#D4AF37] text-white text-xs font-black hover:opacity-95 transition-all shadow-lg active:scale-95"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-brand-gold to-brand-gold text-white text-xs font-black hover:opacity-95 transition-all shadow-lg active:scale-95"
           >
             Explore Gourmet Cakes &rarr;
           </Link>
@@ -163,17 +163,17 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
             return (
               <div
                 key={ord.id || ord.order_number}
-                className="bg-neutral-900/80 border border-neutral-800/90 hover:border-neutral-700/80 rounded-3xl p-5 sm:p-6 shadow-xl backdrop-blur-sm transition-all space-y-4"
+                className="bg-white border border-brand-border hover:border-brand-border rounded-3xl p-5 sm:p-6 shadow-xl backdrop-blur-sm transition-all space-y-4"
               >
                 {/* Order Top Bar */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-neutral-800/80 text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-brand-border text-xs">
                   <div className="flex items-center gap-3">
-                    <span className="font-mono font-bold text-neutral-200">
+                    <span className="font-mono font-bold text-brand-text">
                       {ord.order_number || ord.id}
                     </span>
-                    <span className="text-neutral-500">•</span>
-                    <span className="text-neutral-400 flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5 text-neutral-500" />
+                    <span className="text-brand-text-muted">•</span>
+                    <span className="text-brand-text-muted flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-brand-text-muted" />
                       {placedDate}
                     </span>
                   </div>
@@ -186,7 +186,7 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
                 {/* Cake Line Item Details */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-neutral-950 border border-neutral-800 shrink-0">
+                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-brand-warm-white border border-brand-border shrink-0">
                       <img
                         src={cakeThumbnail}
                         alt={cakeTitle}
@@ -195,17 +195,17 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
                     </div>
 
                     <div className="space-y-1">
-                      <h4 className="text-base font-bold text-white line-clamp-1">{cakeTitle}</h4>
+                      <h4 className="text-base font-bold text-brand-text line-clamp-1">{cakeTitle}</h4>
                       {itemCount > 1 && (
-                        <p className="text-xs text-amber-400 font-medium">+ {itemCount - 1} more treat{itemCount > 2 ? "s" : ""}</p>
+                        <p className="text-xs text-brand-gold font-medium">+ {itemCount - 1} more treat{itemCount > 2 ? "s" : ""}</p>
                       )}
                       {firstItem.cake_message && (
-                        <p className="text-xs text-neutral-400 italic">
+                        <p className="text-xs text-brand-text-muted italic">
                           &ldquo;{firstItem.cake_message}&rdquo;
                         </p>
                       )}
                       {ord.branch_name && (
-                        <p className="text-[11px] text-neutral-500 flex items-center gap-1">
+                        <p className="text-[11px] text-brand-text-muted flex items-center gap-1">
                           <MapPin className="w-3 h-3" /> Baked at {ord.branch_name}
                         </p>
                       )}
@@ -213,8 +213,8 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
                   </div>
 
                   {/* Price & Actions */}
-                  <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-neutral-800">
-                    <p className="text-lg sm:text-xl font-black text-white">
+                  <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-brand-border">
+                    <p className="text-lg sm:text-xl font-black text-brand-text">
                       ₹{orderTotal.toLocaleString("en-IN")}
                     </p>
 
@@ -223,17 +223,17 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
                         existingReview ? (
                           <Link
                             href={`/products/${firstItemProdId}#customer-reviews-section`}
-                            className="px-3.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                            className="px-3.5 py-1.5 rounded-xl bg-brand-gold/10 hover:bg-brand-gold/20 text-brand-gold/40 border border-brand-gold/30 text-xs font-bold flex items-center gap-1.5 transition-colors"
                           >
-                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            <Star className="w-3.5 h-3.5 fill-brand-gold text-brand-gold" />
                             Reviewed ({existingReview.rating}★)
                           </Link>
                         ) : (
                           <Link
                             href={`/products/${firstItemProdId}#customer-reviews-section`}
-                            className="px-3.5 py-1.5 rounded-xl bg-[#1D2F5D] hover:bg-[#1D2F5D] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-rose-600/20 active:scale-95"
+                            className="px-3.5 py-1.5 rounded-xl bg-brand-navy hover:bg-brand-navy text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-rose-600/20 active:scale-95"
                           >
-                            <Star className="w-3.5 h-3.5 fill-white text-white" />
+                            <Star className="w-3.5 h-3.5 fill-white text-brand-text" />
                             Write a Review
                           </Link>
                         )
@@ -241,9 +241,9 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
 
                       <Link
                         href={`/track?order_id=${ord.id || ord.order_number}`}
-                        className="px-3.5 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
+                        className="px-3.5 py-1.5 rounded-xl bg-brand-surface-muted hover:bg-brand-surface-muted text-brand-text hover:text-brand-navy text-xs font-bold flex items-center gap-1.5 transition-colors"
                       >
-                        <Truck className="w-3.5 h-3.5 text-amber-400" />
+                        <Truck className="w-3.5 h-3.5 text-brand-gold" />
                         Track
                       </Link>
 
@@ -257,16 +257,16 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-6 border-t border-neutral-800 text-xs">
-              <span className="text-neutral-400 font-medium">
-                Showing page <span className="text-white font-bold">{page}</span> of{" "}
-                <span className="text-white font-bold">{totalPages}</span> ({totalOrders} orders)
+            <div className="flex items-center justify-between pt-6 border-t border-brand-border text-xs">
+              <span className="text-brand-text-muted font-medium">
+                Showing page <span className="text-brand-text font-bold">{page}</span> of{" "}
+                <span className="text-brand-text font-bold">{totalPages}</span> ({totalOrders} orders)
               </span>
               <div className="flex items-center gap-2">
                 {page > 1 && (
                   <Link
                     href={`/account/orders?page=${page - 1}`}
-                    className="px-3.5 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white font-bold transition-colors"
+                    className="px-3.5 py-1.5 rounded-xl bg-brand-surface-muted hover:bg-brand-surface-muted text-brand-text hover:text-brand-navy font-bold transition-colors"
                   >
                     &larr; Previous
                   </Link>
@@ -274,7 +274,7 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
                 {page < totalPages && (
                   <Link
                     href={`/account/orders?page=${page + 1}`}
-                    className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold transition-all shadow-md shadow-amber-500/20"
+                    className="px-3.5 py-1.5 rounded-xl bg-brand-navy hover:bg-brand-primary text-white font-bold transition-all shadow-md shadow-brand-gold/20"
                   >
                     Next &rarr;
                   </Link>

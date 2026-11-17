@@ -136,8 +136,8 @@ const VOUCHER_TYPE_LABELS: Record<string, string> = {
 
 const ACCOUNT_TYPE_COLORS: Record<string, string> = {
   ASSET: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
-  LIABILITY: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
-  EQUITY: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
+  LIABILITY: "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold/40",
+  EQUITY: "bg-brand-light text-brand-navy dark:bg-brand-navy/40 dark:text-brand-primary/30",
   REVENUE: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
   EXPENSE: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
 };
@@ -157,7 +157,7 @@ export default function GeneralLedgerPanel() {
           onClick={() => setActiveView("ledger")}
           className={`px-4 py-2 text-sm font-semibold rounded-t-lg transition-all ${
             activeView === "ledger"
-              ? "bg-[#1D2F5D] text-white border-b-2 border-[#D4AF37]"
+              ? "bg-brand-navy text-white border-b-2 border-brand-gold"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
@@ -167,7 +167,7 @@ export default function GeneralLedgerPanel() {
           onClick={() => setActiveView("trial-balance")}
           className={`px-4 py-2 text-sm font-semibold rounded-t-lg transition-all ${
             activeView === "trial-balance"
-              ? "bg-[#1D2F5D] text-white border-b-2 border-[#D4AF37]"
+              ? "bg-brand-navy text-white border-b-2 border-brand-gold"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
@@ -285,7 +285,7 @@ function AccountLedgerView() {
                 setShowDropdown(true);
               }}
               onFocus={() => setShowDropdown(true)}
-              className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+              className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-navy"
               disabled={loadingAccounts}
             />
             {showDropdown && filteredAccounts.length > 0 && (
@@ -319,7 +319,7 @@ function AccountLedgerView() {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+              className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-navy"
             />
           </div>
           <div>
@@ -328,7 +328,7 @@ function AccountLedgerView() {
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+              className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-navy"
             />
           </div>
         </div>
@@ -336,7 +336,7 @@ function AccountLedgerView() {
           <button
             type="submit"
             disabled={!selectedAccountId || loading}
-            className="px-5 py-2 text-sm font-bold rounded-lg bg-[#1D2F5D] text-white hover:bg-[#162547] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="px-5 py-2 text-sm font-bold rounded-lg bg-brand-navy text-white hover:bg-[#162547] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {loading ? "Loading..." : "View Ledger"}
           </button>
@@ -371,7 +371,7 @@ function AccountLedgerView() {
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin w-8 h-8 border-4 border-[#1D2F5D] border-t-transparent rounded-full" />
+          <div className="animate-spin w-8 h-8 border-4 border-brand-navy border-t-transparent rounded-full" />
         </div>
       )}
 
@@ -400,9 +400,9 @@ function AccountLedgerView() {
                 <div className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase">Total Debit</div>
                 <div className="text-base font-bold text-blue-700 dark:text-blue-300">{formatCurrency(ledgerData.total_debit)}</div>
               </div>
-              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3">
-                <div className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase">Total Credit</div>
-                <div className="text-base font-bold text-amber-700 dark:text-amber-300">{formatCurrency(ledgerData.total_credit)}</div>
+              <div className="bg-brand-gold-light dark:bg-brand-gold-dark/20 rounded-lg p-3">
+                <div className="text-[10px] font-bold text-brand-gold dark:text-brand-gold uppercase">Total Credit</div>
+                <div className="text-base font-bold text-brand-gold-dark dark:text-brand-gold/40">{formatCurrency(ledgerData.total_credit)}</div>
               </div>
               <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3">
                 <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">Closing Balance</div>
@@ -472,7 +472,7 @@ function AccountLedgerView() {
                       </td>
                       <td className="px-3 py-2 text-xs text-right font-mono tabular-nums">
                         {line.credit_amount > 0 ? (
-                          <span className="text-amber-700 dark:text-amber-400">{formatCurrency(line.credit_amount)}</span>
+                          <span className="text-brand-gold-dark dark:text-brand-gold">{formatCurrency(line.credit_amount)}</span>
                         ) : (
                           <span className="text-slate-300 dark:text-slate-600">—</span>
                         )}
@@ -491,7 +491,7 @@ function AccountLedgerView() {
                     <td className="px-3 py-2.5 text-xs text-right font-mono text-blue-700 dark:text-blue-400">
                       {formatCurrency(ledgerData.total_debit)}
                     </td>
-                    <td className="px-3 py-2.5 text-xs text-right font-mono text-amber-700 dark:text-amber-400">
+                    <td className="px-3 py-2.5 text-xs text-right font-mono text-brand-gold-dark dark:text-brand-gold">
                       {formatCurrency(ledgerData.total_credit)}
                     </td>
                     <td className="px-3 py-2.5 text-xs text-right font-mono text-emerald-700 dark:text-emerald-400">
@@ -606,7 +606,7 @@ function TrialBalanceView() {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+              className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-navy"
             />
           </div>
           <div>
@@ -615,14 +615,14 @@ function TrialBalanceView() {
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+              className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-navy"
             />
           </div>
           <div className="flex items-center gap-2">
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 text-sm font-bold rounded-lg bg-[#1D2F5D] text-white hover:bg-[#162547] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="px-5 py-2 text-sm font-bold rounded-lg bg-brand-navy text-white hover:bg-[#162547] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {loading ? "Loading..." : "Generate Trial Balance"}
             </button>
@@ -658,7 +658,7 @@ function TrialBalanceView() {
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin w-8 h-8 border-4 border-[#1D2F5D] border-t-transparent rounded-full" />
+          <div className="animate-spin w-8 h-8 border-4 border-brand-navy border-t-transparent rounded-full" />
         </div>
       )}
 
@@ -682,9 +682,9 @@ function TrialBalanceView() {
                 <div className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase">Total Debits</div>
                 <div className="text-lg font-bold text-blue-700 dark:text-blue-300">{formatCurrency(tbData.summary.total_debit)}</div>
               </div>
-              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3">
-                <div className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase">Total Credits</div>
-                <div className="text-lg font-bold text-amber-700 dark:text-amber-300">{formatCurrency(tbData.summary.total_credit)}</div>
+              <div className="bg-brand-gold-light dark:bg-brand-gold-dark/20 rounded-lg p-3">
+                <div className="text-[10px] font-bold text-brand-gold dark:text-brand-gold uppercase">Total Credits</div>
+                <div className="text-lg font-bold text-brand-gold-dark dark:text-brand-gold/40">{formatCurrency(tbData.summary.total_credit)}</div>
               </div>
               <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3">
                 <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Accounts</div>
@@ -746,7 +746,7 @@ function TrialBalanceView() {
                             </td>
                             <td className="px-3 py-2 text-xs text-right font-mono tabular-nums">
                               {row.total_credit > 0 ? (
-                                <span className="text-amber-700 dark:text-amber-400">{formatCurrency(row.total_credit)}</span>
+                                <span className="text-brand-gold-dark dark:text-brand-gold">{formatCurrency(row.total_credit)}</span>
                               ) : (
                                 <span className="text-slate-300 dark:text-slate-600">—</span>
                               )}
@@ -761,7 +761,7 @@ function TrialBalanceView() {
                   ))}
 
                   {/* Totals Row */}
-                  <tr className="bg-[#1D2F5D] text-white font-bold">
+                  <tr className="bg-brand-navy text-white font-bold">
                     <td className="px-3 py-3 text-xs" colSpan={3}>
                       TOTAL
                     </td>

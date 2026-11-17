@@ -283,17 +283,17 @@ export default function CartModal({
         {/* Top Header */}
         <div className="flex items-center justify-between px-5 sm:px-6 py-4 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-[#2563EB]">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-brand-primary">
               <ShoppingBag className="w-5 h-5 stroke-[2.2]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg sm:text-xl font-serif font-bold text-[#0F172A] leading-none">
+                <h2 className="text-lg sm:text-xl font-serif font-bold text-brand-text leading-none">
                   Your Bag
                 </h2>
                 <span
                   data-testid="cart-header-count"
-                  className="px-2 py-0.5 rounded-full bg-[#2563EB] text-white font-sans text-xs font-bold shadow-xs"
+                  className="px-2 py-0.5 rounded-full bg-brand-primary text-white font-sans text-xs font-bold shadow-xs"
                 >
                   {totalItemCount}
                 </span>
@@ -309,7 +309,7 @@ export default function CartModal({
             onClick={onClose}
             aria-label="Close bag"
             data-testid="cart-close-button"
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 cursor-pointer"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary/20 cursor-pointer"
           >
             <X className="w-5 h-5 stroke-[2.2]" />
           </button>
@@ -318,14 +318,14 @@ export default function CartModal({
         {/* Truthful Delivery Status Banner */}
         {items.length > 0 && (
           resolvedDeliveryFee === 0 ? (
-            <div className="bg-[#1E3A8A] text-white px-5 sm:px-6 py-2.5 shrink-0 shadow-inner flex items-center justify-between text-xs font-medium">
-              <span className="flex items-center gap-1.5 text-emerald-300 font-bold">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <div className="bg-brand-navy text-white px-5 sm:px-6 py-2.5 shrink-0 shadow-inner flex items-center justify-between text-xs font-medium">
+              <span className="flex items-center gap-1.5 text-[#16834A] font-bold">
+                <CheckCircle2 className="w-4 h-4 text-[#16834A] shrink-0" />
                 Free Delivery confirmed {deliveryLocation ? `for ${deliveryLocation.split("—")[0].trim()}` : "for your order"}
               </span>
             </div>
           ) : hasThreshold && amountNeededForFreeDelivery > 0 ? (
-            <div className="bg-[#1E3A8A] text-white px-5 sm:px-6 py-2.5 shrink-0 shadow-inner">
+            <div className="bg-brand-navy text-white px-5 sm:px-6 py-2.5 shrink-0 shadow-inner">
               <div className="flex items-center justify-between text-xs font-medium mb-1.5">
                 <span className="flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-blue-300" />
@@ -340,14 +340,14 @@ export default function CartModal({
               </div>
               <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-blue-400 to-indigo-300 transition-all duration-500 ease-out rounded-full"
+                  className="h-full bg-gradient-to-r from-blue-400 to-brand-primary/30 transition-all duration-500 ease-out rounded-full"
                   style={{ width: `${deliveryProgressPercent}%` }}
                 />
               </div>
             </div>
           ) : !deliveryLocation && !deliveryPincode ? (
             <div className="bg-slate-100 border-b border-slate-200 text-slate-700 px-5 sm:px-6 py-2 shrink-0 flex items-center gap-1.5 text-xs">
-              <MapPin className="w-3.5 h-3.5 text-[#2563EB] shrink-0" />
+              <MapPin className="w-3.5 h-3.5 text-brand-primary shrink-0" />
               <span>Select delivery location at header or checkout to calculate delivery fee</span>
             </div>
           ) : null
@@ -398,8 +398,8 @@ export default function CartModal({
               data-testid="cart-loading-state"
               className="py-16 sm:py-20 text-center flex flex-col items-center justify-center gap-3 my-auto px-6"
             >
-              <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#2563EB]">
-                <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
+              <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-brand-primary">
+                <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
               </div>
               <p className="text-xs text-slate-500 font-sans animate-pulse">
                 Fetching your bag...
@@ -442,7 +442,7 @@ export default function CartModal({
                     .catch((err) => setDrawerError(err.message || "Failed to load cart"))
                     .finally(() => setIsFetchingCart(false));
                 }}
-                className="mt-2 px-6 py-2.5 rounded-2xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-sans text-xs font-bold uppercase tracking-wider transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                className="mt-2 px-6 py-2.5 rounded-2xl bg-brand-primary hover:bg-brand-secondary text-white font-sans text-xs font-bold uppercase tracking-wider transition-all shadow-md flex items-center gap-2 cursor-pointer"
               >
                 <span>Retry</span>
               </button>
@@ -453,11 +453,11 @@ export default function CartModal({
               data-testid="cart-empty-state"
               className="py-16 sm:py-20 text-center flex flex-col items-center justify-center gap-4 my-auto px-6"
             >
-              <div className="w-20 h-20 rounded-3xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#2563EB] shadow-xs">
-                <ShoppingBag className="w-10 h-10 stroke-[1.5] text-[#2563EB]" />
+              <div className="w-20 h-20 rounded-3xl bg-blue-50 border border-blue-100 flex items-center justify-center text-brand-primary shadow-xs">
+                <ShoppingBag className="w-10 h-10 stroke-[1.5] text-brand-primary" />
               </div>
               <div className="space-y-1 max-w-xs">
-                <h3 className="text-lg font-serif font-bold text-[#0F172A]">
+                <h3 className="text-lg font-serif font-bold text-brand-text">
                   Your bag is empty
                 </h3>
                 <p className="text-xs text-slate-500 leading-relaxed font-sans">
@@ -468,7 +468,7 @@ export default function CartModal({
                 type="button"
                 data-testid="browse-cakes-button"
                 onClick={handleBrowseCatalog}
-                className="mt-2 px-6 py-3 rounded-2xl bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-[0.99] text-white font-sans text-xs font-bold uppercase tracking-wider transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
+                className="mt-2 px-6 py-3 rounded-2xl bg-brand-primary hover:bg-brand-secondary active:scale-[0.99] text-white font-sans text-xs font-bold uppercase tracking-wider transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
               >
                 <span>Explore Gourmet Cakes</span>
                 <ArrowRight className="w-4 h-4" />
@@ -510,7 +510,7 @@ export default function CartModal({
                 </div>
                 <span
                   data-testid="cart-total-payable"
-                  className="font-serif text-2xl font-bold text-[#0F172A]"
+                  className="font-serif text-2xl font-bold text-brand-text"
                 >
                   ₹{grandTotal.toLocaleString("en-IN")}
                 </span>
@@ -523,7 +523,7 @@ export default function CartModal({
               data-testid="cart-checkout-button"
               onClick={handleCheckout}
               disabled={items.length === 0}
-              className="w-full py-4 bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-[0.99] text-white font-sans text-xs font-bold uppercase tracking-[0.15em] rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 bg-brand-primary hover:bg-brand-secondary active:scale-[0.99] text-white font-sans text-xs font-bold uppercase tracking-[0.15em] rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span>Proceed to Checkout</span>
               <ArrowRight className="w-4 h-4" />
@@ -533,7 +533,7 @@ export default function CartModal({
             <button
               type="button"
               onClick={handleViewBag}
-              className="w-full py-1 text-center text-[11px] uppercase tracking-wider font-semibold text-slate-500 hover:text-[#2563EB] transition-colors cursor-pointer"
+              className="w-full py-1 text-center text-[11px] uppercase tracking-wider font-semibold text-slate-500 hover:text-brand-primary transition-colors cursor-pointer"
             >
               View Full Bag & Customizations
             </button>
@@ -717,7 +717,7 @@ function DrawerCartItem({
         />
         {updating && (
           <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center">
-            <Loader2 className="w-5 h-5 text-[#2563EB] animate-spin" />
+            <Loader2 className="w-5 h-5 text-brand-primary animate-spin" />
           </div>
         )}
       </div>
@@ -726,7 +726,7 @@ function DrawerCartItem({
       <div className="flex flex-col flex-1 min-w-0 py-0.5">
         {/* Title & Remove Button */}
         <div className="flex justify-between items-start gap-1">
-          <h3 className="text-xs sm:text-[13px] font-sans font-bold text-[#0F172A] truncate pr-1">
+          <h3 className="text-xs sm:text-[13px] font-sans font-bold text-brand-text truncate pr-1">
             {title}
           </h3>
           <button
@@ -743,7 +743,7 @@ function DrawerCartItem({
         {/* Tags / Customizations */}
         <div className="flex flex-wrap items-center gap-1.5 mt-1">
           {weight && (
-            <span className="text-[10px] font-semibold text-[#2563EB] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+            <span className="text-[10px] font-semibold text-brand-primary bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
               {weight}
             </span>
           )}
@@ -761,13 +761,13 @@ function DrawerCartItem({
 
         {/* Message Inscription / Reminder */}
         {isEditingMessage ? (
-          <div className="mt-1.5 p-2 rounded-xl bg-amber-50/70 border border-amber-200 flex flex-col gap-1.5">
+          <div className="mt-1.5 p-2 rounded-xl bg-brand-gold-light/70 border border-brand-gold/40 flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-amber-900 flex items-center gap-1">
+              <span className="text-[10px] font-bold text-brand-gold-dark flex items-center gap-1">
                 <MessageSquare className="w-3 h-3" />
                 Message on Cake
               </span>
-              <span className="text-[10px] font-bold text-amber-700">
+              <span className="text-[10px] font-bold text-brand-gold-dark">
                 {draftMessage.length}/30
               </span>
             </div>
@@ -778,7 +778,7 @@ function DrawerCartItem({
               onChange={(e) => setDraftMessage(e.target.value.slice(0, 30))}
               placeholder="Write message (max 30 chars)"
               data-testid="cart-item-message-input"
-              className="w-full px-2 py-1 text-xs rounded-lg border border-amber-300 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#2563EB]"
+              className="w-full px-2 py-1 text-xs rounded-lg border border-brand-gold/40 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-brand-primary"
             />
             <div className="flex items-center justify-end gap-1.5">
               <button
@@ -796,14 +796,14 @@ function DrawerCartItem({
                 disabled={updating}
                 onClick={handleSaveCakeMessage}
                 data-testid="cart-item-message-save-btn"
-                className="px-2.5 py-0.5 text-[10px] font-bold rounded-md bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
+                className="px-2.5 py-0.5 text-[10px] font-bold rounded-md bg-brand-primary text-white hover:bg-brand-secondary"
               >
                 Save
               </button>
             </div>
           </div>
         ) : cakeMessage ? (
-          <div className="flex items-center justify-between gap-1.5 mt-1 bg-amber-50/60 border border-amber-200/50 rounded px-1.5 py-0.5">
+          <div className="flex items-center justify-between gap-1.5 mt-1 bg-brand-gold-light/60 border border-brand-gold/50 rounded px-1.5 py-0.5">
             <p
               data-testid="cart-item-cake-message"
               className="text-[10px] text-slate-600 italic truncate"
@@ -814,7 +814,7 @@ function DrawerCartItem({
               type="button"
               onClick={() => setIsEditingMessage(true)}
               data-testid="cart-item-edit-message-btn"
-              className="text-[10px] font-semibold text-[#2563EB] hover:underline shrink-0"
+              className="text-[10px] font-semibold text-brand-primary hover:underline shrink-0"
             >
               Edit
             </button>
@@ -824,7 +824,7 @@ function DrawerCartItem({
             type="button"
             onClick={() => setIsEditingMessage(true)}
             data-testid="cart-item-add-message-btn"
-            className="mt-1 text-[10px] font-semibold text-amber-700 hover:text-amber-900 bg-amber-50/60 hover:bg-amber-100/70 border border-amber-200/60 rounded px-1.5 py-0.5 flex items-center gap-1 w-fit transition-colors"
+            className="mt-1 text-[10px] font-semibold text-brand-gold-dark hover:text-brand-gold-dark bg-brand-gold-light/60 hover:bg-brand-gold-light/70 border border-brand-gold/60 rounded px-1.5 py-0.5 flex items-center gap-1 w-fit transition-colors"
           >
             <MessageSquare className="w-2.5 h-2.5" />
             <span>+ Add message on cake (Optional)</span>
@@ -833,7 +833,7 @@ function DrawerCartItem({
 
         {/* Photo Cake indicator */}
         {photoCake && (
-          <span className="text-[9px] text-indigo-700 bg-indigo-50 border border-indigo-200/60 rounded px-1.5 py-0.5 mt-1 inline-block w-fit">
+          <span className="text-[9px] text-brand-navy bg-brand-light border border-brand-primary/60 rounded px-1.5 py-0.5 mt-1 inline-block w-fit">
             📷 Custom Photo Print
           </span>
         )}
@@ -861,7 +861,7 @@ function DrawerCartItem({
             </button>
             <span
               data-testid="cart-drawer-qty-value"
-              className="text-xs font-bold text-[#0F172A] min-w-6 text-center font-mono"
+              className="text-xs font-bold text-brand-text min-w-6 text-center font-mono"
             >
               {currentQuantity}
             </span>
@@ -879,7 +879,7 @@ function DrawerCartItem({
 
           {/* Price */}
           <div className="text-right">
-            <div className="text-xs sm:text-sm font-bold font-serif text-[#0F172A]">
+            <div className="text-xs sm:text-sm font-bold font-serif text-brand-text">
               ₹{lineTotal.toLocaleString("en-IN")}
             </div>
             {currentQuantity > 1 && (

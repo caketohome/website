@@ -66,7 +66,7 @@ export function BillReceivableDetailModal({
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
         <div className="w-full max-w-3xl p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl flex flex-col items-center justify-center gap-3">
-          <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-3 border-brand-primary border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-slate-500">Loading statutory invoice & accounting subledger...</p>
         </div>
       </div>
@@ -98,7 +98,7 @@ export function BillReceivableDetailModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+            <div className="p-2 rounded-xl bg-brand-primary/10 text-brand-primary dark:text-brand-primary">
               <FileText className="w-5 h-5" />
             </div>
             <div>
@@ -111,7 +111,7 @@ export function BillReceivableDetailModal({
                     invoice.status === "FULLY_RECEIVED"
                       ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-400"
                       : invoice.status === "PARTIALLY_RECEIVED"
-                      ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400"
+                      ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold"
                       : invoice.status === "OVERDUE"
                       ? "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-400"
                       : "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-400"
@@ -133,7 +133,7 @@ export function BillReceivableDetailModal({
             {onOpenReminderModal && invoice.outstanding_amount > 0 && (
               <button
                 onClick={() => onOpenReminderModal(invoice.invoice_id)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 rounded-xl transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand-primary dark:text-brand-primary bg-brand-light dark:bg-brand-navy/40 hover:bg-brand-light dark:hover:bg-brand-navy/40 rounded-xl transition-colors"
               >
                 <Bell className="w-3.5 h-3.5" />
                 <span>Schedule Reminder</span>
@@ -174,15 +174,15 @@ export function BillReceivableDetailModal({
                 ₹{invoice.paid_amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </div>
             </div>
-            <div className="p-3 rounded-xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/50 dark:border-purple-900/30">
-              <span className="text-[11px] font-semibold text-purple-600 dark:text-purple-400">Credit Notes / Returns</span>
-              <div className="text-base font-bold text-purple-700 dark:text-purple-300">
+            <div className="p-3 rounded-xl bg-brand-light/50 dark:bg-brand-navy/20 border border-brand-primary/50 dark:border-brand-navy/30">
+              <span className="text-[11px] font-semibold text-brand-primary dark:text-brand-primary">Credit Notes / Returns</span>
+              <div className="text-base font-bold text-brand-navy dark:text-brand-primary/30">
                 ₹{invoice.returns_amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </div>
             </div>
-            <div className="p-3 rounded-xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/30">
-              <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">Open Outstanding AR</span>
-              <div className="text-base font-bold text-amber-700 dark:text-amber-300">
+            <div className="p-3 rounded-xl bg-brand-gold-light/50 dark:bg-brand-gold-dark/20 border border-brand-gold/50 dark:border-brand-gold-dark/30">
+              <span className="text-[11px] font-semibold text-brand-gold dark:text-brand-gold">Open Outstanding AR</span>
+              <div className="text-base font-bold text-brand-gold-dark dark:text-brand-gold/40">
                 ₹{invoice.outstanding_amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </div>
             </div>
@@ -191,7 +191,7 @@ export function BillReceivableDetailModal({
           {/* Statutory & GST Information */}
           <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
-              <Tag className="w-4 h-4 text-indigo-500" />
+              <Tag className="w-4 h-4 text-brand-primary" />
               Statutory GST Breakdown
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">

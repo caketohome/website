@@ -201,7 +201,7 @@ export function ReceiveReceiptModal({
                   value={receiptDate}
                   onChange={(e) => setReceiptDate(e.target.value)}
                   required
-                  className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-primary outline-none"
                 />
               </div>
             </div>
@@ -213,7 +213,7 @@ export function ReceiveReceiptModal({
               <select
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value as any)}
-                className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-primary outline-none"
               >
                 <option value="BANK_TRANSFER">Bank Transfer (NEFT/RTGS/IMPS)</option>
                 <option value="NEFT">NEFT</option>
@@ -231,7 +231,7 @@ export function ReceiveReceiptModal({
               <select
                 value={selectedBankAccountId}
                 onChange={(e) => setSelectedBankAccountId(e.target.value)}
-                className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-primary outline-none"
               >
                 {bankAccounts.length === 0 ? (
                   <option value="">Default Operating Bank (GL 1112)</option>
@@ -255,7 +255,7 @@ export function ReceiveReceiptModal({
                 onChange={(e) => setReference(e.target.value)}
                 placeholder="e.g. UTR129384756 / CHQ-001234"
                 required={isElectronic}
-                className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-primary outline-none"
               />
             </div>
           </div>
@@ -269,7 +269,7 @@ export function ReceiveReceiptModal({
               value={narration}
               onChange={(e) => setNarration(e.target.value)}
               placeholder="e.g. Corporate gifting settlement for festive batch"
-              className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-primary outline-none"
             />
           </div>
 
@@ -303,7 +303,7 @@ export function ReceiveReceiptModal({
                       </div>
                       <div className="text-slate-500">
                         Total: ₹{inv.total_amount.toFixed(2)} | Outstanding:{" "}
-                        <span className="font-semibold text-amber-600 dark:text-amber-400">
+                        <span className="font-semibold text-brand-gold dark:text-brand-gold">
                           ₹{inv.outstanding_amount.toFixed(2)}
                         </span>
                       </div>

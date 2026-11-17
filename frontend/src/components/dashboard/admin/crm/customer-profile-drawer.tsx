@@ -315,7 +315,7 @@ export function CustomerProfileDrawer({
                   {profile.branch_name || "—"} {profile.city_name ? `(${profile.city_name})` : ""}
                 </span>
                 {profile.assigned_telecaller_name && (
-                  <span className="flex items-center gap-1 text-purple-600 font-medium bg-purple-50 dark:bg-purple-950/40 px-2 py-0.5 rounded">
+                  <span className="flex items-center gap-1 text-brand-primary font-medium bg-brand-light dark:bg-brand-navy/40 px-2 py-0.5 rounded">
                     Telecaller: {profile.assigned_telecaller_name}
                   </span>
                 )}
@@ -330,7 +330,7 @@ export function CustomerProfileDrawer({
                   size="small"
                   variant="secondary"
                   onClick={() => setAssignModalOpen(true)}
-                  className="flex items-center gap-1 text-xs text-purple-700 bg-purple-50 hover:bg-purple-100 border-purple-300"
+                  className="flex items-center gap-1 text-xs text-brand-navy bg-brand-light hover:bg-brand-light border-brand-primary/30"
                 >
                   <User className="w-3.5 h-3.5" />
                   Assign
@@ -340,7 +340,7 @@ export function CustomerProfileDrawer({
                   size="small"
                   variant="secondary"
                   onClick={() => setReminderModalOpen(true)}
-                  className="flex items-center gap-1 text-xs text-amber-700 bg-amber-50 hover:bg-amber-100 border-amber-300"
+                  className="flex items-center gap-1 text-xs text-brand-gold-dark bg-brand-gold-light hover:bg-brand-gold-light border-brand-gold/40"
                 >
                   <Clock className="w-3.5 h-3.5" />
                   Reminder
@@ -872,7 +872,7 @@ export function CustomerProfileDrawer({
                 <div className="flex flex-col gap-5">
                   <div className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 flex flex-col gap-2">
                     <div className="flex items-center gap-2">
-                      <Layers className="w-5 h-5 text-indigo-600" />
+                      <Layers className="w-5 h-5 text-brand-primary" />
                       <Heading level="h3" className="text-sm font-bold text-neutral-900 dark:text-white">
                         Authoritative Data Lineage Trace
                       </Heading>
@@ -882,14 +882,14 @@ export function CustomerProfileDrawer({
                     </Text>
                   </div>
 
-                  <div className="relative pl-6 border-l-2 border-indigo-200 dark:border-indigo-900 space-y-6">
+                  <div className="relative pl-6 border-l-2 border-brand-primary/30 dark:border-brand-navy space-y-6">
                     {/* Node 1: Origin & Registration */}
                     <div className="relative">
-                      <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-indigo-600 border-2 border-white dark:border-neutral-900" />
+                      <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-brand-primary border-2 border-white dark:border-neutral-900" />
                       <div className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex flex-col gap-1.5 text-xs shadow-xs">
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-neutral-900 dark:text-white flex items-center gap-1.5">
-                            <User className="w-3.5 h-3.5 text-indigo-600" />
+                            <User className="w-3.5 h-3.5 text-brand-primary" />
                             1. Customer Identity & Registration Source
                           </span>
                           <Badge color="blue">{profile.data_lineage?.customer_source || profile.customer_source || "CHECKOUT"}</Badge>
@@ -943,11 +943,11 @@ export function CustomerProfileDrawer({
 
                     {/* Node 4: Branch Fulfillment */}
                     <div className="relative">
-                      <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-purple-600 border-2 border-white dark:border-neutral-900" />
+                      <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-brand-primary border-2 border-white dark:border-neutral-900" />
                       <div className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex flex-col gap-1.5 text-xs shadow-xs">
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-neutral-900 dark:text-white flex items-center gap-1.5">
-                            <MapPin className="w-3.5 h-3.5 text-purple-600" />
+                            <MapPin className="w-3.5 h-3.5 text-brand-primary" />
                             4. Kitchen Hub & Pincode Routing
                           </span>
                           <Badge color="purple">{profile.data_lineage?.routing_method || "DEFAULT_ADDRESS"}</Badge>
@@ -963,11 +963,11 @@ export function CustomerProfileDrawer({
 
                     {/* Node 5: Delivery Partner */}
                     <div className="relative">
-                      <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-amber-600 border-2 border-white dark:border-neutral-900" />
+                      <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-brand-gold border-2 border-white dark:border-neutral-900" />
                       <div className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex flex-col gap-1.5 text-xs shadow-xs">
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-neutral-900 dark:text-white flex items-center gap-1.5">
-                            <Truck className="w-3.5 h-3.5 text-amber-600" />
+                            <Truck className="w-3.5 h-3.5 text-brand-gold" />
                             5. Fleet Fulfillment & OTP Verification
                           </span>
                           <Badge color="orange">Delivered: {profile.data_lineage?.successful_deliveries_count ?? profile.delivery_history?.length ?? 0}</Badge>
@@ -1008,7 +1008,7 @@ export function CustomerProfileDrawer({
                   <div className="p-6 rounded-2xl bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 text-white flex flex-col gap-4 shadow-xl">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Sparkles className="w-6 h-6 text-amber-400" />
+                        <Sparkles className="w-6 h-6 text-brand-gold" />
                         <Heading level="h3" className="text-base font-bold">
                           Customer Purchase Intelligence & Retention Scoring
                         </Heading>
@@ -1022,7 +1022,7 @@ export function CustomerProfileDrawer({
                       <div>
                         <span className="text-[10px] uppercase text-neutral-400 block">Intelligence Score</span>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-2xl font-black text-amber-400">
+                          <span className="text-2xl font-black text-brand-gold">
                             {profile.customer_intelligence_score !== undefined && profile.customer_intelligence_score !== null
                               ? `${profile.customer_intelligence_score}/100`
                               : "—"}
@@ -1281,7 +1281,7 @@ export function CustomerProfileDrawer({
                   <Button size="small" variant="secondary" onClick={() => setAssignModalOpen(false)} type="button">
                     Cancel
                   </Button>
-                  <Button size="small" type="submit" disabled={submittingAssign || !telecallerName} className="bg-purple-600 hover:bg-purple-700 text-white">
+                  <Button size="small" type="submit" disabled={submittingAssign || !telecallerName} className="bg-brand-primary hover:bg-brand-navy text-white">
                     {submittingAssign ? "Assigning..." : "Confirm Assignment"}
                   </Button>
                 </div>

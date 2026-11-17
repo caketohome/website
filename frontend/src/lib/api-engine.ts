@@ -64,6 +64,7 @@ import {
   compareTimeStrings,
 } from "./fulfillment";
 import { SearchEngine, CanonicalProduct, ProductTag, SearchSynonym, MerchandisingRule } from "./search/search-engine";
+import { loadSearchSettings, saveSearchSettings } from "./search/search-settings-store";
 import { parseAndNormalizeWeight, sortWeightOptions, createDefaultWeightMatrix, ProductWeightOption } from "./util/weight-matrix";
 import {
   normalizePhone,
@@ -1390,7 +1391,7 @@ const DEFAULT_CMS_PAGES = [
     sitemap_changefreq: "daily",
     nav_location: "none",
     visibility_rules: { audience: "public", devices: "all", locations: "all" },
-    announcement_bar: { enabled: true, text: "⚡ Festive Celebration Offer — Up to 50% OFF with Code CAKE50", cta_text: "Shop Now", cta_url: "/products", bg_color: "#2563EB" },
+    announcement_bar: { enabled: true, text: "⚡ Festive Celebration Offer — Up to 50% OFF with Code CAKE50", cta_text: "Shop Now", cta_url: "/products", bg_color: "#245A96" },
     header_config: { show_header: true, style: "transparent" },
     sections: [
       {
@@ -1569,7 +1570,7 @@ const DEFAULT_CMS_PAGES = [
         { id: "sec_home_faq", type: "faq", name: "FAQ Section", enabled: true, order: 7, config: { heading: "❓ Frequently Asked Questions", faqs: [ { q: "Do you offer scheduled delivery?", a: "Yes! We offer convenient scheduled delivery slots based on kitchen readiness and branch operating hours." }, { q: "Can I customize the cake?", a: "Absolutely! Choose size (0.5–5 kg), flavor, and add a custom message or photo." }, { q: "What is the minimum order value?", a: "The minimum order value is ₹299. Free delivery on orders above ₹599." } ] } },
       ],
       banners: [],
-      announcement_bar: { enabled: true, text: "⚡ Festive Celebration Offer — Up to 50% OFF with Code CAKE50", cta_text: "Shop Now", cta_url: "/products", bg_color: "#2563EB" },
+      announcement_bar: { enabled: true, text: "⚡ Festive Celebration Offer — Up to 50% OFF with Code CAKE50", cta_text: "Shop Now", cta_url: "/products", bg_color: "#245A96" },
       header_config: { show_header: true, style: "transparent" },
     },
     version_history: [],
@@ -4893,6 +4894,9 @@ if (typeof window === "undefined") {
         };
         (globalThis as any).__CTH_HYDRATION_STATUS__ = _dbHydrationStatus;
         console.log(`[ApiEngine] PostgreSQL store hydration complete (${summary.productsCount} products, ${summary.branchesCount} branches)`);
+        loadSearchSettings()
+          .then((found) => found && console.log("[ApiEngine] Search settings loaded from PostgreSQL"))
+          .catch((err) => console.error("[ApiEngine] Search settings load failed:", err.message));
         return summary;
       })
       .catch((err) => {
@@ -7556,8 +7560,9 @@ export class ApiEngine {
     };
   }
 
-  static updateSearchWeights(weights: any) {
+  static async updateSearchWeights(weights: any) {
     SearchEngine.updateRankingWeights(weights);
+    await saveSearchSettings();
     return SearchEngine.getRankingWeights();
   }
 
@@ -7565,12 +7570,15 @@ export class ApiEngine {
     return SearchEngine.getTags();
   }
 
-  static saveSearchTag(tag: any) {
-    return SearchEngine.saveTag(tag);
+  static async saveSearchTag(tag: any) {
+    const saved = SearchEngine.saveTag(tag);
+    await saveSearchSettings();
+    return saved;
   }
 
-  static deleteSearchTag(tagId: string) {
+  static async deleteSearchTag(tagId: string) {
     SearchEngine.deleteTag(tagId);
+    await saveSearchSettings();
     return { success: true };
   }
 
@@ -7578,12 +7586,15 @@ export class ApiEngine {
     return SearchEngine.getSynonyms();
   }
 
-  static saveSearchSynonym(synonym: any) {
-    return SearchEngine.saveSynonym(synonym);
+  static async saveSearchSynonym(synonym: any) {
+    const saved = SearchEngine.saveSynonym(synonym);
+    await saveSearchSettings();
+    return saved;
   }
 
-  static deleteSearchSynonym(synId: string) {
+  static async deleteSearchSynonym(synId: string) {
     SearchEngine.deleteSynonym(synId);
+    await saveSearchSettings();
     return { success: true };
   }
 
@@ -7591,12 +7602,15 @@ export class ApiEngine {
     return SearchEngine.getMerchandisingRules();
   }
 
-  static saveSearchMerchandisingRule(rule: any) {
-    return SearchEngine.saveMerchandisingRule(rule);
+  static async saveSearchMerchandisingRule(rule: any) {
+    const saved = SearchEngine.saveMerchandisingRule(rule);
+    await saveSearchSettings();
+    return saved;
   }
 
-  static deleteSearchMerchandisingRule(ruleId: string) {
+  static async deleteSearchMerchandisingRule(ruleId: string) {
     SearchEngine.deleteMerchandisingRule(ruleId);
+    await saveSearchSettings();
     return { success: true };
   }
 
@@ -9811,6 +9825,16 @@ export class ApiEngine {
     const partnerId = partner.id;
     const partnerNumber = partner.partner_number;
 
+    // 0. Delivery-date gate: today's deliveries, plus earlier ones still undelivered (overdue).
+    //    Orders for a later date never appear in the rider panel, even if already assigned.
+    const deliveryDate = String(order.delivery_date || order.delivery?.date || "").slice(0, 10);
+    if (deliveryDate) {
+      const todayIst = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+      if (deliveryDate > todayIst) return false;
+      const finished = ["delivered", "completed", "cancelled", "failed"].includes(String(order.status || order.delivery_status || "").toLowerCase());
+      if (deliveryDate < todayIst && finished) return false;
+    }
+
     // Check if order is assigned to THIS partner
     const isAssignedToThisPartner = Boolean(
       (order.delivery_partner_id && (order.delivery_partner_id === partnerId || order.delivery_partner_id === partnerNumber)) ||
@@ -9853,9 +9877,17 @@ export class ApiEngine {
       return false;
     }
 
-    // 6. Multi-Branch Assignment Containment for Unassigned Pool
+    // 6. Multi-Branch Assignment Containment for Unassigned Pool (FAIL CLOSED: a rider with no
+    //    branch mapping sees no pool orders; previously they saw every branch's orders).
     const authorizedBranches = ApiEngine.getDeliveryPartnerAuthorizedBranches(partner);
-    if (authorizedBranches.length > 0 && !authorizedBranches.includes(orderBranchId)) {
+    if (authorizedBranches.length === 0 || !authorizedBranches.includes(orderBranchId)) {
+      return false;
+    }
+
+    // 7. Coverage pincodes: if the rider has pincodes mapped, only show pool orders inside them.
+    const coveragePins: string[] = (partner.coverage?.pincodes || []).map((p: any) => String(p).trim()).filter(Boolean);
+    const orderPin = String(order.delivery_pincode || order.pincode || order.delivery_address?.postal_code || order.delivery_address?.pincode || "").trim();
+    if (coveragePins.length > 0 && orderPin && !coveragePins.includes(orderPin)) {
       return false;
     }
 

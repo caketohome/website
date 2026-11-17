@@ -65,7 +65,7 @@ export default async function YourOrderPage({
         </p>
         <Link
           href="/"
-          className="mt-4 px-6 py-3 bg-[#2563EB] hover:bg-[#152347] text-white font-bold text-sm rounded-2xl shadow transition"
+          className="mt-4 px-6 py-3 bg-brand-primary hover:bg-brand-deep text-white font-bold text-sm rounded-2xl shadow transition"
         >
           Return to Bakery
         </Link>
@@ -101,7 +101,7 @@ export default async function YourOrderPage({
         <div className="mt-4 flex gap-3">
           <Link
             href="/account/orders"
-            className="px-6 py-3 bg-[#2563EB] hover:bg-[#152347] text-white font-bold text-sm rounded-2xl shadow transition"
+            className="px-6 py-3 bg-brand-primary hover:bg-brand-deep text-white font-bold text-sm rounded-2xl shadow transition"
           >
             View My Orders
           </Link>
@@ -171,8 +171,8 @@ export default async function YourOrderPage({
           isPaymentFailedOrException
             ? "bg-gradient-to-br from-rose-600 to-red-800"
             : isConfirmedOrder
-            ? "bg-gradient-to-br from-emerald-600 to-teal-700"
-            : "bg-gradient-to-br from-amber-600 to-orange-700"
+            ? "bg-gradient-to-br from-emerald-600 to-brand-navy"
+            : "bg-gradient-to-br from-brand-gold to-brand-gold-dark"
         }`}
       >
         <div className="absolute right-0 top-0 translate-x-4 -translate-y-4 opacity-10 text-9xl">
@@ -262,7 +262,7 @@ export default async function YourOrderPage({
                         ? "bg-emerald-50 text-emerald-700"
                         : isPaymentFailedOrException
                         ? "bg-rose-50 text-rose-700"
-                        : "bg-amber-50 text-amber-700"
+                        : "bg-brand-gold-light text-brand-gold-dark"
                     }`}
                   >
                     {isPaid
@@ -447,7 +447,7 @@ export default async function YourOrderPage({
           <div className="flex flex-col gap-3">
             <Link
               href={`/account/orders?highlight=${encodeURIComponent(order.id)}`}
-              className="w-full py-3.5 px-4 bg-[#2563EB] hover:bg-black text-white text-center font-bold text-sm rounded-2xl shadow transition flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-4 bg-brand-primary hover:bg-black text-white text-center font-bold text-sm rounded-2xl shadow transition flex items-center justify-center gap-2"
             >
               <span>📋 View in My Orders</span>
             </Link>

@@ -48,3 +48,10 @@ services:
         sync: false
       - key: NEXT_PUBLIC_WHATSAPP_NUMBER
         sync: false
+      # Web Push (PWA order alerts). Public key is baked in at build time.
+      - key: NEXT_PUBLIC_VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false

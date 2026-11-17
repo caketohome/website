@@ -207,7 +207,7 @@ export const ManualJournalsPanel = memo(function ManualJournalsPanel() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
           <div>
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-sm">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-primary text-white shadow-sm">
                 <FileText className="h-5 w-5" />
               </div>
               <h1 className="text-xl font-bold text-slate-900 tracking-tight">
@@ -231,7 +231,7 @@ export const ManualJournalsPanel = memo(function ManualJournalsPanel() {
 
             <button
               onClick={handleOpenNewDraft}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 transition"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-primary px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-brand-navy transition"
             >
               <Plus className="h-4 w-4" />
               New Manual Journal
@@ -246,7 +246,7 @@ export const ManualJournalsPanel = memo(function ManualJournalsPanel() {
             onClick={() => setSelectedStatus("ALL")}
             className={`cursor-pointer rounded-xl border p-3.5 transition shadow-sm ${
               selectedStatus === "ALL"
-                ? "border-indigo-500 bg-indigo-50/50 ring-1 ring-indigo-500"
+                ? "border-brand-primary bg-brand-light/50 ring-1 ring-brand-primary"
                 : "border-slate-200 bg-white hover:border-slate-300"
             }`}
           >
@@ -294,15 +294,15 @@ export const ManualJournalsPanel = memo(function ManualJournalsPanel() {
             onClick={() => setSelectedStatus("APPROVED")}
             className={`cursor-pointer rounded-xl border p-3.5 transition shadow-sm ${
               selectedStatus === "APPROVED"
-                ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500"
+                ? "border-brand-primary bg-brand-light ring-1 ring-brand-primary"
                 : "border-slate-200 bg-white hover:border-slate-300"
             }`}
           >
-            <div className="flex items-center justify-between text-xs text-indigo-600 font-medium">
+            <div className="flex items-center justify-between text-xs text-brand-primary font-medium">
               <span>Ready for GL</span>
-              <Send className="h-4 w-4 text-indigo-500" />
+              <Send className="h-4 w-4 text-brand-primary" />
             </div>
-            <p className="mt-1 text-lg font-bold text-indigo-700 font-mono">{metrics.approved}</p>
+            <p className="mt-1 text-lg font-bold text-brand-navy font-mono">{metrics.approved}</p>
           </div>
 
           {/* Posted */}
@@ -336,7 +336,7 @@ export const ManualJournalsPanel = memo(function ManualJournalsPanel() {
                   setSearch(e.target.value);
                   setPage(1);
                 }}
-                className="w-full rounded-lg border border-slate-300 bg-white py-1.5 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-lg border border-slate-300 bg-white py-1.5 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
               />
             </div>
 
@@ -348,7 +348,7 @@ export const ManualJournalsPanel = memo(function ManualJournalsPanel() {
                   setSelectedBranchId(e.target.value);
                   setPage(1);
                 }}
-                className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
               >
                 <option value="">All Branches</option>
                 {branches.map((b) => (
@@ -367,7 +367,7 @@ export const ManualJournalsPanel = memo(function ManualJournalsPanel() {
                   setSelectedStatus(e.target.value as any);
                   setPage(1);
                 }}
-                className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary"
               >
                 <option value="ALL">All Statuses</option>
                 <option value="DRAFT">DRAFT</option>
@@ -387,7 +387,7 @@ export const ManualJournalsPanel = memo(function ManualJournalsPanel() {
                   setStartDate(e.target.value);
                   setPage(1);
                 }}
-                className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none"
+                className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 focus:border-brand-primary focus:outline-none"
               />
               <span>to</span>
               <input
@@ -397,7 +397,7 @@ export const ManualJournalsPanel = memo(function ManualJournalsPanel() {
                   setEndDate(e.target.value);
                   setPage(1);
                 }}
-                className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none"
+                className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800 focus:border-brand-primary focus:outline-none"
               />
             </div>
           </div>
@@ -412,7 +412,7 @@ export const ManualJournalsPanel = memo(function ManualJournalsPanel() {
                 setEndDate("");
                 setPage(1);
               }}
-              className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+              className="text-xs text-brand-primary hover:text-brand-navy font-medium"
             >
               Reset Filters
             </button>

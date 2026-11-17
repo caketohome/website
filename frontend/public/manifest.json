@@ -1,5 +1,5 @@
 {
-  "name": "CakeToHome Online Cake Store",
+  "name": "CakeToHome",
   "short_name": "CakeToHome",
   "description": "Artisanal cake delivery app with express delivery across Kerala.",
   "start_url": "/",
@@ -37,7 +37,13 @@
     {
       "name": "View Cart",
       "url": "/checkout",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
-  ]
+  ],
+  "id": "/"
 }

@@ -410,10 +410,10 @@ export function TaxMasterPanel() {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#2A1810] via-[#3D2317] to-[#2A1810] rounded-3xl p-6 text-white shadow-xl border border-[#C9973A]/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-[#2A1810] via-[#3D2317] to-[#2A1810] rounded-3xl p-6 text-white shadow-xl border border-brand-gold-dark/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C9973A]/20 border border-[#C9973A]/40 text-[#F3E5AB] text-[11px] font-bold uppercase tracking-wider">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#C9973A]" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-gold-dark/20 border border-brand-gold-dark/40 text-[#F3E5AB] text-[11px] font-bold uppercase tracking-wider">
+            <ShieldCheck className="w-3.5 h-3.5 text-brand-gold-dark" />
             Statutory GST Compliance Engine
           </div>
           <h2 className="text-2xl font-black tracking-tight">Tax Master & GST Rules</h2>
@@ -435,7 +435,7 @@ export function TaxMasterPanel() {
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#C9973A] hover:bg-[#b58630] text-[#1C110B] font-black text-xs uppercase tracking-wider shadow-lg transition-all"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-brand-gold-dark hover:bg-[#b58630] text-[#1C110B] font-black text-xs uppercase tracking-wider shadow-lg transition-all"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             Create Tax Configuration
@@ -486,7 +486,7 @@ export function TaxMasterPanel() {
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl p-4 border border-stone-200/80 shadow-sm flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-700">
+          <div className="w-11 h-11 rounded-xl bg-brand-gold-light border border-brand-gold/60 flex items-center justify-center text-brand-gold-dark">
             <Layers className="w-5 h-5" />
           </div>
           <div>
@@ -516,7 +516,7 @@ export function TaxMasterPanel() {
         </div>
 
         <div className="bg-white rounded-2xl p-4 border border-stone-200/80 shadow-sm flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-purple-50 border border-purple-200/60 flex items-center justify-center text-purple-700">
+          <div className="w-11 h-11 rounded-xl bg-brand-light border border-brand-primary/60 flex items-center justify-center text-brand-navy">
             <FileText className="w-5 h-5" />
           </div>
           <div>
@@ -537,7 +537,7 @@ export function TaxMasterPanel() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by tax name, code (e.g. GST_FOOD_5), or description..."
-            className="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 focus:border-[#C9973A]"
+            className="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-brand-gold-dark/30 focus:border-brand-gold-dark"
           />
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -610,7 +610,7 @@ export function TaxMasterPanel() {
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                           cfg.taxability === "Taxable"
-                            ? "bg-amber-50 text-amber-800 border border-amber-200"
+                            ? "bg-brand-gold-light text-brand-gold-dark border border-brand-gold/40"
                             : "bg-stone-100 text-stone-700 border border-stone-200"
                         }`}
                       >
@@ -740,7 +740,7 @@ export function TaxMasterPanel() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. GST 18% - Bakery Accessories"
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 focus:border-[#C9973A]"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-brand-gold-dark/30 focus:border-brand-gold-dark"
                     required
                   />
                 </div>
@@ -753,7 +753,7 @@ export function TaxMasterPanel() {
                     value={code}
                     onChange={(e) => setCode(e.target.value.toUpperCase().replace(/\s+/g, "_"))}
                     placeholder="e.g. GST_ACCESSORY_18"
-                    className="w-full px-3.5 py-2.5 text-xs font-mono rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 focus:border-[#C9973A]"
+                    className="w-full px-3.5 py-2.5 text-xs font-mono rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-brand-gold-dark/30 focus:border-brand-gold-dark"
                     required
                   />
                 </div>
@@ -769,7 +769,7 @@ export function TaxMasterPanel() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Describe which product categories or statutory rules use this tax configuration..."
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-[#C9973A]/30 focus:border-[#C9973A]"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-brand-gold-dark/30 focus:border-brand-gold-dark"
                   />
                 </div>
                 <div>
@@ -960,7 +960,7 @@ export function TaxMasterPanel() {
                     type="checkbox"
                     checked={taxInclusive}
                     onChange={(e) => setTaxInclusive(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#C9973A] focus:ring-[#C9973A]"
+                    className="w-4 h-4 rounded text-brand-gold-dark focus:ring-brand-gold-dark"
                   />
                   <span className="text-xs font-semibold text-stone-800">
                     Default Tax-Inclusive Catalog Pricing

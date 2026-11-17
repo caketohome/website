@@ -261,9 +261,9 @@ export function ActiveDrawerTab({
 
               <button
                 onClick={() => setShowExpenseModal(true)}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/30 transition-colors flex items-center gap-1.5 shadow-sm"
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-brand-gold/20 hover:bg-brand-gold/30 text-brand-gold/40 border border-brand-gold/30 transition-colors flex items-center gap-1.5 shadow-sm"
               >
-                <Receipt className="w-3.5 h-3.5 text-amber-300" />
+                <Receipt className="w-3.5 h-3.5 text-brand-gold/40" />
                 <span>Branch Cash Expenses</span>
               </button>
 
@@ -304,7 +304,7 @@ export function ActiveDrawerTab({
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
               <div className="flex items-center justify-between text-slate-500 mb-2">
                 <span className="text-xs font-semibold uppercase tracking-wider">Branch Petty Cash (1114)</span>
-                <Receipt className="w-4 h-4 text-amber-500" />
+                <Receipt className="w-4 h-4 text-brand-gold" />
               </div>
               <div className="text-2xl font-bold font-mono text-slate-800">
                 ₹{formatAmount(branchCash?.gl_petty_cash ?? 0)}
@@ -316,7 +316,7 @@ export function ActiveDrawerTab({
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
               <div className="flex items-center justify-between text-slate-500 mb-2">
                 <span className="text-xs font-semibold uppercase tracking-wider">Vault Custody</span>
-                <Lock className="w-4 h-4 text-purple-500" />
+                <Lock className="w-4 h-4 text-brand-primary" />
               </div>
               <div className="text-2xl font-bold font-mono text-slate-800">
                 ₹{formatAmount(branchCash?.vault_cash ?? 0)}
@@ -383,9 +383,9 @@ export function ActiveDrawerTab({
 
               <button
                 onClick={() => setShowExpenseModal(true)}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/30 transition-colors flex items-center gap-1.5 shadow-sm"
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-brand-gold/20 hover:bg-brand-gold/30 text-brand-gold/40 border border-brand-gold/30 transition-colors flex items-center gap-1.5 shadow-sm"
               >
-                <Receipt className="w-3.5 h-3.5 text-amber-300" />
+                <Receipt className="w-3.5 h-3.5 text-brand-gold/40" />
                 <span>Branch Cash Expenses</span>
               </button>
 
@@ -399,7 +399,7 @@ export function ActiveDrawerTab({
 
               <button
                 onClick={() => setShowCloseModal(true)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold transition-colors flex items-center gap-1.5 shadow-sm"
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-brand-gold hover:bg-brand-gold text-slate-950 font-bold transition-colors flex items-center gap-1.5 shadow-sm"
               >
                 <Lock className="w-3.5 h-3.5" />
                 <span>Close Shift & Count</span>
@@ -470,7 +470,7 @@ export function ActiveDrawerTab({
       ) : (
         /* Session Closed (CLOSING or PENDING_VERIFICATION) */
         <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-3 border border-amber-100">
+          <div className="w-12 h-12 rounded-2xl bg-brand-gold-light text-brand-gold flex items-center justify-center mx-auto mb-3 border border-brand-gold-light">
             <Clock className="w-6 h-6" />
           </div>
           <h3 className="text-base font-bold text-slate-800">
@@ -493,7 +493,7 @@ export function ActiveDrawerTab({
             </div>
             <div>
               <span className="text-slate-400 text-[10px] block uppercase">Variance</span>
-              <span className={`font-bold ${Number(activeSession.variance) === 0 ? "text-emerald-600" : Number(activeSession.variance) < 0 ? "text-rose-600" : "text-teal-600"}`}>
+              <span className={`font-bold ${Number(activeSession.variance) === 0 ? "text-emerald-600" : Number(activeSession.variance) < 0 ? "text-rose-600" : "text-brand-primary"}`}>
                 {Number(activeSession.variance) > 0 ? "+" : ""}₹{formatAmount(activeSession.variance)}
               </span>
             </div>

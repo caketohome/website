@@ -30,7 +30,7 @@ export function OfferBanner({
 }) {
     return (
         <div
-            className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 to-[#D4AF37] text-white p-6 md:p-8 ${className}`}
+            className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-brand-primary to-brand-gold text-white p-6 md:p-8 ${className}`}
         >
             {imageUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -54,7 +54,7 @@ export function OfferBanner({
                 <div className="flex items-center gap-4 mt-2">
                     <Link
                         href={ctaUrl}
-                        className="inline-flex items-center px-4 py-2 rounded-lg bg-white text-purple-700 font-semibold hover:bg-opacity-90 transition"
+                        className="inline-flex items-center px-4 py-2 rounded-lg bg-white text-brand-navy font-semibold hover:bg-opacity-90 transition"
                     >
                         {ctaLabel}
                     </Link>

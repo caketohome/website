@@ -15,7 +15,7 @@ import Link from "next/link";
  * - Favorites/wishlist toggle sits at z-20 with stopPropagation so it doesn't trigger navigation.
  * - Zero nested interactive elements (no buttons inside anchors).
  * - Typography: Editorial serif title, readable sans-serif description, prominent bold price.
- * - Gold rating accent (#C29B38 / #D4AF37).
+ * - Gold rating accent (#C29B38 / #C28A2C).
  */
 export function ProductCard({ product }: { product: SearchResult }) {
     const { isFavorited, toggleFavorite } = useFavorites();
@@ -64,17 +64,17 @@ export function ProductCard({ product }: { product: SearchResult }) {
         <div
             data-testid="product-card"
             data-product-id={prodId}
-            className="group relative flex flex-col h-full justify-between p-4 sm:p-5 rounded-[22px] shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 bg-white text-inherit border border-[#E2E8F0] hover:border-blue-200"
+            className="group relative flex flex-col h-full justify-between p-3.5 sm:p-4 rounded-xl shadow-sm hover:shadow-md hover:border-brand-primary/30 transition-all duration-300 bg-white text-inherit border border-brand-border hover:border-blue-200"
         >
             {/* Stretched Link: Makes entire card clickable without invalid nested HTML */}
             <Link
                 href={productHref}
                 onClick={() => trackProductView(product.product_id)}
-                className="absolute inset-0 z-10 rounded-[22px] focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:ring-offset-2"
+                className="absolute inset-0 z-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
                 aria-label={`View details for ${product.title}`}
             />
 
-            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[16px] bg-[#F8FAFC] shrink-0">
+            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg bg-brand-cream shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                     src={displayImage}
@@ -86,14 +86,14 @@ export function ProductCard({ product }: { product: SearchResult }) {
                     }}
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/15 via-transparent to-transparent pointer-events-none" />
 
                 {/* Badges / Merchandising */}
                 <div className="absolute top-3 right-3 flex flex-col gap-1.5 pointer-events-none">
                     {merchandising.map((m) => (
                         <div
                             key={m}
-                            className="bg-[#2563EB] text-white px-2.5 py-1 rounded-full text-[9px] uppercase tracking-widest font-bold shadow-xs"
+                            className="bg-brand-navy text-brand-gold-light px-2.5 py-1 rounded-md text-[9px] uppercase tracking-widest font-semibold"
                         >
                             {m}
                         </div>
@@ -110,8 +110,8 @@ export function ProductCard({ product }: { product: SearchResult }) {
                         title={wished ? "Remove from Favorites" : "Add to Favorites"}
                         className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md shadow-xs ${
                             wished
-                                ? "bg-blue-50 border border-blue-200 text-[#2563EB] hover:bg-blue-100"
-                                : "bg-white/90 border border-slate-200 text-slate-600 hover:text-[#2563EB] hover:scale-105"
+                                ? "bg-brand-light border border-brand-primary/30 text-brand-primary hover:bg-brand-light/80"
+                                : "bg-white/90 border border-brand-border text-brand-text-muted hover:text-brand-primary"
                         }`}
                     >
                         <Heart fill={wished ? "currentColor" : "none"} className="w-4 h-4" />
@@ -123,12 +123,12 @@ export function ProductCard({ product }: { product: SearchResult }) {
             {(product.category || product.flavour) && (
                 <div className="flex items-center justify-between gap-1 text-[11px] mt-3.5">
                     {product.category && (
-                        <span className="font-sans text-[10px] uppercase tracking-[0.2em] text-[#64748B] truncate max-w-[70%] font-semibold">
+                        <span className="font-sans text-[10px] uppercase tracking-[0.2em] text-brand-gold-dark truncate max-w-[70%] font-semibold">
                             {product.category}
                         </span>
                     )}
                     {product.flavour && (
-                        <span className="font-sans text-[10px] text-[#64748B] truncate ml-auto italic">
+                        <span className="font-sans text-[10px] text-brand-text-muted truncate ml-auto italic">
                             {product.flavour}
                         </span>
                     )}
@@ -137,12 +137,12 @@ export function ProductCard({ product }: { product: SearchResult }) {
 
             {/* Title & Description with controlled heights for strict grid alignment */}
             <div className="flex flex-col gap-1 flex-1 mt-2">
-                <h3 className="font-serif text-[18px] sm:text-[20px] font-semibold text-[#0F172A] leading-snug line-clamp-2 min-h-[3rem] group-hover:text-[#2563EB] transition-colors">
+                <h3 className="font-serif text-[18px] sm:text-[20px] font-semibold text-brand-navy leading-snug line-clamp-2 min-h-[3rem] group-hover:text-brand-primary transition-colors">
                     {product.title}
                 </h3>
 
                 {product.description && (
-                    <p className="font-sans text-[#64748B] text-[12px] sm:text-[13px] leading-relaxed line-clamp-2 mt-0.5 min-h-[2.5rem]">
+                    <p className="font-sans text-brand-text-muted text-[12px] sm:text-[13px] leading-relaxed line-clamp-2 mt-0.5 min-h-[2.5rem]">
                         {product.description}
                     </p>
                 )}
@@ -153,7 +153,7 @@ export function ProductCard({ product }: { product: SearchResult }) {
                     {dietary.map((d) => (
                         <div
                             key={d}
-                            className="bg-[#F1F5F9] border border-slate-200 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider text-slate-700 font-medium"
+                            className="bg-brand-cream border border-brand-gold/25 px-2 py-0.5 rounded-md text-[10px] uppercase tracking-wider text-brand-gold-dark font-medium"
                         >
                             {d}
                         </div>
@@ -162,9 +162,9 @@ export function ProductCard({ product }: { product: SearchResult }) {
             )}
 
             {/* Price & Non-interactive Action Hint */}
-            <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-200/80 shrink-0">
+            <div className="flex items-center justify-between mt-auto pt-3 border-t border-brand-border shrink-0">
                 <div className="flex flex-col">
-                    <span className="font-sans text-base sm:text-lg font-bold text-[#0F172A]">
+                    <span className="font-sans text-base sm:text-lg font-bold text-brand-navy tabular-nums">
                         {(() => {
                             const pVal = (product.price && product.price > 0)
                                 ? product.price
@@ -172,20 +172,21 @@ export function ProductCard({ product }: { product: SearchResult }) {
                                     ? (product as any).selling_price
                                     : ((product as any).base_price && (product as any).base_price > 0)
                                         ? (product as any).base_price
-                                        : 499;
-                            return `₹${pVal.toFixed(0)}`;
+                                        : 0;
+                            // Never invent a price: show the real one or point to the product page.
+                            return pVal > 0 ? `₹${Number(pVal).toLocaleString("en-IN", { maximumFractionDigits: 0 })}` : "See options";
                         })()}
                     </span>
                     {product.review_count > 0 && (
-                        <span className="font-sans text-amber-500 text-[11px] flex items-center gap-1 font-semibold">
+                        <span className="font-sans text-brand-gold-dark text-[11px] flex items-center gap-1 font-semibold">
                             <span>★</span> <span>{product.rating.toFixed(1)}</span>
-                            <span className="text-[#64748B] font-normal">({product.review_count})</span>
+                            <span className="text-brand-text-muted font-normal">({product.review_count})</span>
                         </span>
                     )}
                 </div>
 
                 {/* Non-interactive action hint */}
-                <span className="font-sans text-xs font-semibold text-[#2563EB] flex items-center gap-1 group-hover:translate-x-1 group-hover:text-[#1D4ED8] transition-all">
+                <span className="font-sans text-xs font-semibold text-brand-primary flex items-center gap-1 group-hover:translate-x-1 group-hover:text-brand-secondary transition-all">
                     View details <span aria-hidden="true">→</span>
                 </span>
             </div>

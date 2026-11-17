@@ -714,7 +714,7 @@ export function CorporateAccountsPanel() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
           <div>
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+              <div className="p-2.5 rounded-xl bg-brand-light dark:bg-brand-navy/50 text-brand-primary dark:text-brand-primary">
                 <Building2 className="w-6 h-6" />
               </div>
               <div>
@@ -738,7 +738,7 @@ export function CorporateAccountsPanel() {
             </button>
             <button
               onClick={() => setShowRegisterModal(true)}
-              className="px-4 py-2 text-xs font-semibold rounded-xl bg-[#1D2F5D] hover:bg-[#152347] text-white flex items-center gap-2 shadow-xs transition"
+              className="px-4 py-2 text-xs font-semibold rounded-xl bg-brand-navy hover:bg-brand-deep text-white flex items-center gap-2 shadow-xs transition"
             >
               <Plus className="w-4 h-4" />
               Register Account
@@ -753,8 +753,8 @@ export function CorporateAccountsPanel() {
             <div className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{accounts.length}</div>
           </div>
           <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
-            <span className="text-xs text-amber-600 font-medium">Pending Approval</span>
-            <div className="text-2xl font-bold text-amber-600 mt-1">
+            <span className="text-xs text-brand-gold font-medium">Pending Approval</span>
+            <div className="text-2xl font-bold text-brand-gold mt-1">
               {accounts.filter((a) => a.status === "PENDING").length}
             </div>
           </div>
@@ -791,7 +791,7 @@ export function CorporateAccountsPanel() {
                   placeholder="Search name, GSTIN, PAN..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+                  className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-brand-navy"
                 />
               </div>
 
@@ -802,7 +802,7 @@ export function CorporateAccountsPanel() {
                     onClick={() => setStatusFilter(st)}
                     className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition shrink-0 ${
                       statusFilter === st
-                        ? "bg-[#1D2F5D] text-white"
+                        ? "bg-brand-navy text-white"
                         : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
                     }`}
                   >
@@ -824,7 +824,7 @@ export function CorporateAccountsPanel() {
                         onClick={() => handleSelectAccount(acc)}
                         className={`p-3 rounded-xl border cursor-pointer transition flex items-start justify-between gap-3 ${
                           isSelected
-                            ? "bg-indigo-50/70 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-700 shadow-xs"
+                            ? "bg-brand-light/70 dark:bg-brand-navy/30 border-brand-primary/30 dark:border-brand-navy shadow-xs"
                             : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300"
                         }`}
                       >
@@ -846,7 +846,7 @@ export function CorporateAccountsPanel() {
                               acc.status === "APPROVED"
                                 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400"
                                 : acc.status === "PENDING"
-                                ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400"
+                                ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold"
                                 : "bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-400"
                             }`}
                           >
@@ -889,7 +889,7 @@ export function CorporateAccountsPanel() {
                             selectedAccount.status === "APPROVED"
                               ? "bg-emerald-100 text-emerald-800"
                               : selectedAccount.status === "PENDING"
-                              ? "bg-amber-100 text-amber-800"
+                              ? "bg-brand-gold-light text-brand-gold-dark"
                               : "bg-red-100 text-red-800"
                           }`}
                         >
@@ -917,7 +917,7 @@ export function CorporateAccountsPanel() {
                         <>
                           <button
                             onClick={() => setShowCreditActivationModal(true)}
-                            className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-1.5 shadow-xs"
+                            className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-brand-primary hover:bg-brand-navy text-white flex items-center gap-1.5 shadow-xs"
                           >
                             <CreditCard className="w-3.5 h-3.5" />
                             Credit Activation (Q1)
@@ -978,7 +978,7 @@ export function CorporateAccountsPanel() {
                     onClick={() => setActiveSubTab("ROSTER")}
                     className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition flex items-center gap-1.5 ${
                       activeSubTab === "ROSTER"
-                        ? "bg-[#1D2F5D] text-white"
+                        ? "bg-brand-navy text-white"
                         : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
                     }`}
                   >
@@ -989,7 +989,7 @@ export function CorporateAccountsPanel() {
                     onClick={() => setActiveSubTab("IMPORTS")}
                     className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition flex items-center gap-1.5 ${
                       activeSubTab === "IMPORTS"
-                        ? "bg-[#1D2F5D] text-white"
+                        ? "bg-brand-navy text-white"
                         : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
                     }`}
                   >
@@ -1000,7 +1000,7 @@ export function CorporateAccountsPanel() {
                     onClick={() => setActiveSubTab("CONTACTS")}
                     className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition flex items-center gap-1.5 ${
                       activeSubTab === "CONTACTS"
-                        ? "bg-[#1D2F5D] text-white"
+                        ? "bg-brand-navy text-white"
                         : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
                     }`}
                   >
@@ -1011,7 +1011,7 @@ export function CorporateAccountsPanel() {
                     onClick={() => setActiveSubTab("MEMBERS")}
                     className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition flex items-center gap-1.5 ${
                       activeSubTab === "MEMBERS"
-                        ? "bg-[#1D2F5D] text-white"
+                        ? "bg-brand-navy text-white"
                         : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
                     }`}
                   >
@@ -1022,7 +1022,7 @@ export function CorporateAccountsPanel() {
                     onClick={() => setActiveSubTab("CREDIT")}
                     className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition flex items-center gap-1.5 ${
                       activeSubTab === "CREDIT"
-                        ? "bg-[#1D2F5D] text-white"
+                        ? "bg-brand-navy text-white"
                         : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
                     }`}
                   >
@@ -1053,7 +1053,7 @@ export function CorporateAccountsPanel() {
                         </button>
                         <button
                           onClick={() => setShowAddEmployeeModal(true)}
-                          className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#1D2F5D] hover:bg-[#152347] text-white flex items-center gap-1.5"
+                          className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-brand-navy hover:bg-brand-deep text-white flex items-center gap-1.5"
                         >
                           <Plus className="w-3.5 h-3.5" />
                           Add Employee
@@ -1114,7 +1114,7 @@ export function CorporateAccountsPanel() {
                                         <button
                                           onClick={() => handleVerifyCoordinates(emp)}
                                           title="Verify coordinates as Super Admin"
-                                          className="px-1.5 py-0.5 text-[9px] font-bold rounded-md bg-amber-100 text-amber-800 hover:bg-amber-200"
+                                          className="px-1.5 py-0.5 text-[9px] font-bold rounded-md bg-brand-gold-light text-brand-gold-dark hover:bg-brand-gold/40"
                                         >
                                           Verify
                                         </button>
@@ -1189,7 +1189,7 @@ export function CorporateAccountsPanel() {
                         </button>
                         <button
                           onClick={() => setShowImportModal(true)}
-                          className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#1D2F5D] hover:bg-[#152347] text-white flex items-center gap-1.5"
+                          className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-brand-navy hover:bg-brand-deep text-white flex items-center gap-1.5"
                         >
                           <UploadCloud className="w-3.5 h-3.5" />
                           New Import
@@ -1216,7 +1216,7 @@ export function CorporateAccountsPanel() {
                                   className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
                                     batch.status === "COMMITTED"
                                       ? "bg-emerald-100 text-emerald-800"
-                                      : "bg-amber-100 text-amber-800"
+                                      : "bg-brand-gold-light text-brand-gold-dark"
                                   }`}
                                 >
                                   {batch.status}
@@ -1260,7 +1260,7 @@ export function CorporateAccountsPanel() {
                       </div>
                       <button
                         onClick={() => setShowAddContactModal(true)}
-                        className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#1D2F5D] text-white flex items-center gap-1.5"
+                        className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-brand-navy text-white flex items-center gap-1.5"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         Add Contact
@@ -1275,7 +1275,7 @@ export function CorporateAccountsPanel() {
                         >
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-slate-900 dark:text-white">{c.name}</span>
-                            <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-indigo-100 text-indigo-800">
+                            <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-brand-light text-brand-navy">
                               {c.contact_type}
                             </span>
                           </div>
@@ -1308,7 +1308,7 @@ export function CorporateAccountsPanel() {
                       </div>
                       <button
                         onClick={() => setShowAddMemberModal(true)}
-                        className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#1D2F5D] text-white flex items-center gap-1.5"
+                        className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-brand-navy text-white flex items-center gap-1.5"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         Grant Membership
@@ -1326,7 +1326,7 @@ export function CorporateAccountsPanel() {
                             <div>
                               <div className="flex items-center gap-2">
                                 <span className="font-mono font-bold text-slate-900 dark:text-white">{m.user_id}</span>
-                                <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-indigo-100 text-indigo-800">
+                                <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-brand-light text-brand-navy">
                                   {m.member_role}
                                 </span>
                               </div>
@@ -1377,8 +1377,8 @@ export function CorporateAccountsPanel() {
                         </button>
                       </div>
 
-                      <div className="p-4 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20 space-y-2">
-                        <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+                      <div className="p-4 rounded-xl border border-brand-primary/30 dark:border-brand-navy bg-brand-light/50 dark:bg-brand-navy/20 space-y-2">
+                        <span className="text-xs font-semibold text-brand-navy dark:text-brand-primary/30">
                           Super Admin Credit Activation
                         </span>
                         <div className="text-xs text-slate-600 dark:text-slate-400">
@@ -1386,7 +1386,7 @@ export function CorporateAccountsPanel() {
                         </div>
                         <button
                           onClick={() => setShowCreditActivationModal(true)}
-                          className="mt-3 w-full py-2 text-xs font-semibold rounded-lg bg-[#1D2F5D] text-white hover:bg-[#152347]"
+                          className="mt-3 w-full py-2 text-xs font-semibold rounded-lg bg-brand-navy text-white hover:bg-brand-deep"
                         >
                           Activate Corporate Credit
                         </button>
@@ -1421,7 +1421,7 @@ export function CorporateAccountsPanel() {
                     placeholder="e.g. Tata Consultancy Services Ltd"
                     value={regLegalName}
                     onChange={(e) => setRegLegalName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-brand-navy"
                   />
                 </div>
                 <div>
@@ -1511,7 +1511,7 @@ export function CorporateAccountsPanel() {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-xl bg-[#1D2F5D] hover:bg-[#152347] text-white font-semibold"
+                    className="px-4 py-2 rounded-xl bg-brand-navy hover:bg-brand-deep text-white font-semibold"
                   >
                     Create Draft Master
                   </button>
@@ -1534,7 +1534,7 @@ export function CorporateAccountsPanel() {
               <p className="text-slate-600 dark:text-slate-400">
                 You are about to approve corporate account <span className="font-bold text-slate-900 dark:text-white">'{selectedAccount?.legal_name}'</span>.
               </p>
-              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] space-y-1">
+              <div className="p-3 rounded-xl bg-brand-gold-light border border-brand-gold/40 text-brand-gold-dark text-[11px] space-y-1">
                 <p className="font-bold">🔒 Segregation of Duties Enforcement:</p>
                 <p>The creator of the draft cannot approve the account. Must be executed by an authorized Super Admin.</p>
               </div>
@@ -1593,7 +1593,7 @@ export function CorporateAccountsPanel() {
                 <div className="p-4 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 text-center space-y-2">
                   <UploadCloud className="w-8 h-8 text-slate-400 mx-auto" />
                   <div>
-                    <label className="font-semibold text-indigo-600 dark:text-indigo-400 cursor-pointer hover:underline">
+                    <label className="font-semibold text-brand-primary dark:text-brand-primary cursor-pointer hover:underline">
                       <span>Click to select workbook (.xlsx)</span>
                       <input
                         type="file"
@@ -1620,7 +1620,7 @@ export function CorporateAccountsPanel() {
                 <button
                   disabled={!importFile || isValidatingImport}
                   onClick={handleValidateImport}
-                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center gap-2 disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-navy text-white font-semibold flex items-center gap-2 disabled:opacity-50"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isValidatingImport ? "animate-spin" : ""}`} />
                   {isValidatingImport ? "Executing Dry-Run..." : "Step 2: Validate Workbook (Read-Only)"}
@@ -1643,7 +1643,7 @@ export function CorporateAccountsPanel() {
                       <span className="text-[10px]">Invalid Errors</span>
                       <div className="font-bold">{validationReport.invalidRows}</div>
                     </div>
-                    <div className="p-2 rounded-lg bg-amber-50 text-amber-800">
+                    <div className="p-2 rounded-lg bg-brand-gold-light text-brand-gold-dark">
                       <span className="text-[10px]">Phone Reuses</span>
                       <div className="font-bold">{validationReport.phoneReuseCount}</div>
                     </div>
@@ -1688,7 +1688,7 @@ export function CorporateAccountsPanel() {
         {showCreditActivationModal && (
           <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 space-y-4 shadow-xl text-xs">
-              <div className="flex items-center gap-2.5 text-indigo-600">
+              <div className="flex items-center gap-2.5 text-brand-primary">
                 <CreditCard className="w-5 h-5 shrink-0" />
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                   Activate Corporate Credit (Decision Q1)
@@ -1738,7 +1738,7 @@ export function CorporateAccountsPanel() {
                 </button>
                 <button
                   onClick={handleCreditActivation}
-                  className="px-4 py-2 rounded-xl bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold"
+                  className="px-4 py-2 rounded-xl bg-brand-navy hover:bg-brand-deep text-white font-bold"
                 >
                   Authorize Credit Limit
                 </button>
@@ -1866,7 +1866,7 @@ export function CorporateAccountsPanel() {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-xl bg-[#1D2F5D] hover:bg-[#152347] text-white font-semibold"
+                    className="px-4 py-2 rounded-xl bg-brand-navy hover:bg-brand-deep text-white font-semibold"
                   >
                     Enroll Employee
                   </button>

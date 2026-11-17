@@ -273,7 +273,7 @@ export function RecoveryJourneyDrawer({ cart, isOpen, onClose, onRefresh }: Reco
           <div className="border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden">
             <div className="px-4 py-3 bg-neutral-50 dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
-                <Package className="w-3.5 h-3.5 text-amber-600" /> Cart Products ({items.length})
+                <Package className="w-3.5 h-3.5 text-brand-gold" /> Cart Products ({items.length})
               </h3>
               <span className="text-xs font-bold text-neutral-900 dark:text-white">
                 Total: ₹{Number(currentCart.cart_value || 0).toLocaleString("en-IN")}
@@ -313,10 +313,10 @@ export function RecoveryJourneyDrawer({ cart, isOpen, onClose, onRefresh }: Reco
           </div>
 
           {/* Section 3: Direct Recovery Message Dispatcher */}
-          <div className="bg-gradient-to-br from-amber-500/5 to-primary-500/5 border border-amber-200/60 dark:border-amber-900/40 p-4 rounded-xl space-y-4">
+          <div className="bg-gradient-to-br from-brand-gold/5 to-primary-500/5 border border-brand-gold/60 dark:border-brand-gold-dark/40 p-4 rounded-xl space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
-                <Send className="w-3.5 h-3.5 text-amber-600" /> Send Recovery Incentive
+              <h3 className="text-xs font-bold uppercase tracking-wider text-brand-gold-dark dark:text-brand-gold/40 flex items-center gap-1.5">
+                <Send className="w-3.5 h-3.5 text-brand-gold" /> Send Recovery Incentive
               </h3>
               <div className="flex items-center gap-1.5">
                 {(["WHATSAPP", "SMS", "EMAIL"] as const).map((ch) => (
@@ -325,7 +325,7 @@ export function RecoveryJourneyDrawer({ cart, isOpen, onClose, onRefresh }: Reco
                     onClick={() => setSelectedChannel(ch)}
                     className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-colors ${
                       selectedChannel === ch
-                        ? "bg-amber-600 text-white"
+                        ? "bg-brand-gold text-white"
                         : "bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700"
                     }`}
                   >
@@ -384,7 +384,7 @@ export function RecoveryJourneyDrawer({ cart, isOpen, onClose, onRefresh }: Reco
                 variant="primary"
                 onClick={handleSendRecovery}
                 disabled={submitting}
-                className="text-xs bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1.5"
+                className="text-xs bg-brand-gold hover:bg-brand-gold-dark text-white flex items-center gap-1.5"
               >
                 <Send className="w-3.5 h-3.5" />
                 {submitting ? "Dispatching..." : `Dispatch ${selectedChannel}`}

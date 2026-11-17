@@ -49,7 +49,7 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${checked ? "bg-[#1D2F5D] border border-[#D4AF37]/50" : "bg-ui-bg-component border border-ui-border-base"}`}
+      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${checked ? "bg-brand-navy border border-brand-gold/50" : "bg-ui-bg-component border border-ui-border-base"}`}
       aria-label={label}
     >
       <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow ${checked ? "translate-x-4" : "translate-x-0.5"}`} />
@@ -119,7 +119,7 @@ export function SectionConfigEditor({
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between pb-3 border-b border-ui-border-base">
-          <button onClick={onClose} className="text-xs font-semibold text-[#1D2F5D] hover:text-[#152347] dark:text-[#D4AF37] flex items-center gap-1">
+          <button onClick={onClose} className="text-xs font-semibold text-brand-navy hover:text-brand-deep dark:text-brand-gold flex items-center gap-1">
             ← Back to Page Settings
           </button>
           <Badge color="purple" className="text-[10px]">{section.type}</Badge>
@@ -143,7 +143,7 @@ export function SectionConfigEditor({
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between pb-3 border-b border-ui-border-base">
-          <button onClick={onClose} className="text-xs font-semibold text-[#1D2F5D] hover:text-[#152347] dark:text-[#D4AF37] flex items-center gap-1">
+          <button onClick={onClose} className="text-xs font-semibold text-brand-navy hover:text-brand-deep dark:text-brand-gold flex items-center gap-1">
             ← Back to Page Settings
           </button>
           <Badge color="purple" className="text-[10px]">{section.type}</Badge>
@@ -168,7 +168,7 @@ export function SectionConfigEditor({
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between pb-3 border-b border-ui-border-base">
-          <button onClick={onClose} className="text-xs font-semibold text-[#1D2F5D] hover:text-[#152347] dark:text-[#D4AF37] flex items-center gap-1">
+          <button onClick={onClose} className="text-xs font-semibold text-brand-navy hover:text-brand-deep dark:text-brand-gold flex items-center gap-1">
             ← Back to Page Settings
           </button>
           <Badge color="purple" className="text-[10px]">Kitchen Story / Scroll-Frame</Badge>
@@ -215,7 +215,7 @@ export function SectionConfigEditor({
     <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-ui-border-base">
-        <button onClick={onClose} className="text-xs font-semibold text-[#1D2F5D] hover:text-[#152347] dark:text-[#D4AF37] flex items-center gap-1">
+        <button onClick={onClose} className="text-xs font-semibold text-brand-navy hover:text-brand-deep dark:text-brand-gold flex items-center gap-1">
           ← Back to Page Settings
         </button>
         <Badge color="purple" className="text-[10px]">{section.type}</Badge>
@@ -241,7 +241,7 @@ export function SectionConfigEditor({
               key={tab.id}
               onClick={() => setSubTab(tab.id)}
               className={`px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1.5 whitespace-nowrap text-xs transition-all ${
-                isActive ? "bg-[#1D2F5D] text-white shadow-sm border border-[#D4AF37]/30" : "text-ui-fg-muted hover:bg-ui-bg-subtle hover:text-ui-fg-base"
+                isActive ? "bg-brand-navy text-white shadow-sm border border-brand-gold/30" : "text-ui-fg-muted hover:bg-ui-bg-subtle hover:text-ui-fg-base"
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -296,7 +296,7 @@ export function SectionConfigEditor({
 
               {(editorType === "hero_video" || editorType === "video_text") && (
                 <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
-                  <Text className="text-xs font-bold text-purple-600 uppercase">Video Settings</Text>
+                  <Text className="text-xs font-bold text-brand-primary uppercase">Video Settings</Text>
                   <Field label="Video URL (MP4 / WebM / YouTube Embed)">
                     <Input
                       value={config.video_url || ""}
@@ -329,7 +329,7 @@ export function SectionConfigEditor({
 
               {editorType === "before_after" && (
                 <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
-                  <Text className="text-xs font-bold text-amber-600 uppercase">Before & After Slider Settings</Text>
+                  <Text className="text-xs font-bold text-brand-gold uppercase">Before & After Slider Settings</Text>
                   <div className="grid grid-cols-2 gap-2">
                     <Field label="Before Image URL">
                       <Input value={config.before_image_url || ""} onChange={(e) => updateSectionConfig(section.id, "before_image_url", e.target.value)} placeholder="https://..." />
@@ -351,7 +351,7 @@ export function SectionConfigEditor({
 
               {/* Primary & Secondary CTAs */}
               <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
-                <Text className="text-xs font-bold text-[#1D2F5D] dark:text-[#D4AF37] uppercase">Call To Action Buttons</Text>
+                <Text className="text-xs font-bold text-brand-navy dark:text-brand-gold uppercase">Call To Action Buttons</Text>
                 <div className="grid grid-cols-2 gap-2">
                   <Field label="Primary CTA Text">
                     <Input
@@ -474,7 +474,7 @@ export function SectionConfigEditor({
                             const next = isSel ? cur.filter((id: string) => id !== c.id) : [...cur, c.id];
                             updateSectionConfig(section.id, "category_ids", next);
                           }}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${isSel ? "bg-[#1D2F5D] text-white border-[#1D2F5D] shadow-xs" : "bg-ui-bg-base border-ui-border-base text-ui-fg-base hover:border-[#D4AF37]"}`}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${isSel ? "bg-brand-navy text-white border-brand-navy shadow-xs" : "bg-ui-bg-base border-ui-border-base text-ui-fg-base hover:border-brand-gold"}`}
                         >
                           {c.name}
                         </button>
@@ -1012,7 +1012,7 @@ export function SectionConfigEditor({
             section.type === "category_grid" ||
             section.type === "occasions_grid") && (
             <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
-              <Text className="text-xs font-bold text-[#1D2F5D] dark:text-[#D4AF37] uppercase">Layout & Carousel Controls</Text>
+              <Text className="text-xs font-bold text-brand-navy dark:text-brand-gold uppercase">Layout & Carousel Controls</Text>
               <Field label="Display Layout">
                 <Select value={config.layout || "grid"} onValueChange={(v) => updateSectionConfig(section.id, "layout", v)}>
                   <Select.Trigger><Select.Value /></Select.Trigger>
@@ -1055,13 +1055,13 @@ export function SectionConfigEditor({
       {subTab === "responsive" && (
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between p-2 bg-ui-bg-subtle rounded-xl border border-ui-border-base">
-            <Text className="text-xs font-bold text-[#1D2F5D] dark:text-[#D4AF37]">Active Breakpoint</Text>
+            <Text className="text-xs font-bold text-brand-navy dark:text-brand-gold">Active Breakpoint</Text>
             <div className="flex items-center gap-1 bg-ui-bg-base p-0.5 rounded-lg border border-ui-border-base">
               {(["desktop", "tablet", "mobile"] as const).map((d) => (
                 <button
                   key={d}
                   onClick={() => setActiveDevice(d)}
-                  className={`px-2 py-0.5 text-[10px] font-bold rounded ${activeDevice === d ? "bg-[#1D2F5D] text-white shadow-xs" : "text-ui-fg-muted hover:text-ui-fg-base"}`}
+                  className={`px-2 py-0.5 text-[10px] font-bold rounded ${activeDevice === d ? "bg-brand-navy text-white shadow-xs" : "text-ui-fg-muted hover:text-ui-fg-base"}`}
                 >
                   {d === "desktop" ? "💻 Desktop" : d === "tablet" ? "📱 Tablet" : "📱 Mobile"}
                 </button>

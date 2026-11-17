@@ -112,7 +112,7 @@ export function RetainedEarningsRollForwardView({ branchId }: { branchId?: strin
                 id="re-start-year-select"
                 value={startYear}
                 onChange={(e) => setStartYear(e.target.value)}
-                className="py-1.5 px-3 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+                className="py-1.5 px-3 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-navy"
               >
                 {FY_OPTIONS.map((fy) => (
                   <option key={fy} value={fy}>{fy}</option>
@@ -132,7 +132,7 @@ export function RetainedEarningsRollForwardView({ branchId }: { branchId?: strin
                 id="re-end-year-select"
                 value={endYear}
                 onChange={(e) => setEndYear(e.target.value)}
-                className="py-1.5 px-3 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+                className="py-1.5 px-3 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-navy"
               >
                 {FY_OPTIONS.map((fy) => (
                   <option key={fy} value={fy}>{fy}</option>
@@ -145,7 +145,7 @@ export function RetainedEarningsRollForwardView({ branchId }: { branchId?: strin
                 type="button"
                 onClick={fetchData}
                 disabled={loading}
-                className="inline-flex items-center gap-1.5 py-1.5 px-4 text-xs font-bold text-white bg-[#1D2F5D] hover:bg-[#162447] rounded-lg transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 py-1.5 px-4 text-xs font-bold text-white bg-brand-navy hover:bg-[#162447] rounded-lg transition-colors disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
                 <span>{loading ? "Loading…" : "Roll Forward"}</span>
@@ -322,7 +322,7 @@ export function RetainedEarningsRollForwardView({ branchId }: { branchId?: strin
                           <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
                             y.is_closed
                               ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
-                              : "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                              : "bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold/40 border border-brand-gold/40 dark:border-brand-gold-dark"
                           }`}>
                             {y.is_closed ? "CLOSED" : "UNCLOSED"}
                           </span>

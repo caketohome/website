@@ -163,14 +163,14 @@ export function GstRegistrationsTab({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <Receipt className="w-5 h-5 text-amber-600" />
+            <Receipt className="w-5 h-5 text-brand-gold" />
             <Heading level="h3" className="text-base font-bold">Multi-State GST Registrations</Heading>
           </div>
           <Text className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Manage state-level GSTINs. Branches link to a GST registration based on their state to ensure compliant Place of Supply (POS) and CGST/SGST/IGST invoicing.
           </Text>
         </div>
-        <Button onClick={openCreateModal} className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1.5 shrink-0">
+        <Button onClick={openCreateModal} className="bg-brand-gold hover:bg-brand-gold-dark text-white flex items-center gap-1.5 shrink-0">
           <Plus className="w-4 h-4" /> Add GST Registration
         </Button>
       </div>
@@ -238,7 +238,7 @@ export function GstRegistrationsTab({
                         </div>
                       </td>
                       <td className="px-5 py-4">
-                        <div className="font-mono font-bold text-amber-700 dark:text-amber-400 text-sm">
+                        <div className="font-mono font-bold text-brand-gold-dark dark:text-brand-gold text-sm">
                           {reg.gstin}
                         </div>
                         <div className="text-xs text-slate-400">
@@ -268,8 +268,8 @@ export function GstRegistrationsTab({
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified
                           </div>
                         ) : (
-                          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                            <AlertCircle className="w-3 h-3 text-amber-600" /> {reg.verification_status || "UNVERIFIED"}
+                          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40 border border-brand-gold/40 dark:border-brand-gold-dark">
+                            <AlertCircle className="w-3 h-3 text-brand-gold" /> {reg.verification_status || "UNVERIFIED"}
                           </div>
                         )}
                         {reg.last_verified_at && (
@@ -319,7 +319,7 @@ export function GstRegistrationsTab({
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl p-6 flex flex-col gap-4 animate-in fade-in-50 zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <Receipt className="w-5 h-5 text-amber-600" />
+                <Receipt className="w-5 h-5 text-brand-gold" />
                 <h3 className="font-bold text-base text-slate-900 dark:text-white">
                   {editingReg ? "Edit GST Registration" : "Add State GST Registration"}
                 </h3>
@@ -466,7 +466,7 @@ export function GstRegistrationsTab({
                 <Button type="button" variant="secondary" onClick={() => setModalOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" isLoading={saving} className="bg-amber-600 hover:bg-amber-700 text-white">
+                <Button type="submit" isLoading={saving} className="bg-brand-gold hover:bg-brand-gold-dark text-white">
                   {editingReg ? "Save Changes" : "Register GSTIN"}
                 </Button>
               </div>

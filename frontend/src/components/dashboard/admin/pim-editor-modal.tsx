@@ -236,7 +236,8 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
   // SEO & AI
   const [seoTitle, setSeoTitle] = useState(product?.title ? `${product.title} - CakeToHome` : "");
   const [seoDescription, setSeoDescription] = useState(product?.description || "");
-  const [seoKeywords, setSeoKeywords] = useState("cake delivery, fresh cakes, birthday cake online");
+  const [seoKeywords, setSeoKeywords] = useState<string>(product?.seo_keywords || "");
+  const [searchKeywords, setSearchKeywords] = useState<string>(product?.search_keywords || "");
   const [aiPrompting, setAiPrompting] = useState(false);
 
   // Dynamic Product Weight Creator (Supports Continuous 1-Click Multi-Additions)
@@ -533,6 +534,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
       enable_shape_selection: enableShapeSelection,
       seo_description: seoDescription || description,
       seo_keywords: seoKeywords,
+      search_keywords: searchKeywords,
       pim_config: {
         ...pimConfig,
         inventory_mode: inventoryMode,
@@ -606,7 +608,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
             </Text>
           </div>
           <div className="flex items-center gap-2">
-            <Button size="small" variant="transparent" onClick={handleAiGenerateAll} isLoading={aiPrompting} className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 border border-purple-300 dark:border-purple-700 font-semibold opacity-100">
+            <Button size="small" variant="transparent" onClick={handleAiGenerateAll} isLoading={aiPrompting} className="bg-brand-light dark:bg-brand-navy text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy font-semibold opacity-100">
               <Wand2 className="w-3.5 h-3.5 mr-1" /> AI Auto-Fill PIM
             </Button>
             <Button size="small" variant="transparent" onClick={onClose} className="text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold">Close</Button>
@@ -747,7 +749,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
           {activeTab === "categories" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="pim_prim_cat" className="mb-1 block font-semibold text-xs text-purple-600">Primary Category * (Searchable Dropdown)</Label>
+                <Label htmlFor="pim_prim_cat" className="mb-1 block font-semibold text-xs text-brand-primary">Primary Category * (Searchable Dropdown)</Label>
                 <CategorySelectDropdown
                   categories={categories}
                   value={primaryCategoryId || primaryCategoryName}
@@ -760,7 +762,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
               </div>
 
               <div>
-                <Label htmlFor="pim_sec_cat" className="mb-1 block font-semibold text-xs text-purple-600">Secondary Categories (Multi-Select)</Label>
+                <Label htmlFor="pim_sec_cat" className="mb-1 block font-semibold text-xs text-brand-primary">Secondary Categories (Multi-Select)</Label>
                 <CategorySelectDropdown
                   categories={categories}
                   value=""
@@ -789,7 +791,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <Text className="font-bold text-base text-purple-600">Product-Specific Weight Pricing Matrix</Text>
+                  <Text className="font-bold text-base text-brand-primary">Product-Specific Weight Pricing Matrix</Text>
                   <Text className="text-xs text-ui-fg-subtle">
                     Configure independent Selling Prices, MRPs, Cost Prices, and Prep Times per weight size for "{name || 'this product'}".
                   </Text>
@@ -797,15 +799,15 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
               </div>
 
               {/* Add Dynamic Product Weight Bar */}
-              <div className="p-3 bg-purple-100 dark:bg-purple-900 border border-purple-300 dark:border-purple-700 rounded-lg flex flex-wrap items-center justify-between gap-3 opacity-100">
+              <div className="p-3 bg-brand-light dark:bg-brand-navy border border-brand-primary/30 dark:border-brand-navy rounded-lg flex flex-wrap items-center justify-between gap-3 opacity-100">
                 <div className="flex items-center gap-2">
                   <Input placeholder="e.g. 250g or 3kg" value={newWeightName} onChange={(e) => setNewWeightName(e.target.value)} className="w-36 h-8 text-xs" />
                   <Input type="number" placeholder="Price ₹" value={newWeightPrice} onChange={(e) => setNewWeightPrice(e.target.value)} className="w-28 h-8 text-xs" />
-                  <Button size="small" type="button" onClick={handleAddCustomWeight} className="bg-purple-600 hover:bg-purple-700 text-white text-xs h-8 font-semibold">
+                  <Button size="small" type="button" onClick={handleAddCustomWeight} className="bg-brand-primary hover:bg-brand-navy text-white text-xs h-8 font-semibold">
                     <Plus className="w-3.5 h-3.5 mr-1" /> Add Weight Option
                   </Button>
                 </div>
-                <Text className="text-[11px] text-purple-700 dark:text-purple-300 font-semibold">Add unlimited dynamic product sizes & prices</Text>
+                <Text className="text-[11px] text-brand-navy dark:text-brand-primary/30 font-semibold">Add unlimited dynamic product sizes & prices</Text>
               </div>
 
               {/* Weight Matrix Table */}
@@ -840,7 +842,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                                   )
                                 );
                               }}
-                              className="w-4 h-4 rounded text-purple-600"
+                              className="w-4 h-4 rounded text-brand-primary"
                             />
                           </td>
                           <td className="p-3">
@@ -864,7 +866,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                                   )
                                 );
                               }}
-                              className="w-28 h-8 text-xs font-bold text-purple-600 bg-transparent border-slate-200 dark:border-slate-700"
+                              className="w-28 h-8 text-xs font-bold text-brand-primary bg-transparent border-slate-200 dark:border-slate-700"
                             />
                           </td>
                           <td className="p-3">
@@ -990,7 +992,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                         }
                       }}
                       className={`w-full p-2.5 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-900 ${
-                        !taxConfigurationId ? "border-amber-400 bg-amber-50/20" : "border-emerald-300 dark:border-emerald-800"
+                        !taxConfigurationId ? "border-brand-gold bg-brand-gold-light/20" : "border-emerald-300 dark:border-emerald-800"
                       }`}
                     >
                       <option value="">-- Select Canonical Tax Rate (Required) --</option>
@@ -1001,7 +1003,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                       ))}
                     </select>
                     {taxConfigWarning && (
-                      <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 font-medium">
+                      <p className="text-[11px] text-brand-gold dark:text-brand-gold mt-1 font-medium">
                         ⚠️ {taxConfigWarning}
                       </p>
                     )}
@@ -1054,9 +1056,9 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
           {activeTab === "variants" && (
             <div className="space-y-6">
               {/* Real-time Dynamic Price Recalculation Engine Banner */}
-              <div className="p-4 rounded-xl bg-purple-100 dark:bg-purple-900 border border-purple-300 dark:border-purple-700 flex flex-col md:flex-row items-center justify-between gap-4 opacity-100">
+              <div className="p-4 rounded-xl bg-brand-light dark:bg-brand-navy border border-brand-primary/30 dark:border-brand-navy flex flex-col md:flex-row items-center justify-between gap-4 opacity-100">
                 <div>
-                  <Text className="font-bold text-sm text-purple-600 flex items-center gap-1.5">
+                  <Text className="font-bold text-sm text-brand-primary flex items-center gap-1.5">
                     <Sparkles className="w-4 h-4" /> Dynamic Real-Time Price Recalculation Engine
                   </Text>
                   <Text className="text-xs text-ui-fg-subtle">
@@ -1070,7 +1072,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
               </div>
 
               {/* Product Level Enable Toggles */}
-              <div className="p-4 bg-purple-50 dark:bg-purple-950/30 border rounded-xl flex flex-wrap gap-6 text-xs font-semibold">
+              <div className="p-4 bg-brand-light dark:bg-brand-navy/30 border rounded-xl flex flex-wrap gap-6 text-xs font-semibold">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -1418,17 +1420,17 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
           {activeTab === "media" && (
             <div className="space-y-6">
               {/* WebP Canvas Compression Uploader */}
-              <div className="p-4 border-2 border-dashed border-purple-300 dark:border-purple-700 rounded-xl bg-purple-100 dark:bg-purple-900 text-center flex flex-col items-center justify-center gap-2 opacity-100">
-                <Upload className="w-8 h-8 text-purple-600 animate-bounce" />
+              <div className="p-4 border-2 border-dashed border-brand-primary/30 dark:border-brand-navy rounded-xl bg-brand-light dark:bg-brand-navy text-center flex flex-col items-center justify-center gap-2 opacity-100">
+                <Upload className="w-8 h-8 text-brand-primary animate-bounce" />
                 <div>
-                  <Text className="font-bold text-sm text-purple-800 dark:text-purple-200">
+                  <Text className="font-bold text-sm text-brand-navy dark:text-brand-primary/30">
                     High-Performance Canvas WebP Image Converter
                   </Text>
                   <Text className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                     Auto-compresses uploaded product photos to lightweight WebP format (Target: 300KB - 500KB)
                   </Text>
                 </div>
-                <label className="cursor-pointer px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold shadow transition-colors flex items-center gap-1.5 mt-1">
+                <label className="cursor-pointer px-4 py-2 bg-brand-primary hover:bg-brand-navy text-white rounded-lg text-xs font-semibold shadow transition-colors flex items-center gap-1.5 mt-1">
                   <Upload className="w-4 h-4" /> Choose Photos to Compress & Upload
                   <input
                     type="file"
@@ -1439,7 +1441,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                   />
                 </label>
                 {compressing && (
-                  <Text className="text-xs text-purple-600 font-semibold animate-pulse mt-1">
+                  <Text className="text-xs text-brand-primary font-semibold animate-pulse mt-1">
                     ⚡ Converting & Compressing Images to WebP...
                   </Text>
                 )}
@@ -1510,12 +1512,12 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
 
                 {/* Delivery Profile Selection Banner */}
                 <div className="p-3 bg-white dark:bg-slate-900 border rounded-xl space-y-2">
-                  <Label htmlFor="pim_delivery_profile" className="font-bold text-xs text-purple-900 dark:text-purple-300">Assigned Reusable Delivery Profile *</Label>
+                  <Label htmlFor="pim_delivery_profile" className="font-bold text-xs text-brand-navy dark:text-brand-primary/30">Assigned Reusable Delivery Profile *</Label>
                   <select
                     id="pim_delivery_profile"
                     value={deliveryProfileId}
                     onChange={(e) => setDeliveryProfileId(e.target.value)}
-                    className="w-full p-2 text-xs font-bold rounded-lg border bg-purple-50/50 dark:bg-purple-950/30 text-purple-900 dark:text-purple-200 cursor-pointer"
+                    className="w-full p-2 text-xs font-bold rounded-lg border bg-brand-light/50 dark:bg-brand-navy/30 text-brand-navy dark:text-brand-primary/30 cursor-pointer"
                   >
                     <option value="prof_regular">Regular Cake Delivery Profile (1h Prep, Bike, 60m Slots)</option>
                     <option value="prof_designer">Designer Cake Delivery Profile (6h Prep, Car, 120m Slots)</option>
@@ -1687,6 +1689,18 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                   <Input id="seo_kw" value={seoKeywords} onChange={(e) => setSeoKeywords(e.target.value)} />
                 </div>
                 <div className="md:col-span-2">
+                  <Label htmlFor="search_kw">Search keywords</Label>
+                  <Input
+                    id="search_kw"
+                    value={searchKeywords}
+                    onChange={(e) => setSearchKeywords(e.target.value)}
+                    placeholder="e.g. chocolate, cherry, kids, eggless"
+                  />
+                  <p className="mt-1 text-xs text-brand-text-muted">
+                    Comma-separated words customers might type to find this cake, even if they are not in the name.
+                  </p>
+                </div>
+                <div className="md:col-span-2">
                   <Label htmlFor="seo_d_field">Meta Description</Label>
                   <Input id="seo_d_field" value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} />
                 </div>
@@ -1707,13 +1721,13 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
               </div>
 
               {/* Operational Inventory & Availability Model */}
-              <div className="p-4 rounded-xl border border-purple-200 dark:border-purple-900 bg-purple-50/50 dark:bg-purple-950/20 space-y-3">
+              <div className="p-4 rounded-xl border border-brand-primary/30 dark:border-brand-navy bg-brand-light/50 dark:bg-brand-navy/20 space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="font-bold text-xs text-purple-950 dark:text-purple-200 flex items-center gap-1.5">
+                    <span className="font-bold text-xs text-brand-navy dark:text-brand-primary/30 flex items-center gap-1.5">
                       📦 Product Inventory & Branch Fulfillment Model *
                     </span>
-                    <span className="text-[11px] text-purple-800 dark:text-purple-300 block mt-0.5">
+                    <span className="text-[11px] text-brand-navy dark:text-brand-primary/30 block mt-0.5">
                       CakeToHome separates physically-stocked accessories from made-to-order baked goods.
                     </span>
                   </div>
@@ -1743,7 +1757,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                     onClick={() => setInventoryMode("STOCK_CONTROLLED")}
                     className={`p-3 rounded-lg border text-left transition-all ${
                       inventoryMode === "STOCK_CONTROLLED"
-                        ? "border-purple-600 bg-purple-50 dark:bg-purple-950/50 ring-2 ring-purple-500/20"
+                        ? "border-brand-primary bg-brand-light dark:bg-brand-navy/50 ring-2 ring-brand-primary/20"
                         : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 opacity-70 hover:opacity-100"
                     }`}
                   >
@@ -1844,9 +1858,9 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                   <div className="font-bold text-sm text-slate-900 dark:text-white">{name || "Sample Cake"}</div>
                   {pimConfig.show_weight && <div className="p-2 bg-emerald-50 text-emerald-900 rounded font-semibold">✓ Size Selector Rendered</div>}
                   {pimConfig.show_shape && <div className="p-2 bg-blue-50 text-blue-900 rounded font-semibold">✓ Shape Selector Rendered</div>}
-                  {pimConfig.show_flavour && <div className="p-2 bg-amber-50 text-amber-900 rounded font-semibold">✓ Flavour Selector Rendered</div>}
-                  {pimConfig.show_filling && <div className="p-2 bg-purple-50 text-purple-900 rounded font-semibold">✓ Filling Selector Rendered</div>}
-                  {pimConfig.show_photo_cake && <div className="p-2 bg-indigo-50 text-indigo-900 rounded font-semibold">✓ Photo Cake Upload Rendered</div>}
+                  {pimConfig.show_flavour && <div className="p-2 bg-brand-gold-light text-brand-gold-dark rounded font-semibold">✓ Flavour Selector Rendered</div>}
+                  {pimConfig.show_filling && <div className="p-2 bg-brand-light text-brand-navy rounded font-semibold">✓ Filling Selector Rendered</div>}
+                  {pimConfig.show_photo_cake && <div className="p-2 bg-brand-light text-brand-navy rounded font-semibold">✓ Photo Cake Upload Rendered</div>}
                   {pimConfig.show_cake_message && <div className="p-2 bg-rose-50 text-rose-900 rounded font-semibold">✓ Cake Message Input Rendered</div>}
                 </div>
               </div>

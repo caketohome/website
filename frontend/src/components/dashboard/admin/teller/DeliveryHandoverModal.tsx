@@ -368,7 +368,7 @@ export function DeliveryHandoverModal({
                       {actualCountedAmount && !isNaN(parseFloat(actualCountedAmount)) && (
                         <div className="mt-2 text-xs">
                           {parseFloat(actualCountedAmount) < Number(selectedHandover.expected_amount) ? (
-                            <span className="text-amber-600 dark:text-amber-400 font-medium">
+                            <span className="text-brand-gold dark:text-brand-gold font-medium">
                               ⚠️ Shortage detected: {formatCurrency(Number(selectedHandover.expected_amount) - parseFloat(actualCountedAmount))}. Explanation required.
                             </span>
                           ) : parseFloat(actualCountedAmount) > Number(selectedHandover.expected_amount) ? (
@@ -472,7 +472,7 @@ export function DeliveryHandoverModal({
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                   {diff < 0 ? (
-                                    <span className="text-amber-600 font-semibold">Short ₹{Math.abs(diff).toFixed(2)}</span>
+                                    <span className="text-brand-gold font-semibold">Short ₹{Math.abs(diff).toFixed(2)}</span>
                                   ) : diff > 0 ? (
                                     <span className="text-blue-600 font-semibold">+₹{diff.toFixed(2)}</span>
                                   ) : (
@@ -480,7 +480,7 @@ export function DeliveryHandoverModal({
                                   )}
                                 </td>
                                 <td className="px-4 py-3 text-center">
-                                  <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                                  <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-semibold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold/40">
                                     Awaiting Manager Count
                                   </span>
                                 </td>

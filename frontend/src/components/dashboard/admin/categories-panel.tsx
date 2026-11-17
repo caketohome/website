@@ -232,13 +232,13 @@ export function CategoriesPanel() {
       <div className="flex items-center justify-between">
         <div>
           <Heading level="h2" className="text-xl font-bold flex items-center gap-2">
-            <FolderTree className="w-5 h-5 text-purple-600" /> Dedicated Category Management
+            <FolderTree className="w-5 h-5 text-brand-primary" /> Dedicated Category Management
           </Heading>
           <Text className="text-ui-fg-subtle text-sm">
             Manage category tree hierarchy, banners, mobile icons, branch availability, and SEO metadata.
           </Text>
         </div>
-        <Button size="small" onClick={handleOpenCreateModal} className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white">
+        <Button size="small" onClick={handleOpenCreateModal} className="flex items-center gap-1.5 bg-brand-primary hover:bg-brand-navy text-white">
           <Plus className="w-4 h-4" /> Create Category
         </Button>
       </div>
@@ -291,10 +291,10 @@ export function CategoriesPanel() {
 
       {/* Category Create/Edit Modal */}
       {showModal && (
-        <Container className="p-6 border-2 border-purple-500/30 bg-purple-50/20 dark:bg-purple-950/20">
+        <Container className="p-6 border-2 border-brand-primary/30 bg-brand-light/20 dark:bg-brand-navy/20">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <FolderTree className="w-5 h-5 text-purple-600" />
+              <FolderTree className="w-5 h-5 text-brand-primary" />
               <Text className="font-semibold text-base">{editingCategory ? `Edit Category "${editingCategory.name}"` : "Create New Category"}</Text>
             </div>
             <Button size="small" variant="transparent" onClick={() => setShowModal(false)}>Close</Button>
@@ -412,7 +412,7 @@ export function CategoriesPanel() {
                 type="submit"
                 isLoading={submitting}
                 disabled={submitting || isUploadingImage}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
+                className="bg-brand-primary hover:bg-brand-navy text-white"
               >
                 {isUploadingImage ? "Uploading Image..." : editingCategory ? "Update Category" : "Save & Register Category"}
               </Button>
@@ -441,11 +441,11 @@ export function CategoriesPanel() {
 
               return (
                 <div key={topCat.id} className="border border-ui-border-base rounded-lg bg-ui-bg-subtle/40 overflow-hidden">
-                  <div className="p-4 flex items-center justify-between hover:bg-purple-50/20 dark:hover:bg-purple-950/20 transition-colors">
+                  <div className="p-4 flex items-center justify-between hover:bg-brand-light/20 dark:hover:bg-brand-navy/20 transition-colors">
                     <div className="flex items-center gap-3">
                       {children.length > 0 ? (
                         <button type="button" onClick={() => toggleExpand(topCat.id)} className="p-1 hover:bg-ui-bg-field rounded">
-                          {isExpanded ? <ChevronDown className="w-4 h-4 text-purple-600" /> : <ChevronRight className="w-4 h-4 text-ui-fg-subtle" />}
+                          {isExpanded ? <ChevronDown className="w-4 h-4 text-brand-primary" /> : <ChevronRight className="w-4 h-4 text-ui-fg-subtle" />}
                         </button>
                       ) : (
                         <span className="w-6" />

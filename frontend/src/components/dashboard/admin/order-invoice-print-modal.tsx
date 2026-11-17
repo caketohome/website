@@ -72,7 +72,7 @@ export function OrderInvoicePrintModal({ order, invoice, onClose }: OrderInvoice
 
         {/* Visible Test Watermark Banner in Test Mode */}
         {isTestMode && (
-          <div className="bg-amber-500 text-black font-extrabold text-center py-1.5 px-4 text-xs uppercase tracking-widest border-b border-amber-600 print:block shadow-inner" id="invoice-test-watermark-banner">
+          <div className="bg-brand-gold text-black font-extrabold text-center py-1.5 px-4 text-xs uppercase tracking-widest border-b border-brand-gold print:block shadow-inner" id="invoice-test-watermark-banner">
             ⚠️ TEST — NOT A VALID TAX INVOICE (SYNTHETIC FIXTURE — NOT FOR STATUTORY FILING)
           </div>
         )}

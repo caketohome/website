@@ -45,7 +45,7 @@ export function MetricCard({ label, value, subtext, subtitle, trend, icon: Icon,
     <div className="bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md hover:border-slate-300 transition-all group">
       <div className="flex items-start justify-between">
         <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{label}</span>
-        {Icon && <Icon className="w-4 h-4 text-slate-300 group-hover:text-[#D4AF37] transition-colors" />}
+        {Icon && <Icon className="w-4 h-4 text-slate-300 group-hover:text-brand-gold transition-colors" />}
       </div>
       <div className="text-2xl font-bold text-slate-900 mt-1.5">{value}</div>
       <div className="flex items-center gap-2 mt-1">
@@ -65,11 +65,11 @@ type BadgeVariant = "success" | "warning" | "danger" | "info" | "neutral" | "gol
 
 const BADGE_STYLES: Record<BadgeVariant, string> = {
   success: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  warning: "bg-amber-50 text-amber-700 border-amber-200",
+  warning: "bg-brand-gold-light text-brand-gold-dark border-brand-gold/40",
   danger: "bg-red-50 text-red-700 border-red-200",
   info: "bg-blue-50 text-blue-700 border-blue-200",
   neutral: "bg-slate-50 text-slate-600 border-slate-200",
-  gold: "bg-[#FDF9EF] text-[#997A1E] border-[#D4AF37]/30",
+  gold: "bg-[#FDF9EF] text-[#997A1E] border-brand-gold/30",
 };
 
 interface StatusBadgeProps {
@@ -105,10 +105,10 @@ export function StatusBadge({ label, variant, status, dot = false, size = "sm" }
       {dot && (
         <span className={`w-1.5 h-1.5 rounded-full ${
           resolvedVariant === "success" ? "bg-emerald-500" :
-          resolvedVariant === "warning" ? "bg-amber-500" :
+          resolvedVariant === "warning" ? "bg-brand-gold" :
           resolvedVariant === "danger" ? "bg-red-500" :
           resolvedVariant === "info" ? "bg-blue-500" :
-          resolvedVariant === "gold" ? "bg-[#D4AF37]" :
+          resolvedVariant === "gold" ? "bg-brand-gold" :
           "bg-slate-400"
         }`} />
       )}
@@ -139,7 +139,7 @@ export function EmptyState({ icon: Icon = Inbox, title, description, action }: E
         ) : typeof action === "object" && "label" in action && "onClick" in action ? (
           <button
             onClick={(action as { label: string; onClick: () => void }).onClick}
-            className="mt-4 px-4 py-2 text-xs font-semibold text-white bg-[#1D2F5D] hover:bg-[#152347] rounded-lg transition-colors"
+            className="mt-4 px-4 py-2 text-xs font-semibold text-white bg-brand-navy hover:bg-brand-deep rounded-lg transition-colors"
           >
             {(action as { label: string; onClick: () => void }).label}
           </button>
@@ -256,10 +256,10 @@ export function ConfirmDialog({
       <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-sm w-full p-6" role="alertdialog" aria-labelledby="confirm-title">
         <div className="flex items-center gap-3 mb-3">
           <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-            variant === "danger" ? "bg-red-50" : variant === "warning" ? "bg-amber-50" : "bg-blue-50"
+            variant === "danger" ? "bg-red-50" : variant === "warning" ? "bg-brand-gold-light" : "bg-blue-50"
           }`}>
             <AlertTriangle className={`w-5 h-5 ${
-              variant === "danger" ? "text-red-500" : variant === "warning" ? "text-amber-500" : "text-blue-500"
+              variant === "danger" ? "text-red-500" : variant === "warning" ? "text-brand-gold" : "text-blue-500"
             }`} />
           </div>
           <h2 id="confirm-title" className="text-sm font-bold text-slate-900">{title}</h2>
@@ -276,7 +276,7 @@ export function ConfirmDialog({
             onClick={onConfirm}
             className={`px-4 py-2 text-xs font-semibold text-white rounded-lg transition-colors ${
               variant === "danger" ? "bg-red-600 hover:bg-red-700" :
-              variant === "warning" ? "bg-amber-600 hover:bg-amber-700" :
+              variant === "warning" ? "bg-brand-gold hover:bg-brand-gold-dark" :
               "bg-blue-600 hover:bg-blue-700"
             }`}
           >
@@ -330,7 +330,7 @@ export function Pagination({ page, totalPages, onPageChange, totalItems, pageSiz
               onClick={() => onPageChange(pageNum)}
               className={`w-7 h-7 rounded-lg text-xs font-medium transition-colors ${
                 pageNum === page
-                  ? "bg-[#1D2F5D] text-white"
+                  ? "bg-brand-navy text-white"
                   : "hover:bg-slate-100 text-slate-600"
               }`}
             >
@@ -363,7 +363,7 @@ export function FilterBar({ searchValue, onSearchChange, searchPlaceholder = "Se
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 pb-3">
       {onSearchChange && (
-        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-1.5 w-full sm:w-64 focus-within:ring-2 focus-within:ring-[#D4AF37]/30 focus-within:border-[#D4AF37] transition-all">
+        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-1.5 w-full sm:w-64 focus-within:ring-2 focus-within:ring-brand-gold/30 focus-within:border-brand-gold transition-all">
           <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
           <input
             type="text"
@@ -417,7 +417,7 @@ export function SaveBar({ show, saving, lastSaved, onSave, onCancel }: SaveBarPr
         <button
           onClick={onSave}
           disabled={saving}
-          className="px-4 py-2 text-xs font-semibold text-white bg-[#1D2F5D] hover:bg-[#152347] rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
+          className="px-4 py-2 text-xs font-semibold text-white bg-brand-navy hover:bg-brand-deep rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
         >
           {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
           Save Changes
@@ -442,7 +442,7 @@ export function Toast({ message, variant = "success", visible, onClose }: ToastP
   const styles: Record<ToastVariant, string> = {
     success: "bg-emerald-600",
     error: "bg-red-600",
-    warning: "bg-amber-600",
+    warning: "bg-brand-gold",
     info: "bg-blue-600",
   };
   const icons: Record<ToastVariant, React.ReactNode> = {
@@ -530,7 +530,7 @@ export function PrimaryButton({ children, onClick, disabled, loading, icon: Icon
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
-      className={`inline-flex items-center justify-center gap-1.5 font-semibold text-white bg-[#1D2F5D] hover:bg-[#152347] rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed
+      className={`inline-flex items-center justify-center gap-1.5 font-semibold text-white bg-brand-navy hover:bg-brand-deep rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed
         ${size === "sm" ? "px-3 py-1.5 text-[11px]" : "px-4 py-2 text-xs"}
         ${className}
       `}
@@ -565,7 +565,7 @@ export function GoldButton({ children, onClick, disabled, loading, icon: Icon, s
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
-      className={`inline-flex items-center justify-center gap-1.5 font-semibold text-[#1D2F5D] bg-[#D4AF37] hover:bg-[#C5A059] rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed
+      className={`inline-flex items-center justify-center gap-1.5 font-semibold text-brand-navy bg-brand-gold hover:bg-[#C5A059] rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed
         ${size === "sm" ? "px-3 py-1.5 text-[11px]" : "px-4 py-2 text-xs"}
         ${className}
       `}
@@ -638,7 +638,7 @@ export function FieldHelp({ children, state = "default" }: FieldHelpProps) {
   const colorMap = {
     default: "text-slate-400",
     good: "text-emerald-600",
-    warning: "text-amber-600",
+    warning: "text-brand-gold",
     danger: "text-red-600",
   };
   return <p className={`text-[11px] mt-1 ${colorMap[state]}`}>{children}</p>;
@@ -684,7 +684,7 @@ export function ResponsiveDataTable<T>({
     <div className="w-full overflow-x-auto rounded-xl border border-slate-200 bg-white">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="border-b border-slate-200 bg-[#F8FAFC]">
+          <tr className="border-b border-slate-200 bg-brand-surface-muted">
             {columns.map((c) => (
               <th
                 key={c.key}
@@ -820,7 +820,7 @@ export function AuditTimeline({ items }: { items: AuditTimelineItem[] }) {
     <div className="space-y-3 relative before:absolute before:inset-0 before:left-2.5 before:w-0.5 before:bg-slate-200">
       {items.map((it) => (
         <div key={it.id} className="relative flex items-start gap-3 pl-6">
-          <div className="absolute left-1.5 top-1.5 w-2 h-2 rounded-full bg-[#1D2F5D] ring-4 ring-white" />
+          <div className="absolute left-1.5 top-1.5 w-2 h-2 rounded-full bg-brand-navy ring-4 ring-white" />
           <div className="flex-1 text-xs">
             <div className="flex items-center justify-between gap-2">
               <span className="font-semibold text-slate-800">{it.title}</span>

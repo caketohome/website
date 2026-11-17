@@ -257,7 +257,7 @@ export function CheckoutMap({
       {loading && (
         <div className="absolute inset-0 bg-white/60 dark:bg-slate-900/60 flex items-center justify-center z-[500]">
           <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg px-4 py-2 shadow-lg">
-            <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />
+            <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
             <span className="text-sm text-slate-600 dark:text-slate-300">Checking delivery...</span>
           </div>
         </div>
@@ -266,7 +266,7 @@ export function CheckoutMap({
       {/* No location set */}
       {(!latitude || !longitude) && !loading && (
         <div className="absolute inset-0 bg-slate-50/90 dark:bg-zinc-900/90 backdrop-blur-[2px] flex flex-col items-center justify-center z-[400] p-4 text-center">
-          <div className="w-11 h-11 rounded-2xl bg-brand-gold-soft dark:bg-[#0c1326]/60 border border-[#D4AF37]/30 dark:border-[#D4AF37]/20 flex items-center justify-center text-[#1D2F5D] mb-2 shadow-sm">
+          <div className="w-11 h-11 rounded-2xl bg-brand-gold-soft dark:bg-brand-deep/60 border border-brand-gold/30 dark:border-brand-gold/20 flex items-center justify-center text-brand-navy mb-2 shadow-sm">
             <MapPin className="w-5 h-5" />
           </div>
           <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Select Your Delivery Location</p>

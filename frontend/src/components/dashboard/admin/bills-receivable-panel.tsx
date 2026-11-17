@@ -203,7 +203,7 @@ export const BillsReceivablePanel = memo(function BillsReceivablePanel() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5">
-              <div className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+              <div className="p-2.5 rounded-2xl bg-brand-primary/10 text-brand-primary dark:text-brand-primary">
                 <Receipt className="w-6 h-6" />
               </div>
               <div>
@@ -244,7 +244,7 @@ export const BillsReceivablePanel = memo(function BillsReceivablePanel() {
           <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
             <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold mb-1">
               <span>Total Invoiced (AR)</span>
-              <Layers className="w-4 h-4 text-indigo-500" />
+              <Layers className="w-4 h-4 text-brand-primary" />
             </div>
             <div className="text-2xl font-bold text-slate-900 dark:text-white">
               ₹{summary.total_receivables.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
@@ -268,11 +268,11 @@ export const BillsReceivablePanel = memo(function BillsReceivablePanel() {
           </div>
 
           <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-            <div className="flex items-center justify-between text-amber-600 dark:text-amber-400 text-xs font-semibold mb-1">
+            <div className="flex items-center justify-between text-brand-gold dark:text-brand-gold text-xs font-semibold mb-1">
               <span>Net Open AR</span>
               <Clock className="w-4 h-4" />
             </div>
-            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+            <div className="text-2xl font-bold text-brand-gold dark:text-brand-gold">
               ₹{summary.total_outstanding.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
             <div className="text-[11px] text-slate-400 mt-1">
@@ -298,13 +298,13 @@ export const BillsReceivablePanel = memo(function BillsReceivablePanel() {
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-indigo-500" />
+              <Calendar className="w-4 h-4 text-brand-primary" />
               Authoritative AR Ageing Matrix (Derived from Due Date)
             </span>
             {selectedAgeingBucket !== "ALL" && (
               <button
                 onClick={() => setSelectedAgeingBucket("ALL")}
-                className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                className="text-[11px] font-semibold text-brand-primary dark:text-brand-primary hover:underline"
               >
                 Clear Ageing Filter
               </button>
@@ -352,7 +352,7 @@ export const BillsReceivablePanel = memo(function BillsReceivablePanel() {
                   onClick={() => setSelectedAgeingBucket(isSelected ? "ALL" : (b.id as any))}
                   className={`p-3 rounded-xl border text-left transition-all ${
                     isSelected
-                      ? "ring-2 ring-indigo-500 border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30"
+                      ? "ring-2 ring-brand-primary border-brand-primary bg-brand-light/50 dark:bg-brand-navy/30"
                       : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 hover:bg-slate-100/50 dark:hover:bg-slate-800/40"
                   }`}
                 >
@@ -379,7 +379,7 @@ export const BillsReceivablePanel = memo(function BillsReceivablePanel() {
                 placeholder="Search Invoice #, Company, Order..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-primary"
               />
             </div>
 
@@ -389,7 +389,7 @@ export const BillsReceivablePanel = memo(function BillsReceivablePanel() {
               <select
                 value={selectedBranchId}
                 onChange={(e) => setSelectedBranchId(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-primary"
               >
                 <option value="">All Branches</option>
                 {branches.map((b) => (
@@ -405,7 +405,7 @@ export const BillsReceivablePanel = memo(function BillsReceivablePanel() {
               <select
                 value={selectedCustomerId}
                 onChange={(e) => setSelectedCustomerId(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-primary"
               >
                 <option value="">All Corporate Customers</option>
                 {customers.map((c) => (
@@ -425,7 +425,7 @@ export const BillsReceivablePanel = memo(function BillsReceivablePanel() {
                     onClick={() => setSelectedStatus(st)}
                     className={`px-2.5 py-1.5 text-[11px] font-bold rounded-lg transition-colors whitespace-nowrap ${
                       selectedStatus === st
-                        ? "bg-indigo-600 text-white"
+                        ? "bg-brand-primary text-white"
                         : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
                     }`}
                   >
@@ -448,7 +448,7 @@ export const BillsReceivablePanel = memo(function BillsReceivablePanel() {
                       type="checkbox"
                       checked={bills.length > 0 && selectedInvoiceIds.size === bills.length}
                       onChange={selectAllFiltered}
-                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      className="rounded border-slate-300 text-brand-primary focus:ring-brand-primary"
                     />
                   </th>
                   <th className="p-3.5">Invoice #</th>
@@ -484,7 +484,7 @@ export const BillsReceivablePanel = memo(function BillsReceivablePanel() {
                       <tr
                         key={bill.invoice_id}
                         className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors ${
-                          isSelected ? "bg-indigo-50/30 dark:bg-indigo-950/20" : ""
+                          isSelected ? "bg-brand-light/30 dark:bg-brand-navy/20" : ""
                         }`}
                       >
                         <td className="p-3.5">
@@ -492,7 +492,7 @@ export const BillsReceivablePanel = memo(function BillsReceivablePanel() {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => toggleSelectInvoice(bill.invoice_id)}
-                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            className="rounded border-slate-300 text-brand-primary focus:ring-brand-primary"
                           />
                         </td>
                         <td className="p-3.5 font-bold text-slate-900 dark:text-white">
@@ -538,7 +538,7 @@ export const BillsReceivablePanel = memo(function BillsReceivablePanel() {
                         <td className="p-3.5 text-right text-emerald-600 dark:text-emerald-400 font-semibold">
                           ₹{bill.paid_amount.toFixed(2)}
                         </td>
-                        <td className="p-3.5 text-right font-bold text-amber-600 dark:text-amber-400">
+                        <td className="p-3.5 text-right font-bold text-brand-gold dark:text-brand-gold">
                           ₹{bill.outstanding_amount.toFixed(2)}
                         </td>
                         <td className="p-3.5 text-center">
@@ -547,7 +547,7 @@ export const BillsReceivablePanel = memo(function BillsReceivablePanel() {
                               bill.status === "FULLY_RECEIVED"
                                 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-400"
                                 : bill.status === "PARTIALLY_RECEIVED"
-                                ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400"
+                                ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold"
                                 : bill.status === "OVERDUE"
                                 ? "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-400"
                                 : "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-400"
@@ -574,7 +574,7 @@ export const BillsReceivablePanel = memo(function BillsReceivablePanel() {
                                 </button>
                                 <button
                                   onClick={() => setReminderModalInvoiceId(bill.invoice_id)}
-                                  className="p-1.5 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-lg transition-colors"
+                                  className="p-1.5 text-brand-primary hover:bg-brand-light dark:hover:bg-brand-navy/40 rounded-lg transition-colors"
                                   title="Schedule Reminder"
                                 >
                                   <Bell className="w-4 h-4" />

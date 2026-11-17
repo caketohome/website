@@ -252,7 +252,7 @@ export function ProfitLossPanel() {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+              className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-navy"
             />
           </div>
           <div>
@@ -263,13 +263,13 @@ export function ProfitLossPanel() {
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+              className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-navy"
             />
           </div>
           <button
             onClick={fetchPL}
             disabled={loading}
-            className="px-4 py-1.5 text-xs font-bold text-white bg-[#1D2F5D] hover:bg-[#162447] rounded-lg transition-colors disabled:opacity-50"
+            className="px-4 py-1.5 text-xs font-bold text-white bg-brand-navy hover:bg-[#162447] rounded-lg transition-colors disabled:opacity-50"
           >
             {loading ? "Loading…" : "Generate P&L"}
           </button>
@@ -294,7 +294,7 @@ export function ProfitLossPanel() {
                 type="date"
                 value={compStartDate}
                 onChange={(e) => setCompStartDate(e.target.value)}
-                className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+                className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-navy"
               />
             </div>
             <div>
@@ -305,7 +305,7 @@ export function ProfitLossPanel() {
                 type="date"
                 value={compEndDate}
                 onChange={(e) => setCompEndDate(e.target.value)}
-                className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#1D2F5D]"
+                className="px-3 py-1.5 text-xs border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-navy"
               />
             </div>
           </div>
@@ -323,7 +323,7 @@ export function ProfitLossPanel() {
       {data && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
           {/* Report Header */}
-          <div className="bg-[#1D2F5D] px-6 py-4 text-white flex flex-wrap justify-between items-center gap-3">
+          <div className="bg-brand-navy px-6 py-4 text-white flex flex-wrap justify-between items-center gap-3">
             <div>
               <h3 className="text-sm font-bold tracking-wide">PROFIT &amp; LOSS STATEMENT</h3>
               <p className="text-[11px] text-slate-300 mt-0.5">
@@ -474,12 +474,12 @@ export function ProfitLossPanel() {
           <div className={`px-6 py-3 border-t ${
             data.reconciliation.is_reconciled
               ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800"
-              : "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
+              : "bg-brand-gold-light dark:bg-brand-gold-dark/20 border-brand-gold/40 dark:border-brand-gold-dark"
           }`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className={`inline-block w-2 h-2 rounded-full ${
-                  data.reconciliation.is_reconciled ? "bg-emerald-500" : "bg-amber-500"
+                  data.reconciliation.is_reconciled ? "bg-emerald-500" : "bg-brand-gold"
                 }`} />
                 <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
                   TB Reconciliation: {data.reconciliation.is_reconciled ? "✓ Reconciled" : "⚠ Variance Detected"}
@@ -491,7 +491,7 @@ export function ProfitLossPanel() {
                 <span>TB Derived Profit: {formatCurrency(data.reconciliation.tb_derived_profit)}</span>
                 <span>P&amp;L Net Profit: {formatCurrency(data.reconciliation.pnl_net_profit)}</span>
                 {!data.reconciliation.is_reconciled && (
-                  <span className="font-bold text-amber-600">
+                  <span className="font-bold text-brand-gold">
                     Variance: {formatCurrency(data.reconciliation.variance)}
                   </span>
                 )}
@@ -511,7 +511,7 @@ export function ProfitLossPanel() {
 function SectionHeader({ label, colSpan }: { label: string; colSpan: number }) {
   return (
     <tr>
-      <td colSpan={colSpan} className="pt-5 pb-1.5 text-xs font-bold text-[#1D2F5D] dark:text-blue-300 uppercase tracking-wide">
+      <td colSpan={colSpan} className="pt-5 pb-1.5 text-xs font-bold text-brand-navy dark:text-blue-300 uppercase tracking-wide">
         {label}
       </td>
     </tr>
@@ -587,7 +587,7 @@ function ProfitRow({
   isFinal?: boolean;
 }) {
   const bgClass = isFinal
-    ? "bg-[#1D2F5D]/5 dark:bg-[#1D2F5D]/20"
+    ? "bg-brand-navy/5 dark:bg-brand-navy/20"
     : "bg-slate-50 dark:bg-slate-800/30";
   const textClass = amount >= 0
     ? "text-emerald-700 dark:text-emerald-400"

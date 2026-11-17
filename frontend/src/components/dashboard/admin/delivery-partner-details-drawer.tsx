@@ -228,11 +228,11 @@ export function DeliveryPartnerDetailsDrawer({ partnerId, isOpen, onClose, onRef
                     <p><span className="font-bold text-slate-500">City / Pincode:</span> {partner.city} - {partner.pincode}</p>
                   </div>
 
-                  <div className="p-4 border rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 space-y-2">
-                    <span className="text-[10px] font-extrabold text-amber-700 dark:text-amber-300 uppercase tracking-wider block">EMERGENCY CONTACT</span>
-                    <p><span className="font-bold text-amber-900 dark:text-amber-200">Name:</span> {partner.emergency_contact_name || "Emergency Contact"}</p>
-                    <p><span className="font-bold text-amber-900 dark:text-amber-200">Relationship:</span> {partner.emergency_contact_relationship || "Relative"}</p>
-                    <p><span className="font-bold text-amber-900 dark:text-amber-200">Phone:</span> {partner.emergency_contact_phone || partner.phone}</p>
+                  <div className="p-4 border rounded-2xl bg-brand-gold-light/50 dark:bg-brand-gold-dark/20 space-y-2">
+                    <span className="text-[10px] font-extrabold text-brand-gold-dark dark:text-brand-gold/40 uppercase tracking-wider block">EMERGENCY CONTACT</span>
+                    <p><span className="font-bold text-brand-gold-dark dark:text-brand-gold/40">Name:</span> {partner.emergency_contact_name || "Emergency Contact"}</p>
+                    <p><span className="font-bold text-brand-gold-dark dark:text-brand-gold/40">Relationship:</span> {partner.emergency_contact_relationship || "Relative"}</p>
+                    <p><span className="font-bold text-brand-gold-dark dark:text-brand-gold/40">Phone:</span> {partner.emergency_contact_phone || partner.phone}</p>
                   </div>
                 </div>
               )}
@@ -241,7 +241,7 @@ export function DeliveryPartnerDetailsDrawer({ partnerId, isOpen, onClose, onRef
               {activeTab === "branches" && (
                 <div className="space-y-4 text-xs">
                   <div className="p-4 border rounded-2xl space-y-3">
-                    <span className="text-[10px] font-extrabold text-purple-600 uppercase tracking-wider block">PRIMARY &amp; SECONDARY ASSOCIATED KITCHEN HUBS</span>
+                    <span className="text-[10px] font-extrabold text-brand-primary uppercase tracking-wider block">PRIMARY &amp; SECONDARY ASSOCIATED KITCHEN HUBS</span>
                     <div className="space-y-2">
                       <Label>Primary Assigned Kitchen Hub</Label>
                       <Select value={editPrimaryBranch} onValueChange={(val) => setEditPrimaryBranch(val)}>
@@ -252,7 +252,7 @@ export function DeliveryPartnerDetailsDrawer({ partnerId, isOpen, onClose, onRef
                           ))}
                         </Select.Content>
                       </Select>
-                      <Button size="small" onClick={handleSaveProfileUpdates} isLoading={updating} className="mt-2 bg-purple-600 text-white">
+                      <Button size="small" onClick={handleSaveProfileUpdates} isLoading={updating} className="mt-2 bg-brand-primary text-white">
                         Update Branch Network
                       </Button>
                     </div>
@@ -351,7 +351,7 @@ export function DeliveryPartnerDetailsDrawer({ partnerId, isOpen, onClose, onRef
                     </div>
 
                     <div className="space-y-3">
-                      <p><span className="font-bold text-slate-700 dark:text-slate-300">Primary Store:</span> <span className="font-semibold text-purple-600">{partner.primary_branch_name || "Indiranagar Flagship Kitchen"}</span></p>
+                      <p><span className="font-bold text-slate-700 dark:text-slate-300">Primary Store:</span> <span className="font-semibold text-brand-primary">{partner.primary_branch_name || "Indiranagar Flagship Kitchen"}</span></p>
 
                       <div>
                         <span className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
@@ -419,9 +419,9 @@ export function DeliveryPartnerDetailsDrawer({ partnerId, isOpen, onClose, onRef
                       <span className="text-[10px] text-emerald-700 font-bold block uppercase">Successful</span>
                       <span className="text-xl font-extrabold text-emerald-800 dark:text-emerald-200">{partner.successful_deliveries || 0}</span>
                     </div>
-                    <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 text-center">
-                      <span className="text-[10px] text-amber-700 font-bold block uppercase">Rating</span>
-                      <span className="text-xl font-extrabold text-amber-800 dark:text-amber-200">⭐ {partner.rating || "5.0"}</span>
+                    <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 text-center">
+                      <span className="text-[10px] text-brand-gold-dark font-bold block uppercase">Rating</span>
+                      <span className="text-xl font-extrabold text-brand-gold-dark dark:text-brand-gold/40">⭐ {partner.rating || "5.0"}</span>
                     </div>
                     <div className="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 text-center">
                       <span className="text-[10px] text-blue-700 font-bold block uppercase">Active Workload</span>

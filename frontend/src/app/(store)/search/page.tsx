@@ -92,7 +92,7 @@ function SearchPageContent() {
                 <div className="flex justify-between items-center">
                     <Heading level="h1" className="text-2xl font-bold">Search Cakes & Gourmet Treats</Heading>
                     {isListening && (
-                        <span className="text-xs font-bold text-[#D4AF37] animate-pulse flex items-center gap-1">
+                        <span className="text-xs font-bold text-brand-gold animate-pulse flex items-center gap-1">
                             <span>🎙️</span> Listening to your voice...
                         </span>
                     )}
@@ -114,7 +114,7 @@ function SearchPageContent() {
                         aria-label="Voice Search"
                         title="Search by Voice"
                         className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition ${
-                            isListening ? "text-[#D4AF37] scale-110 animate-bounce" : "text-zinc-500 hover:text-[#D4AF37]"
+                            isListening ? "text-brand-gold scale-110 animate-bounce" : "text-zinc-500 hover:text-brand-gold"
                         }`}
                     >
                         🎙️

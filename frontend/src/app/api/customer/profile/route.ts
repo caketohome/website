@@ -4,6 +4,7 @@ import { ApiEngine } from "@frontend/lib/api-engine";
 import { persistCustomerToDb } from "@frontend/lib/db-persistence";
 import { dbQuery } from "@frontend/lib/db";
 import { resolveVerifiedCustomer } from "@frontend/lib/security/auth-session";
+import { reissueSessionToken, updateOwnProfile } from "@frontend/lib/auth/phone-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -277,6 +278,18 @@ export async function PUT(req: NextRequest) {
     );
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
     response.headers.set("X-Data-Source", "postgres");
+
+    // The login profile (public.profiles) is the source of truth for the name shown in the
+    // header and in new sessions; keep it in sync and refresh the session token.
+    if (full_name && userId) {
+      const phoneDigits = normPhone || "";
+      try {
+        await updateOwnProfile(userId, phoneDigits, { name: full_name, email: email || undefined });
+        await reissueSessionToken(response, userId, phoneDigits);
+      } catch (syncErr: any) {
+        console.warn("[Customer Profile PUT] profiles sync skipped:", syncErr?.message);
+      }
+    }
     return response;
   } catch (err: any) {
     console.error("[Customer Profile PUT Error]:", err);

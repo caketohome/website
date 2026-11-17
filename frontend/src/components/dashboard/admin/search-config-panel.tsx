@@ -66,6 +66,7 @@ export function SearchConfigPanel() {
   // New Synonym Form State
   const [newSynTerm, setNewSynTerm] = useState("");
   const [newSynList, setNewSynList] = useState("");
+  const [newSynOneWay, setNewSynOneWay] = useState(true);
 
   // New Merchandising Rule Form State
   const [newRuleName, setNewRuleName] = useState("");
@@ -171,7 +172,7 @@ export function SearchConfigPanel() {
       id: `syn_${Date.now()}`,
       term: newSynTerm.trim().toLowerCase(),
       synonyms: newSynList.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean),
-      is_bidirectional: true,
+      is_bidirectional: !newSynOneWay,
     };
 
     try {
@@ -489,7 +490,7 @@ export function SearchConfigPanel() {
                 rules.map((rule) => (
                   <div key={rule.id} className="p-4 flex items-center justify-between gap-3 hover:bg-ui-bg-subtle/50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-xl ${rule.type === "pin" ? "bg-purple-100 text-purple-700" : rule.type === "boost" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+                      <div className={`p-2 rounded-xl ${rule.type === "pin" ? "bg-brand-light text-brand-navy" : rule.type === "boost" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
                         {rule.type === "pin" ? <Pin className="w-4 h-4" /> : rule.type === "boost" ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
                       </div>
                       <div className="flex flex-col">
@@ -604,19 +605,27 @@ export function SearchConfigPanel() {
         <div className="flex flex-col gap-5">
           {/* Create Synonym Form */}
           <form onSubmit={handleCreateSynonym} className="p-4 bg-ui-bg-subtle rounded-2xl border border-ui-border-base flex flex-col gap-3">
-            <Text className="text-xs font-bold text-rose-600 uppercase">Add Search Synonym Mapping</Text>
+            <Text className="text-xs font-bold text-brand-navy uppercase">Add keyword mapping</Text>
+            <Text className="text-xs text-brand-text-muted">
+              When a customer searches the keyword, products matching any of the mapped words are shown too.
+              Example: keyword <b>chocolate</b> → <b>black forest, truffle, ferrero</b>.
+            </Text>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="flex flex-col gap-1">
-                <Label className="text-xs font-semibold">User Search Term / Abbreviation</Label>
-                <Input value={newSynTerm} onChange={(e) => setNewSynTerm(e.target.value)} placeholder="e.g. choc, bday, redvelvet" />
+                <Label className="text-xs font-semibold">Customer searches</Label>
+                <Input value={newSynTerm} onChange={(e) => setNewSynTerm(e.target.value)} placeholder="e.g. chocolate" />
               </div>
               <div className="flex flex-col gap-1">
-                <Label className="text-xs font-semibold">Expanded Synonyms (comma separated)</Label>
-                <Input value={newSynList} onChange={(e) => setNewSynList(e.target.value)} placeholder="e.g. chocolate, truffle, cocoa" />
+                <Label className="text-xs font-semibold">Also show products matching (comma separated)</Label>
+                <Input value={newSynList} onChange={(e) => setNewSynList(e.target.value)} placeholder="e.g. black forest, truffle, ferrero" />
+                <label className="mt-1 flex items-center gap-2 text-xs text-brand-text">
+                  <input type="checkbox" checked={newSynOneWay} onChange={(e) => setNewSynOneWay(e.target.checked)} />
+                  One-way (searching "black forest" won&apos;t show all chocolate cakes)
+                </label>
               </div>
               <div className="flex items-end">
                 <Button type="submit" variant="primary" className="w-full font-bold">
-                  <Plus className="w-4 h-4 mr-1" /> Add Synonym
+                  <Plus className="w-4 h-4 mr-1" /> Add mapping
                 </Button>
               </div>
             </div>
@@ -634,7 +643,7 @@ export function SearchConfigPanel() {
                         <span className="font-mono text-xs font-bold text-ui-fg-base bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-md">
                           "{syn.term}"
                         </span>
-                        <span className="text-xs text-ui-fg-muted">⇄</span>
+                        <span className="text-xs text-ui-fg-muted" title={syn.is_bidirectional ? "Two-way" : "One-way"}>{syn.is_bidirectional ? "⇄" : "→"}</span>
                         <div className="flex flex-wrap gap-1">
                           {syn.synonyms.map((s, si) => (
                             <span key={si} className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200">
@@ -674,7 +683,7 @@ export function SearchConfigPanel() {
             </div>
             <div className="p-4 bg-ui-bg-base border border-ui-border-base rounded-2xl flex flex-col gap-1 shadow-xs">
               <span className="text-[11px] font-bold text-ui-fg-muted uppercase">Zero-Result Queries</span>
-              <span className="text-2xl font-black text-amber-600">{analytics?.zeroResultCount || 0}</span>
+              <span className="text-2xl font-black text-brand-gold">{analytics?.zeroResultCount || 0}</span>
             </div>
             <div className="p-4 bg-ui-bg-base border border-ui-border-base rounded-2xl flex flex-col gap-1 shadow-xs">
               <span className="text-[11px] font-bold text-ui-fg-muted uppercase">Zero-Result Rate</span>
@@ -699,7 +708,7 @@ export function SearchConfigPanel() {
             </div>
 
             <div className="border border-ui-border-base rounded-2xl overflow-hidden bg-ui-bg-base shadow-sm">
-              <div className="p-3 bg-ui-bg-subtle border-b border-ui-border-base text-xs font-bold text-amber-600">
+              <div className="p-3 bg-ui-bg-subtle border-b border-ui-border-base text-xs font-bold text-brand-gold">
                 ⚠️ Top Zero-Result Queries (Opportunities)
               </div>
               <div className="divide-y divide-ui-border-base max-h-72 overflow-y-auto">

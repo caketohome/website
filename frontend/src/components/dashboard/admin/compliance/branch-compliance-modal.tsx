@@ -123,7 +123,7 @@ export function BranchComplianceModal({
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
           <div>
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-amber-600" />
+              <ShieldCheck className="w-5 h-5 text-brand-gold" />
               <h3 className="font-bold text-base text-slate-900 dark:text-white">
                 Branch Compliance: {branch.name}
               </h3>
@@ -144,7 +144,7 @@ export function BranchComplianceModal({
             onClick={() => setActiveSubTab("fssai")}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
               activeSubTab === "fssai"
-                ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30"
+                ? "bg-brand-gold/10 text-brand-gold-dark dark:text-brand-gold border border-brand-gold/30"
                 : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
@@ -155,7 +155,7 @@ export function BranchComplianceModal({
             onClick={() => setActiveSubTab("gst")}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
               activeSubTab === "gst"
-                ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30"
+                ? "bg-brand-gold/10 text-brand-gold-dark dark:text-brand-gold border border-brand-gold/30"
                 : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
@@ -166,7 +166,7 @@ export function BranchComplianceModal({
             onClick={() => setActiveSubTab("docs")}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
               activeSubTab === "docs"
-                ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30"
+                ? "bg-brand-gold/10 text-brand-gold-dark dark:text-brand-gold border border-brand-gold/30"
                 : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
@@ -314,7 +314,7 @@ export function BranchComplianceModal({
                 <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col gap-2 text-xs">
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500 font-medium">Selected GSTIN:</span>
-                    <span className="font-mono font-bold text-amber-700 dark:text-amber-400 text-sm">{selectedGst.gstin}</span>
+                    <span className="font-mono font-bold text-brand-gold-dark dark:text-brand-gold text-sm">{selectedGst.gstin}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500 font-medium">State & Code:</span>
@@ -357,7 +357,7 @@ export function BranchComplianceModal({
                     onChange={(e) => setNewDocName(e.target.value)}
                     className="text-xs"
                   />
-                  <Button type="button" size="small" onClick={handleAddDocument} className="bg-amber-600 hover:bg-amber-700 text-white text-xs">
+                  <Button type="button" size="small" onClick={handleAddDocument} className="bg-brand-gold hover:bg-brand-gold-dark text-white text-xs">
                     <UploadCloud className="w-3.5 h-3.5 mr-1" /> Add Record
                   </Button>
                 </div>
@@ -373,7 +373,7 @@ export function BranchComplianceModal({
                   documents.map((doc, idx) => (
                     <div key={idx} className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-800/40 rounded-lg text-xs border border-slate-200 dark:border-slate-700">
                       <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-amber-600" />
+                        <FileText className="w-4 h-4 text-brand-gold" />
                         <div>
                           <span className="font-semibold text-slate-800 dark:text-slate-200">{doc.file_name}</span>
                           <span className="text-[11px] text-slate-400 ml-2">({doc.document_type})</span>
@@ -392,7 +392,7 @@ export function BranchComplianceModal({
             <Button type="button" variant="secondary" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" isLoading={saving} className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1.5">
+            <Button type="submit" isLoading={saving} className="bg-brand-gold hover:bg-brand-gold-dark text-white flex items-center gap-1.5">
               <Save className="w-4 h-4" /> Save Branch Compliance
             </Button>
           </div>

@@ -65,17 +65,17 @@ export function ReviewsSection() {
   return (
     <div className="flex flex-col gap-6">
       {/* AI Sentiment Summary Box */}
-      <Container className="p-6 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border-2 border-amber-500/30">
+      <Container className="p-6 bg-gradient-to-br from-brand-gold/10 via-brand-gold/5 to-transparent border-2 border-brand-gold/30">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="text-center p-3 bg-amber-500 text-slate-950 rounded-xl font-bold">
+            <div className="text-center p-3 bg-brand-gold text-slate-950 rounded-xl font-bold">
               <span className="text-2xl block">4.9</span>
               <span className="text-[10px] uppercase font-mono">Out of 5</span>
             </div>
             <div>
-              <div className="flex items-center gap-1 text-amber-500 mb-1">
+              <div className="flex items-center gap-1 text-brand-gold mb-1">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-amber-500" />
+                  <Star key={i} className="w-4 h-4 fill-brand-gold" />
                 ))}
                 <span className="text-xs font-bold text-ui-fg-base ml-2">Based on 1,428 Customer Reviews</span>
               </div>
@@ -85,15 +85,15 @@ export function ReviewsSection() {
             </div>
           </div>
 
-          <Button size="small" onClick={() => setShowAddReview(true)} className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1.5 shrink-0">
+          <Button size="small" onClick={() => setShowAddReview(true)} className="bg-brand-navy hover:bg-brand-primary text-white flex items-center gap-1.5 shrink-0">
             <Plus className="w-4 h-4" /> Write a Review
           </Button>
         </div>
 
         {/* AI Sentiment Highlights */}
-        <div className="mt-4 pt-4 border-t border-amber-500/20 flex flex-wrap gap-2 text-xs">
+        <div className="mt-4 pt-4 border-t border-brand-gold/20 flex flex-wrap gap-2 text-xs">
           <span className="font-semibold text-ui-fg-subtle flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" /> AI Sentiment Highlights:
+            <Sparkles className="w-3.5 h-3.5 text-brand-gold" /> AI Sentiment Highlights:
           </span>
           <Badge color="green"> Moist & Fresh Sponge (99%)</Badge>
           <Badge color="green"> Express On-Time Delivery (98%)</Badge>
@@ -104,7 +104,7 @@ export function ReviewsSection() {
 
       {/* Add Review Form Modal */}
       {showAddReview && (
-        <Container className="p-6 border-2 border-amber-500/40 bg-amber-50/20 dark:bg-amber-950/20">
+        <Container className="p-6 border-2 border-brand-gold/40 bg-brand-gold-light/20 dark:bg-brand-gold-dark/20">
           <div className="flex items-center justify-between mb-4">
             <Text className="font-semibold text-base">Write Your Verified Customer Review</Text>
             <button onClick={() => setShowAddReview(false)} className="text-xs text-ui-fg-subtle hover:underline">Close</button>
@@ -133,7 +133,7 @@ export function ReviewsSection() {
 
             <div className="flex items-center justify-end gap-3">
               <Button type="button" variant="secondary" onClick={() => setShowAddReview(false)}>Cancel</Button>
-              <Button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white">
+              <Button type="submit" className="bg-brand-navy hover:bg-brand-primary text-white">
                 Submit Verified Review
               </Button>
             </div>
@@ -171,9 +171,9 @@ export function ReviewsSection() {
               <Text className="text-xs text-ui-fg-subtle">{r.date}</Text>
             </div>
 
-            <div className="flex items-center gap-1 text-amber-500">
+            <div className="flex items-center gap-1 text-brand-gold">
               {[...Array(r.rating)].map((_, i) => (
-                <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />
+                <Star key={i} className="w-3.5 h-3.5 fill-brand-gold" />
               ))}
             </div>
 

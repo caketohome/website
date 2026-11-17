@@ -54,7 +54,7 @@ export function IntegrationsTab({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <Plug className="w-5 h-5 text-amber-600" />
+            <Plug className="w-5 h-5 text-brand-gold" />
             <Heading level="h3" className="text-base font-bold">Third-Party Compliance & API Integrations</Heading>
           </div>
           <Text className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -64,7 +64,7 @@ export function IntegrationsTab({
         <Button
           type="submit"
           isLoading={saving}
-          className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1.5 shrink-0"
+          className="bg-brand-gold hover:bg-brand-gold-dark text-white flex items-center gap-1.5 shrink-0"
         >
           <Save className="w-4 h-4" /> Save Integration Config
         </Button>
@@ -75,7 +75,7 @@ export function IntegrationsTab({
         <Container className="p-5 flex flex-col gap-4">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-amber-600" />
+              <ShieldCheck className="w-4 h-4 text-brand-gold" />
               <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
                 GSTIN Verification Provider
               </Text>
@@ -110,7 +110,7 @@ export function IntegrationsTab({
                 type="checkbox"
                 checked={formData.gst_api_configured}
                 onChange={(e) => setFormData({ ...formData, gst_api_configured: e.target.checked })}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                className="w-4 h-4 rounded text-brand-gold focus:ring-brand-gold"
               />
             </label>
           </div>
@@ -120,7 +120,7 @@ export function IntegrationsTab({
         <Container className="p-5 flex flex-col gap-4">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-amber-600" />
+              <ShieldCheck className="w-4 h-4 text-brand-gold" />
               <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
                 FSSAI / FoSCoS Verification Provider
               </Text>
@@ -154,7 +154,7 @@ export function IntegrationsTab({
                 type="checkbox"
                 checked={formData.fssai_api_configured}
                 onChange={(e) => setFormData({ ...formData, fssai_api_configured: e.target.checked })}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                className="w-4 h-4 rounded text-brand-gold focus:ring-brand-gold"
               />
             </label>
           </div>
@@ -164,8 +164,8 @@ export function IntegrationsTab({
         <Container className="p-5 flex flex-col gap-4 lg:col-span-2 bg-slate-900 text-white border-slate-800">
           <div className="flex items-center justify-between pb-2 border-b border-slate-800">
             <div className="flex items-center gap-2">
-              <Plug className="w-4 h-4 text-purple-400" />
-              <Text className="text-xs font-bold uppercase tracking-wider text-purple-300">
+              <Plug className="w-4 h-4 text-brand-primary" />
+              <Text className="text-xs font-bold uppercase tracking-wider text-brand-primary/30">
                 n8n Automation &amp; Transactional Webhook Outbox
               </Text>
             </div>
@@ -184,7 +184,7 @@ export function IntegrationsTab({
             </div>
             <a
               href="?tab=webhooks"
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg shrink-0 flex items-center gap-1.5 transition-colors"
+              className="px-4 py-2 bg-brand-primary hover:bg-brand-navy text-white text-xs font-semibold rounded-lg shrink-0 flex items-center gap-1.5 transition-colors"
             >
               <Plug className="w-3.5 h-3.5" /> Manage n8n Webhooks &rarr;
             </a>

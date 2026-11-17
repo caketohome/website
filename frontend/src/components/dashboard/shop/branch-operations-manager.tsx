@@ -41,6 +41,7 @@ import OrderDetailsDrawer from "./order-details-drawer";
 import KotModal from "./kot-modal";
 import InvoiceModal from "./invoice-modal";
 import AssignRiderModal from "./assign-rider-modal";
+import { SameDayOrderAlarm, todayIST } from "./same-day-order-alarm";
 import { authLogout } from "@frontend/lib/auth-service";
 import {
   LogOut,
@@ -102,6 +103,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("ALL");
+  const [deliveryDateFilter, setDeliveryDateFilter] = useState<string>("all"); // "all" | YYYY-MM-DD
   const [reportRange, setReportRange] = useState("today");
 
   // ── Tab 3: Purchases & GRN State ────────────────────────────────────────────
@@ -215,6 +217,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
           status: statusFilter,
           search: searchQuery,
           priority: priorityFilter !== "ALL" ? priorityFilter : "",
+          pageSize: "100",
         }).catch(() => ({ orders: [] })),
         fetchBranchNotifications().catch(() => ({ notifications: [] })),
         fetchBranchCashPosition().catch(() => null),
@@ -244,7 +247,14 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
 
   useEffect(() => {
     loadDashboardData();
+    const t = setInterval(loadDashboardData, 20_000);
+    return () => clearInterval(t);
   }, [loadDashboardData]);
+
+  const visibleOrders = useMemo(
+    () => (deliveryDateFilter === "all" ? orders : orders.filter((o) => String(o.delivery_date || "").slice(0, 10) === deliveryDateFilter)),
+    [orders, deliveryDateFilter]
+  );
 
   // ── Tab-Specific Data Loader ────────────────────────────────────────────────
   useEffect(() => {
@@ -392,16 +402,17 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-20">
+      <SameDayOrderAlarm onAccepted={loadDashboardData} />
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {/* ── TOP OPERATIONAL HEADER & STATUS CONTROLS ────────────────────────── */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-brand-border dark:border-zinc-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white">
+            <h1 className="text-2xl font-black tracking-tight text-brand-navy dark:text-white">
               {branch.name}
             </h1>
-            <span className="px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-xs font-mono font-bold text-zinc-600 dark:text-zinc-300">
+            <span className="px-2.5 py-1 rounded-lg bg-brand-surface-muted dark:bg-zinc-800 text-xs font-mono font-bold text-brand-text-muted dark:text-zinc-300">
               {branch.code}
             </span>
             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
@@ -409,24 +420,24 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               Connected (Live Branch Scope)
             </span>
           </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            Manager: <b className="text-zinc-700 dark:text-zinc-200">{branch.manager_name}</b> • Operational Storefront & Fulfillment Engine
+          <p className="text-xs text-brand-text-muted dark:text-zinc-400 mt-1">
+            Manager: <b className="text-brand-text dark:text-zinc-200">{branch.manager_name}</b> • Operational Storefront & Fulfillment Engine
           </p>
         </div>
 
         {/* Branch Mode Switcher & Logout */}
         <div className="relative flex items-center gap-3">
           <div className="text-right">
-            <p className="text-[10px] uppercase font-bold text-zinc-400">Branch Mode</p>
+            <p className="text-[10px] uppercase font-bold text-brand-text-muted">Branch Mode</p>
             <p className="text-xs font-bold">
               {branch.is_paused ? (
-                <span className="text-amber-600 dark:text-amber-400">
+                <span className="text-brand-gold dark:text-brand-gold">
                   ⏸ Paused ({branch.pause_remaining_minutes || 0}m left)
                 </span>
               ) : branch.is_open ? (
                 <span className="text-emerald-600 dark:text-emerald-400">🟢 OPEN & Operating</span>
               ) : (
-                <span className="text-rose-600 dark:text-rose-400">🔴 CLOSED</span>
+                <span className="text-brand-primary dark:text-rose-400">🔴 CLOSED</span>
               )}
             </p>
           </div>
@@ -441,37 +452,37 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
             </button>
 
             {pauseMenuOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-700 py-2 z-30 animate-in fade-in">
+              <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-brand-border dark:border-zinc-700 py-2 z-30 animate-in fade-in">
                 <button
                   onClick={() => handleStatusChange("OPEN")}
                   className="w-full px-4 py-2 text-left text-xs font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 flex items-center gap-2"
                 >
                   🟢 Set Status: OPEN
                 </button>
-                <div className="border-t border-zinc-100 dark:border-zinc-700 my-1" />
-                <p className="px-4 py-1 text-[10px] font-bold uppercase text-zinc-400">Pause Incoming Orders</p>
+                <div className="border-t border-brand-border dark:border-zinc-700 my-1" />
+                <p className="px-4 py-1 text-[10px] font-bold uppercase text-brand-text-muted">Pause Incoming Orders</p>
                 <button
                   onClick={() => handleStatusChange("PAUSED", 15)}
-                  className="w-full px-4 py-1.5 text-left text-xs text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2"
+                  className="w-full px-4 py-1.5 text-left text-xs text-brand-text dark:text-zinc-200 hover:bg-brand-surface-muted dark:hover:bg-zinc-700 flex items-center gap-2"
                 >
                   ⏸ Pause for 15 Minutes
                 </button>
                 <button
                   onClick={() => handleStatusChange("PAUSED", 30)}
-                  className="w-full px-4 py-1.5 text-left text-xs text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2"
+                  className="w-full px-4 py-1.5 text-left text-xs text-brand-text dark:text-zinc-200 hover:bg-brand-surface-muted dark:hover:bg-zinc-700 flex items-center gap-2"
                 >
                   ⏸ Pause for 30 Minutes
                 </button>
                 <button
                   onClick={() => handleStatusChange("PAUSED", 60)}
-                  className="w-full px-4 py-1.5 text-left text-xs text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center gap-2"
+                  className="w-full px-4 py-1.5 text-left text-xs text-brand-text dark:text-zinc-200 hover:bg-brand-surface-muted dark:hover:bg-zinc-700 flex items-center gap-2"
                 >
                   ⏸ Pause for 60 Minutes
                 </button>
-                <div className="border-t border-zinc-100 dark:border-zinc-700 my-1" />
+                <div className="border-t border-brand-border dark:border-zinc-700 my-1" />
                 <button
                   onClick={() => handleStatusChange("CLOSED")}
-                  className="w-full px-4 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2"
+                  className="w-full px-4 py-2 text-left text-xs font-semibold text-brand-primary hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2"
                 >
                   🔴 Set Status: CLOSED
                 </button>
@@ -481,7 +492,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
 
           <button
             onClick={() => authLogout({ redirectUrl: "/dashboard/shop/login" })}
-            className="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60 text-xs font-bold flex items-center gap-1.5 border border-rose-200 dark:border-rose-900/50 shadow-sm transition shrink-0"
+            className="px-3.5 py-2 rounded-xl bg-brand-light hover:bg-rose-100 text-brand-primary dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60 text-xs font-bold flex items-center gap-1.5 border border-brand-primary/20 dark:border-rose-900/50 shadow-sm transition shrink-0"
             title="Sign out of Branch Manager panel"
           >
             <LogOut className="w-3.5 h-3.5" />
@@ -493,7 +504,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {/* ── 7 BOUNDED NAVIGATION TABS ───────────────────────────────────────── */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
-      <div className="flex border-b border-zinc-200 dark:border-zinc-800 gap-2 overflow-x-auto pb-1 text-sm font-semibold">
+      <div className="flex border-b border-brand-border dark:border-zinc-800 gap-2 overflow-x-auto pb-1 text-sm font-semibold">
         {[
           { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
           { id: "orders", label: "Orders & Fulfillment", icon: ShoppingBag, count: orders.length },
@@ -511,8 +522,8 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               onClick={() => setActiveTab(tab.id as ManagerTab)}
               className={`px-4 py-2.5 rounded-xl transition whitespace-nowrap flex items-center gap-2 ${
                 isActive
-                  ? "bg-rose-600 text-white shadow-sm font-bold"
-                  : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  ? "bg-brand-navy text-white shadow-sm font-bold"
+                  : "text-brand-text-muted dark:text-zinc-400 hover:bg-brand-surface-muted dark:hover:bg-zinc-800"
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -520,14 +531,14 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               {tab.count !== undefined && tab.count > 0 && (
                 <span
                   className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                    isActive ? "bg-white/20 text-white" : "bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300"
+                    isActive ? "bg-white/20 text-white" : "bg-zinc-200 dark:bg-zinc-700 text-brand-text dark:text-zinc-300"
                   }`}
                 >
                   {tab.count}
                 </span>
               )}
               {tab.alert && (
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-brand-gold animate-ping" />
               )}
             </button>
           );
@@ -541,21 +552,21 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
         <div className="space-y-6">
           {/* Operational Control Warnings */}
           {cashPosition?.drawer_status === "CLOSED" && (
-            <div className="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-2xl border border-amber-200 dark:border-amber-900/60 flex items-center justify-between">
+            <div className="p-4 bg-brand-gold-light dark:bg-brand-gold-dark/40 rounded-2xl border border-brand-gold/40 dark:border-brand-gold-dark/60 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+                <AlertTriangle className="w-5 h-5 text-brand-gold dark:text-brand-gold shrink-0" />
                 <div>
-                  <h4 className="font-bold text-sm text-amber-900 dark:text-amber-200">
+                  <h4 className="font-bold text-sm text-brand-gold-dark dark:text-brand-gold/40">
                     Day Opening Drawer Float Pending
                   </h4>
-                  <p className="text-xs text-amber-700 dark:text-amber-300">
+                  <p className="text-xs text-brand-gold-dark dark:text-brand-gold/40">
                     Record your operational cash drawer float before counter sales reconciliation begins. (Physical drawer count only — does not alter GL 1111).
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setActiveTab("cash")}
-                className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm transition shrink-0"
+                className="px-3.5 py-1.5 rounded-xl bg-brand-gold hover:bg-brand-gold-dark text-white text-xs font-bold shadow-sm transition shrink-0"
               >
                 Open Drawer →
               </button>
@@ -563,21 +574,21 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
           )}
 
           {kpis.low_stock_items > 0 && (
-            <div className="p-4 bg-rose-50 dark:bg-rose-950/40 rounded-2xl border border-rose-200 dark:border-rose-900/60 flex items-center justify-between">
+            <div className="p-4 bg-brand-light dark:bg-rose-950/40 rounded-2xl border border-brand-primary/20 dark:border-rose-900/60 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <ShieldAlert className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
+                <ShieldAlert className="w-5 h-5 text-brand-primary dark:text-rose-400 shrink-0" />
                 <div>
                   <h4 className="font-bold text-sm text-rose-900 dark:text-rose-200">
                     {kpis.low_stock_items} Inventory Items Below Minimum Threshold
                   </h4>
-                  <p className="text-xs text-rose-700 dark:text-rose-300">
+                  <p className="text-xs text-brand-primary dark:text-rose-300">
                     Accessories, packaging, or cake ingredients require stock reordering to prevent order fulfillment disruption.
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setActiveTab("inventory")}
-                className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm transition shrink-0"
+                className="px-3.5 py-1.5 rounded-xl bg-brand-navy hover:bg-brand-primary text-white text-xs font-bold shadow-sm transition shrink-0"
               >
                 View Stock →
               </button>
@@ -586,16 +597,16 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
 
           {/* 10 Operational KPIs */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-              <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Today&apos;s Orders</span>
-              <p className="text-2xl font-black text-zinc-900 dark:text-white mt-1">{kpis.todays_orders}</p>
-              <span className="text-[10px] text-zinc-500">Live Branch Queue</span>
+            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-border dark:border-zinc-800 shadow-sm">
+              <span className="text-[11px] font-bold text-brand-text-muted uppercase tracking-wider">Today&apos;s Orders</span>
+              <p className="text-2xl font-black text-brand-navy dark:text-white mt-1">{kpis.todays_orders}</p>
+              <span className="text-[10px] text-brand-text-muted">Live Branch Queue</span>
             </div>
 
-            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-amber-200 dark:border-amber-900/50 shadow-sm bg-amber-50/20">
-              <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Pending Acceptance</span>
-              <p className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{kpis.pending_orders}</p>
-              <span className="text-[10px] text-amber-600/70">Action Required</span>
+            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-gold/40 dark:border-brand-gold-dark/50 shadow-sm bg-brand-gold-light/20">
+              <span className="text-[11px] font-bold text-brand-gold dark:text-brand-gold uppercase tracking-wider">Pending Acceptance</span>
+              <p className="text-2xl font-black text-brand-gold dark:text-brand-gold mt-1">{kpis.pending_orders}</p>
+              <span className="text-[10px] text-brand-gold/70">Action Required</span>
             </div>
 
             <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-blue-200 dark:border-blue-900/50 shadow-sm bg-blue-50/20">
@@ -604,16 +615,16 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               <span className="text-[10px] text-blue-600/70">In Kitchen</span>
             </div>
 
-            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-purple-200 dark:border-purple-900/50 shadow-sm bg-purple-50/20">
-              <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Ready for Pickup</span>
-              <p className="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">{kpis.ready_orders}</p>
-              <span className="text-[10px] text-purple-600/70">Packed & Staged</span>
+            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-primary/30 dark:border-brand-navy/50 shadow-sm bg-brand-light/20">
+              <span className="text-[11px] font-bold text-brand-primary dark:text-brand-primary uppercase tracking-wider">Ready for Pickup</span>
+              <p className="text-2xl font-black text-brand-primary dark:text-brand-primary mt-1">{kpis.ready_orders}</p>
+              <span className="text-[10px] text-brand-primary/70">Packed & Staged</span>
             </div>
 
-            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-cyan-200 dark:border-cyan-900/50 shadow-sm bg-cyan-50/20">
-              <span className="text-[11px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider">Out for Delivery</span>
-              <p className="text-2xl font-black text-cyan-600 dark:text-cyan-400 mt-1">{kpis.in_transit_orders}</p>
-              <span className="text-[10px] text-cyan-600/70">With Riders</span>
+            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-primary/30 dark:border-brand-navy/50 shadow-sm bg-brand-light/20">
+              <span className="text-[11px] font-bold text-brand-primary dark:text-brand-primary uppercase tracking-wider">Out for Delivery</span>
+              <p className="text-2xl font-black text-brand-primary dark:text-brand-primary mt-1">{kpis.in_transit_orders}</p>
+              <span className="text-[10px] text-brand-primary/70">With Riders</span>
             </div>
 
             <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-emerald-200 dark:border-emerald-900/50 shadow-sm bg-emerald-50/20">
@@ -622,41 +633,41 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               <span className="text-[10px] text-emerald-600/70">Fulfilled</span>
             </div>
 
-            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-rose-200 dark:border-rose-900/50 shadow-sm bg-rose-50/20">
-              <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Cancelled Orders</span>
-              <p className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{kpis.cancelled_orders}</p>
-              <span className="text-[10px] text-rose-600/70">Today</span>
+            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-primary/20 dark:border-rose-900/50 shadow-sm bg-brand-light">
+              <span className="text-[11px] font-bold text-brand-primary dark:text-rose-400 uppercase tracking-wider">Cancelled Orders</span>
+              <p className="text-2xl font-black text-brand-primary dark:text-rose-400 mt-1">{kpis.cancelled_orders}</p>
+              <span className="text-[10px] text-brand-primary/70">Today</span>
             </div>
 
-            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-orange-200 dark:border-orange-900/50 shadow-sm bg-orange-50/20">
-              <span className="text-[11px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">Delayed Deliveries</span>
-              <p className="text-2xl font-black text-orange-600 dark:text-orange-400 mt-1">{kpis.delayed_orders}</p>
-              <span className="text-[10px] text-orange-600/70">Alert Active</span>
+            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-gold/40 dark:border-brand-gold-dark/50 shadow-sm bg-brand-gold-light/20">
+              <span className="text-[11px] font-bold text-brand-gold dark:text-brand-gold uppercase tracking-wider">Delayed Deliveries</span>
+              <p className="text-2xl font-black text-brand-gold dark:text-brand-gold mt-1">{kpis.delayed_orders}</p>
+              <span className="text-[10px] text-brand-gold/70">Alert Active</span>
             </div>
 
-            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-              <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Online Riders</span>
-              <p className="text-2xl font-black text-zinc-900 dark:text-white mt-1">{kpis.online_riders}</p>
-              <span className="text-[10px] text-zinc-500">Active Partner Fleet</span>
+            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-border dark:border-zinc-800 shadow-sm">
+              <span className="text-[11px] font-bold text-brand-text-muted uppercase tracking-wider">Online Riders</span>
+              <p className="text-2xl font-black text-brand-navy dark:text-white mt-1">{kpis.online_riders}</p>
+              <span className="text-[10px] text-brand-text-muted">Active Partner Fleet</span>
             </div>
 
-            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-rose-200 dark:border-rose-900/50 shadow-sm bg-rose-50/20">
-              <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Low Stock Items</span>
-              <p className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{kpis.low_stock_items}</p>
-              <span className="text-[10px] text-rose-600/70">Reorder Alert</span>
+            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-primary/20 dark:border-rose-900/50 shadow-sm bg-brand-light">
+              <span className="text-[11px] font-bold text-brand-primary dark:text-rose-400 uppercase tracking-wider">Low Stock Items</span>
+              <p className="text-2xl font-black text-brand-primary dark:text-rose-400 mt-1">{kpis.low_stock_items}</p>
+              <span className="text-[10px] text-brand-primary/70">Reorder Alert</span>
             </div>
           </div>
 
           {/* Operational Financial Overview Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <div className="p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-border dark:border-zinc-800 shadow-sm">
               <div className="flex justify-between items-start">
                 <div>
-                  <span className="text-xs font-bold text-zinc-400 uppercase">Cash Counter Sales</span>
+                  <span className="text-xs font-bold text-brand-text-muted uppercase">Cash Counter Sales</span>
                   <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
                     {fmt(cashPosition?.cash_sales || 0)}
                   </p>
-                  <p className="text-xs text-zinc-500 mt-0.5">
+                  <p className="text-xs text-brand-text-muted mt-0.5">
                     {cashPosition?.cash_orders_count || 0} counter transactions today
                   </p>
                 </div>
@@ -666,31 +677,31 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               </div>
             </div>
 
-            <div className="p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <div className="p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-border dark:border-zinc-800 shadow-sm">
               <div className="flex justify-between items-start">
                 <div>
-                  <span className="text-xs font-bold text-zinc-400 uppercase">Active Rider COD Custody</span>
-                  <p className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
+                  <span className="text-xs font-bold text-brand-text-muted uppercase">Active Rider COD Custody</span>
+                  <p className="text-2xl font-black text-brand-gold dark:text-brand-gold mt-1">
                     {fmt(cashPosition?.cod_custody || 0)}
                   </p>
-                  <p className="text-xs text-zinc-500 mt-0.5">
+                  <p className="text-xs text-brand-text-muted mt-0.5">
                     {cashPosition?.cod_orders_count || 0} delivered orders awaiting remittance
                   </p>
                 </div>
-                <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl text-amber-600">
+                <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/40 rounded-xl text-brand-gold">
                   <UserCheck className="w-5 h-5" />
                 </div>
               </div>
             </div>
 
-            <div className="p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <div className="p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-border dark:border-zinc-800 shadow-sm">
               <div className="flex justify-between items-start">
                 <div>
-                  <span className="text-xs font-bold text-zinc-400 uppercase">Bank Deposits Dispatched</span>
+                  <span className="text-xs font-bold text-brand-text-muted uppercase">Bank Deposits Dispatched</span>
                   <p className="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">
                     {fmt(cashPosition?.deposits_today || 0)}
                   </p>
-                  <p className="text-xs text-zinc-500 mt-0.5">
+                  <p className="text-xs text-brand-text-muted mt-0.5">
                     {cashPosition?.deposits_count || 0} deposit slips submitted today
                   </p>
                 </div>
@@ -709,14 +720,14 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
       {activeTab === "orders" && (
         <div className="space-y-4">
           {/* Filter Bar */}
-          <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row gap-3 justify-between items-center">
+          <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-border dark:border-zinc-800 flex flex-col md:flex-row gap-3 justify-between items-center">
             <div className="w-full md:w-80">
               <input
                 type="text"
                 placeholder="Search by #order, name, phone, item..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-3.5 py-2 text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-brand-border dark:border-zinc-700 bg-brand-surface-muted dark:bg-zinc-950 text-brand-navy dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
               />
             </div>
 
@@ -736,8 +747,8 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   onClick={() => setStatusFilter(st.id)}
                   className={`px-3 py-1.5 rounded-lg font-semibold transition whitespace-nowrap ${
                     statusFilter === st.id
-                      ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-bold"
-                      : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200"
+                      ? "bg-brand-navy text-white dark:bg-white dark:text-zinc-900 font-bold"
+                      : "bg-brand-surface-muted dark:bg-zinc-800 text-brand-text-muted dark:text-zinc-300 hover:bg-brand-surface-muted"
                   }`}
                 >
                   {st.label}
@@ -746,11 +757,11 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
             </div>
 
             <div className="flex gap-2 items-center text-xs">
-              <span className="text-zinc-400 font-bold">Priority:</span>
+              <span className="text-brand-text-muted font-bold">Priority:</span>
               <select
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value)}
-                className="p-1.5 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white"
+                className="p-1.5 text-xs rounded-lg border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900 text-brand-navy dark:text-white"
               >
                 <option value="ALL">All Priorities</option>
                 <option value="EXPRESS">Express</option>
@@ -760,41 +771,78 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
             </div>
           </div>
 
+
+          {/* Delivery date filter */}
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="font-semibold text-brand-text-muted">Delivery date:</span>
+            {[
+              { v: "all", l: "All" },
+              { v: todayIST(), l: "Today" },
+              { v: todayIST(1), l: "Tomorrow" },
+            ].map((d) => (
+              <button
+                key={d.l}
+                type="button"
+                onClick={() => setDeliveryDateFilter(d.v)}
+                className={`px-3 py-1.5 rounded-lg font-semibold transition ${
+                  deliveryDateFilter === d.v ? "bg-brand-navy text-white" : "bg-white border border-brand-border text-brand-text hover:bg-brand-surface-muted"
+                }`}
+              >
+                {d.l}
+              </button>
+            ))}
+            <input
+              type="date"
+              aria-label="Pick a delivery date"
+              value={deliveryDateFilter === "all" ? "" : deliveryDateFilter}
+              onChange={(e) => setDeliveryDateFilter(e.target.value || "all")}
+              className="px-2.5 py-1.5 rounded-lg border border-brand-border bg-white text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+            />
+            {deliveryDateFilter !== "all" && (
+              <span className="text-brand-text-muted">{visibleOrders.length} of {orders.length} orders</span>
+            )}
+          </div>
+
           {/* Orders Grid */}
           {loading ? (
-            <div className="p-12 text-center text-zinc-500 text-sm">Loading branch orders...</div>
-          ) : orders.length === 0 ? (
-            <div className="p-12 text-center text-zinc-500 text-sm bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800">
+            <div className="p-12 text-center text-brand-text-muted text-sm">Loading branch orders...</div>
+          ) : visibleOrders.length === 0 ? (
+            <div className="p-12 text-center text-brand-text-muted text-sm bg-white dark:bg-zinc-900 rounded-2xl border border-brand-border dark:border-zinc-800">
               No branch orders match your query or filter criteria.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {orders.map((ord) => {
+              {visibleOrders.map((ord) => {
                 const isPhoto = ord.is_photo_cake || !!ord.photo_url || (ord.items || []).some((i: any) => (i.title || "").toLowerCase().includes("photo"));
                 return (
                   <div
                     key={ord.id}
-                    className="p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between hover:shadow-md transition"
+                    className="p-5 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-border dark:border-zinc-800 shadow-sm flex flex-col justify-between hover:shadow-md transition"
                   >
                     <div>
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-extrabold text-sm text-zinc-900 dark:text-white">
+                            <span className="font-extrabold text-sm text-brand-navy dark:text-white">
                               #{ord.order_number || ord.id}
                             </span>
+                            {String(ord.delivery_date || "").slice(0, 10) === todayIST() ? (
+                              <span className="px-2 py-0.5 rounded bg-[#FDECEC] text-[#C93636] text-[10px] font-bold uppercase">Today</span>
+                            ) : ord.delivery_date && String(ord.delivery_date).slice(0, 10) > todayIST() ? (
+                              <span className="px-2 py-0.5 rounded bg-brand-light text-brand-primary text-[10px] font-bold uppercase">Pre-order · {String(ord.delivery_date).slice(0, 10)}</span>
+                            ) : null}
                             {ord.priority === "EXPRESS" && (
-                              <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 text-[10px] font-black uppercase">
+                              <span className="px-2 py-0.5 rounded bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40 text-[10px] font-black uppercase">
                                 ⚡ EXPRESS
                               </span>
                             )}
                             {ord.priority === "MIDNIGHT" && (
-                              <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 text-[10px] font-black uppercase">
+                              <span className="px-2 py-0.5 rounded bg-brand-light text-brand-navy dark:bg-brand-navy dark:text-brand-primary/30 text-[10px] font-black uppercase">
                                 🌙 MIDNIGHT
                               </span>
                             )}
                           </div>
-                          <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mt-0.5">
+                          <p className="text-xs font-semibold text-brand-text dark:text-zinc-300 mt-0.5">
                             {ord.customer_name} • {ord.customer_phone}
                           </p>
                         </div>
@@ -802,60 +850,60 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                           ord.status === "delivered" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" :
                           ord.status === "cancelled" ? "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300" :
                           ord.status === "preparing" ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300" :
-                          "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                          "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40"
                         }`}>
                           {ord.status}
                         </span>
                       </div>
 
                       {isPhoto && (
-                        <div className="mt-3 p-2 bg-gradient-to-r from-[#1D2F5D]/10 to-[#D4AF37]/10 dark:from-[#1D2F5D]/30 dark:to-[#142040]/30 rounded-lg border border-[#D4AF37]/30 flex items-center gap-2">
+                        <div className="mt-3 p-2 bg-gradient-to-r from-brand-navy/10 to-brand-gold/10 dark:from-brand-navy/30 dark:to-brand-navy/30 rounded-lg border border-brand-gold/30 flex items-center gap-2">
                           <span className="text-xs">📸</span>
-                          <span className="text-[11px] font-bold text-[#1D2F5D] dark:text-[#D4AF37]">
+                          <span className="text-[11px] font-bold text-brand-navy dark:text-brand-gold">
                             Photo Cake Asset Attached
                           </span>
                         </div>
                       )}
 
                       {ord.custom_message && (
-                        <div className="mt-2 text-xs italic text-rose-600 dark:text-rose-400 bg-rose-50/50 dark:bg-rose-950/20 p-2 rounded-lg border border-rose-100 dark:border-rose-900/30">
+                        <div className="mt-2 text-xs italic text-brand-primary dark:text-rose-400 bg-brand-light dark:bg-rose-950/20 p-2 rounded-lg border border-brand-primary/20 dark:border-rose-900/30">
                           &ldquo;{ord.custom_message}&rdquo;
                         </div>
                       )}
 
-                      <div className="mt-3 text-xs text-zinc-600 dark:text-zinc-400 space-y-1">
-                        <p className="font-semibold text-zinc-800 dark:text-zinc-200">
+                      <div className="mt-3 text-xs text-brand-text-muted dark:text-zinc-400 space-y-1">
+                        <p className="font-semibold text-brand-text dark:text-zinc-200">
                           {(ord.items || [])[0]?.title || "Gourmet Cake Item"}
                           {(ord.items || []).length > 1 ? ` (+${ord.items.length - 1} more)` : ""}
                         </p>
                         <p className="text-[11px]">
-                          Slot: <b className="text-zinc-900 dark:text-white">{ord.delivery_slot || "Standard Slot"}</b> ({ord.delivery_date || "Today"})
+                          Slot: <b className="text-brand-navy dark:text-white">{ord.delivery_slot || "Standard Slot"}</b> ({ord.delivery_date || "Today"})
                         </p>
                         <p className="text-[11px]">
-                          Rider: <b className="text-zinc-900 dark:text-white">{ord.driver_name || "Unassigned"}</b>
+                          Rider: <b className="text-brand-navy dark:text-white">{ord.driver_name || "Unassigned"}</b>
                         </p>
                       </div>
 
                       {ord.pickup_otp && (
-                        <div className="mt-2.5 p-2 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800/40 flex items-center justify-between text-xs">
-                          <span className="font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1">
+                        <div className="mt-2.5 p-2 bg-brand-gold-light dark:bg-brand-gold-dark/40 rounded-xl border border-brand-gold/40 dark:border-brand-gold-dark/40 flex items-center justify-between text-xs">
+                          <span className="font-bold text-brand-gold-dark dark:text-brand-gold/40 flex items-center gap-1">
                             🔑 Pickup OTP:
                           </span>
-                          <span className="font-mono font-black text-xs px-2.5 py-0.5 bg-amber-500 text-white rounded-lg shadow-sm tracking-wider">
+                          <span className="font-mono font-black text-xs px-2.5 py-0.5 bg-brand-gold text-white rounded-lg shadow-sm tracking-wider">
                             {ord.pickup_otp}
                           </span>
                         </div>
                       )}
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap justify-between items-center gap-2">
+                    <div className="mt-4 pt-3 border-t border-brand-border dark:border-zinc-800 flex flex-wrap justify-between items-center gap-2">
                       <button
                         onClick={async () => {
                           const res = await fetchBranchOrderDetails(ord.id).catch(() => ({ order: ord }));
                           setSelectedOrder(res.order || ord);
                           setDrawerOpen(true);
                         }}
-                        className="text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline"
+                        className="text-xs font-bold text-brand-primary dark:text-rose-400 hover:underline"
                       >
                         View Details →
                       </button>
@@ -867,7 +915,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                               await acceptBranchOrder(ord.id);
                               loadDashboardData();
                             }}
-                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg shadow-sm"
+                            className="px-2.5 py-1 bg-brand-navy hover:bg-brand-primary text-white font-bold text-[11px] rounded-lg shadow-sm"
                           >
                             ✓ Accept
                           </button>
@@ -877,7 +925,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                               await markBranchOrderReady(ord.id);
                               loadDashboardData();
                             }}
-                            className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] rounded-lg shadow-sm"
+                            className="px-2.5 py-1 bg-brand-primary hover:bg-brand-secondary text-white font-bold text-[11px] rounded-lg shadow-sm"
                           >
                             🎂 Mark Ready
                           </button>
@@ -885,13 +933,13 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
 
                         <button
                           onClick={() => setKotOrderId(ord.id)}
-                          className="px-2.5 py-1 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-zinc-800 dark:text-zinc-200 font-semibold text-[11px] rounded-lg"
+                          className="px-2.5 py-1 bg-brand-surface-muted dark:bg-zinc-800 hover:bg-brand-surface-muted text-brand-text dark:text-zinc-200 font-semibold text-[11px] rounded-lg"
                         >
                           🖨️ KOT
                         </button>
                         <button
                           onClick={() => setInvoiceOrderId(ord.id)}
-                          className="px-2.5 py-1 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-zinc-800 dark:text-zinc-200 font-semibold text-[11px] rounded-lg"
+                          className="px-2.5 py-1 bg-brand-surface-muted dark:bg-zinc-800 hover:bg-brand-surface-muted text-brand-text dark:text-zinc-200 font-semibold text-[11px] rounded-lg"
                         >
                           🧾 GST
                         </button>
@@ -932,8 +980,8 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   onClick={() => setPurchaseStatusFilter(s)}
                   className={`px-3 py-1.5 rounded-xl font-bold transition ${
                     purchaseStatusFilter === s
-                      ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-sm"
-                      : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800"
+                      ? "bg-brand-navy text-white dark:bg-white dark:text-zinc-900 shadow-sm"
+                      : "bg-white dark:bg-zinc-900 text-brand-text-muted dark:text-zinc-400 border border-brand-border dark:border-zinc-800"
                   }`}
                 >
                   {s}
@@ -943,7 +991,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
 
             <button
               onClick={() => setIsPurchaseModalOpen(true)}
-              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-2"
+              className="px-4 py-2 bg-brand-navy hover:bg-brand-primary text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               New Purchase Entry / PO
@@ -951,10 +999,10 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
           </div>
 
           {/* Purchases Table */}
-          <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-x-auto">
+          <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-border dark:border-zinc-800 shadow-sm overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-zinc-200 dark:border-zinc-800 text-zinc-400 font-bold uppercase text-[10px]">
+                <tr className="border-b border-brand-border dark:border-zinc-800 text-brand-text-muted font-bold uppercase text-[10px]">
                   <th className="pb-3">Invoice / PO #</th>
                   <th className="pb-3">Supplier</th>
                   <th className="pb-3">Date</th>
@@ -965,24 +1013,24 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   <th className="pb-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              <tbody className="divide-y divide-brand-border dark:divide-zinc-800">
                 {purchases.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-8 text-center text-zinc-400">
+                    <td colSpan={8} className="py-8 text-center text-brand-text-muted">
                       No branch purchases found.
                     </td>
                   </tr>
                 ) : (
                   purchases.map((p) => (
                     <tr key={p.id} className="py-2.5">
-                      <td className="py-3 font-bold text-zinc-900 dark:text-white">
+                      <td className="py-3 font-bold text-brand-navy dark:text-white">
                         {p.invoice_no || `PO-${p.id.slice(-6)}`}
                       </td>
                       <td className="py-3 font-semibold">{p.supplier_name || p.supplier_id || "Unassigned"}</td>
-                      <td className="py-3 text-zinc-500">{p.invoice_date || new Date(p.created_at).toLocaleDateString("en-IN")}</td>
+                      <td className="py-3 text-brand-text-muted">{p.invoice_date || new Date(p.created_at).toLocaleDateString("en-IN")}</td>
                       <td className="py-3 font-mono">{fmt(p.taxable_value)}</td>
                       <td className="py-3 font-mono">{fmt((p.cgst || 0) + (p.sgst || 0) + (p.igst || 0))}</td>
-                      <td className="py-3 font-bold text-rose-600 dark:text-rose-400 font-mono">{fmt(p.total)}</td>
+                      <td className="py-3 font-bold text-brand-primary dark:text-rose-400 font-mono">{fmt(p.total)}</td>
                       <td className="py-3">
                         <span
                           className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
@@ -991,8 +1039,8 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                               : p.status === "APPROVED"
                               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                               : p.status === "SUBMITTED"
-                              ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                              : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                              ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40"
+                              : "bg-brand-surface-muted text-brand-text dark:bg-zinc-800 dark:text-zinc-300"
                           }`}
                         >
                           {p.status}
@@ -1007,7 +1055,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                                 if (res.success && res.data) setPurchases(res.data.purchases || []);
                               });
                             }}
-                            className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] rounded-lg"
+                            className="px-2.5 py-1 bg-brand-gold hover:bg-brand-gold-dark text-white font-bold text-[10px] rounded-lg"
                           >
                             Submit
                           </button>
@@ -1027,7 +1075,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                             );
                             setIsGrnModalOpen(true);
                           }}
-                          className="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold text-[10px] rounded-lg"
+                          className="px-2.5 py-1 bg-brand-surface-muted hover:bg-brand-surface-muted dark:bg-zinc-800 dark:hover:bg-zinc-700 text-brand-text dark:text-zinc-200 font-bold text-[10px] rounded-lg"
                         >
                           📦 Record GRN
                         </button>
@@ -1047,9 +1095,9 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
       {activeTab === "expenses" && (
         <div className="space-y-6">
           {/* Invariant 3 Policy Banner */}
-          <div className="p-4 bg-purple-50 dark:bg-purple-950/40 rounded-2xl border border-purple-200 dark:border-purple-900/60 flex items-start gap-3">
-            <Info className="w-5 h-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
-            <div className="text-xs text-purple-900 dark:text-purple-200 space-y-1">
+          <div className="p-4 bg-brand-light dark:bg-brand-navy/40 rounded-2xl border border-brand-primary/30 dark:border-brand-navy/60 flex items-start gap-3">
+            <Info className="w-5 h-5 text-brand-primary dark:text-brand-primary shrink-0 mt-0.5" />
+            <div className="text-xs text-brand-navy dark:text-brand-primary/30 space-y-1">
               <p className="font-bold">
                 Operational Expense Claims & Control:
               </p>
@@ -1068,8 +1116,8 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   onClick={() => setExpenseStatusFilter(s)}
                   className={`px-3 py-1.5 rounded-xl font-bold transition ${
                     expenseStatusFilter === s
-                      ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-sm"
-                      : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800"
+                      ? "bg-brand-navy text-white dark:bg-white dark:text-zinc-900 shadow-sm"
+                      : "bg-white dark:bg-zinc-900 text-brand-text-muted dark:text-zinc-400 border border-brand-border dark:border-zinc-800"
                   }`}
                 >
                   {s}
@@ -1079,7 +1127,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
 
             <button
               onClick={() => setIsExpenseModalOpen(true)}
-              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-2"
+              className="px-4 py-2 bg-brand-navy hover:bg-brand-primary text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               Record Store Expense
@@ -1087,10 +1135,10 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
           </div>
 
           {/* Expenses Table */}
-          <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-x-auto">
+          <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-border dark:border-zinc-800 shadow-sm overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-zinc-200 dark:border-zinc-800 text-zinc-400 font-bold uppercase text-[10px]">
+                <tr className="border-b border-brand-border dark:border-zinc-800 text-brand-text-muted font-bold uppercase text-[10px]">
                   <th className="pb-3">Date</th>
                   <th className="pb-3">Category</th>
                   <th className="pb-3">Description</th>
@@ -1100,21 +1148,21 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   <th className="pb-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              <tbody className="divide-y divide-brand-border dark:divide-zinc-800">
                 {expenses.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-zinc-400">
+                    <td colSpan={7} className="py-8 text-center text-brand-text-muted">
                       No branch expenses found.
                     </td>
                   </tr>
                 ) : (
                   expenses.map((e) => (
                     <tr key={e.id} className="py-2.5">
-                      <td className="py-3 text-zinc-500">{e.expense_date || new Date(e.created_at).toLocaleDateString("en-IN")}</td>
+                      <td className="py-3 text-brand-text-muted">{e.expense_date || new Date(e.created_at).toLocaleDateString("en-IN")}</td>
                       <td className="py-3 font-semibold">{e.category_name || "Operational"}</td>
-                      <td className="py-3 font-medium text-zinc-900 dark:text-white">{e.description}</td>
+                      <td className="py-3 font-medium text-brand-navy dark:text-white">{e.description}</td>
                       <td className="py-3 font-mono text-[11px]">{e.payment_method || "CASH"}</td>
-                      <td className="py-3 font-bold text-rose-600 dark:text-rose-400 font-mono">{fmt(e.total || e.amount)}</td>
+                      <td className="py-3 font-bold text-brand-primary dark:text-rose-400 font-mono">{fmt(e.total || e.amount)}</td>
                       <td className="py-3">
                         <span
                           className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
@@ -1123,8 +1171,8 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                               : e.status === "APPROVED"
                               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                               : e.status === "SUBMITTED"
-                              ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
-                              : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                              ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40"
+                              : "bg-brand-surface-muted text-brand-text dark:bg-zinc-800 dark:text-zinc-300"
                           }`}
                         >
                           {e.status}
@@ -1139,7 +1187,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                                 if (res.success && res.data) setExpenses(res.data.expenses || []);
                               });
                             }}
-                            className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] rounded-lg"
+                            className="px-2.5 py-1 bg-brand-gold hover:bg-brand-gold-dark text-white font-bold text-[10px] rounded-lg"
                           >
                             Submit
                           </button>
@@ -1160,14 +1208,14 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
       {activeTab === "cash" && (
         <div className="space-y-8">
           {/* Section 1: Canonical Teller Cash Drawer & Custody Terminal */}
-          <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-3">
+          <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-border dark:border-zinc-800 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-brand-border dark:border-zinc-800 pb-3">
               <div>
-                <h3 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                <h3 className="text-base font-bold text-brand-navy dark:text-white flex items-center gap-2">
                   <Coins className="w-5 h-5 text-emerald-600" />
                   Branch Teller Cash Drawer & Custody Terminal
                 </h3>
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-brand-text-muted">
                   Authoritative relational teller sessions, float controls, and 3-tier Segregation of Duties.
                 </p>
               </div>
@@ -1176,7 +1224,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   className={`px-3 py-1 rounded-xl text-xs font-bold ${
                     cashPosition?.drawer_status === "OPEN"
                       ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                      : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                      : "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40"
                   }`}
                 >
                   Drawer Status: {cashPosition?.drawer_status || "CLOSED"}
@@ -1194,7 +1242,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                     <button
                       type="button"
                       onClick={triggerPrint}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 transition shadow-xs"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold bg-brand-surface-muted dark:bg-zinc-800 text-brand-text dark:text-zinc-300 border border-brand-border dark:border-zinc-700 hover:bg-brand-surface-muted transition shadow-xs"
                     >
                       <Printer className="w-3.5 h-3.5" />
                       <span>Print / PDF</span>
@@ -1205,36 +1253,36 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1">
-                <span className="text-[10px] uppercase font-bold text-zinc-400">Opening Cash Float</span>
-                <p className="text-xl font-mono font-bold text-zinc-900 dark:text-white">
+              <div className="p-4 bg-brand-surface-muted dark:bg-zinc-950/60 rounded-xl border border-brand-border dark:border-zinc-800 space-y-1">
+                <span className="text-[10px] uppercase font-bold text-brand-text-muted">Opening Cash Float</span>
+                <p className="text-xl font-mono font-bold text-brand-navy dark:text-white">
                   {fmt(cashPosition?.opening_float || 0)}
                 </p>
-                <p className="text-[11px] text-zinc-500">
+                <p className="text-[11px] text-brand-text-muted">
                   {cashPosition?.drawer_status === "OPEN" ? "Active authorized shift float" : "No active opening float"}
                 </p>
               </div>
 
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1">
-                <span className="text-[10px] uppercase font-bold text-zinc-400">Expected Drawer Cash</span>
+              <div className="p-4 bg-brand-surface-muted dark:bg-zinc-950/60 rounded-xl border border-brand-border dark:border-zinc-800 space-y-1">
+                <span className="text-[10px] uppercase font-bold text-brand-text-muted">Expected Drawer Cash</span>
                 <p className="text-xl font-mono font-bold text-emerald-600 dark:text-emerald-400">
                   {fmt(cashPosition?.expected_drawer_cash || 0)}
                 </p>
-                <p className="text-[11px] text-zinc-500">
+                <p className="text-[11px] text-brand-text-muted">
                   Live calculated from movements & float
                 </p>
               </div>
 
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 flex flex-col justify-between">
+              <div className="p-4 bg-brand-surface-muted dark:bg-zinc-950/60 rounded-xl border border-brand-border dark:border-zinc-800 flex flex-col justify-between">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-zinc-400">Canonical Teller Custody</span>
-                  <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mt-1">
+                  <span className="text-[10px] uppercase font-bold text-brand-text-muted">Canonical Teller Custody</span>
+                  <p className="text-xs font-semibold text-brand-text dark:text-zinc-300 mt-1">
                     Manage shifts, count verification & settlements in the Master Teller Workspace.
                   </p>
                 </div>
                 <a
                   href="/dashboard?tab=teller_custody"
-                  className="mt-3 inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition"
+                  className="mt-3 inline-flex items-center justify-center gap-2 px-4 py-2 bg-brand-navy hover:bg-brand-primary text-white font-bold text-xs rounded-xl shadow-xs transition"
                 >
                   <span>Launch Teller Custody Terminal</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -1245,53 +1293,53 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
 
 
           {/* Section 2: Rider COD Remittance Handover */}
-          <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
-            <div className="border-b border-zinc-200 dark:border-zinc-800 pb-3">
-              <h3 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                <UserCheck className="w-5 h-5 text-amber-600" />
+          <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-border dark:border-zinc-800 shadow-sm space-y-4">
+            <div className="border-b border-brand-border dark:border-zinc-800 pb-3">
+              <h3 className="text-base font-bold text-brand-navy dark:text-white flex items-center gap-2">
+                <UserCheck className="w-5 h-5 text-brand-gold" />
                 Delivery Rider COD Remittance Handover
               </h3>
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-brand-text-muted">
                 Authoritative full shift settlement. (Invariant 6: Shortages fail-closed without inventing automated GL loss vouchers).
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {riderCodList.length === 0 ? (
-                <div className="col-span-full py-8 text-center text-zinc-400 text-xs">
+                <div className="col-span-full py-8 text-center text-brand-text-muted text-xs">
                   No delivery riders currently holding undeposited COD cash for this branch.
                 </div>
               ) : (
                 riderCodList.map((rider) => (
                   <div
                     key={rider.rider_id}
-                    className="p-4 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 flex flex-col justify-between"
+                    className="p-4 bg-brand-surface-muted dark:bg-zinc-950/60 rounded-xl border border-brand-border dark:border-zinc-800 flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex justify-between items-start">
                         <div>
-                          <h4 className="font-bold text-sm text-zinc-900 dark:text-white">{rider.rider_name}</h4>
-                          <p className="text-xs text-zinc-500">{rider.rider_phone}</p>
+                          <h4 className="font-bold text-sm text-brand-navy dark:text-white">{rider.rider_name}</h4>
+                          <p className="text-xs text-brand-text-muted">{rider.rider_phone}</p>
                         </div>
-                        <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-bold text-[10px]">
+                        <span className="px-2 py-0.5 rounded bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40 font-bold text-[10px]">
                           {rider.orders_count || 0} COD Orders
                         </span>
                       </div>
                       <div className="mt-3">
-                        <span className="text-[10px] uppercase font-bold text-zinc-400">Total COD Custody</span>
-                        <p className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono">
+                        <span className="text-[10px] uppercase font-bold text-brand-text-muted">Total COD Custody</span>
+                        <p className="text-xl font-black text-brand-gold dark:text-brand-gold font-mono">
                           {fmt(rider.custody_amount)}
                         </p>
                       </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-zinc-200 dark:border-zinc-800 flex gap-2">
+                    <div className="mt-4 pt-3 border-t border-brand-border dark:border-zinc-800 flex gap-2">
                       <button
                         onClick={() => {
                           setSelectedRiderForSettle(rider);
                           setCashPresentedInput(String(rider.custody_amount || 0));
                         }}
-                        className="flex-1 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl transition"
+                        className="flex-1 py-1.5 bg-brand-gold hover:bg-brand-gold-dark text-white font-bold text-xs rounded-xl transition"
                       >
                         Settle Handover
                       </button>
@@ -1302,7 +1350,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                           setShortageNotes("");
                           setIsShortageModalOpen(true);
                         }}
-                        className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 font-bold text-xs rounded-xl transition border border-rose-200 dark:border-rose-900"
+                        className="px-3 py-1.5 bg-brand-light hover:bg-rose-100 text-brand-primary dark:bg-rose-950 dark:text-rose-300 font-bold text-xs rounded-xl transition border border-brand-primary/20 dark:border-rose-900"
                         title="Report cash shortage discrepancy"
                       >
                         Report Shortage
@@ -1315,32 +1363,32 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
 
             {/* Rider Settle Drawer / Modal Box */}
             {selectedRiderForSettle && (
-              <div className="mt-4 p-5 bg-amber-50/50 dark:bg-amber-950/20 rounded-2xl border border-amber-200 dark:border-amber-900/60 space-y-4 animate-in fade-in">
+              <div className="mt-4 p-5 bg-brand-gold-light/50 dark:bg-brand-gold-dark/20 rounded-2xl border border-brand-gold/40 dark:border-brand-gold-dark/60 space-y-4 animate-in fade-in">
                 <div className="flex justify-between items-center">
-                  <h4 className="font-bold text-sm text-zinc-900 dark:text-white">
+                  <h4 className="font-bold text-sm text-brand-navy dark:text-white">
                     Settle Shift Cash for {selectedRiderForSettle.rider_name}
                   </h4>
                   <button
                     onClick={() => setSelectedRiderForSettle(null)}
-                    className="text-xs text-zinc-400 hover:text-zinc-600"
+                    className="text-xs text-brand-text-muted hover:text-zinc-600"
                   >
                     ✕ Cancel
                   </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                   <div>
-                    <span className="text-zinc-400">Authoritative Custody:</span>
-                    <p className="text-lg font-bold text-zinc-900 dark:text-white font-mono">
+                    <span className="text-brand-text-muted">Authoritative Custody:</span>
+                    <p className="text-lg font-bold text-brand-navy dark:text-white font-mono">
                       {fmt(selectedRiderForSettle.custody_amount)}
                     </p>
                   </div>
                   <div>
-                    <span className="text-zinc-400">Cash Presented by Rider (₹):</span>
+                    <span className="text-brand-text-muted">Cash Presented by Rider (₹):</span>
                     <input
                       type="number"
                       value={cashPresentedInput}
                       onChange={(e) => setCashPresentedInput(e.target.value)}
-                      className="w-full p-2 text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono mt-1"
+                      className="w-full p-2 text-xs rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono mt-1"
                     />
                   </div>
                   <div className="flex items-end">
@@ -1375,7 +1423,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                         }
                       }}
                       disabled={settlementSubmitting}
-                      className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition disabled:opacity-50"
+                      className="w-full py-2 bg-brand-navy hover:bg-brand-primary text-white font-bold text-xs rounded-xl transition disabled:opacity-50"
                     >
                       Confirm Exact Settlement
                     </button>
@@ -1386,14 +1434,14 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
           </div>
 
           {/* Section 3: Bank Deposit Slip Preparation */}
-          <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-3">
+          <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-border dark:border-zinc-800 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-brand-border dark:border-zinc-800 pb-3">
               <div>
-                <h3 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                <h3 className="text-base font-bold text-brand-navy dark:text-white flex items-center gap-2">
                   <DollarSign className="w-5 h-5 text-blue-600" />
                   Bank Cash Deposit Slips
                 </h3>
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-brand-text-muted">
                   Prepare cash deposit slips with exact denomination counting. (Invariant 7: Central Accounting approves and posts Dr 1118 / Cr 1111).
                 </p>
               </div>
@@ -1413,7 +1461,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   });
                   setIsDepositModalOpen(true);
                 }}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-2"
+                className="px-4 py-2 bg-brand-primary hover:bg-brand-secondary text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
                 Prepare Bank Deposit Slip
@@ -1423,7 +1471,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-zinc-200 dark:border-zinc-800 text-zinc-400 font-bold uppercase text-[10px]">
+                  <tr className="border-b border-brand-border dark:border-zinc-800 text-brand-text-muted font-bold uppercase text-[10px]">
                     <th className="pb-3">Slip #</th>
                     <th className="pb-3">Deposit Date</th>
                     <th className="pb-3">Bank Account</th>
@@ -1432,18 +1480,18 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                     <th className="pb-3">Prepared By</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                <tbody className="divide-y divide-brand-border dark:divide-zinc-800">
                   {depositSlips.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-zinc-400">
+                      <td colSpan={6} className="py-8 text-center text-brand-text-muted">
                         No bank deposit slips prepared yet for this branch.
                       </td>
                     </tr>
                   ) : (
                     depositSlips.map((ds) => (
                       <tr key={ds.id} className="py-2.5">
-                        <td className="py-3 font-bold text-zinc-900 dark:text-white">{ds.slip_number}</td>
-                        <td className="py-3 text-zinc-500">{ds.deposit_date}</td>
+                        <td className="py-3 font-bold text-brand-navy dark:text-white">{ds.slip_number}</td>
+                        <td className="py-3 text-brand-text-muted">{ds.deposit_date}</td>
                         <td className="py-3 font-semibold">{ds.bank_account_name || ds.bank_account_id}</td>
                         <td className="py-3 font-bold text-blue-600 dark:text-blue-400 font-mono">{fmt(ds.amount)}</td>
                         <td className="py-3">
@@ -1455,13 +1503,13 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                                 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                                 : ds.status === "CANCELLED"
                                 ? "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
-                                : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                                : "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40"
                             }`}
                           >
                             {ds.status}
                           </span>
                         </td>
-                        <td className="py-3 text-zinc-400">{ds.prepared_by || "Manager"}</td>
+                        <td className="py-3 text-brand-text-muted">{ds.prepared_by || "Manager"}</td>
                       </tr>
                     ))
                   )}
@@ -1504,8 +1552,8 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   onClick={() => setInventoryAccountFilter(acc.id)}
                   className={`px-3 py-1.5 rounded-xl font-bold transition ${
                     inventoryAccountFilter === acc.id
-                      ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-sm"
-                      : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800"
+                      ? "bg-brand-navy text-white dark:bg-white dark:text-zinc-900 shadow-sm"
+                      : "bg-white dark:bg-zinc-900 text-brand-text-muted dark:text-zinc-400 border border-brand-border dark:border-zinc-800"
                   }`}
                 >
                   {acc.label}
@@ -1547,7 +1595,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                     branch?.code || "BR01"
                   );
                 }}
-                className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-bold rounded-xl border border-zinc-200 dark:border-zinc-700 transition flex items-center gap-1.5"
+                className="px-3 py-2 bg-brand-surface-muted dark:bg-zinc-800 hover:bg-brand-surface-muted dark:hover:bg-zinc-700 text-brand-text dark:text-zinc-300 text-xs font-bold rounded-xl border border-brand-border dark:border-zinc-700 transition flex items-center gap-1.5"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Export Log</span>
@@ -1555,7 +1603,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               <button
                 type="button"
                 onClick={triggerPrint}
-                className="px-3 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-bold rounded-xl border border-zinc-200 dark:border-zinc-700 transition flex items-center gap-1.5"
+                className="px-3 py-2 bg-brand-surface-muted dark:bg-zinc-800 hover:bg-brand-surface-muted dark:hover:bg-zinc-700 text-brand-text dark:text-zinc-300 text-xs font-bold rounded-xl border border-brand-border dark:border-zinc-700 transition flex items-center gap-1.5"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Print</span>
@@ -1568,7 +1616,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   setDamageNotes("");
                   setIsDamageModalOpen(true);
                 }}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-2"
+                className="px-4 py-2 bg-brand-navy hover:bg-brand-primary text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-2"
               >
                 <ShieldAlert className="w-4 h-4" />
                 Report Damaged / Spoiled Stock
@@ -1589,37 +1637,37 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   key={item.id}
                   className={`p-4 rounded-2xl border transition flex flex-col justify-between ${
                     item.is_low_stock
-                      ? "bg-rose-50/40 dark:bg-rose-950/20 border-rose-300 dark:border-rose-900"
-                      : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-sm"
+                      ? "bg-brand-light dark:bg-rose-950/20 border-rose-300 dark:border-rose-900"
+                      : "bg-white dark:bg-zinc-900 border-brand-border dark:border-zinc-800 shadow-sm"
                   }`}
                 >
                   <div>
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-bold text-sm text-zinc-900 dark:text-white">{item.name}</h4>
-                        <p className="text-xs text-zinc-500">
+                        <h4 className="font-bold text-sm text-brand-navy dark:text-white">{item.name}</h4>
+                        <p className="text-xs text-brand-text-muted">
                           {item.category_name} • SKU: {item.sku || "N/A"}
                         </p>
                       </div>
-                      <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-[10px] font-mono font-bold text-zinc-600 dark:text-zinc-300">
+                      <span className="px-2 py-0.5 rounded bg-brand-surface-muted dark:bg-zinc-800 text-[10px] font-mono font-bold text-brand-text-muted dark:text-zinc-300">
                         GL {glCode}
                       </span>
                     </div>
 
                     <div className="mt-3 flex justify-between items-center text-xs">
-                      <span className="text-zinc-500">Available Stock:</span>
-                      <span className="font-black text-base text-zinc-900 dark:text-white font-mono">
+                      <span className="text-brand-text-muted">Available Stock:</span>
+                      <span className="font-black text-base text-brand-navy dark:text-white font-mono">
                         {item.stock} units
                       </span>
                     </div>
-                    <div className="flex justify-between items-center text-xs text-zinc-500">
+                    <div className="flex justify-between items-center text-xs text-brand-text-muted">
                       <span>Low Stock Threshold:</span>
                       <span className="font-mono">{item.low_stock_threshold || 5} units</span>
                     </div>
                   </div>
 
                   {/* Stock Quick Adjustment & Damage Button */}
-                  <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex justify-between items-center gap-2">
+                  <div className="mt-4 pt-3 border-t border-brand-border dark:border-zinc-800 flex justify-between items-center gap-2">
                     <div className="flex gap-1">
                       <button
                         onClick={async () => {
@@ -1629,7 +1677,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                             prev.map((i) => (i.id === item.id ? { ...i, stock: newStock } : i))
                           );
                         }}
-                        className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-xs font-bold rounded"
+                        className="px-2 py-1 bg-brand-surface-muted dark:bg-zinc-800 hover:bg-brand-surface-muted text-xs font-bold rounded"
                       >
                         -5
                       </button>
@@ -1641,7 +1689,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                             prev.map((i) => (i.id === item.id ? { ...i, stock: newStock } : i))
                           );
                         }}
-                        className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 text-xs font-bold rounded"
+                        className="px-2 py-1 bg-brand-surface-muted dark:bg-zinc-800 hover:bg-brand-surface-muted text-xs font-bold rounded"
                       >
                         +10
                       </button>
@@ -1655,7 +1703,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                         setDamageNotes("");
                         setIsDamageModalOpen(true);
                       }}
-                      className="text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:underline"
+                      className="text-[11px] font-bold text-brand-primary dark:text-rose-400 hover:underline"
                     >
                       Report Damage
                     </button>
@@ -1671,17 +1719,17 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
       {/* ── TAB 7: BRANCH REPORTS ───────────────────────────────────────────── */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {activeTab === "reports" && (
-        <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
+        <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-brand-border dark:border-zinc-800 shadow-sm space-y-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-brand-border dark:border-zinc-800 pb-4">
             <div>
-              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Branch Operational Reports</h2>
-              <p className="text-xs text-zinc-500">Live operational data strictly scoped to {branch.name}.</p>
+              <h2 className="text-lg font-bold text-brand-navy dark:text-white">Branch Operational Reports</h2>
+              <p className="text-xs text-brand-text-muted">Live operational data strictly scoped to {branch.name}.</p>
             </div>
             <div className="flex gap-2 items-center">
               <select
                 value={reportRange}
                 onChange={(e) => setReportRange(e.target.value)}
-                className="p-2 text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 font-semibold"
+                className="p-2 text-xs rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900 font-semibold"
               >
                 <option value="today">Today</option>
                 <option value="weekly">This Week</option>
@@ -1693,7 +1741,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   if (!reportsData || !reportsData.rows) return;
                   exportBranchDailySalesCsv(reportsData.rows, branch?.code || "BR01", reportRange);
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-navy hover:bg-brand-primary text-white font-bold text-xs rounded-xl shadow-sm transition"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Export CSV</span>
@@ -1701,7 +1749,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               <button
                 type="button"
                 onClick={triggerPrint}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-bold text-xs rounded-xl border border-zinc-200 dark:border-zinc-700 transition"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-surface-muted dark:bg-zinc-800 hover:bg-brand-surface-muted dark:hover:bg-zinc-700 text-brand-text dark:text-zinc-300 font-bold text-xs rounded-xl border border-brand-border dark:border-zinc-700 transition"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Print / PDF</span>
@@ -1712,24 +1760,24 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
           {reportsData && (
             <div className="space-y-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-4 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800">
-                  <span className="text-xs text-zinc-400 font-bold uppercase">Total Branch Orders</span>
+                <div className="p-4 bg-brand-surface-muted dark:bg-zinc-950/60 rounded-xl border border-brand-border dark:border-zinc-800">
+                  <span className="text-xs text-brand-text-muted font-bold uppercase">Total Branch Orders</span>
                   <p className="text-2xl font-black mt-1">{reportsData.metrics?.total_orders || 0}</p>
                 </div>
-                <div className="p-4 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800">
-                  <span className="text-xs text-zinc-400 font-bold uppercase">Branch Revenue</span>
-                  <p className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1 font-mono">
+                <div className="p-4 bg-brand-surface-muted dark:bg-zinc-950/60 rounded-xl border border-brand-border dark:border-zinc-800">
+                  <span className="text-xs text-brand-text-muted font-bold uppercase">Branch Revenue</span>
+                  <p className="text-2xl font-black text-brand-primary dark:text-rose-400 mt-1 font-mono">
                     {fmt(reportsData.metrics?.total_revenue || 0)}
                   </p>
                 </div>
-                <div className="p-4 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800">
-                  <span className="text-xs text-zinc-400 font-bold uppercase">Fulfillment SLA Rate</span>
+                <div className="p-4 bg-brand-surface-muted dark:bg-zinc-950/60 rounded-xl border border-brand-border dark:border-zinc-800">
+                  <span className="text-xs text-brand-text-muted font-bold uppercase">Fulfillment SLA Rate</span>
                   <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
                     {reportsData.metrics?.fulfillment_rate || 100}%
                   </p>
                 </div>
-                <div className="p-4 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800">
-                  <span className="text-xs text-zinc-400 font-bold uppercase">Average Order Value</span>
+                <div className="p-4 bg-brand-surface-muted dark:bg-zinc-950/60 rounded-xl border border-brand-border dark:border-zinc-800">
+                  <span className="text-xs text-brand-text-muted font-bold uppercase">Average Order Value</span>
                   <p className="text-2xl font-black mt-1 font-mono">
                     {fmt(reportsData.metrics?.average_order_value || 0)}
                   </p>
@@ -1741,7 +1789,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-zinc-200 dark:border-zinc-800 text-zinc-400 font-bold uppercase text-[10px]">
+                      <tr className="border-b border-brand-border dark:border-zinc-800 text-brand-text-muted font-bold uppercase text-[10px]">
                         <th className="pb-2">Order Number</th>
                         <th className="pb-2">Customer</th>
                         <th className="pb-2">Total Amount</th>
@@ -1749,18 +1797,18 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                         <th className="pb-2">Created Time</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    <tbody className="divide-y divide-brand-border dark:divide-zinc-800">
                       {(reportsData.rows || []).map((r: any, i: number) => (
                         <tr key={i} className="py-2">
                           <td className="py-2.5 font-bold">#{r.order_number}</td>
                           <td className="py-2.5">{r.customer_name}</td>
-                          <td className="py-2.5 font-semibold text-rose-600 font-mono">{fmt(r.total)}</td>
+                          <td className="py-2.5 font-semibold text-brand-primary font-mono">{fmt(r.total)}</td>
                           <td className="py-2.5">
-                            <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 font-bold text-[10px]">
+                            <span className="px-2 py-0.5 rounded bg-brand-surface-muted dark:bg-zinc-800 font-bold text-[10px]">
                               {r.status}
                             </span>
                           </td>
-                          <td className="py-2.5 text-zinc-400">{new Date(r.created_at).toLocaleString("en-IN")}</td>
+                          <td className="py-2.5 text-brand-text-muted">{new Date(r.created_at).toLocaleString("en-IN")}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1779,22 +1827,22 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
       {/* 1. New Purchase / PO Entry Modal */}
       {isPurchaseModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 border border-zinc-200 dark:border-zinc-800 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-800 pb-3">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 border border-brand-border dark:border-zinc-800 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-brand-border dark:border-zinc-800 pb-3">
               <div>
-                <h3 className="text-base font-bold text-zinc-900 dark:text-white">New Purchase / PO Entry</h3>
-                <p className="text-xs text-zinc-500">Record supplier purchase for {branch.name}.</p>
+                <h3 className="text-base font-bold text-brand-navy dark:text-white">New Purchase / PO Entry</h3>
+                <p className="text-xs text-brand-text-muted">Record supplier purchase for {branch.name}.</p>
               </div>
-              <button onClick={() => setIsPurchaseModalOpen(false)} className="text-zinc-400 hover:text-zinc-600">✕</button>
+              <button onClick={() => setIsPurchaseModalOpen(false)} className="text-brand-text-muted hover:text-zinc-600">✕</button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
               <div>
-                <label className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">Supplier</label>
+                <label className="font-bold text-brand-text dark:text-zinc-300 block mb-1">Supplier</label>
                 <select
                   value={purchaseForm.supplier_id}
                   onChange={(e) => setPurchaseForm({ ...purchaseForm, supplier_id: e.target.value })}
-                  className="w-full p-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                  className="w-full p-2 rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                 >
                   <option value="">Select Supplier</option>
                   {suppliers.map((s) => (
@@ -1803,21 +1851,21 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                 </select>
               </div>
               <div>
-                <label className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">Invoice / PO Number</label>
+                <label className="font-bold text-brand-text dark:text-zinc-300 block mb-1">Invoice / PO Number</label>
                 <input
                   type="text"
                   placeholder="e.g. INV-2026-001"
                   value={purchaseForm.invoice_no}
                   onChange={(e) => setPurchaseForm({ ...purchaseForm, invoice_no: e.target.value })}
-                  className="w-full p-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                  className="w-full p-2 rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                 />
               </div>
               <div>
-                <label className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">Payment Method</label>
+                <label className="font-bold text-brand-text dark:text-zinc-300 block mb-1">Payment Method</label>
                 <select
                   value={purchaseForm.payment_method}
                   onChange={(e) => setPurchaseForm({ ...purchaseForm, payment_method: e.target.value })}
-                  className="w-full p-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                  className="w-full p-2 rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                 >
                   <option value="CASH">Cash</option>
                   <option value="CREDIT">Credit</option>
@@ -1830,7 +1878,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
             {/* Line Items */}
             <div className="space-y-2 pt-2">
               <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase">Line Items</span>
+                <span className="text-xs font-bold text-brand-text dark:text-zinc-300 uppercase">Line Items</span>
                 <button
                   onClick={() =>
                     setPurchaseLines([
@@ -1838,16 +1886,16 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                       { item_type: "CAKE", description: "", quantity: 1, rate: 0, discount: 0, gst_rate: 5 },
                     ])
                   }
-                  className="px-2 py-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 text-[11px] font-bold rounded"
+                  className="px-2 py-1 bg-brand-surface-muted hover:bg-brand-surface-muted dark:bg-zinc-800 text-[11px] font-bold rounded"
                 >
                   + Add Line
                 </button>
               </div>
 
               {purchaseLines.map((line, idx) => (
-                <div key={idx} className="p-3 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 grid grid-cols-1 sm:grid-cols-6 gap-2 text-xs items-center">
+                <div key={idx} className="p-3 bg-brand-surface-muted dark:bg-zinc-950/60 rounded-xl border border-brand-border dark:border-zinc-800 grid grid-cols-1 sm:grid-cols-6 gap-2 text-xs items-center">
                   <div className="sm:col-span-1">
-                    <label className="text-[10px] text-zinc-400 font-bold block mb-0.5">CoA Type</label>
+                    <label className="text-[10px] text-brand-text-muted font-bold block mb-0.5">CoA Type</label>
                     <select
                       value={line.item_type}
                       onChange={(e) => {
@@ -1855,7 +1903,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                         next[idx].item_type = e.target.value;
                         setPurchaseLines(next);
                       }}
-                      className="w-full p-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                      className="w-full p-1.5 rounded-lg border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                     >
                       <option value="1131">1131 Accessories</option>
                       <option value="1132">1132 Cakes</option>
@@ -1863,7 +1911,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                     </select>
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="text-[10px] text-zinc-400 font-bold block mb-0.5">Description</label>
+                    <label className="text-[10px] text-brand-text-muted font-bold block mb-0.5">Description</label>
                     <input
                       type="text"
                       placeholder="Item name"
@@ -1873,11 +1921,11 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                         next[idx].description = e.target.value;
                         setPurchaseLines(next);
                       }}
-                      className="w-full p-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                      className="w-full p-1.5 rounded-lg border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-zinc-400 font-bold block mb-0.5">Qty</label>
+                    <label className="text-[10px] text-brand-text-muted font-bold block mb-0.5">Qty</label>
                     <input
                       type="number"
                       value={line.quantity}
@@ -1886,11 +1934,11 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                         next[idx].quantity = e.target.value;
                         setPurchaseLines(next);
                       }}
-                      className="w-full p-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono"
+                      className="w-full p-1.5 rounded-lg border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-zinc-400 font-bold block mb-0.5">Rate (₹)</label>
+                    <label className="text-[10px] text-brand-text-muted font-bold block mb-0.5">Rate (₹)</label>
                     <input
                       type="number"
                       value={line.rate}
@@ -1899,12 +1947,12 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                         next[idx].rate = e.target.value;
                         setPurchaseLines(next);
                       }}
-                      className="w-full p-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono"
+                      className="w-full p-1.5 rounded-lg border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono"
                     />
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <label className="text-[10px] text-zinc-400 font-bold block mb-0.5">GST %</label>
+                      <label className="text-[10px] text-brand-text-muted font-bold block mb-0.5">GST %</label>
                       <select
                         value={line.gst_rate}
                         onChange={(e) => {
@@ -1912,7 +1960,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                           next[idx].gst_rate = e.target.value;
                           setPurchaseLines(next);
                         }}
-                        className="p-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                        className="p-1.5 rounded-lg border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                       >
                         <option value="0">0%</option>
                         <option value="5">5%</option>
@@ -1923,7 +1971,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                     {purchaseLines.length > 1 && (
                       <button
                         onClick={() => setPurchaseLines(purchaseLines.filter((_, i) => i !== idx))}
-                        className="text-rose-600 font-bold mt-3"
+                        className="text-brand-primary font-bold mt-3"
                       >
                         ✕
                       </button>
@@ -1934,9 +1982,9 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
             </div>
 
             {/* Total Box */}
-            <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-xl flex justify-between items-center text-xs">
-              <span className="font-bold text-zinc-600 dark:text-zinc-300">Grand Total:</span>
-              <span className="text-base font-black text-rose-600 dark:text-rose-400 font-mono">
+            <div className="p-3 bg-brand-surface-muted dark:bg-zinc-800 rounded-xl flex justify-between items-center text-xs">
+              <span className="font-bold text-brand-text-muted dark:text-zinc-300">Grand Total:</span>
+              <span className="text-base font-black text-brand-primary dark:text-rose-400 font-mono">
                 {fmt(computedPurchaseTotals.grandTotal)}
               </span>
             </div>
@@ -2002,7 +2050,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   }
                 }}
                 disabled={purchaseSubmitting}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50"
+                className="px-4 py-2 bg-brand-navy hover:bg-brand-primary text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50"
               >
                 Save Purchase (DRAFT)
               </button>
@@ -2014,33 +2062,33 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
       {/* 2. GRN Physical Receipt Checklist Modal */}
       {isGrnModalOpen && selectedPurchaseForGrn && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-xl w-full p-6 space-y-4 border border-zinc-200 dark:border-zinc-800 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-800 pb-3">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-xl w-full p-6 space-y-4 border border-brand-border dark:border-zinc-800 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-brand-border dark:border-zinc-800 pb-3">
               <div>
-                <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+                <h3 className="text-base font-bold text-brand-navy dark:text-white">
                   Goods Receipt Note (GRN) Checklist
                 </h3>
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-brand-text-muted">
                   PO / Invoice #{selectedPurchaseForGrn.invoice_no || selectedPurchaseForGrn.id}
                 </p>
               </div>
-              <button onClick={() => setIsGrnModalOpen(false)} className="text-zinc-400 hover:text-zinc-600">✕</button>
+              <button onClick={() => setIsGrnModalOpen(false)} className="text-brand-text-muted hover:text-zinc-600">✕</button>
             </div>
 
-            <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-900/40 text-[11px] text-amber-800 dark:text-amber-300">
+            <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/40 rounded-xl border border-brand-gold/40 dark:border-brand-gold-dark/40 text-[11px] text-brand-gold-dark dark:text-brand-gold/40">
               ⚠️ Invariant 1: Completing this GRN checklist records physical custody at {branch.name}. It does not trigger GL posting until Accounting review.
             </div>
 
             <div className="space-y-3">
               {grnItems.map((item, idx) => (
-                <div key={idx} className="p-3 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs flex justify-between items-center gap-3">
+                <div key={idx} className="p-3 bg-brand-surface-muted dark:bg-zinc-950/60 rounded-xl border border-brand-border dark:border-zinc-800 text-xs flex justify-between items-center gap-3">
                   <div>
-                    <p className="font-bold text-zinc-900 dark:text-white">{item.description}</p>
-                    <p className="text-[11px] text-zinc-500">Ordered: {item.quantity_ordered} units</p>
+                    <p className="font-bold text-brand-navy dark:text-white">{item.description}</p>
+                    <p className="text-[11px] text-brand-text-muted">Ordered: {item.quantity_ordered} units</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div>
-                      <label className="text-[10px] text-zinc-400 font-bold block mb-0.5">Recv Qty</label>
+                      <label className="text-[10px] text-brand-text-muted font-bold block mb-0.5">Recv Qty</label>
                       <input
                         type="number"
                         value={item.quantity_received}
@@ -2049,11 +2097,11 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                           next[idx].quantity_received = Number(e.target.value);
                           setGrnItems(next);
                         }}
-                        className="w-16 p-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono text-center"
+                        className="w-16 p-1 rounded-lg border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono text-center"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] text-zinc-400 font-bold block mb-0.5">Condition</label>
+                      <label className="text-[10px] text-brand-text-muted font-bold block mb-0.5">Condition</label>
                       <select
                         value={item.condition}
                         onChange={(e) => {
@@ -2061,7 +2109,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                           next[idx].condition = e.target.value;
                           setGrnItems(next);
                         }}
-                        className="p-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[11px]"
+                        className="p-1 rounded-lg border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[11px]"
                       >
                         <option value="GOOD">Good / Intact</option>
                         <option value="DEFECTIVE">Defective</option>
@@ -2073,13 +2121,13 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               ))}
 
               <div>
-                <label className="font-bold text-zinc-700 dark:text-zinc-300 text-xs block mb-1">Receiving Remarks / Notes</label>
+                <label className="font-bold text-brand-text dark:text-zinc-300 text-xs block mb-1">Receiving Remarks / Notes</label>
                 <textarea
                   rows={2}
                   placeholder="e.g. Received in morning delivery van, outer boxes checked"
                   value={grnNotes}
                   onChange={(e) => setGrnNotes(e.target.value)}
-                  className="w-full p-2 text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                  className="w-full p-2 text-xs rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                 />
               </div>
             </div>
@@ -2108,7 +2156,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   }
                 }}
                 disabled={grnSubmitting}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50"
+                className="px-4 py-2 bg-brand-navy hover:bg-brand-primary text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50"
               >
                 Confirm Physical Receipt
               </button>
@@ -2120,22 +2168,22 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
       {/* 3. Record Expense Modal */}
       {isExpenseModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-lg w-full p-6 space-y-4 border border-zinc-200 dark:border-zinc-800 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-800 pb-3">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-lg w-full p-6 space-y-4 border border-brand-border dark:border-zinc-800 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-brand-border dark:border-zinc-800 pb-3">
               <div>
-                <h3 className="text-base font-bold text-zinc-900 dark:text-white">Record Store Expense</h3>
-                <p className="text-xs text-zinc-500">Submit operational branch expense claim.</p>
+                <h3 className="text-base font-bold text-brand-navy dark:text-white">Record Store Expense</h3>
+                <p className="text-xs text-brand-text-muted">Submit operational branch expense claim.</p>
               </div>
-              <button onClick={() => setIsExpenseModalOpen(false)} className="text-zinc-400 hover:text-zinc-600">✕</button>
+              <button onClick={() => setIsExpenseModalOpen(false)} className="text-brand-text-muted hover:text-zinc-600">✕</button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">Expense Category</label>
+                <label className="font-bold text-brand-text dark:text-zinc-300 block mb-1">Expense Category</label>
                 <select
                   value={expenseForm.category_id}
                   onChange={(e) => setExpenseForm({ ...expenseForm, category_id: e.target.value })}
-                  className="w-full p-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                  className="w-full p-2 rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                 >
                   <option value="">Select Category</option>
                   {expenseCategories.map((c) => (
@@ -2145,33 +2193,33 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               </div>
 
               <div>
-                <label className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">Description</label>
+                <label className="font-bold text-brand-text dark:text-zinc-300 block mb-1">Description</label>
                 <input
                   type="text"
                   placeholder="e.g. Milk & Sugar for kitchen prep"
                   value={expenseForm.description}
                   onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })}
-                  className="w-full p-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                  className="w-full p-2 rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">Total Amount (₹)</label>
+                  <label className="font-bold text-brand-text dark:text-zinc-300 block mb-1">Total Amount (₹)</label>
                   <input
                     type="number"
                     placeholder="e.g. 450"
                     value={expenseForm.amount}
                     onChange={(e) => setExpenseForm({ ...expenseForm, amount: Number(e.target.value) })}
-                    className="w-full p-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono"
+                    className="w-full p-2 rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono"
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">Payment Method</label>
+                  <label className="font-bold text-brand-text dark:text-zinc-300 block mb-1">Payment Method</label>
                   <select
                     value={expenseForm.payment_method}
                     onChange={(e) => setExpenseForm({ ...expenseForm, payment_method: e.target.value })}
-                    className="w-full p-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                    className="w-full p-2 rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                   >
                     <option value="CASH">Cash from Drawer</option>
                     <option value="PETTY_CASH">Petty Cash</option>
@@ -2181,13 +2229,13 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               </div>
 
               <div>
-                <label className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">Notes / Bill Reference</label>
+                <label className="font-bold text-brand-text dark:text-zinc-300 block mb-1">Notes / Bill Reference</label>
                 <textarea
                   rows={2}
                   placeholder="e.g. Bill #1203 from Local Dairy"
                   value={expenseForm.notes}
                   onChange={(e) => setExpenseForm({ ...expenseForm, notes: e.target.value })}
-                  className="w-full p-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                  className="w-full p-2 rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                 />
               </div>
             </div>
@@ -2231,7 +2279,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   }
                 }}
                 disabled={expenseSubmitting}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50"
+                className="px-4 py-2 bg-brand-navy hover:bg-brand-primary text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50"
               >
                 Submit Expense Claim
               </button>
@@ -2243,22 +2291,22 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
       {/* 4. Prepare Bank Deposit Slip Modal */}
       {isDepositModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 border border-zinc-200 dark:border-zinc-800 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-800 pb-3">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 border border-brand-border dark:border-zinc-800 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-brand-border dark:border-zinc-800 pb-3">
               <div>
-                <h3 className="text-base font-bold text-zinc-900 dark:text-white">Prepare Cash Deposit Slip</h3>
-                <p className="text-xs text-zinc-500">Record cash counting for transit dispatch.</p>
+                <h3 className="text-base font-bold text-brand-navy dark:text-white">Prepare Cash Deposit Slip</h3>
+                <p className="text-xs text-brand-text-muted">Record cash counting for transit dispatch.</p>
               </div>
-              <button onClick={() => setIsDepositModalOpen(false)} className="text-zinc-400 hover:text-zinc-600">✕</button>
+              <button onClick={() => setIsDepositModalOpen(false)} className="text-brand-text-muted hover:text-zinc-600">✕</button>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">Target Bank Account</label>
+                <label className="font-bold text-brand-text dark:text-zinc-300 block mb-1">Target Bank Account</label>
                 <select
                   value={depositBankAccountId}
                   onChange={(e) => setDepositBankAccountId(e.target.value)}
-                  className="w-full p-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                  className="w-full p-2 rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                 >
                   <option value="">Select Account</option>
                   {bankAccounts.map((b) => (
@@ -2267,19 +2315,19 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                 </select>
               </div>
               <div>
-                <label className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">Deposit Date</label>
+                <label className="font-bold text-brand-text dark:text-zinc-300 block mb-1">Deposit Date</label>
                 <input
                   type="date"
                   value={depositDate}
                   onChange={(e) => setDepositDate(e.target.value)}
-                  className="w-full p-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                  className="w-full p-2 rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                 />
               </div>
             </div>
 
             {/* Denomination Counter */}
             <div className="space-y-2 pt-2">
-              <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase">
+              <span className="text-xs font-bold text-brand-text dark:text-zinc-300 uppercase">
                 Physical Currency Denominations
               </span>
               <div className="grid grid-cols-3 gap-2 text-xs">
@@ -2294,8 +2342,8 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   { key: "notes_5", label: "₹5" },
                   { key: "coins", label: "Coins (₹1)" },
                 ].map((denom) => (
-                  <div key={denom.key} className="p-2 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800">
-                    <span className="text-[10px] font-bold text-zinc-400 block">{denom.label}</span>
+                  <div key={denom.key} className="p-2 bg-brand-surface-muted dark:bg-zinc-950/60 rounded-xl border border-brand-border dark:border-zinc-800">
+                    <span className="text-[10px] font-bold text-brand-text-muted block">{denom.label}</span>
                     <input
                       type="number"
                       min={0}
@@ -2303,7 +2351,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                       onChange={(e) =>
                         setDenominations({ ...denominations, [denom.key]: Math.max(0, parseInt(e.target.value) || 0) })
                       }
-                      className="w-full p-1 text-center font-mono font-bold text-xs bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded mt-1"
+                      className="w-full p-1 text-center font-mono font-bold text-xs bg-white dark:bg-zinc-900 border border-brand-border dark:border-zinc-700 rounded mt-1"
                     />
                   </div>
                 ))}
@@ -2353,7 +2401,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   }
                 }}
                 disabled={depositSubmitting}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50"
+                className="px-4 py-2 bg-brand-primary hover:bg-brand-secondary text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50"
               >
                 Submit Deposit Slip
               </button>
@@ -2365,46 +2413,46 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
       {/* 5. Shortage Discrepancy Modal */}
       {isShortageModalOpen && shortageRider && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-md w-full p-6 space-y-4 border border-zinc-200 dark:border-zinc-800 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-800 pb-3">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-md w-full p-6 space-y-4 border border-brand-border dark:border-zinc-800 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-brand-border dark:border-zinc-800 pb-3">
               <div>
-                <h3 className="text-base font-bold text-zinc-900 dark:text-white">Report COD Shortage</h3>
-                <p className="text-xs text-zinc-500">Rider: {shortageRider.rider_name}</p>
+                <h3 className="text-base font-bold text-brand-navy dark:text-white">Report COD Shortage</h3>
+                <p className="text-xs text-brand-text-muted">Rider: {shortageRider.rider_name}</p>
               </div>
-              <button onClick={() => setIsShortageModalOpen(false)} className="text-zinc-400 hover:text-zinc-600">✕</button>
+              <button onClick={() => setIsShortageModalOpen(false)} className="text-brand-text-muted hover:text-zinc-600">✕</button>
             </div>
 
-            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 rounded-xl border border-rose-200 dark:border-rose-900/40 text-[11px] text-rose-800 dark:text-rose-300">
+            <div className="p-3 bg-brand-light dark:bg-rose-950/40 rounded-xl border border-brand-primary/20 dark:border-rose-900/40 text-[11px] text-rose-800 dark:text-rose-300">
               ⚠️ Invariant 6: Shortage exceptions are recorded for supervisor investigation. No automated loss journal is posted.
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <span className="text-zinc-400">Total Custody:</span>
-                <p className="font-bold text-zinc-900 dark:text-white font-mono">
+                <span className="text-brand-text-muted">Total Custody:</span>
+                <p className="font-bold text-brand-navy dark:text-white font-mono">
                   {fmt(shortageRider.custody_amount)}
                 </p>
               </div>
 
               <div>
-                <label className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">Shortage Amount (₹)</label>
+                <label className="font-bold text-brand-text dark:text-zinc-300 block mb-1">Shortage Amount (₹)</label>
                 <input
                   type="number"
                   placeholder="Missing amount"
                   value={shortageAmount}
                   onChange={(e) => setShortageAmount(Number(e.target.value))}
-                  className="w-full p-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono"
+                  className="w-full p-2 rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">Rider Reason / Explanation</label>
+                <label className="font-bold text-brand-text dark:text-zinc-300 block mb-1">Rider Reason / Explanation</label>
                 <textarea
                   rows={2}
                   placeholder="e.g. Customer promised UPI transfer, change not returned"
                   value={shortageNotes}
                   onChange={(e) => setShortageNotes(e.target.value)}
-                  className="w-full p-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                  className="w-full p-2 rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                 />
               </div>
             </div>
@@ -2440,7 +2488,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   }
                 }}
                 disabled={shortageSubmitting}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50"
+                className="px-4 py-2 bg-brand-navy hover:bg-brand-primary text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50"
               >
                 Log Discrepancy
               </button>
@@ -2452,29 +2500,29 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
       {/* 6. Stock Damage / Spoilage Modal */}
       {isDamageModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-md w-full p-6 space-y-4 border border-zinc-200 dark:border-zinc-800 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-800 pb-3">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-md w-full p-6 space-y-4 border border-brand-border dark:border-zinc-800 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-brand-border dark:border-zinc-800 pb-3">
               <div>
-                <h3 className="text-base font-bold text-zinc-900 dark:text-white">Report Stock Damage / Spoilage</h3>
-                <p className="text-xs text-zinc-500">Record physical item spoilage or breakage.</p>
+                <h3 className="text-base font-bold text-brand-navy dark:text-white">Report Stock Damage / Spoilage</h3>
+                <p className="text-xs text-brand-text-muted">Record physical item spoilage or breakage.</p>
               </div>
-              <button onClick={() => setIsDamageModalOpen(false)} className="text-zinc-400 hover:text-zinc-600">✕</button>
+              <button onClick={() => setIsDamageModalOpen(false)} className="text-brand-text-muted hover:text-zinc-600">✕</button>
             </div>
 
-            <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-900/40 text-[11px] text-amber-800 dark:text-amber-300">
+            <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/40 rounded-xl border border-brand-gold/40 dark:border-brand-gold-dark/40 text-[11px] text-brand-gold-dark dark:text-brand-gold/40">
               ⚠️ Invariant 4: Spoilage logging records operational waste. Financial write-off voucher (Dr 5190 / Cr Inventory) will be executed when the accounting service is verified.
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">Select Item</label>
+                <label className="font-bold text-brand-text dark:text-zinc-300 block mb-1">Select Item</label>
                 <select
                   value={damageItem?.id || ""}
                   onChange={(e) => {
                     const found = inventory.find((i) => i.id === e.target.value);
                     setDamageItem(found);
                   }}
-                  className="w-full p-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                  className="w-full p-2 rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                 >
                   <option value="">Select Inventory Item</option>
                   {inventory.map((item) => (
@@ -2487,21 +2535,21 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">Quantity Damaged</label>
+                  <label className="font-bold text-brand-text dark:text-zinc-300 block mb-1">Quantity Damaged</label>
                   <input
                     type="number"
                     min={1}
                     value={damageQty}
                     onChange={(e) => setDamageQty(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full p-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono"
+                    className="w-full p-2 rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900 font-mono"
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">Reason Code</label>
+                  <label className="font-bold text-brand-text dark:text-zinc-300 block mb-1">Reason Code</label>
                   <select
                     value={damageReason}
                     onChange={(e) => setDamageReason(e.target.value)}
-                    className="w-full p-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                    className="w-full p-2 rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                   >
                     <option value="EXPIRED">Expired Shelf Life</option>
                     <option value="TRANSIT_DAMAGE">Damaged in Transit</option>
@@ -2513,13 +2561,13 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               </div>
 
               <div>
-                <label className="font-bold text-zinc-700 dark:text-zinc-300 block mb-1">Incident Remarks</label>
+                <label className="font-bold text-brand-text dark:text-zinc-300 block mb-1">Incident Remarks</label>
                 <textarea
                   rows={2}
                   placeholder="e.g. Box crushed during shelf stocking"
                   value={damageNotes}
                   onChange={(e) => setDamageNotes(e.target.value)}
-                  className="w-full p-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                  className="w-full p-2 rounded-xl border border-brand-border dark:border-zinc-700 bg-white dark:bg-zinc-900"
                 />
               </div>
             </div>
@@ -2556,7 +2604,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   }
                 }}
                 disabled={damageSubmitting}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50"
+                className="px-4 py-2 bg-brand-navy hover:bg-brand-primary text-white text-xs font-bold rounded-xl shadow-sm transition disabled:opacity-50"
               >
                 Log Damage Report
               </button>

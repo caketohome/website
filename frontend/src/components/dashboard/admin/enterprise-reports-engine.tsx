@@ -605,12 +605,12 @@ export function EnterpriseReportsEngine() {
             /* Comparison Engine Dropdown */
             <div className="flex flex-col gap-1">
               <label className="text-[11px] font-bold uppercase tracking-wider text-ui-fg-subtle flex items-center gap-1">
-                <SlidersHorizontal className="w-3 h-3 text-indigo-500" /> Compare With
+                <SlidersHorizontal className="w-3 h-3 text-brand-primary" /> Compare With
               </label>
               <select
                 value={compareMode}
                 onChange={(e) => setCompareMode(e.target.value as ComparisonMode)}
-                className="h-9 px-3 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-lg font-medium text-ui-fg-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="h-9 px-3 text-xs bg-ui-bg-subtle border border-ui-border-base rounded-lg font-medium text-ui-fg-base focus:outline-none focus:ring-2 focus:ring-brand-primary"
               >
                 <option value="previous_period">Previous Equivalent Period</option>
                 <option value="previous_month">Previous Month</option>
@@ -672,7 +672,7 @@ export function EnterpriseReportsEngine() {
                     placeholder="Search branches..."
                     value={branchSearch}
                     onChange={(e) => setBranchSearch(e.target.value)}
-                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-gold"
                   />
                 </div>
 
@@ -719,7 +719,7 @@ export function EnterpriseReportsEngine() {
           {/* Quick Search Bar */}
           <div className="flex flex-col gap-1">
             <label className="text-[11px] font-bold uppercase tracking-wider text-ui-fg-subtle flex items-center gap-1">
-              <Search className="w-3 h-3 text-amber-500" /> Search Filter
+              <Search className="w-3 h-3 text-brand-gold" /> Search Filter
             </label>
             <Input
               placeholder="Search product, SKU, HSN, invoice..."
@@ -776,9 +776,9 @@ export function EnterpriseReportsEngine() {
               size="small"
               onClick={handleExportActiveReport}
               disabled={isExporting}
-              className="flex items-center gap-1.5 text-xs font-extrabold text-teal-900 bg-teal-50 border border-teal-300 hover:bg-teal-100 shrink-0"
+              className="flex items-center gap-1.5 text-xs font-extrabold text-brand-navy bg-brand-light border border-brand-primary/30 hover:bg-brand-light shrink-0"
             >
-              <Download className="w-3.5 h-3.5 text-teal-600" /> Export Executive Summary (XLSX)
+              <Download className="w-3.5 h-3.5 text-brand-primary" /> Export Executive Summary (XLSX)
             </Button>
           </div>
 
@@ -914,9 +914,9 @@ export function EnterpriseReportsEngine() {
               variant="secondary"
               size="small"
               onClick={() => ExcelExportService.exportDailySalesReport({ daily: dailyData, filters })}
-              className="flex items-center gap-1.5 text-xs font-extrabold text-teal-900 bg-teal-50 border border-teal-300 hover:bg-teal-100"
+              className="flex items-center gap-1.5 text-xs font-extrabold text-brand-navy bg-brand-light border border-brand-primary/30 hover:bg-brand-light"
             >
-              <Download className="w-3.5 h-3.5 text-teal-600" /> Export Daily Sales (XLSX)
+              <Download className="w-3.5 h-3.5 text-brand-primary" /> Export Daily Sales (XLSX)
             </Button>
           </div>
 
@@ -964,7 +964,7 @@ export function EnterpriseReportsEngine() {
                       <td className="p-3 text-right font-medium">{p.count}</td>
                       <td className="p-3 text-right font-bold text-emerald-700">₹{(p.gross ?? 0).toLocaleString("en-IN")}</td>
                       <td className="p-3 text-right text-rose-600">₹{(p.refundAmount || 0).toLocaleString("en-IN")}</td>
-                      <td className="p-3 text-right font-bold text-indigo-700">₹{(p.netAmount || p.gross || 0).toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-right font-bold text-brand-navy">₹{(p.netAmount || p.gross || 0).toLocaleString("en-IN")}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -993,13 +993,13 @@ export function EnterpriseReportsEngine() {
                   {(dailyData?.branchSummary || []).map((b: any, idx: number) => (
                     <tr key={idx} className="hover:bg-ui-bg-subtle/50">
                       <td className="p-3 font-sans font-bold text-ui-fg-base">{b.branchName}</td>
-                      <td className="p-3 font-mono font-bold text-indigo-700">{b.branchCode}</td>
+                      <td className="p-3 font-mono font-bold text-brand-navy">{b.branchCode}</td>
                       <td className="p-3 font-sans text-ui-fg-subtle">{b.city || "—"}</td>
                       <td className="p-3 text-right font-medium">{b.ordersCount ?? 0}</td>
                       <td className="p-3 text-right font-medium">₹{(b.grossSales ?? 0).toLocaleString("en-IN")}</td>
                       <td className="p-3 text-right font-bold text-emerald-700">₹{(b.netSales ?? 0).toLocaleString("en-IN")}</td>
                       <td className="p-3 text-right font-medium">₹{(b.aov ?? 0).toLocaleString("en-IN")}</td>
-                      <td className="p-3 text-right font-bold text-sky-700">{b.deliveredCount ?? 0}</td>
+                      <td className="p-3 text-right font-bold text-brand-navy">{b.deliveredCount ?? 0}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1025,9 +1025,9 @@ export function EnterpriseReportsEngine() {
               variant="secondary"
               size="small"
               onClick={() => ExcelExportService.exportWeeklySalesReport({ weekly: weeklyData, filters })}
-              className="flex items-center gap-1.5 text-xs font-extrabold text-teal-900 bg-teal-50 border border-teal-300 hover:bg-teal-100"
+              className="flex items-center gap-1.5 text-xs font-extrabold text-brand-navy bg-brand-light border border-brand-primary/30 hover:bg-brand-light"
             >
-              <Download className="w-3.5 h-3.5 text-teal-600" /> Export Weekly Report (XLSX)
+              <Download className="w-3.5 h-3.5 text-brand-primary" /> Export Weekly Report (XLSX)
             </Button>
           </div>
 
@@ -1103,7 +1103,7 @@ export function EnterpriseReportsEngine() {
                       <td className="p-3 text-right font-medium">{p.count}</td>
                       <td className="p-3 text-right font-bold text-emerald-700">₹{(p.gross ?? 0).toLocaleString("en-IN")}</td>
                       <td className="p-3 text-right text-rose-600">₹{(p.refundAmount || 0).toLocaleString("en-IN")}</td>
-                      <td className="p-3 text-right font-bold text-indigo-700">{p.percentage}%</td>
+                      <td className="p-3 text-right font-bold text-brand-navy">{p.percentage}%</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1129,9 +1129,9 @@ export function EnterpriseReportsEngine() {
               variant="secondary"
               size="small"
               onClick={() => ExcelExportService.exportMonthlySalesReport({ monthly: monthlyData, filters })}
-              className="flex items-center gap-1.5 text-xs font-extrabold text-teal-900 bg-teal-50 border border-teal-300 hover:bg-teal-100"
+              className="flex items-center gap-1.5 text-xs font-extrabold text-brand-navy bg-brand-light border border-brand-primary/30 hover:bg-brand-light"
             >
-              <Download className="w-3.5 h-3.5 text-teal-600" /> Export Monthly Report (XLSX)
+              <Download className="w-3.5 h-3.5 text-brand-primary" /> Export Monthly Report (XLSX)
             </Button>
           </div>
 
@@ -1147,10 +1147,10 @@ export function EnterpriseReportsEngine() {
               <Heading level="h3" className="text-xl font-bold mt-1 text-slate-700">₹{(monthlyData?.prevMonthSales ?? 0).toLocaleString("en-IN")}</Heading>
               <Text className="text-[10px] text-ui-fg-muted mt-1">Audited Baseline</Text>
             </div>
-            <div className="p-5 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl shadow-sm">
-              <Text className="text-[11px] font-bold text-indigo-800 uppercase">Sales Growth %</Text>
-              <Heading level="h3" className="text-xl font-bold mt-1 text-indigo-700">{monthlyData?.growthPctDisplay || "0%"}</Heading>
-              <Text className="text-[10px] text-indigo-600 mt-1">MoM Revenue Velocity</Text>
+            <div className="p-5 bg-brand-primary/10 border border-brand-primary/20 rounded-2xl shadow-sm">
+              <Text className="text-[11px] font-bold text-brand-navy uppercase">Sales Growth %</Text>
+              <Heading level="h3" className="text-xl font-bold mt-1 text-brand-navy">{monthlyData?.growthPctDisplay || "0%"}</Heading>
+              <Text className="text-[10px] text-brand-primary mt-1">MoM Revenue Velocity</Text>
             </div>
           </div>
 
@@ -1177,15 +1177,15 @@ export function EnterpriseReportsEngine() {
             <div className="flex flex-col gap-3 p-5 bg-ui-bg-base border rounded-2xl shadow-sm">
               <Heading level="h3" className="text-sm font-bold pb-2 border-b">👥 Monthly Customer Retention</Heading>
               <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
-                  <Text className="text-[10px] font-bold text-amber-800 uppercase">Repeat Purchase Rate</Text>
-                  <Heading level="h3" className={`text-base font-bold mt-1 ${monthlyData?.customerRetention?.repeatPurchaseRate != null ? "text-amber-700" : "text-ui-fg-muted italic text-xs"}`}>
+                <div className="p-3 bg-brand-gold-light rounded-xl border border-brand-gold/40">
+                  <Text className="text-[10px] font-bold text-brand-gold-dark uppercase">Repeat Purchase Rate</Text>
+                  <Heading level="h3" className={`text-base font-bold mt-1 ${monthlyData?.customerRetention?.repeatPurchaseRate != null ? "text-brand-gold-dark" : "text-ui-fg-muted italic text-xs"}`}>
                     {monthlyData?.customerRetention?.repeatPurchaseRate != null ? `${monthlyData.customerRetention.repeatPurchaseRate}%` : "Unavailable"}
                   </Heading>
                 </div>
-                <div className="p-3 bg-purple-50 rounded-xl border border-purple-200">
-                  <Text className="text-[10px] font-bold text-purple-800 uppercase">Estimated CLTV</Text>
-                  <Heading level="h3" className={`text-base font-bold mt-1 ${monthlyData?.customerRetention?.ltv != null ? "text-purple-700" : "text-ui-fg-muted italic text-xs"}`}>
+                <div className="p-3 bg-brand-light rounded-xl border border-brand-primary/30">
+                  <Text className="text-[10px] font-bold text-brand-navy uppercase">Estimated CLTV</Text>
+                  <Heading level="h3" className={`text-base font-bold mt-1 ${monthlyData?.customerRetention?.ltv != null ? "text-brand-navy" : "text-ui-fg-muted italic text-xs"}`}>
                     {monthlyData?.customerRetention?.ltv != null ? `₹${monthlyData.customerRetention.ltv.toLocaleString("en-IN")}` : "Unavailable"}
                   </Heading>
                 </div>
@@ -1261,7 +1261,7 @@ export function EnterpriseReportsEngine() {
                       <td className="p-3 text-ui-fg-muted">{item.uom}</td>
                       <td className="p-3 text-right font-bold">{(item.quantity ?? 0).toFixed(3)}</td>
                       <td className="p-3 text-right font-bold text-ui-fg-base">₹{(item.totalValue ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
-                      <td className="p-3 text-right font-bold text-indigo-600">{item.gstRatePct}%</td>
+                      <td className="p-3 text-right font-bold text-brand-primary">{item.gstRatePct}%</td>
                       <td className="p-3 text-right font-medium">₹{(item.taxableValue ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
                       <td className="p-3 text-right">₹{(item.igst ?? 0).toFixed(2)}</td>
                       <td className="p-3 text-right">₹{(item.cgst ?? 0).toFixed(2)}</td>
@@ -1306,9 +1306,9 @@ export function EnterpriseReportsEngine() {
               variant="secondary"
               size="small"
               onClick={() => ExcelExportService.exportCityPerformance({ cities: cityPerformance, filters })}
-              className="flex items-center gap-1.5 text-xs font-extrabold text-teal-900 bg-teal-50 border border-teal-300 hover:bg-teal-100"
+              className="flex items-center gap-1.5 text-xs font-extrabold text-brand-navy bg-brand-light border border-brand-primary/30 hover:bg-brand-light"
             >
-              <Download className="w-3.5 h-3.5 text-teal-600" /> Export City Report (XLSX)
+              <Download className="w-3.5 h-3.5 text-brand-primary" /> Export City Report (XLSX)
             </Button>
           </div>
 
@@ -1362,9 +1362,9 @@ export function EnterpriseReportsEngine() {
               variant="secondary"
               size="small"
               onClick={() => ExcelExportService.exportAreaPincodeSales({ areaPincodes: serviceAreaPerformance, filters })}
-              className="flex items-center gap-1.5 text-xs font-extrabold text-teal-900 bg-teal-50 border border-teal-300 hover:bg-teal-100"
+              className="flex items-center gap-1.5 text-xs font-extrabold text-brand-navy bg-brand-light border border-brand-primary/30 hover:bg-brand-light"
             >
-              <Download className="w-3.5 h-3.5 text-teal-600" /> Export Service Areas (XLSX)
+              <Download className="w-3.5 h-3.5 text-brand-primary" /> Export Service Areas (XLSX)
             </Button>
           </div>
 
@@ -1423,9 +1423,9 @@ export function EnterpriseReportsEngine() {
                 variant="secondary"
                 size="small"
                 onClick={() => ExcelExportService.exportProductPerformance({ products, filters })}
-                className="flex items-center gap-1.5 text-xs font-extrabold text-teal-900 bg-teal-50 border border-teal-300 hover:bg-teal-100"
+                className="flex items-center gap-1.5 text-xs font-extrabold text-brand-navy bg-brand-light border border-brand-primary/30 hover:bg-brand-light"
               >
-                <Download className="w-3.5 h-3.5 text-teal-600" /> Export Product Sales (XLSX)
+                <Download className="w-3.5 h-3.5 text-brand-primary" /> Export Product Sales (XLSX)
               </Button>
             </div>
           </div>
@@ -1466,7 +1466,7 @@ export function EnterpriseReportsEngine() {
                     <td className="p-3 text-right font-medium text-slate-700">₹{(p.totalCogs ?? 0).toLocaleString("en-IN")}</td>
                     <td className="p-3 text-right font-bold text-emerald-700">₹{(p.grossProfit ?? 0).toLocaleString("en-IN")}</td>
                     <td className="p-3 text-right font-bold font-sans">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] ${p.grossMarginPct >= 50 ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] ${p.grossMarginPct >= 50 ? "bg-emerald-100 text-emerald-800" : "bg-brand-gold-light text-brand-gold-dark"}`}>
                         {p.grossMarginPct}%
                       </span>
                     </td>
@@ -1492,9 +1492,9 @@ export function EnterpriseReportsEngine() {
               variant="secondary"
               size="small"
               onClick={() => ExcelExportService.exportBranchPerformance({ cities: branchPerformance, filters })}
-              className="flex items-center gap-1.5 text-xs font-extrabold text-teal-900 bg-teal-50 border border-teal-300 hover:bg-teal-100"
+              className="flex items-center gap-1.5 text-xs font-extrabold text-brand-navy bg-brand-light border border-brand-primary/30 hover:bg-brand-light"
             >
-              <Download className="w-3.5 h-3.5 text-teal-600" /> Export Branch Performance (XLSX)
+              <Download className="w-3.5 h-3.5 text-brand-primary" /> Export Branch Performance (XLSX)
             </Button>
           </div>
 
@@ -1522,7 +1522,7 @@ export function EnterpriseReportsEngine() {
                   <tr key={b.id} className="hover:bg-ui-bg-subtle/50">
                     <td className="p-3 text-center font-sans font-bold text-ui-fg-muted">#{idx + 1}</td>
                     <td className="p-3 font-sans font-bold text-ui-fg-base">{b.branchName}</td>
-                    <td className="p-3 font-mono font-bold text-indigo-700">{b.branchCode}</td>
+                    <td className="p-3 font-mono font-bold text-brand-navy">{b.branchCode}</td>
                     <td className="p-3 text-right font-medium">{b.ordersCount ?? 0}</td>
                     <td className="p-3 text-right font-bold text-emerald-700">{b.deliveredCount ?? 0}</td>
                     <td className="p-3 text-right text-rose-600">{b.cancelledCount ?? 0}</td>
@@ -1530,9 +1530,9 @@ export function EnterpriseReportsEngine() {
                     <td className="p-3 text-right font-bold text-ui-fg-base">₹{(b.netSales ?? 0).toLocaleString("en-IN")}</td>
                     <td className="p-3 text-right font-medium text-slate-600">₹{(b.cogs ?? 0).toLocaleString("en-IN")}</td>
                     <td className="p-3 text-right font-bold text-emerald-700">₹{(b.grossProfit ?? 0).toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-bold text-purple-700">{b.marginPct ?? 0}%</td>
+                    <td className="p-3 text-right font-bold text-brand-navy">{b.marginPct ?? 0}%</td>
                     <td className="p-3 text-right font-medium">₹{(b.aov ?? 0).toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-bold text-sky-700">{b.onTimeDeliveryPct ?? 100}%</td>
+                    <td className="p-3 text-right font-bold text-brand-navy">{b.onTimeDeliveryPct ?? 100}%</td>
                   </tr>
                 ))}
               </tbody>
@@ -1557,9 +1557,9 @@ export function EnterpriseReportsEngine() {
               variant="secondary"
               size="small"
               onClick={() => ExcelExportService.exportOrderRegister({ orders, filters })}
-              className="flex items-center gap-1.5 text-xs font-extrabold text-teal-900 bg-teal-50 border border-teal-300 hover:bg-teal-100"
+              className="flex items-center gap-1.5 text-xs font-extrabold text-brand-navy bg-brand-light border border-brand-primary/30 hover:bg-brand-light"
             >
-              <Download className="w-3.5 h-3.5 text-teal-600" /> Export Order Register (XLSX)
+              <Download className="w-3.5 h-3.5 text-brand-primary" /> Export Order Register (XLSX)
             </Button>
           </div>
 
@@ -1630,16 +1630,16 @@ export function EnterpriseReportsEngine() {
               variant="secondary"
               size="small"
               onClick={handleExportActiveReport}
-              className="flex items-center gap-1.5 text-xs font-extrabold text-teal-900 bg-teal-50 border border-teal-300 hover:bg-teal-100"
+              className="flex items-center gap-1.5 text-xs font-extrabold text-brand-navy bg-brand-light border border-brand-primary/30 hover:bg-brand-light"
             >
-              <Download className="w-3.5 h-3.5 text-teal-600" /> Export Payment Report (XLSX)
+              <Download className="w-3.5 h-3.5 text-brand-primary" /> Export Payment Report (XLSX)
             </Button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="p-4 bg-emerald-500/10 rounded-xl"><Text className="text-[11px] font-bold text-emerald-800 uppercase">Gross Payment Collected</Text><Heading level="h3" className="text-lg font-bold text-emerald-700">₹{(paymentData?.totalCollected ?? 0).toLocaleString("en-IN")}</Heading></div>
             <div className="p-4 bg-rose-500/10 rounded-xl"><Text className="text-[11px] font-bold text-rose-800 uppercase">Total Refunded</Text><Heading level="h3" className="text-lg font-bold text-rose-700">₹{(paymentData?.totalRefunds ?? 0).toLocaleString("en-IN")}</Heading></div>
-            <div className="p-4 bg-indigo-500/10 rounded-xl"><Text className="text-[11px] font-bold text-indigo-800 uppercase">Net Settlement</Text><Heading level="h3" className="text-lg font-bold text-indigo-700">₹{(paymentData?.netCollected ?? 0).toLocaleString("en-IN")}</Heading></div>
+            <div className="p-4 bg-brand-primary/10 rounded-xl"><Text className="text-[11px] font-bold text-brand-navy uppercase">Net Settlement</Text><Heading level="h3" className="text-lg font-bold text-brand-navy">₹{(paymentData?.netCollected ?? 0).toLocaleString("en-IN")}</Heading></div>
           </div>
 
           <div className="overflow-x-auto border border-ui-border-base rounded-xl">
@@ -1658,7 +1658,7 @@ export function EnterpriseReportsEngine() {
                     <td className="p-3 font-sans font-bold text-ui-fg-base">{p.method}</td>
                     <td className="p-3 text-right font-medium">{p.count}</td>
                     <td className="p-3 text-right font-bold text-emerald-700">₹{(p.gross ?? 0).toLocaleString("en-IN")}</td>
-                    <td className="p-3 text-right font-bold text-indigo-700">{(p as any).successPct || 100}%</td>
+                    <td className="p-3 text-right font-bold text-brand-navy">{(p as any).successPct || 100}%</td>
                   </tr>
                 ))}
               </tbody>
@@ -1681,9 +1681,9 @@ export function EnterpriseReportsEngine() {
               variant="secondary"
               size="small"
               onClick={handleExportActiveReport}
-              className="flex items-center gap-1.5 text-xs font-extrabold text-teal-900 bg-teal-50 border border-teal-300 hover:bg-teal-100"
+              className="flex items-center gap-1.5 text-xs font-extrabold text-brand-navy bg-brand-light border border-brand-primary/30 hover:bg-brand-light"
             >
-              <Download className="w-3.5 h-3.5 text-teal-600" /> Export Delivery Fleet (XLSX)
+              <Download className="w-3.5 h-3.5 text-brand-primary" /> Export Delivery Fleet (XLSX)
             </Button>
           </div>
 
@@ -1691,7 +1691,7 @@ export function EnterpriseReportsEngine() {
             <div className="p-4 bg-ui-bg-subtle rounded-xl"><Text className="text-[11px] font-bold text-ui-fg-subtle uppercase">Total Deliveries</Text><Heading level="h3" className="text-lg font-bold">{deliveryData.totalDeliveries}</Heading></div>
             <div className="p-4 bg-emerald-500/10 rounded-xl"><Text className="text-[11px] font-bold text-emerald-800 uppercase">On-Time Deliveries</Text><Heading level="h3" className="text-lg font-bold text-emerald-700">{deliveryData.onTimeDeliveries}</Heading></div>
             <div className="p-4 bg-rose-500/10 rounded-xl"><Text className="text-[11px] font-bold text-rose-800 uppercase">Delayed Deliveries</Text><Heading level="h3" className="text-lg font-bold text-rose-700">{deliveryData.delayedDeliveries}</Heading></div>
-            <div className="p-4 bg-sky-500/10 rounded-xl"><Text className="text-[11px] font-bold text-sky-800 uppercase">Avg Fulfillment Time</Text><Heading level="h3" className="text-lg font-bold text-sky-700">{(deliveryData as any).avgFulfillmentMins || deliveryData.avgDeliveryMinutes || 35} mins</Heading></div>
+            <div className="p-4 bg-brand-primary/10 rounded-xl"><Text className="text-[11px] font-bold text-brand-navy uppercase">Avg Fulfillment Time</Text><Heading level="h3" className="text-lg font-bold text-brand-navy">{(deliveryData as any).avgFulfillmentMins || deliveryData.avgDeliveryMinutes || 35} mins</Heading></div>
           </div>
         </div>
       )}
@@ -1710,17 +1710,17 @@ export function EnterpriseReportsEngine() {
               variant="secondary"
               size="small"
               onClick={handleExportActiveReport}
-              className="flex items-center gap-1.5 text-xs font-extrabold text-teal-900 bg-teal-50 border border-teal-300 hover:bg-teal-100"
+              className="flex items-center gap-1.5 text-xs font-extrabold text-brand-navy bg-brand-light border border-brand-primary/30 hover:bg-brand-light"
             >
-              <Download className="w-3.5 h-3.5 text-teal-600" /> Export Customer Report (XLSX)
+              <Download className="w-3.5 h-3.5 text-brand-primary" /> Export Customer Report (XLSX)
             </Button>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="p-4 bg-ui-bg-subtle rounded-xl"><Text className="text-[11px] font-bold text-ui-fg-subtle uppercase">Total Active Buyers</Text><Heading level="h3" className="text-lg font-bold">{customerData?.totalCustomers != null ? customerData.totalCustomers : "Unavailable"}</Heading></div>
             <div className="p-4 bg-emerald-500/10 rounded-xl"><Text className="text-[11px] font-bold text-emerald-800 uppercase">New Customers</Text><Heading level="h3" className="text-lg font-bold text-emerald-700">{customerData?.newCustomers != null ? customerData.newCustomers : "Unavailable"}</Heading></div>
-            <div className="p-4 bg-amber-500/10 rounded-xl"><Text className="text-[11px] font-bold text-amber-800 uppercase">Repeat Purchase Rate</Text><Heading level="h3" className={`text-lg font-bold ${customerData?.repeatPurchaseRate != null ? "text-amber-700" : "text-ui-fg-muted italic text-xs"}`}>{customerData?.repeatPurchaseRate != null ? `${customerData.repeatPurchaseRate}%` : "Unavailable"}</Heading></div>
-            <div className="p-4 bg-indigo-500/10 rounded-xl"><Text className="text-[11px] font-bold text-indigo-800 uppercase">Average Customer LTV</Text><Heading level="h3" className={`text-lg font-bold ${customerData?.ltv != null ? "text-indigo-700" : "text-ui-fg-muted italic text-xs"}`}>{customerData?.ltv != null ? `₹${customerData.ltv.toLocaleString("en-IN")}` : "Unavailable"}</Heading></div>
+            <div className="p-4 bg-brand-gold/10 rounded-xl"><Text className="text-[11px] font-bold text-brand-gold-dark uppercase">Repeat Purchase Rate</Text><Heading level="h3" className={`text-lg font-bold ${customerData?.repeatPurchaseRate != null ? "text-brand-gold-dark" : "text-ui-fg-muted italic text-xs"}`}>{customerData?.repeatPurchaseRate != null ? `${customerData.repeatPurchaseRate}%` : "Unavailable"}</Heading></div>
+            <div className="p-4 bg-brand-primary/10 rounded-xl"><Text className="text-[11px] font-bold text-brand-navy uppercase">Average Customer LTV</Text><Heading level="h3" className={`text-lg font-bold ${customerData?.ltv != null ? "text-brand-navy" : "text-ui-fg-muted italic text-xs"}`}>{customerData?.ltv != null ? `₹${customerData.ltv.toLocaleString("en-IN")}` : "Unavailable"}</Heading></div>
           </div>
         </div>
       )}
@@ -1739,9 +1739,9 @@ export function EnterpriseReportsEngine() {
               variant="secondary"
               size="small"
               onClick={handleExportActiveReport}
-              className="flex items-center gap-1.5 text-xs font-extrabold text-teal-900 bg-teal-50 border border-teal-300 hover:bg-teal-100"
+              className="flex items-center gap-1.5 text-xs font-extrabold text-brand-navy bg-brand-light border border-brand-primary/30 hover:bg-brand-light"
             >
-              <Download className="w-3.5 h-3.5 text-teal-600" /> Export Cross-Sell (XLSX)
+              <Download className="w-3.5 h-3.5 text-brand-primary" /> Export Cross-Sell (XLSX)
             </Button>
           </div>
 
@@ -1760,9 +1760,9 @@ export function EnterpriseReportsEngine() {
                 {crossSellData.map((p, idx) => (
                   <tr key={idx} className="hover:bg-ui-bg-subtle/50">
                     <td className="p-3 font-sans font-bold text-ui-fg-base">{p.primaryItem}</td>
-                    <td className="p-3 font-sans font-bold text-purple-700">{p.coPurchasedItem}</td>
+                    <td className="p-3 font-sans font-bold text-brand-navy">{p.coPurchasedItem}</td>
                     <td className="p-3 text-right font-bold">{p.coPurchaseCount}</td>
-                    <td className="p-3 text-right font-bold text-indigo-700">{p.attachRatePct}%</td>
+                    <td className="p-3 text-right font-bold text-brand-navy">{p.attachRatePct}%</td>
                     <td className="p-3 text-right font-bold text-emerald-700">₹{(p.addedRevenue ?? 0).toLocaleString("en-IN")}</td>
                   </tr>
                 ))}
@@ -1791,9 +1791,9 @@ export function EnterpriseReportsEngine() {
                 size="small"
                 onClick={handleExportActiveReport}
                 disabled={isExporting}
-                className="flex items-center gap-1.5 text-xs font-extrabold text-teal-900 bg-teal-50 border border-teal-300 hover:bg-teal-100"
+                className="flex items-center gap-1.5 text-xs font-extrabold text-brand-navy bg-brand-light border border-brand-primary/30 hover:bg-brand-light"
               >
-                <Download className="w-3.5 h-3.5 text-teal-600" /> Export Exception Audit (XLSX)
+                <Download className="w-3.5 h-3.5 text-brand-primary" /> Export Exception Audit (XLSX)
               </Button>
             </div>
           </div>

@@ -15,8 +15,8 @@ export function LiveVisitorsBadge() {
   }, []);
 
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/50 rounded-lg text-xs text-amber-800 dark:text-amber-200">
-      <Flame className="w-4 h-4 text-amber-500 animate-bounce" />
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 dark:border-brand-gold-dark/50 rounded-lg text-xs text-brand-gold-dark dark:text-brand-gold/40">
+      <Flame className="w-4 h-4 text-brand-gold animate-bounce" />
       <span className="font-semibold">{count} people</span> are viewing this cake right now!
     </div>
   );
@@ -37,12 +37,12 @@ export function CountdownUrgencyTimer() {
   }, []);
 
   return (
-    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-[#1D2F5D]/10 to-amber-500/10 border border-[#D4AF37]/40 dark:border-[#D4AF37]/20 rounded-xl text-xs">
+    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-brand-navy/10 to-brand-gold/10 border border-brand-gold/40 dark:border-brand-gold/20 rounded-xl text-xs">
       <div className="flex items-center gap-2">
-        <Clock className="w-4 h-4 text-[#1D2F5D] animate-spin" />
+        <Clock className="w-4 h-4 text-brand-navy animate-spin" />
         <span className="font-medium">Order within next:</span>
       </div>
-      <div className="flex items-center gap-1 font-mono font-bold text-sm text-[#1D2F5D] dark:text-[#D4AF37]">
+      <div className="flex items-center gap-1 font-mono font-bold text-sm text-brand-navy dark:text-brand-gold">
         <span>{String(time.minutes).padStart(2, "0")}m</span>
         <span>:</span>
         <span>{String(time.seconds).padStart(2, "0")}s</span>
@@ -78,11 +78,11 @@ export function RecentOrderToast() {
 
   return (
     <div className="fixed bottom-6 left-6 z-40 p-3 bg-slate-900 border border-slate-700 text-white rounded-xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-left duration-300 max-w-xs">
-      <div className="w-9 h-9 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center text-lg shrink-0">
+      <div className="w-9 h-9 rounded-full bg-brand-gold/20 border border-brand-gold flex items-center justify-center text-lg shrink-0">
         🎂
       </div>
       <div className="flex flex-col gap-0.5 text-xs">
-        <span className="font-semibold text-amber-300">{currentOrder.name} ({currentOrder.area})</span>
+        <span className="font-semibold text-brand-gold/40">{currentOrder.name} ({currentOrder.area})</span>
         <span className="text-slate-300 text-[11px]">Just ordered {currentOrder.item}</span>
         <span className="text-[9px] text-slate-400">{currentOrder.time}</span>
       </div>
@@ -111,12 +111,12 @@ export function ExitIntentModal() {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-slate-900 border-2 border-amber-500/50 text-white p-6 rounded-2xl max-w-md w-full shadow-2xl relative flex flex-col gap-4 animate-in zoom-in-95 duration-200">
+      <div className="bg-slate-900 border-2 border-brand-gold/50 text-white p-6 rounded-2xl max-w-md w-full shadow-2xl relative flex flex-col gap-4 animate-in zoom-in-95 duration-200">
         <button onClick={() => setShow(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white">
           <X className="w-5 h-5" />
         </button>
 
-        <div className="w-12 h-12 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center text-2xl mx-auto">
+        <div className="w-12 h-12 rounded-full bg-brand-gold/20 border border-brand-gold flex items-center justify-center text-2xl mx-auto">
           🎁
         </div>
 
@@ -125,13 +125,13 @@ export function ExitIntentModal() {
           <p className="text-xs text-slate-300">Here is an exclusive secret 15% discount for your order today:</p>
         </div>
 
-        <div className="p-4 bg-slate-800 border border-dashed border-amber-500 rounded-xl text-center flex flex-col gap-1">
+        <div className="p-4 bg-slate-800 border border-dashed border-brand-gold rounded-xl text-center flex flex-col gap-1">
           <span className="text-[10px] text-slate-400 uppercase tracking-wider">Secret Coupon Code</span>
-          <span className="font-mono font-bold text-2xl text-amber-400">SECRET15</span>
-          <span className="text-[10px] text-emerald-400 font-medium">Valid for next 10 minutes only</span>
+          <span className="font-mono font-bold text-2xl text-brand-gold">SECRET15</span>
+          <span className="text-[10px] text-[#16834A] font-medium">Valid for next 10 minutes only</span>
         </div>
 
-        <Button onClick={() => setShow(false)} className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 rounded-xl">
+        <Button onClick={() => setShow(false)} className="w-full bg-brand-navy hover:bg-brand-primary text-white font-bold py-2.5 rounded-xl">
           Apply 15% Discount & Shop Cakes
         </Button>
       </div>

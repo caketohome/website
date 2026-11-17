@@ -580,7 +580,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
             </Text>
 
             {currentFrameCount > RECOMMENDED_FRAME_COUNT && (
-              <div className="p-2 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 rounded-lg flex items-center gap-2 text-[11px] text-amber-800 dark:text-amber-300">
+              <div className="p-2 bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 dark:border-brand-gold-dark rounded-lg flex items-center gap-2 text-[11px] text-brand-gold-dark dark:text-brand-gold/40">
                 <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                 <span>Animation payload is large. Consider 16 frames for optimal mobile speed.</span>
               </div>
@@ -807,7 +807,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
                           <button
                             type="button"
                             onClick={() => handleStartReplaceFrame(frame.id)}
-                            className="p-1 rounded hover:bg-amber-50 dark:hover:bg-amber-950/40 text-amber-600 cursor-pointer"
+                            className="p-1 rounded hover:bg-brand-gold-light dark:hover:bg-brand-gold-dark/40 text-brand-gold cursor-pointer"
                             title="Replace Image"
                           >
                             <RefreshCw className="w-3.5 h-3.5" />
@@ -1055,7 +1055,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
 
           {/* Phase 2: Master Chocolatier Recipe Story */}
           <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
-            <Text className="text-xs font-bold text-amber-600 uppercase">
+            <Text className="text-xs font-bold text-brand-gold uppercase">
               Phase 2: Master Chocolatier Story ({activeDevice.toUpperCase()})
             </Text>
             <Field label="Craft Badge">

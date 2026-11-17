@@ -115,9 +115,9 @@ export function SessionHistoryTab({
       case "SETTLED":
         return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">SETTLED</span>;
       case "PENDING_VERIFICATION":
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">PENDING_VERIFICATION</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-light text-brand-navy border border-brand-primary/30">PENDING_VERIFICATION</span>;
       case "CLOSING":
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">CLOSING</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-gold-light text-brand-gold-dark border border-brand-gold/40">CLOSING</span>;
       case "OPEN":
         return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">OPEN</span>;
       case "CANCELLED":
@@ -232,7 +232,7 @@ export function SessionHistoryTab({
               ) : filteredSessions.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="py-12 text-center text-slate-500">
-                    <AlertTriangle className="w-8 h-8 mx-auto text-amber-500 mb-2" />
+                    <AlertTriangle className="w-8 h-8 mx-auto text-brand-gold mb-2" />
                     <p className="font-semibold text-slate-700">No sessions match the current filters</p>
                     <p className="text-[11px] text-slate-400 mt-0.5 mb-3">
                       {selectedBranchId ? `Branch: ${selectedBranchObj?.name || selectedBranchId}` : "All branches"}
@@ -281,7 +281,7 @@ export function SessionHistoryTab({
                                 ? "text-emerald-700"
                                 : variance < 0
                                 ? "text-rose-700"
-                                : "text-teal-700"
+                                : "text-brand-navy"
                             }
                           >
                             {variance > 0 ? "+" : ""}₹{formatAmount(s.variance)}

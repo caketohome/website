@@ -213,7 +213,7 @@ export function SplitHeroEditor({ config, onChange, openImagePicker }: SplitHero
       {/* 2. Media Settings */}
       {activeTab === "media" && (
         <div className="p-3.5 bg-ui-bg-subtle rounded-2xl border border-ui-border-base flex flex-col gap-3">
-          <Text className="text-xs font-bold uppercase tracking-wider text-purple-600 flex items-center gap-1.5">
+          <Text className="text-xs font-bold uppercase tracking-wider text-brand-primary flex items-center gap-1.5">
             <ImageIcon className="w-3.5 h-3.5" /> Media & Video
           </Text>
 

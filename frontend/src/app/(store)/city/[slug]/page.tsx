@@ -115,38 +115,38 @@ export default async function CityLandingPage({ params }: CityPageProps) {
       </nav>
 
       {/* ─── Hero City Banner ────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-rose-950 via-purple-950 to-slate-950 text-white py-16 px-4 sm:px-6 lg:px-8 border-b border-purple-800/40">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#FDFBF7]0/20 via-transparent to-transparent pointer-events-none" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-rose-950 via-brand-navy to-slate-950 text-white py-16 px-4 sm:px-6 lg:px-8 border-b border-brand-navy/40">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-brand-warm-white0/20 via-transparent to-transparent pointer-events-none" />
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
             <div className="space-y-4 max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#1D2F5D]/20 border border-rose-400/30 text-rose-300 text-xs font-semibold uppercase tracking-wider backdrop-blur-md">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brand-navy/20 border border-rose-400/30 text-rose-300 text-xs font-semibold uppercase tracking-wider backdrop-blur-md">
                 <MapPin className="w-3.5 h-3.5" />
                 <span>{localPage.state_name}, India</span>
               </div>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
                 Online Cake Delivery in{" "}
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-rose-300 via-pink-300 to-purple-300">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-rose-300 via-brand-primary/30 to-brand-primary/30">
                   {localPage.city_name}
                 </span>
               </h1>
-              <p className="text-sm sm:text-base text-purple-100/80 leading-relaxed">
+              <p className="text-sm sm:text-base text-brand-light/80 leading-relaxed">
                 {localPage.hero_subtitle || `Experience gourmet perfection. Artisanal cakes hand-crafted by master pâtissiers, delivered fresh in 45-60 minutes across ${localPage.city_name}.`}
               </p>
 
               {/* Quick stats pills */}
               <div className="flex flex-wrap gap-3 pt-2">
                 <div className="bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-lg border border-white/10 text-xs font-medium flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <Building2 className="w-3.5 h-3.5 text-brand-gold" />
                   <span>{branches.length} Fulfillment Hub{branches.length !== 1 ? "s" : ""}</span>
                 </div>
                 <div className="bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-lg border border-white/10 text-xs font-medium flex items-center gap-1.5">
-                  <Truck className="w-3.5 h-3.5 text-pink-400" />
+                  <Truck className="w-3.5 h-3.5 text-brand-primary" />
                   <span>Express & Scheduled Delivery</span>
                 </div>
                 <div className="bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-lg border border-white/10 text-xs font-medium flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#16834A]" />
                   <span>{pincodesList.length > 0 ? `${pincodesList.length} Pincodes Covered` : "Citywide Coverage"}</span>
                 </div>
               </div>
@@ -155,28 +155,28 @@ export default async function CityLandingPage({ params }: CityPageProps) {
             {/* Delivery Guarantees Card */}
             <div className="w-full lg:w-80 bg-white/10 backdrop-blur-xl border border-white/15 rounded-2xl p-5 space-y-4 shadow-2xl">
               <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-white/10 pb-2">
-                <Sparkles className="w-4 h-4 text-amber-400" /> {localPage.city_name} Delivery Promise
+                <Sparkles className="w-4 h-4 text-brand-gold" /> {localPage.city_name} Delivery Promise
               </h3>
-              <div className="space-y-3 text-xs text-purple-100">
+              <div className="space-y-3 text-xs text-brand-light">
                 <div className="flex items-start gap-2.5">
-                  <Clock className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
+                  <Clock className="w-4 h-4 text-brand-gold shrink-0 mt-0.5" />
                   <div>
                     <span className="font-semibold text-white block">45-Minute Express Delivery</span>
-                    <span className="text-[11px] text-purple-200/70">Baked fresh right after your order</span>
+                    <span className="text-[11px] text-brand-primary/70">Baked fresh right after your order</span>
                   </div>
                 </div>
                 <div className="flex items-start gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <ShieldCheck className="w-4 h-4 text-[#16834A] shrink-0 mt-0.5" />
                   <div>
                     <span className="font-semibold text-white block">Artisan Recipe Guarantee</span>
-                    <span className="text-[11px] text-purple-200/70">Certified hygiene & food safety</span>
+                    <span className="text-[11px] text-brand-primary/70">Certified hygiene & food safety</span>
                   </div>
                 </div>
                 <div className="flex items-start gap-2.5">
-                  <Award className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <Award className="w-4 h-4 text-brand-gold shrink-0 mt-0.5" />
                   <div>
                     <span className="font-semibold text-white block">Scheduled Delivery Slots</span>
-                    <span className="text-[11px] text-purple-200/70">Flexible 1-hour celebration windows</span>
+                    <span className="text-[11px] text-brand-primary/70">Flexible 1-hour celebration windows</span>
                   </div>
                 </div>
               </div>
@@ -195,7 +195,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">Find the perfect cake for your celebration</p>
             </div>
-            <Link href="/occasions" className="text-xs font-semibold text-[#1D2F5D] dark:text-[#D4AF37] hover:underline flex items-center gap-1">
+            <Link href="/occasions" className="text-xs font-semibold text-brand-navy dark:text-brand-gold hover:underline flex items-center gap-1">
               All Occasions <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -208,7 +208,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
                 className="group p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-rose-400 dark:hover:border-rose-600 transition-all text-center space-y-2 shadow-sm hover:shadow-md"
               >
                 <div className="text-2xl group-hover:scale-110 transition-transform">{occ.icon || "🎂"}</div>
-                <div className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#1D2F5D] dark:group-hover:text-[#D4AF37] truncate">
+                <div className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-brand-navy dark:group-hover:text-brand-gold truncate">
                   {occ.name}
                 </div>
               </Link>
@@ -222,11 +222,11 @@ export default async function CityLandingPage({ params }: CityPageProps) {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Cake className="w-5 h-5 text-[#1D2F5D]" /> Bestselling Cakes in {localPage.city_name}
+              <Cake className="w-5 h-5 text-brand-navy" /> Bestselling Cakes in {localPage.city_name}
             </h2>
             <p className="text-xs text-slate-500 mt-1">Handcrafted with premium Belgian chocolate and fresh ingredients</p>
           </div>
-          <Link href="/products" className="text-xs font-bold text-[#1D2F5D] hover:text-[#152347] dark:text-[#D4AF37] flex items-center gap-1 hover:underline">
+          <Link href="/products" className="text-xs font-bold text-brand-navy hover:text-brand-deep dark:text-brand-gold flex items-center gap-1 hover:underline">
             View All Cakes <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -236,7 +236,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
             <Link
               key={p.product_id || p.id}
               href={`/products/${p.handle || p.slug || p.product_id || p.id}`}
-              className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+              className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-brand-gold"
             >
               <div className="relative aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800">
                 {p.thumbnail || p.images?.[0] ? (
@@ -248,17 +248,17 @@ export default async function CityLandingPage({ params }: CityPageProps) {
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-4xl">🎂</div>
                 )}
-                <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-[#1D2F5D]/90 text-[#D4AF37] font-bold text-[10px] shadow border border-[#D4AF37]/30 backdrop-blur-md">
+                <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-brand-navy/90 text-brand-gold font-bold text-[10px] shadow border border-brand-gold/30 backdrop-blur-md">
                   ✨ Handcrafted
                 </span>
                 <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white font-semibold text-[10px] flex items-center gap-1">
-                  <Star className="w-3 h-3 text-[#D4AF37] fill-[#D4AF37]" /> {p.rating ? Number(p.rating).toFixed(1) : "4.9"}
+                  <Star className="w-3 h-3 text-brand-gold fill-brand-gold" /> {p.rating ? Number(p.rating).toFixed(1) : "4.9"}
                 </span>
               </div>
 
               <div className="p-4 space-y-2.5 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-serif font-bold text-sm text-slate-900 dark:text-white line-clamp-1 group-hover:text-[#1D2F5D] dark:group-hover:text-[#D4AF37] transition-colors">
+                  <h3 className="font-serif font-bold text-sm text-slate-900 dark:text-white line-clamp-1 group-hover:text-brand-navy dark:group-hover:text-brand-gold transition-colors">
                     {p.title || p.name}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-1">
@@ -269,11 +269,11 @@ export default async function CityLandingPage({ params }: CityPageProps) {
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                   <div>
                     <span className="text-[10px] text-slate-400 block">Starting from</span>
-                    <span className="text-sm font-black text-[#1D2F5D] dark:text-white">
+                    <span className="text-sm font-black text-brand-navy dark:text-white">
                       ₹{p.price || p.base_price || p.selling_price || 0}
                     </span>
                   </div>
-                  <span className="px-3 py-1.5 bg-[#1D2F5D] text-white text-xs font-bold rounded-lg group-hover:bg-[#152347] transition-colors inline-flex items-center gap-1 shadow-xs border border-[#D4AF37]/30">
+                  <span className="px-3 py-1.5 bg-brand-navy text-white text-xs font-bold rounded-lg group-hover:bg-brand-deep transition-colors inline-flex items-center gap-1 shadow-xs border border-brand-gold/30">
                     <span>Explore</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </span>
@@ -290,7 +290,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-[#1D2F5D] dark:text-[#D4AF37]" /> {localPage.city_name} Fulfillment Hubs & Bakeries
+                <Building2 className="w-5 h-5 text-brand-navy dark:text-brand-gold" /> {localPage.city_name} Fulfillment Hubs & Bakeries
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Orders are dispatched from the closest hub to guarantee temperature control and 45-minute delivery.
@@ -311,7 +311,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-xs text-slate-900 dark:text-white">{b.name}</span>
-                    <span className="px-2 py-0.5 bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 rounded text-[10px] font-mono font-bold">
+                    <span className="px-2 py-0.5 bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary/30 rounded text-[10px] font-mono font-bold">
                       {b.code || "HUB"}
                     </span>
                   </div>
@@ -320,7 +320,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
                     <span>{b.address || `${b.name}, ${localPage.city_name}`}</span>
                   </p>
                   <div className="flex items-center gap-2 text-[10px] text-slate-400 pt-1">
-                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">● Operational Hub</span>
+                    <span className="text-emerald-600 dark:text-[#16834A] font-semibold">● Operational Hub</span>
                   </div>
                 </div>
               ))}
@@ -363,9 +363,9 @@ export default async function CityLandingPage({ params }: CityPageProps) {
               key={i}
               className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm"
             >
-              <div className="flex items-center gap-1 text-amber-400">
+              <div className="flex items-center gap-1 text-brand-gold">
                 {Array.from({ length: t.rating }).map((_, j) => (
-                  <Star key={j} className="w-3.5 h-3.5 fill-amber-400" />
+                  <Star key={j} className="w-3.5 h-3.5 fill-brand-gold" />
                 ))}
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic">
@@ -383,7 +383,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
       {localPage?.faqs && localPage.faqs.length > 0 && (
         <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-16">
           <div className="text-center space-y-2 mb-10">
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-500/10 border border-[#D4AF37]/30 text-[#D4AF37] text-xs font-semibold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-brand-gold/10 border border-brand-gold/30 text-brand-gold text-xs font-semibold uppercase tracking-wider">
               <HelpCircle className="w-3.5 h-3.5" />
               <span>{localPage.city_name} Cake Delivery Guide & FAQs</span>
             </div>
@@ -399,7 +399,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
             {localPage.faqs.map((faq, idx) => (
               <details
                 key={idx}
-                className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs transition-all hover:border-[#D4AF37]/40 open:ring-1 open:ring-[#D4AF37]/30"
+                className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs transition-all hover:border-brand-gold/40 open:ring-1 open:ring-brand-gold/30"
               >
                 <summary className="font-bold text-sm sm:text-base text-slate-900 dark:text-white cursor-pointer list-none flex items-center justify-between">
                   <span>{faq.question}</span>
@@ -419,7 +419,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14">
           <div className="bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#1D2F5D] dark:text-[#D4AF37]" />
+              <MapPin className="w-4 h-4 text-brand-navy dark:text-brand-gold" />
               Serviceable Pincodes in {localPage.city_name}
             </h3>
             <p className="text-xs text-slate-500 mb-4">

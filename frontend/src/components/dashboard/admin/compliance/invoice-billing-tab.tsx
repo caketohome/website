@@ -163,7 +163,7 @@ export function InvoiceBillingTab({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-amber-600" />
+            <FileText className="w-5 h-5 text-brand-gold" />
             <Heading level="h3" className="text-base font-bold">Tax Invoices & Statutory Billing Rules</Heading>
           </div>
           <Text className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -183,7 +183,7 @@ export function InvoiceBillingTab({
             type="button"
             onClick={handleSubmit}
             isLoading={saving}
-            className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1.5 shrink-0 text-xs"
+            className="bg-brand-gold hover:bg-brand-gold-dark text-white flex items-center gap-1.5 shrink-0 text-xs"
           >
             <Save className="w-4 h-4" /> Save Settings
           </Button>
@@ -192,10 +192,10 @@ export function InvoiceBillingTab({
 
       {/* Propose New Series Form */}
       {showNewSeries && (
-        <Container className="p-5 border border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 rounded-2xl flex flex-col gap-4">
+        <Container className="p-5 border border-brand-gold/40 bg-brand-gold-light/50 dark:bg-brand-gold-dark/20 rounded-2xl flex flex-col gap-4">
           <div className="flex items-center gap-2">
-            <Scale className="w-4 h-4 text-amber-600" />
-            <Text className="text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-200">
+            <Scale className="w-4 h-4 text-brand-gold" />
+            <Text className="text-xs font-bold uppercase tracking-wider text-brand-gold-dark dark:text-brand-gold/40">
               Propose Statutory Invoice Series (CGST Rule 46)
             </Text>
           </div>
@@ -231,7 +231,7 @@ export function InvoiceBillingTab({
               />
             </div>
             <div className="flex gap-2">
-              <Button type="submit" isLoading={proposing} className="bg-amber-600 hover:bg-amber-700 text-white text-xs">
+              <Button type="submit" isLoading={proposing} className="bg-brand-gold hover:bg-brand-gold-dark text-white text-xs">
                 Submit Proposal
               </Button>
               <Button type="button" variant="secondary" onClick={() => setShowNewSeries(false)} className="text-xs">
@@ -319,7 +319,7 @@ export function InvoiceBillingTab({
         {/* Invoice Numbering & Sequence */}
         <Container className="p-5 flex flex-col gap-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <Sliders className="w-4 h-4 text-amber-600" />
+            <Sliders className="w-4 h-4 text-brand-gold" />
             <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
               Format Templates & Notes
             </Text>
@@ -353,7 +353,7 @@ export function InvoiceBillingTab({
         {/* Print Toggles */}
         <Container className="p-5 flex flex-col gap-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <Scale className="w-4 h-4 text-amber-600" />
+            <Scale className="w-4 h-4 text-brand-gold" />
             <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
               Statutory Field Print Toggles
             </Text>
@@ -369,7 +369,7 @@ export function InvoiceBillingTab({
                 type="checkbox"
                 checked={formData.show_legal_name}
                 onChange={(e) => setFormData({ ...formData, show_legal_name: e.target.checked })}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                className="w-4 h-4 rounded text-brand-gold focus:ring-brand-gold"
               />
             </label>
 
@@ -382,7 +382,7 @@ export function InvoiceBillingTab({
                 type="checkbox"
                 checked={formData.show_gstin}
                 onChange={(e) => setFormData({ ...formData, show_gstin: e.target.checked })}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                className="w-4 h-4 rounded text-brand-gold focus:ring-brand-gold"
               />
             </label>
 
@@ -395,7 +395,7 @@ export function InvoiceBillingTab({
                 type="checkbox"
                 checked={formData.show_fssai}
                 onChange={(e) => setFormData({ ...formData, show_fssai: e.target.checked })}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                className="w-4 h-4 rounded text-brand-gold focus:ring-brand-gold"
               />
             </label>
 
@@ -408,7 +408,7 @@ export function InvoiceBillingTab({
                 type="checkbox"
                 checked={formData.show_branch_address}
                 onChange={(e) => setFormData({ ...formData, show_branch_address: e.target.checked })}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                className="w-4 h-4 rounded text-brand-gold focus:ring-brand-gold"
               />
             </label>
           </div>
@@ -418,7 +418,7 @@ export function InvoiceBillingTab({
       {/* Terms & Footer Disclaimers */}
       <Container className="p-5 flex flex-col gap-4">
         <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-          <FileText className="w-4 h-4 text-amber-600" />
+          <FileText className="w-4 h-4 text-brand-gold" />
           <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
             Terms, Conditions & Invoice Footer
           </Text>
@@ -432,7 +432,7 @@ export function InvoiceBillingTab({
               rows={4}
               value={formData.terms_and_conditions}
               onChange={(e) => setFormData({ ...formData, terms_and_conditions: e.target.value })}
-              className="w-full mt-1 px-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"
+              className="w-full mt-1 px-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-gold font-mono"
             />
           </div>
 
@@ -443,7 +443,7 @@ export function InvoiceBillingTab({
               rows={4}
               value={formData.invoice_footer}
               onChange={(e) => setFormData({ ...formData, invoice_footer: e.target.value })}
-              className="w-full mt-1 px-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full mt-1 px-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-gold"
             />
           </div>
         </div>

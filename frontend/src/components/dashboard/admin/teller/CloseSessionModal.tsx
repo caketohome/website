@@ -82,9 +82,9 @@ export function CloseSessionModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
       <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-amber-50/50">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-brand-gold-light/50">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-brand-gold-light text-brand-gold-dark flex items-center justify-center">
               <Lock className="w-4 h-4" />
             </div>
             <div>
@@ -139,7 +139,7 @@ export function CloseSessionModal({
                 placeholder="0.00"
                 value={closingCount}
                 onChange={(e) => setClosingCount(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 text-base bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                className="w-full pl-8 pr-3 py-2 text-base bg-white border border-slate-200 rounded-xl text-slate-800 font-mono font-bold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold"
               />
             </div>
             <p className="text-[11px] text-slate-400 mt-1">
@@ -155,14 +155,14 @@ export function CloseSessionModal({
                   ? "bg-emerald-50 border-emerald-200 text-emerald-800"
                   : liveVariance < 0
                   ? "bg-rose-50 border-rose-200 text-rose-800"
-                  : "bg-teal-50 border-teal-200 text-teal-800"
+                  : "bg-brand-light border-brand-primary/30 text-brand-navy"
               }`}
             >
               <div className="flex items-center gap-2">
                 {liveVariance === 0 ? (
                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 ) : (
-                  <AlertTriangle className="w-4 h-4 text-amber-600" />
+                  <AlertTriangle className="w-4 h-4 text-brand-gold" />
                 )}
                 <span className="font-semibold">
                   {liveVariance === 0
@@ -188,11 +188,11 @@ export function CloseSessionModal({
               placeholder="e.g. Discrepancy explanation or shift handover note"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+              className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-gold/20 focus:border-brand-gold"
             />
           </div>
 
-          <div className="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl text-[11px] text-amber-900 leading-relaxed">
+          <div className="p-3 bg-brand-gold-light/70 border border-brand-gold/60 rounded-xl text-[11px] text-brand-gold-dark leading-relaxed">
             <strong>Next Step:</strong> Upon closing, this session transitions to <code>CLOSING</code> and requires an independent supervisor count verification before accounting settlement.
           </div>
 
@@ -209,7 +209,7 @@ export function CloseSessionModal({
             <button
               type="submit"
               disabled={loading || !hasValidCount}
-              className="px-4 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50"
+              className="px-4 py-2 text-xs font-semibold text-white bg-brand-gold hover:bg-brand-gold-dark rounded-xl shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50"
             >
               {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               <span>Confirm & Close Shift</span>

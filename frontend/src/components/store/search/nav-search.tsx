@@ -253,13 +253,13 @@ export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}
               aria-label="Search products"
               autoComplete="off"
               suppressHydrationWarning
-              className="w-full h-10 pl-10 pr-14 rounded-xl bg-slate-100 hover:bg-slate-200 focus:bg-white border border-slate-200 focus:border-[#2563EB] text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 transition-all shadow-inner"
+              className="w-full h-10 pl-10 pr-14 rounded-xl bg-slate-100 hover:bg-slate-200 focus:bg-white border border-slate-200 focus:border-brand-primary text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all shadow-inner"
             />
 
             {/* Right Controls: Spinner / Clear button / Shortcut badge */}
             <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
               {isLoading ? (
-                <Loader2 className="w-4 h-4 text-[#2563EB] animate-spin" />
+                <Loader2 className="w-4 h-4 text-brand-primary animate-spin" />
               ) : query ? (
                 <button
                   type="button"
@@ -314,9 +314,9 @@ export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}
               setIsOpen(false);
             }}
           />
-          <div className="fixed inset-x-0 top-0 h-16 bg-[#0D152B]/95 backdrop-blur-xl supports-[backdrop-filter]:bg-[#0D152B]/90 z-[110] flex items-center px-3 gap-2 border-b border-white/10 shadow-2xl animate-in fade-in-0 duration-150 md:hidden">
+          <div className="fixed inset-x-0 top-0 h-16 bg-brand-deep/95 backdrop-blur-xl supports-[backdrop-filter]:bg-brand-deep/90 z-[110] flex items-center px-3 gap-2 border-b border-white/10 shadow-2xl animate-in fade-in-0 duration-150 md:hidden">
             <div className="relative flex-1 flex items-center">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#2563EB] pointer-events-none" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-primary pointer-events-none" />
               <input
                 ref={mobileInputRef}
                 type="text"
@@ -327,7 +327,7 @@ export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}
                 aria-label="Search products mobile"
                 autoComplete="off"
                 suppressHydrationWarning
-                className="w-full h-10 pl-10 pr-10 rounded-xl bg-[#142040]/70 border border-white/20 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-[#2563EB]"
+                className="w-full h-10 pl-10 pr-10 rounded-xl bg-brand-navy/70 border border-white/20 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-brand-primary"
               />
               {query && (
                 <button
@@ -363,7 +363,7 @@ export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}
         <div
           className={`
             ${isMobileExpanded ? "fixed inset-x-2.5 top-18 z-[100]" : "absolute left-0 right-0 top-full mt-2 w-full min-w-[340px] sm:min-w-[420px] max-w-[540px] z-50"}
-            bg-[#0D152B]/95 border border-white/15 rounded-2xl shadow-[0_20px_50px_rgba(13,21,43,0.7)] overflow-hidden text-white animate-in fade-in-0 zoom-in-95 duration-150 backdrop-blur-xl supports-[backdrop-filter]:bg-[#0D152B]/85
+            bg-brand-deep/95 border border-white/15 rounded-2xl shadow-[0_20px_50px_rgba(13,21,43,0.7)] overflow-hidden text-white animate-in fade-in-0 zoom-in-95 duration-150 backdrop-blur-xl supports-[backdrop-filter]:bg-brand-deep/85
           `}
           style={{ maxHeight: "calc(80vh - 70px)" }}
         >
@@ -377,13 +377,13 @@ export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-white/50">
                       <div className="flex items-center gap-1.5">
-                        <History className="w-3.5 h-3.5 text-[#2563EB]" />
+                        <History className="w-3.5 h-3.5 text-brand-primary" />
                         <span>Recent Searches</span>
                       </div>
                       <button
                         type="button"
                         onMouseDown={clearRecentSearches}
-                        className="text-[10px] text-white/40 hover:text-[#2563EB] transition-colors lowercase"
+                        className="text-[10px] text-white/40 hover:text-brand-primary transition-colors lowercase"
                       >
                         clear
                       </button>
@@ -409,7 +409,7 @@ export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}
 
                 {/* Popular Searches */}
                 <div className="space-y-2">
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#2563EB]">
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-brand-primary">
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>Popular Searches</span>
                   </div>
@@ -422,7 +422,7 @@ export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}
                           e.preventDefault();
                           handleSelectSuggestion(suggestion);
                         }}
-                        className="text-xs px-3 py-1.5 rounded-full bg-white/5 hover:bg-blue-500/20 text-white/80 hover:text-[#2563EB] border border-white/10 hover:border-blue-400/40 transition-all flex items-center gap-1.5 cursor-pointer"
+                        className="text-xs px-3 py-1.5 rounded-full bg-white/5 hover:bg-blue-500/20 text-white/80 hover:text-brand-primary border border-white/10 hover:border-blue-400/40 transition-all flex items-center gap-1.5 cursor-pointer"
                       >
                         <span>🎂</span>
                         <span>{suggestion}</span>
@@ -442,7 +442,7 @@ export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}
             {/* 2. LOADING SKELETON STATE */}
             {isLoading && query.trim().length >= 2 && results.length === 0 && (
               <div className="py-4 space-y-3">
-                <div className="flex items-center gap-2 text-xs text-[#2563EB] px-1 font-medium">
+                <div className="flex items-center gap-2 text-xs text-brand-primary px-1 font-medium">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   <span>Searching fresh bakery catalogue...</span>
                 </div>
@@ -461,7 +461,7 @@ export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}
 
             {/* 3. ERROR STATE */}
             {errorMessage && (
-              <div className="py-4 text-center text-[#2563EB] text-xs">
+              <div className="py-4 text-center text-brand-primary text-xs">
                 <p>{errorMessage}</p>
               </div>
             )}
@@ -469,7 +469,7 @@ export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}
             {/* 4. NO RESULTS STATE */}
             {!isLoading && hasSearched && results.length === 0 && !errorMessage && query.trim().length >= 2 && (
               <div className="py-6 text-center flex flex-col items-center justify-center gap-2.5">
-                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-[#2563EB]">
+                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-brand-primary">
                   <Cake className="w-5 h-5" />
                 </div>
                 <div>
@@ -513,7 +513,7 @@ export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}
                         e.preventDefault();
                         handleSelectCategory(cat.slug);
                       }}
-                      className="text-xs px-2.5 py-1 rounded-lg bg-blue-500/15 hover:bg-[#D4AF37]/25 text-[#2563EB] border border-blue-400/30 transition-colors flex items-center gap-1 cursor-pointer"
+                      className="text-xs px-2.5 py-1 rounded-lg bg-blue-500/15 hover:bg-brand-gold/25 text-brand-primary border border-blue-400/30 transition-colors flex items-center gap-1 cursor-pointer"
                     >
                       <span>📂</span>
                       <span>{cat.name}</span>
@@ -606,7 +606,7 @@ export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}
                               <span className="truncate">{product.flavour}</span>
                             )}
                             {product.rating > 0 && (
-                              <span className="text-amber-400 font-semibold flex items-center gap-0.5 shrink-0">
+                              <span className="text-brand-gold font-semibold flex items-center gap-0.5 shrink-0">
                                 ★ {product.rating.toFixed(1)}
                               </span>
                             )}
@@ -618,7 +618,7 @@ export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}
 
                         {/* Price Display */}
                         <div className="text-right shrink-0 pr-1">
-                          <div className="text-xs sm:text-sm font-bold text-[#2563EB]">
+                          <div className="text-xs sm:text-sm font-bold text-brand-primary">
                             ₹{product.price}
                           </div>
                           <div className="text-[9px] text-white/40">From</div>
@@ -636,7 +636,7 @@ export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}
                         aria-label={isFav ? "Remove from wishlist" : "Add to wishlist"}
                         className={`p-1.5 rounded-full transition-all shrink-0 ${
                           isFav
-                            ? "text-[#2563EB] bg-blue-500/15 hover:bg-[#D4AF37]/25"
+                            ? "text-brand-primary bg-blue-500/15 hover:bg-brand-gold/25"
                             : "text-white/30 hover:text-white/80 hover:bg-white/10 opacity-0 group-hover:opacity-100 focus:opacity-100"
                         }`}
                       >
@@ -651,7 +651,7 @@ export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}
 
           {/* ── FOOTER: View All Results Link ── */}
           {query.trim().length >= 2 && results.length > 0 && (
-            <div className="p-2.5 border-t border-white/10 bg-[#0D152B]/95 backdrop-blur-md flex items-center justify-between">
+            <div className="p-2.5 border-t border-white/10 bg-brand-deep/95 backdrop-blur-md flex items-center justify-between">
               <span className="text-[11px] text-white/45">
                 Showing top {results.length} of {totalCount} results
               </span>
@@ -661,7 +661,7 @@ export function NavSearch({ mode = "auto", className = "" }: NavSearchProps = {}
                   e.preventDefault();
                   handleFullSearchSubmit();
                 }}
-                className="flex items-center gap-1 text-xs font-semibold text-[#2563EB] hover:text-[#2563EB] transition-colors px-2.5 py-1 rounded-lg hover:bg-blue-500/10 cursor-pointer"
+                className="flex items-center gap-1 text-xs font-semibold text-brand-primary hover:text-brand-primary transition-colors px-2.5 py-1 rounded-lg hover:bg-blue-500/10 cursor-pointer"
               >
                 <span>View all for &ldquo;{query}&rdquo;</span>
                 <ArrowRight className="w-3.5 h-3.5" />

@@ -21,18 +21,18 @@ export default async function OccasionsDirectoryPage() {
   return (
     <main className="min-h-screen pb-24 bg-slate-50 dark:bg-slate-950">
       {/* ── HERO HEADER BANNER ── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0D152B] via-[#1D2F5D] to-[#142040] text-white py-16 px-4 sm:px-6 lg:px-8 border-b border-[#D4AF37]/30 shadow-xl">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#D4AF37]/15 via-transparent to-transparent pointer-events-none" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-deep via-brand-navy to-brand-navy text-white py-16 px-4 sm:px-6 lg:px-8 border-b border-brand-gold/30 shadow-xl">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-brand-gold/15 via-transparent to-transparent pointer-events-none" />
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="max-w-3xl space-y-4">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-semibold uppercase tracking-wider backdrop-blur-md shadow-sm">
-              <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-brand-gold/40 text-brand-gold text-xs font-semibold uppercase tracking-wider backdrop-blur-md shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 text-brand-gold" />
               <span>Curated Collections</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-serif tracking-tight text-white leading-tight">
-              Cakes for Every <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F3E5AB] via-[#D4AF37] to-[#AA7C11]">Special Occasion</span>
+              Cakes for Every <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F3E5AB] via-brand-gold to-[#AA7C11]">Special Occasion</span>
             </h1>
 
             <p className="text-sm sm:text-base text-slate-300 font-medium leading-relaxed">
@@ -66,7 +66,7 @@ export default async function OccasionsDirectoryPage() {
               <Link
                 key={occasion.id || occasion.slug}
                 href={`/occasions/${occasion.slug}`}
-                className="group relative flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 shadow-sm hover:shadow-xl hover:border-[#D4AF37]/50 transition-all duration-300"
+                className="group relative flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 shadow-sm hover:shadow-xl hover:border-brand-gold/50 transition-all duration-300"
               >
                 {/* Image Container */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100 dark:bg-neutral-800">
@@ -87,14 +87,14 @@ export default async function OccasionsDirectoryPage() {
 
                   {/* Featured Tag */}
                   {(occasion.is_featured || occasion.featured) && (
-                    <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500 text-neutral-950 text-[10px] font-black uppercase tracking-wider shadow-sm">
+                    <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-brand-gold text-brand-text text-[10px] font-black uppercase tracking-wider shadow-sm">
                       Popular
                     </div>
                   )}
 
                   {/* Title overlay on image bottom */}
                   <div className="absolute bottom-3 left-3 right-3 text-white">
-                    <h2 className="text-lg font-bold font-serif leading-snug drop-shadow-sm group-hover:text-amber-300 transition-colors">
+                    <h2 className="text-lg font-bold font-serif leading-snug drop-shadow-sm group-hover:text-brand-gold/40 transition-colors">
                       {occasion.name}
                     </h2>
                   </div>
@@ -106,7 +106,7 @@ export default async function OccasionsDirectoryPage() {
                     {occasion.short_description || occasion.description || `Explore handcrafted cakes designed especially for ${occasion.name}.`}
                   </p>
 
-                  <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-bold text-amber-600 dark:text-amber-400 group-hover:translate-x-0.5 transition-transform">
+                  <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between text-xs font-bold text-brand-gold dark:text-brand-gold group-hover:translate-x-0.5 transition-transform">
                     <span>View Collection</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </div>
@@ -119,7 +119,7 @@ export default async function OccasionsDirectoryPage() {
 
       {/* ── GUARANTEE BANNER ── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-        <div className="rounded-3xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 p-8 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="rounded-3xl bg-gradient-to-r from-brand-gold/10 via-brand-gold/5 to-transparent border border-brand-gold/20 p-8 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-2 text-center md:text-left">
             <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 font-serif">
               Looking for a Bespoke Custom Celebration Cake?
@@ -130,7 +130,7 @@ export default async function OccasionsDirectoryPage() {
           </div>
           <Link
             href="/products"
-            className="shrink-0 px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition-all flex items-center gap-2"
+            className="shrink-0 px-6 py-3 rounded-xl bg-brand-navy hover:bg-brand-primary text-white font-bold text-xs shadow-lg shadow-brand-gold/20 transition-all flex items-center gap-2"
           >
             <span>Explore All Cakes</span>
             <ArrowRight className="w-4 h-4" />

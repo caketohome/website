@@ -8,7 +8,7 @@ export type LogoMode = "full" | "symbol";
 export interface CakeToHomeLogoProps {
   /**
    * Color variant:
-   * - "navy": Deep Navy (#0F172A) for light and white backgrounds
+   * - "navy": Deep Navy (#172033) for light and white backgrounds
    * - "white": Pure White (#FFFFFF) for dark, chocolate, and navy surfaces
    * - "black": Monochrome Black for thermal printers, KOT, and monochrome receipts
    */
@@ -97,7 +97,7 @@ export function CakeToHomeLogo({
     return (
       <Link
         href={href}
-        className="inline-flex items-center shrink-0 focus:outline-none focus:ring-2 focus:ring-[#0F172A] focus:ring-offset-2 rounded-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
+        className="inline-flex items-center shrink-0 focus:outline-none focus:ring-2 focus:ring-brand-text focus:ring-offset-2 rounded-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
         aria-label={alt}
       >
         {imageElement}

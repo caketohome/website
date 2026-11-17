@@ -282,7 +282,7 @@ export function CashFlowPanel() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-900 to-slate-900 text-amber-400 shadow-md">
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-brand-navy to-slate-900 text-brand-gold shadow-md">
               <span className="text-xl">🌊</span>
             </div>
             <div>
@@ -318,7 +318,7 @@ export function CashFlowPanel() {
               onClick={() => setDisplayMethod("both")}
               className={`text-xs py-1.5 rounded-md font-medium transition-all ${
                 displayMethod === "both"
-                  ? "bg-white dark:bg-slate-900 text-indigo-700 dark:text-amber-400 shadow-sm"
+                  ? "bg-white dark:bg-slate-900 text-brand-navy dark:text-brand-gold shadow-sm"
                   : "text-slate-600 dark:text-slate-400"
               }`}
             >
@@ -328,7 +328,7 @@ export function CashFlowPanel() {
               onClick={() => setDisplayMethod("direct")}
               className={`text-xs py-1.5 rounded-md font-medium transition-all ${
                 displayMethod === "direct"
-                  ? "bg-white dark:bg-slate-900 text-indigo-700 dark:text-amber-400 shadow-sm"
+                  ? "bg-white dark:bg-slate-900 text-brand-navy dark:text-brand-gold shadow-sm"
                   : "text-slate-600 dark:text-slate-400"
               }`}
             >
@@ -338,7 +338,7 @@ export function CashFlowPanel() {
               onClick={() => setDisplayMethod("indirect")}
               className={`text-xs py-1.5 rounded-md font-medium transition-all ${
                 displayMethod === "indirect"
-                  ? "bg-white dark:bg-slate-900 text-indigo-700 dark:text-amber-400 shadow-sm"
+                  ? "bg-white dark:bg-slate-900 text-brand-navy dark:text-brand-gold shadow-sm"
                   : "text-slate-600 dark:text-slate-400"
               }`}
             >
@@ -358,7 +358,7 @@ export function CashFlowPanel() {
                 <button
                   key={p}
                   onClick={() => handlePreset(p)}
-                  className="text-[11px] px-2 py-0.5 rounded bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-indigo-500"
+                  className="text-[11px] px-2 py-0.5 rounded bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-brand-primary"
                 >
                   {p}
                 </button>
@@ -408,7 +408,7 @@ export function CashFlowPanel() {
             type="checkbox"
             checked={showComparison}
             onChange={(e) => setShowComparison(e.target.checked)}
-            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+            className="rounded border-slate-300 text-brand-primary focus:ring-brand-primary"
           />
           Compare with Previous Period
         </label>
@@ -455,7 +455,7 @@ export function CashFlowPanel() {
             className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm ${
               data.reconciliation.is_reconciled
                 ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300"
-                : "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300"
+                : "bg-brand-gold-light dark:bg-brand-gold-dark/30 border-brand-gold/40 dark:border-brand-gold-dark/60 text-brand-gold-dark dark:text-brand-gold/40"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -508,7 +508,7 @@ export function CashFlowPanel() {
             {/* 3. Investing Cash Flow (CFI) */}
             <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Investing (CFI)</p>
-              <p className={`text-lg font-bold mt-1 ${data.summary.net_investing_cash >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-indigo-600 dark:text-indigo-400"}`}>
+              <p className={`text-lg font-bold mt-1 ${data.summary.net_investing_cash >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-brand-primary dark:text-brand-primary"}`}>
                 {formatINR(data.summary.net_investing_cash)}
               </p>
               <p className="text-[11px] text-slate-400 mt-0.5">Fixed assets capex</p>
@@ -517,7 +517,7 @@ export function CashFlowPanel() {
             {/* 4. Financing Cash Flow (CFF) */}
             <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Financing (CFF)</p>
-              <p className={`text-lg font-bold mt-1 ${data.summary.net_financing_cash >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+              <p className={`text-lg font-bold mt-1 ${data.summary.net_financing_cash >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-brand-gold dark:text-brand-gold"}`}>
                 {formatINR(data.summary.net_financing_cash)}
               </p>
               <p className="text-[11px] text-slate-400 mt-0.5">Loans & equity</p>
@@ -533,9 +533,9 @@ export function CashFlowPanel() {
             </div>
 
             {/* 6. Closing Cash */}
-            <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-950 to-slate-900 text-white shadow-sm border border-indigo-900">
-              <p className="text-xs font-medium text-amber-300 uppercase tracking-wider">Closing Cash</p>
-              <p className="text-lg font-bold text-amber-400 mt-1">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-brand-navy to-slate-900 text-white shadow-sm border border-brand-navy">
+              <p className="text-xs font-medium text-brand-gold/40 uppercase tracking-wider">Closing Cash</p>
+              <p className="text-lg font-bold text-brand-gold mt-1">
                 {formatINR(data.summary.closing_cash)}
               </p>
               <p className="text-[11px] text-slate-300 mt-0.5">As-of {endDate}</p>
@@ -554,7 +554,7 @@ export function CashFlowPanel() {
                     Gross cash inflows and disbursements categorized by counterparty
                   </p>
                 </div>
-                <span className="text-xs font-mono font-medium px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                <span className="text-xs font-mono font-medium px-2 py-0.5 rounded bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy">
                   Direct CFO: {formatINR(data.direct_schedule.operating.net_amount)}
                 </span>
               </div>
@@ -563,7 +563,7 @@ export function CashFlowPanel() {
                 {/* 1. Operating Activities */}
                 <div>
                   <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-brand-primary dark:text-brand-primary">
                       1. Cash Flows from Operating Activities
                     </h3>
                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
@@ -605,7 +605,7 @@ export function CashFlowPanel() {
                 {/* 2. Investing Activities */}
                 <div>
                   <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-brand-primary dark:text-brand-primary">
                       2. Cash Flows from Investing Activities
                     </h3>
                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
@@ -638,7 +638,7 @@ export function CashFlowPanel() {
                 {/* 3. Financing Activities */}
                 <div>
                   <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-brand-primary dark:text-brand-primary">
                       3. Cash Flows from Financing Activities
                     </h3>
                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
@@ -714,7 +714,7 @@ export function CashFlowPanel() {
                 </div>
 
                 {/* 2. Non-Cash Adjustments */}
-                <div className="pl-4 space-y-2 border-l-2 border-indigo-200 dark:border-indigo-800">
+                <div className="pl-4 space-y-2 border-l-2 border-brand-primary/30 dark:border-brand-navy">
                   <p className="font-semibold text-slate-500 uppercase tracking-wider text-[11px]">
                     Non-Cash & Financing Adjustments
                   </p>
@@ -857,7 +857,7 @@ export function CashFlowPanel() {
 
                 <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
                   <p className="text-slate-500 font-medium">Closing Cash Balance</p>
-                  <p className="font-bold text-sm mt-1 text-amber-500">{formatINR(data.summary.closing_cash)}</p>
+                  <p className="font-bold text-sm mt-1 text-brand-gold">{formatINR(data.summary.closing_cash)}</p>
                   <p className="text-[11px] text-slate-400">
                     Prior: {formatINR(data.comparison.summary.closing_cash)}
                   </p>

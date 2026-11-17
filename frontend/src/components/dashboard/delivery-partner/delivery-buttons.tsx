@@ -168,7 +168,7 @@ export default function DeliveryPartnerDeliveryButtons({
             variant="primary"
             size="small"
             onClick={() => setShowPickupModal(true)}
-            className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1"
+            className="bg-brand-gold hover:bg-brand-gold-dark text-white flex items-center gap-1"
           >
             <Key className="w-3.5 h-3.5" /> Verify Pickup OTP
           </Button>
@@ -211,7 +211,7 @@ export default function DeliveryPartnerDeliveryButtons({
           <div className="bg-ui-bg-base border border-ui-border-base rounded-2xl p-6 max-w-md w-full shadow-2xl flex flex-col gap-4">
             <div className="flex items-center justify-between pb-3 border-b border-ui-border-base">
               <div className="flex items-center gap-2">
-                <Truck className="w-5 h-5 text-amber-600" />
+                <Truck className="w-5 h-5 text-brand-gold" />
                 <span className="font-bold text-base text-ui-fg-base">Kitchen Pickup OTP Verification</span>
               </div>
               <button onClick={() => setShowPickupModal(false)} className="text-ui-fg-muted hover:text-ui-fg-base text-sm font-bold">✕</button>
@@ -240,7 +240,7 @@ export default function DeliveryPartnerDeliveryButtons({
               </div>
               <div className="flex justify-end gap-2 mt-2">
                 <Button type="button" variant="secondary" onClick={() => setShowPickupModal(false)}>Cancel</Button>
-                <Button type="submit" variant="primary" isLoading={proceedIsLoading} className="bg-amber-600 hover:bg-amber-700 text-white">
+                <Button type="submit" variant="primary" isLoading={proceedIsLoading} className="bg-brand-gold hover:bg-brand-gold-dark text-white">
                   Verify & Start Delivery
                 </Button>
               </div>

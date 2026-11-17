@@ -223,8 +223,8 @@ export function OtpLoginForm({
     <div className="w-full space-y-5 text-left">
       {/* Error Alert */}
       {error && (
-        <div className="p-3.5 rounded-xl bg-[#1D2F5D]/10 border border-[#D4AF37]/30 text-[#D4AF37]/80 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
-          <AlertCircle className="w-4 h-4 shrink-0 text-[#D4AF37]" />
+        <div className="p-3.5 rounded-lg bg-[#FDECEC] border border-[#C93636]/25 text-[#C93636] text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
+          <AlertCircle className="w-4 h-4 shrink-0 text-[#C93636]" />
           <span>{error}</span>
         </div>
       )}
@@ -233,7 +233,7 @@ export function OtpLoginForm({
       {step === "phone" && (
         <form onSubmit={handleRequestOtp} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-300">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-brand-text">
               Mobile Number
             </label>
             <CountryPhoneInput
@@ -247,7 +247,7 @@ export function OtpLoginForm({
               disabled={loading}
               autoFocus
             />
-            <p className="text-[11px] text-neutral-400">
+            <p className="text-[11px] text-brand-text-muted">
               We&apos;ll send a 6-digit verification code to this number.
             </p>
           </div>
@@ -255,7 +255,7 @@ export function OtpLoginForm({
           <button
             type="submit"
             disabled={loading || !getE164()}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full py-3.5 rounded-lg bg-brand-navy hover:bg-brand-primary text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? (
               <span className="flex items-center gap-2">
@@ -273,14 +273,14 @@ export function OtpLoginForm({
       {/* STEP 2: VERIFY OTP */}
       {step === "otp" && (
         <form onSubmit={handleVerifyOtp} className="space-y-4">
-          <div className="text-xs text-neutral-400">
+          <div className="text-xs text-brand-text-muted">
             Enter the 6-digit code sent to{" "}
-            <span className="font-mono text-amber-400 font-bold">{maskedDisplay}</span>
+            <span className="font-mono text-brand-navy font-bold">{maskedDisplay}</span>
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-300">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-brand-text">
                 Verification Code
               </label>
               <button
@@ -291,7 +291,7 @@ export function OtpLoginForm({
                   setError(null);
                   setSubmittedE164("");
                 }}
-                className="text-[11px] text-amber-400 hover:underline font-medium"
+                className="text-xs text-brand-primary hover:underline font-medium"
               >
                 Change Number
               </button>
@@ -317,7 +317,7 @@ export function OtpLoginForm({
                     handleDigitChange(idx, e.clipboardData.getData("text"));
                   }}
                   onKeyDown={(e) => handleDigitKeyDown(idx, e)}
-                  className="w-full aspect-square bg-neutral-950 border border-neutral-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-xl text-center text-lg font-mono font-bold text-white transition-all select-none"
+                  className="w-full aspect-square bg-white border border-brand-border focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 focus:outline-none rounded-xl text-center text-lg font-mono font-bold text-brand-navy transition-all select-none"
                   autoFocus={idx === 0}
                 />
               ))}
@@ -327,7 +327,7 @@ export function OtpLoginForm({
           <button
             type="submit"
             disabled={loading || getFullOtp().length !== 6}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full py-3.5 rounded-lg bg-brand-navy hover:bg-brand-primary text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? (
               <span className="flex items-center gap-2">
@@ -346,13 +346,13 @@ export function OtpLoginForm({
                 type="button"
                 onClick={() => handleRequestOtp()}
                 disabled={loading}
-                className="text-xs font-bold text-amber-400 hover:underline cursor-pointer"
+                className="text-xs font-semibold text-brand-primary hover:underline cursor-pointer"
               >
                 Didn&apos;t receive code? Resend OTP
               </button>
             ) : (
-              <span className="text-xs text-neutral-400">
-                Resend code in <span className="font-mono text-neutral-300 font-bold">{countdown}s</span>
+              <span className="text-xs text-brand-text-muted">
+                Resend code in <span className="font-mono text-brand-text font-bold">{countdown}s</span>
               </span>
             )}
           </div>
@@ -362,43 +362,43 @@ export function OtpLoginForm({
       {/* STEP 3: PROFILE COMPLETION */}
       {step === "profile" && (
         <form onSubmit={handleSaveProfile} className="space-y-4">
-          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1">
-            <h3 className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-              <Cake className="w-3.5 h-3.5 text-amber-400" />
+          <div className="p-3.5 rounded-lg bg-brand-gold-light/50 border border-brand-gold/25 space-y-1">
+            <h3 className="text-xs font-bold text-brand-gold-dark flex items-center gap-1.5">
+              <Cake className="w-3.5 h-3.5 text-brand-gold" />
               Number verified — finish your CakeToHome profile
             </h3>
-            <p className="text-[11px] text-neutral-300 leading-tight">Tell us what to call you.</p>
+            <p className="text-[11px] text-brand-text leading-tight">Tell us what to call you.</p>
           </div>
 
           <div className="space-y-1">
-            <label className="text-[11px] font-bold text-neutral-300">
-              Your Full Name <span className="text-[#D4AF37]">*</span>
+            <label className="text-[11px] font-bold text-brand-text">
+              Your Full Name <span className="text-brand-gold">*</span>
             </label>
             <div className="relative flex items-center">
-              <User className="w-3.5 h-3.5 absolute left-3.5 text-neutral-500" />
+              <User className="w-3.5 h-3.5 absolute left-3.5 text-brand-text-muted" />
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Alex R Ashok"
-                className="w-full bg-neutral-950 border border-neutral-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-neutral-600"
+                className="w-full bg-white border border-brand-border focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 focus:outline-none rounded-xl pl-9 pr-4 py-2.5 text-xs text-brand-text placeholder:text-brand-text-muted/70"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-[11px] font-bold text-neutral-300">
-              Email Address <span className="text-neutral-500 font-normal">(Optional for Invoices)</span>
+            <label className="text-[11px] font-bold text-brand-text">
+              Email Address <span className="text-brand-text-muted font-normal">(Optional for Invoices)</span>
             </label>
             <div className="relative flex items-center">
-              <Mail className="w-3.5 h-3.5 absolute left-3.5 text-neutral-500" />
+              <Mail className="w-3.5 h-3.5 absolute left-3.5 text-brand-text-muted" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="e.g. alex@example.com"
-                className="w-full bg-neutral-950 border border-neutral-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-neutral-600"
+                className="w-full bg-white border border-brand-border focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 focus:outline-none rounded-xl pl-9 pr-4 py-2.5 text-xs text-brand-text placeholder:text-brand-text-muted/70"
               />
             </div>
           </div>
@@ -406,7 +406,7 @@ export function OtpLoginForm({
           <button
             type="submit"
             disabled={loading || name.trim().length < 2}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full py-3.5 rounded-lg bg-brand-navy hover:bg-brand-primary text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? "Saving..." : "Save & Continue"}
           </button>
@@ -414,8 +414,8 @@ export function OtpLoginForm({
       )}
 
       {/* Trust Footnote */}
-      <div className="pt-2 text-center flex items-center justify-center gap-1.5 text-[11px] text-neutral-400 select-none">
-        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+      <div className="pt-2 text-center flex items-center justify-center gap-1.5 text-[11px] text-brand-text-muted select-none">
+        <ShieldCheck className="w-3.5 h-3.5 text-[#16834A] shrink-0" />
         <span>Secure SMS verification · International numbers supported</span>
       </div>
     </div>

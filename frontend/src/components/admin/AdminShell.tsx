@@ -25,6 +25,14 @@ const AdminShellContext = createContext<AdminShellContextValue>({
   setSidebarCollapsed: () => {},
 });
 
+/** Name to show for the signed-in staff member: never the raw user id. */
+export function adminDisplayName(user: any): string {
+  const name = (user?.name || "").trim();
+  if (name) return name;
+  const digits = String(user?.phone || "").replace(/\D/g, "").slice(-10);
+  return digits ? `+91 ${digits.slice(0, 5)} ${digits.slice(5)}` : "Admin";
+}
+
 export function useAdminShell() {
   return useContext(AdminShellContext);
 }
@@ -59,7 +67,7 @@ export function AdminShell({ sidebar, topbar, children }: AdminShellProps) {
 
   return (
     <AdminShellContext.Provider value={ctx}>
-      <div className="admin-shell flex h-screen w-full overflow-hidden bg-[var(--admin-page-bg,#F8FAFC)]">
+      <div className="admin-shell flex h-screen w-full overflow-hidden bg-[var(--admin-page-bg,#F5F6F8)]">
         {/* ── Mobile overlay backdrop ── */}
         {sidebarOpen && (
           <div
@@ -89,7 +97,7 @@ export function AdminShell({ sidebar, topbar, children }: AdminShellProps) {
         {/* ── Main area (topbar + content) ── */}
         <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
           {/* ── Topbar ── */}
-          <header className="admin-topbar shrink-0 h-14 flex items-center bg-white border-b border-[var(--admin-border,#E2E8F0)] px-4 lg:px-6 shadow-sm z-30">
+          <header className="admin-topbar shrink-0 h-14 flex items-center bg-white border-b border-[var(--admin-border,#E5E7EB)] px-4 lg:px-6 shadow-sm z-30">
             {topbar}
           </header>
 

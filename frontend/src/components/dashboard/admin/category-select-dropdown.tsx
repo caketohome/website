@@ -91,7 +91,7 @@ export function CategorySelectDropdown({
         className="w-full h-10 px-3 rounded-md border border-ui-border-base bg-ui-bg-field flex items-center justify-between text-sm text-left hover:border-ui-border-interactive transition-colors"
       >
         <span className="truncate flex items-center gap-2">
-          <FolderTree className="w-4 h-4 text-purple-600 shrink-0" />
+          <FolderTree className="w-4 h-4 text-brand-primary shrink-0" />
           <span className={selectedCategory ? "font-medium text-ui-fg-base" : "text-ui-fg-subtle"}>
             {displayLabel}
           </span>
@@ -153,8 +153,8 @@ export function CategorySelectDropdown({
                   <div
                     key={cat.id}
                     onClick={() => (isMulti ? handleToggleSecondary(cat.id) : handleSelectPrimary(cat))}
-                    className={`py-2 px-3 rounded-md cursor-pointer flex items-center justify-between text-xs transition-colors hover:bg-purple-50 dark:hover:bg-purple-950/40 ${
-                      isPrimarySelected ? "bg-purple-100 dark:bg-purple-900/40 font-semibold" : ""
+                    className={`py-2 px-3 rounded-md cursor-pointer flex items-center justify-between text-xs transition-colors hover:bg-brand-light dark:hover:bg-brand-navy/40 ${
+                      isPrimarySelected ? "bg-brand-light dark:bg-brand-navy/40 font-semibold" : ""
                     }`}
                   >
                     <div>
@@ -163,7 +163,7 @@ export function CategorySelectDropdown({
                     </div>
 
                     {(isPrimarySelected || isSecSelected) && (
-                      <Check className="w-4 h-4 text-purple-600 shrink-0" />
+                      <Check className="w-4 h-4 text-brand-primary shrink-0" />
                     )}
                   </div>
                 );

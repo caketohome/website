@@ -44,7 +44,7 @@ export function SecurityTab({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-amber-600" />
+            <Shield className="w-5 h-5 text-brand-gold" />
             <Heading level="h3" className="text-base font-bold">Security, Access & Authentication Policies</Heading>
           </div>
           <Text className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -54,7 +54,7 @@ export function SecurityTab({
         <Button
           type="submit"
           isLoading={saving}
-          className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1.5 shrink-0"
+          className="bg-brand-gold hover:bg-brand-gold-dark text-white flex items-center gap-1.5 shrink-0"
         >
           <Save className="w-4 h-4" /> Save Security Policies
         </Button>
@@ -64,7 +64,7 @@ export function SecurityTab({
         {/* Authentication Controls */}
         <Container className="p-5 flex flex-col gap-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <Lock className="w-4 h-4 text-amber-600" />
+            <Lock className="w-4 h-4 text-brand-gold" />
             <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
               Authentication & Sessions
             </Text>
@@ -80,7 +80,7 @@ export function SecurityTab({
                 type="checkbox"
                 checked={config.mfa_required}
                 onChange={(e) => setConfig({ ...config, mfa_required: e.target.checked })}
-                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                className="w-4 h-4 rounded text-brand-gold focus:ring-brand-gold"
               />
             </label>
 
@@ -112,7 +112,7 @@ export function SecurityTab({
         {/* API Rate Limiting & Origins */}
         <Container className="p-5 flex flex-col gap-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <Globe className="w-4 h-4 text-amber-600" />
+            <Globe className="w-4 h-4 text-brand-gold" />
             <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
               API Security & CORS
             </Text>

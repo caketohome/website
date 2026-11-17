@@ -235,7 +235,7 @@ export default function AccountingSetupPanel() {
             style={{
               padding: "0.5rem 1rem", borderRadius: "6px 6px 0 0", cursor: "pointer",
               fontSize: "0.85rem", fontWeight: activeSection === sec ? 700 : 400,
-              backgroundColor: activeSection === sec ? "#2563eb" : "transparent",
+              backgroundColor: activeSection === sec ? "#245A96" : "transparent",
               color: activeSection === sec ? "#fff" : "#6b7280",
               border: "none",
             }}
@@ -300,7 +300,7 @@ export default function AccountingSetupPanel() {
                   disabled={!startDateInput}
                   style={{
                     padding: "0.5rem 1rem", borderRadius: "6px", cursor: "pointer",
-                    backgroundColor: startDateInput ? "#2563eb" : "#d1d5db",
+                    backgroundColor: startDateInput ? "#245A96" : "#d1d5db",
                     color: "#fff", border: "none", fontWeight: 600, fontSize: "0.85rem",
                   }}
                 >
@@ -414,7 +414,7 @@ export default function AccountingSetupPanel() {
                             padding: "3px 10px", borderRadius: "4px", cursor: "pointer",
                             fontSize: "0.75rem", fontWeight: 500,
                             backgroundColor: p.is_locked ? "#dbeafe" : "#fef3c7",
-                            color: p.is_locked ? "#1d4ed8" : "#92400e",
+                            color: p.is_locked ? "#3978B8" : "#92400e",
                             border: "none",
                           }}
                         >
@@ -511,7 +511,7 @@ export default function AccountingSetupPanel() {
                         <span style={{
                           padding: "1px 6px", borderRadius: "4px", fontSize: "0.7rem",
                           backgroundColor: a.type === "ASSET" ? "#dbeafe" : a.type === "LIABILITY" ? "#fce7f3" : a.type === "EQUITY" ? "#ede9fe" : a.type === "REVENUE" ? "#d1fae5" : "#fef3c7",
-                          color: a.type === "ASSET" ? "#1d4ed8" : a.type === "LIABILITY" ? "#9d174d" : a.type === "EQUITY" ? "#6d28d9" : a.type === "REVENUE" ? "#059669" : "#92400e",
+                          color: a.type === "ASSET" ? "#3978B8" : a.type === "LIABILITY" ? "#9d174d" : a.type === "EQUITY" ? "#6d28d9" : a.type === "REVENUE" ? "#059669" : "#92400e",
                         }}>
                           {a.type}
                         </span>

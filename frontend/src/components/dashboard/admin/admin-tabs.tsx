@@ -92,7 +92,7 @@ export function AdminTabs({ activeTab, onTabChange, user }: AdminTabsProps) {
           id="mobile-admin-module-select"
           value={activeTab}
           onChange={(e) => onTabChange(e.target.value as AdminTabId)}
-          className="flex-1 min-w-0 py-1.5 px-2.5 text-xs font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-[#1D2F5D] cursor-pointer"
+          className="flex-1 min-w-0 py-1.5 px-2.5 text-xs font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-navy cursor-pointer"
         >
           {visibleTabs.map((tab) => (
             <option key={tab.id} value={tab.id} className="text-slate-900 bg-white dark:text-white dark:bg-slate-800 py-1">
@@ -115,11 +115,11 @@ export function AdminTabs({ activeTab, onTabChange, user }: AdminTabsProps) {
                 onClick={() => onTabChange(tab.id as AdminTabId)}
                 className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg whitespace-nowrap transition-all shrink-0 ${
                   isActive
-                    ? "bg-[#1D2F5D] text-white border-b-2 border-[#D4AF37] shadow-xs"
+                    ? "bg-brand-navy text-white border-b-2 border-brand-gold shadow-xs"
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60"
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? "text-[#D4AF37]" : "text-slate-400"}`} />
+                <Icon className={`w-3.5 h-3.5 ${isActive ? "text-brand-gold" : "text-slate-400"}`} />
                 <span>{tab.label}</span>
               </button>
             );

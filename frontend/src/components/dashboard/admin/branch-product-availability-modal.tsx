@@ -64,12 +64,12 @@ export function BranchProductAvailabilityModal({ branch, onClose }: BranchProduc
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col my-8">
         {/* Header */}
-        <div className="p-5 border-b bg-amber-50/70 dark:bg-amber-950/40 flex items-center justify-between">
+        <div className="p-5 border-b bg-brand-gold-light/70 dark:bg-brand-gold-dark/40 flex items-center justify-between">
           <div>
-            <Heading level="h3" className="text-base font-bold flex items-center gap-2 text-amber-900 dark:text-amber-200">
-              <Cake className="w-5 h-5 text-amber-600" /> Branch Product & Cake Availability Manager
+            <Heading level="h3" className="text-base font-bold flex items-center gap-2 text-brand-gold-dark dark:text-brand-gold/40">
+              <Cake className="w-5 h-5 text-brand-gold" /> Branch Product & Cake Availability Manager
             </Heading>
-            <Text className="text-xs text-amber-700 dark:text-amber-300">
+            <Text className="text-xs text-brand-gold-dark dark:text-brand-gold/40">
               Branch: <span className="font-bold">{branch.name}</span> ({branch.code}) • Kitchen Availability & Status Overrides
             </Text>
           </div>

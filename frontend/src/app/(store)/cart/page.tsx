@@ -19,7 +19,7 @@ export default async function CartPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center font-sans">
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-10 md:p-16 shadow-xl flex flex-col items-center gap-6">
-          <div className="w-24 h-24 rounded-full bg-brand-gold-soft dark:bg-[#0c1326]/40 flex items-center justify-center text-5xl">
+          <div className="w-24 h-24 rounded-full bg-brand-gold-soft dark:bg-brand-deep/40 flex items-center justify-center text-5xl">
             🛒
           </div>
           <div className="flex flex-col gap-2 max-w-md">
@@ -34,7 +34,7 @@ export default async function CartPage() {
           <div className="flex flex-wrap gap-4 justify-center mt-2">
             <Link
               href="/products"
-              className="px-8 py-3.5 rounded-xl bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold text-sm md:text-base shadow-lg shadow-rose-600/20 transition-all hover:scale-[1.02]"
+              className="px-8 py-3.5 rounded-xl bg-brand-navy hover:bg-brand-deep text-white font-bold text-sm md:text-base shadow-lg shadow-rose-600/20 transition-all hover:scale-[1.02]"
             >
               Browse Gourmet Cakes →
             </Link>
@@ -95,7 +95,7 @@ export default async function CartPage() {
         </div>
         <Link
           href="/products"
-          className="text-sm font-semibold text-[#1D2F5D] dark:text-[#D4AF37] hover:underline flex items-center gap-1"
+          className="text-sm font-semibold text-brand-navy dark:text-brand-gold hover:underline flex items-center gap-1"
         >
           <span>Continue Shopping</span>
           <span>→</span>
@@ -144,7 +144,7 @@ export default async function CartPage() {
                   {(item.cake_message || item.metadata?.cake_message) && (
                     <p
                       data-testid="cart-page-item-cake-message"
-                      className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-0.5 mt-1.5 inline-block italic"
+                      className="text-xs text-brand-gold-dark bg-brand-gold-light border border-brand-gold/40 rounded px-2 py-0.5 mt-1.5 inline-block italic"
                     >
                       🎂 Message on Cake: &ldquo;{item.cake_message || item.metadata?.cake_message}&rdquo;
                     </p>
@@ -158,7 +158,7 @@ export default async function CartPage() {
               </div>
 
               <div className="text-right sm:text-right w-full sm:w-auto border-t sm:border-t-0 pt-2 sm:pt-0 border-zinc-100">
-                <div className="text-lg font-bold text-[#1D2F5D] dark:text-[#D4AF37]">
+                <div className="text-lg font-bold text-brand-navy dark:text-brand-gold">
                   ₹{(Number(item.unit_price || item.price || 0) * Number(item.quantity || 1)).toLocaleString("en-IN")}
                 </div>
               </div>
@@ -189,14 +189,14 @@ export default async function CartPage() {
                   <span className="text-xs text-zinc-400 font-normal">excl. delivery fee</span>
                 )}
               </div>
-              <span className="font-extrabold text-xl text-[#1D2F5D] dark:text-[#D4AF37]">
+              <span className="font-extrabold text-xl text-brand-navy dark:text-brand-gold">
                 ₹{grandTotal.toLocaleString("en-IN")}
               </span>
             </div>
 
             <Link
               href="/checkout"
-              className="w-full py-3.5 bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold text-center rounded-xl shadow-lg shadow-rose-600/20 transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
+              className="w-full py-3.5 bg-brand-navy hover:bg-brand-deep text-white font-bold text-center rounded-xl shadow-lg shadow-rose-600/20 transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
             >
               <span>Proceed to Checkout</span>
               <span>→</span>

@@ -444,7 +444,7 @@ export function MediaLibraryPanel() {
                     </span>
                   )}
                   {item.is_avif_generated && (
-                    <span className="bg-indigo-500/90 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+                    <span className="bg-brand-primary/90 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">
                       AVIF
                     </span>
                   )}
@@ -548,7 +548,7 @@ export function MediaLibraryPanel() {
                   </td>
                   <td className="p-3 capitalize text-admin-text-secondary">{item.folder}</td>
                   <td className="p-3 text-admin-text-muted max-w-[200px] truncate">
-                    {item.alt_text || <span className="italic text-amber-500/80">Missing alt text</span>}
+                    {item.alt_text || <span className="italic text-brand-gold/80">Missing alt text</span>}
                   </td>
                   <td className="p-3 text-admin-text-muted">
                     {item.width && item.height ? `${item.width}×${item.height}` : "Auto"}
@@ -652,7 +652,7 @@ export function MediaLibraryPanel() {
                   {activeItem.alt_text ? (
                     <span className="text-[10px] text-emerald-400">Configured</span>
                   ) : (
-                    <span className="text-[10px] text-amber-400">Missing — Needs Alt Text</span>
+                    <span className="text-[10px] text-brand-gold">Missing — Needs Alt Text</span>
                   )}
                 </label>
                 <div className="flex gap-2">

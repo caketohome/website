@@ -51,10 +51,10 @@ export function AiConciergePanel() {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-amber-950/40 border border-amber-500/20 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-brand-gold-dark/40 border border-brand-gold/20 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1.5">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+            <div className="w-9 h-9 rounded-xl bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold">
               <Bot className="w-5 h-5" />
             </div>
             <div>
@@ -85,7 +85,7 @@ export function AiConciergePanel() {
             size="small"
             onClick={handleReindex}
             disabled={reindexing}
-            className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1.5 font-bold"
+            className="bg-brand-gold hover:bg-brand-gold-dark text-white flex items-center gap-1.5 font-bold"
           >
             <Database className={`w-3.5 h-3.5 ${reindexing ? "animate-spin" : ""}`} />
             {reindexing ? "Synchronizing..." : "Sync Live Knowledge Base"}
@@ -108,7 +108,7 @@ export function AiConciergePanel() {
         <div className="p-4 rounded-xl bg-ui-bg-base border border-ui-border-base shadow-sm">
           <div className="flex items-center justify-between text-ui-fg-muted mb-2">
             <span className="text-xs font-medium uppercase tracking-wider">Total Conversations</span>
-            <MessageSquare className="w-4 h-4 text-amber-500" />
+            <MessageSquare className="w-4 h-4 text-brand-gold" />
           </div>
           <div className="text-2xl font-bold text-ui-fg-base">
             {data?.summary?.totalConversations ?? "—"}
@@ -195,7 +195,7 @@ export function AiConciergePanel() {
         <div className="p-5 rounded-2xl bg-ui-bg-base border border-ui-border-base shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-ui-border-base pb-3">
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-500" />
+              <AlertCircle className="w-4 h-4 text-brand-gold" />
               <h3 className="font-bold text-sm text-ui-fg-base">Unanswered Query Log & Improvement Queue</h3>
             </div>
             <Badge color="orange" className="text-[10px]">Needs Review</Badge>

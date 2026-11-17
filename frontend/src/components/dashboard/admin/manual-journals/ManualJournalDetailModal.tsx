@@ -211,7 +211,7 @@ export function ManualJournalDetailModal({
       case "SUBMITTED":
         return <span className="inline-flex items-center rounded-md bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 border border-blue-200">SUBMITTED (Pending Approval)</span>;
       case "APPROVED":
-        return <span className="inline-flex items-center rounded-md bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 border border-indigo-200">APPROVED (Ready to Post)</span>;
+        return <span className="inline-flex items-center rounded-md bg-brand-light px-2.5 py-1 text-xs font-semibold text-brand-navy border border-brand-primary/30">APPROVED (Ready to Post)</span>;
       case "POSTED":
         return <span className="inline-flex items-center rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">POSTED TO GL</span>;
       case "CANCELLED":
@@ -229,7 +229,7 @@ export function ManualJournalDetailModal({
           {/* Header */}
           <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/90 px-6 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-light text-brand-primary">
                 <FileText className="h-5 w-5" />
               </div>
               <div>
@@ -268,7 +268,7 @@ export function ManualJournalDetailModal({
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {loading ? (
               <div className="py-16 text-center">
-                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand-primary border-t-transparent" />
                 <p className="mt-3 text-xs text-slate-500">Loading authoritative journal details...</p>
               </div>
             ) : error && !detail ? (
@@ -303,12 +303,12 @@ export function ManualJournalDetailModal({
 
                 {/* Reversal Linkage Notice */}
                 {isReversed && (
-                  <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 flex items-start justify-between gap-4">
+                  <div className="rounded-lg border border-brand-gold/40 bg-brand-gold-light p-4 flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
-                      <RotateCcw className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                      <RotateCcw className="h-5 w-5 text-brand-gold shrink-0 mt-0.5" />
                       <div>
-                        <h4 className="text-xs font-semibold text-amber-900">Voucher Has Been Reversed</h4>
-                        <p className="text-xs text-amber-700 mt-0.5">
+                        <h4 className="text-xs font-semibold text-brand-gold-dark">Voucher Has Been Reversed</h4>
+                        <p className="text-xs text-brand-gold-dark mt-0.5">
                           Compensating reversal voucher was posted to GL. Reversal reason:{" "}
                           <span className="italic font-medium">
                             {(voucher.metadata as any)?.reversal_reason || "Correction"}
@@ -319,7 +319,7 @@ export function ManualJournalDetailModal({
                     {voucher.reversed_by_voucher_id && onSelectVoucher && (
                       <button
                         onClick={() => onSelectVoucher(voucher.reversed_by_voucher_id!)}
-                        className="inline-flex items-center gap-1 text-xs font-medium text-amber-800 bg-amber-100 hover:bg-amber-200 px-2.5 py-1.5 rounded-md transition shrink-0"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-brand-gold-dark bg-brand-gold-light hover:bg-brand-gold/40 px-2.5 py-1.5 rounded-md transition shrink-0"
                       >
                         View Reversal Voucher
                         <ArrowRight className="h-3.5 w-3.5" />
@@ -329,12 +329,12 @@ export function ManualJournalDetailModal({
                 )}
 
                 {isReversalVoucher && (
-                  <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4 flex items-start justify-between gap-4">
+                  <div className="rounded-lg border border-brand-primary/30 bg-brand-light p-4 flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
-                      <RotateCcw className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+                      <RotateCcw className="h-5 w-5 text-brand-primary shrink-0 mt-0.5" />
                       <div>
-                        <h4 className="text-xs font-semibold text-indigo-900">Compensating Reversal Voucher</h4>
-                        <p className="text-xs text-indigo-700 mt-0.5">
+                        <h4 className="text-xs font-semibold text-brand-navy">Compensating Reversal Voucher</h4>
+                        <p className="text-xs text-brand-navy mt-0.5">
                           This is an authoritative compensating journal entry reversing an earlier transaction.
                         </p>
                       </div>
@@ -342,7 +342,7 @@ export function ManualJournalDetailModal({
                     {voucher.reversal_of_voucher_id && onSelectVoucher && (
                       <button
                         onClick={() => onSelectVoucher(voucher.reversal_of_voucher_id!)}
-                        className="inline-flex items-center gap-1 text-xs font-medium text-indigo-800 bg-indigo-100 hover:bg-indigo-200 px-2.5 py-1.5 rounded-md transition shrink-0"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-brand-navy bg-brand-light hover:bg-brand-primary/30 px-2.5 py-1.5 rounded-md transition shrink-0"
                       >
                         View Original Voucher
                         <ArrowRight className="h-3.5 w-3.5" />
@@ -365,7 +365,7 @@ export function ManualJournalDetailModal({
                   </div>
                   <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-3">
                     <span className="text-slate-500 block">Total Amount</span>
-                    <span className="font-semibold text-indigo-700 mt-0.5 block text-sm">
+                    <span className="font-semibold text-brand-navy mt-0.5 block text-sm">
                       ₹{Number(voucher.total_amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </span>
                   </div>
@@ -423,7 +423,7 @@ export function ManualJournalDetailModal({
                       <span className="text-slate-500 text-[11px] block font-medium">Checker / Approver</span>
                       {voucher.approved_by ? (
                         <>
-                          <p className="font-semibold text-indigo-700 mt-1 font-mono truncate">{voucher.approved_by}</p>
+                          <p className="font-semibold text-brand-navy mt-1 font-mono truncate">{voucher.approved_by}</p>
                           <p className="text-[11px] text-slate-500 mt-0.5">
                             Approved: {new Date(voucher.approved_at!).toLocaleString("en-IN")}
                           </p>
@@ -467,7 +467,7 @@ export function ManualJournalDetailModal({
                         onClick={() => setActiveTab("proposed")}
                         className={`border-b-2 px-3 py-2 text-xs font-semibold transition ${
                           activeTab === "proposed"
-                            ? "border-indigo-600 text-indigo-600"
+                            ? "border-brand-primary text-brand-primary"
                             : "border-transparent text-slate-500 hover:text-slate-700"
                         }`}
                       >
@@ -511,7 +511,7 @@ export function ManualJournalDetailModal({
                               <td className="py-2.5 px-3">
                                 <div className="font-medium text-slate-800">
                                   {line.account_code ? (
-                                    <span className="font-mono text-indigo-600 mr-1.5">{line.account_code}</span>
+                                    <span className="font-mono text-brand-primary mr-1.5">{line.account_code}</span>
                                   ) : null}
                                   {line.account_name || line.account_id}
                                 </div>
@@ -525,7 +525,7 @@ export function ManualJournalDetailModal({
                                     Customer: {line.customer_name || line.customer_id}
                                   </span>
                                 ) : line.supplier_id ? (
-                                  <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] text-amber-700 border border-amber-200">
+                                  <span className="inline-flex items-center gap-1 rounded bg-brand-gold-light px-1.5 py-0.5 text-[11px] text-brand-gold-dark border border-brand-gold/40">
                                     Supplier: {line.supplier_name || line.supplier_id}
                                   </span>
                                 ) : (
@@ -566,7 +566,7 @@ export function ManualJournalDetailModal({
                                     Cus: {line.customer_id}
                                   </span>
                                 ) : line.supplier_id ? (
-                                  <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] text-amber-700">
+                                  <span className="inline-flex items-center gap-1 rounded bg-brand-gold-light px-1.5 py-0.5 text-[11px] text-brand-gold-dark">
                                     Supp: {line.supplier_id}
                                   </span>
                                 ) : (
@@ -599,14 +599,14 @@ export function ManualJournalDetailModal({
                           <td colSpan={3} className="py-2.5 px-3 text-right">
                             Total:
                           </td>
-                          <td className="py-2.5 px-3 text-right font-mono text-indigo-700">
+                          <td className="py-2.5 px-3 text-right font-mono text-brand-navy">
                             ₹
                             {(activeTab === "proposed"
                               ? detail.proposed_lines.reduce((s, l) => s + Number(l.debit_amount || 0), 0)
                               : detail.posted_lines.reduce((s, l) => s + Number(l.debit_amount || 0), 0)
                             ).toFixed(2)}
                           </td>
-                          <td className="py-2.5 px-3 text-right font-mono text-indigo-700">
+                          <td className="py-2.5 px-3 text-right font-mono text-brand-navy">
                             ₹
                             {(activeTab === "proposed"
                               ? detail.proposed_lines.reduce((s, l) => s + Number(l.credit_amount || 0), 0)
@@ -681,7 +681,7 @@ export function ManualJournalDetailModal({
                     onClick={handleApprove}
                     disabled={actionLoading || isMaker}
                     title={isMaker ? "Maker cannot approve own voucher (SoD)" : "Approve Voucher"}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-brand-primary px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-brand-navy transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {actionLoading ? "Approving..." : (
                       <>

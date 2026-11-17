@@ -97,7 +97,7 @@ export function CategoryClientPage({ categorySlug }: { categorySlug?: string }) 
                                                     {r.price ? `₹${r.price.toFixed(0)}` : "—"}
                                                 </span>
                                                 {r.review_count > 0 && (
-                                                    <span className="text-xs text-yellow-500 font-bold">
+                                                    <span className="text-xs text-brand-gold font-bold">
                                                         ⭐ {r.rating.toFixed(1)}
                                                     </span>
                                                 )}

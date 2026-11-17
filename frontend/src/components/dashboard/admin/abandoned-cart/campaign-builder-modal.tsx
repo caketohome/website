@@ -113,7 +113,7 @@ export function CampaignBuilderModal({ isOpen, onClose, onRefresh }: CampaignBui
         <div className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between bg-neutral-50 dark:bg-neutral-950">
           <div>
             <h2 className="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-500" /> Automated Cart Recovery Workflows
+              <Zap className="w-4 h-4 text-brand-gold" /> Automated Cart Recovery Workflows
             </h2>
             <p className="text-xs text-neutral-500">
               Configure multi-step WhatsApp, SMS, and Telecaller automation sequences for dropped checkouts.
@@ -138,9 +138,9 @@ export function CampaignBuilderModal({ isOpen, onClose, onRefresh }: CampaignBui
 
           {/* New / Edit Form */}
           {editingCamp ? (
-            <div className="bg-neutral-50 dark:bg-neutral-800/40 border border-amber-200/80 dark:border-amber-900/60 p-4 rounded-xl space-y-4">
+            <div className="bg-neutral-50 dark:bg-neutral-800/40 border border-brand-gold/80 dark:border-brand-gold-dark/60 p-4 rounded-xl space-y-4">
               <div className="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-700 pb-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-brand-gold-dark dark:text-brand-gold/40">
                   {editingCamp.id ? "Edit Workflow Rule" : "Create New Recovery Rule"}
                 </h3>
                 <button
@@ -233,7 +233,7 @@ export function CampaignBuilderModal({ isOpen, onClose, onRefresh }: CampaignBui
                     active: true,
                   })
                 }
-                className="text-xs flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white"
+                className="text-xs flex items-center gap-1.5 bg-brand-gold hover:bg-brand-gold-dark text-white"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Recovery Workflow
               </Button>
@@ -245,7 +245,7 @@ export function CampaignBuilderModal({ isOpen, onClose, onRefresh }: CampaignBui
             {campaigns.map((camp) => (
               <div
                 key={camp.id}
-                className="p-4 bg-white dark:bg-neutral-800/60 rounded-xl border border-neutral-200 dark:border-neutral-700/60 flex items-center justify-between gap-4 transition-all hover:border-amber-400 dark:hover:border-amber-600"
+                className="p-4 bg-white dark:bg-neutral-800/60 rounded-xl border border-neutral-200 dark:border-neutral-700/60 flex items-center justify-between gap-4 transition-all hover:border-brand-gold dark:hover:border-brand-gold"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -256,7 +256,7 @@ export function CampaignBuilderModal({ isOpen, onClose, onRefresh }: CampaignBui
                   </div>
                   <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
                     <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-amber-500" />
+                      <Clock className="w-3 h-3 text-brand-gold" />
                       Delay: {camp.delay_minutes >= 60 ? `${camp.delay_minutes / 60}h` : `${camp.delay_minutes}m`}
                     </span>
                     <span>&bull;</span>
@@ -266,7 +266,7 @@ export function CampaignBuilderModal({ isOpen, onClose, onRefresh }: CampaignBui
                     {camp.discount_rule && (
                       <>
                         <span>&bull;</span>
-                        <span className="font-mono text-amber-600 dark:text-amber-400">
+                        <span className="font-mono text-brand-gold dark:text-brand-gold">
                           Code: {typeof camp.discount_rule === "object" ? camp.discount_rule?.code : String(camp.discount_rule)}
                         </span>
                       </>

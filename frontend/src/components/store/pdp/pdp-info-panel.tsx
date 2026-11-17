@@ -30,7 +30,7 @@ export function PdpInfoPanel({
   category,
   categorySlug,
   sku,
-  rating = 4.9,
+  rating = 0,
   reviewCount = 0,
   price,
   comparePrice,
@@ -58,15 +58,15 @@ export function PdpInfoPanel({
         {category && (
           <Link
             href={`/products?category=${catSlug}`}
-            className="inline-flex items-center px-3.5 py-1 rounded-full text-[11px] uppercase tracking-wider font-semibold bg-white text-[#0F172A] border border-[#2563EB]/20 hover:border-[#2563EB] transition-colors shadow-2xs"
+            className="inline-flex items-center px-3.5 py-1 rounded-full text-[11px] uppercase tracking-wider font-semibold bg-white text-brand-text border border-brand-primary/20 hover:border-brand-primary transition-colors shadow-2xs"
           >
             {category}
           </Link>
         )}
 
         {isBestseller && (
-          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100/90 text-amber-900 border border-amber-300">
-            <Sparkles className="w-3 h-3 text-amber-600" /> Bestseller
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-gold-light/90 text-brand-gold-dark border border-brand-gold/40">
+            <Sparkles className="w-3 h-3 text-brand-gold" /> Bestseller
           </span>
         )}
 
@@ -82,22 +82,22 @@ export function PdpInfoPanel({
       </div>
 
       {/* Main Title Heading */}
-      <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0F172A] leading-tight tracking-tight">
+      <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-brand-text leading-tight tracking-tight">
         {title}
       </h1>
 
       {/* Ratings, Review Count & SKU Row */}
       <div className="flex items-center gap-3 sm:gap-4 flex-wrap text-sm">
-        {showRating && (
-          <div className="flex items-center gap-1.5 bg-amber-50/90 px-3 py-1 rounded-full border border-amber-200/80">
-            <span className="text-[#2563EB] font-bold text-sm flex items-center gap-1">
-              ★ {Number(rating || 4.9).toFixed(1)}
+        {showRating && Number(rating) > 0 && reviewCount > 0 && (
+          <div className="flex items-center gap-1.5 bg-brand-gold-light/60 px-3 py-1 rounded-full border border-brand-gold/25">
+            <span className="text-brand-gold-dark font-bold text-sm flex items-center gap-1">
+              ★ {Number(rating).toFixed(1)}
             </span>
             {showReviews && (
               <button
                 type="button"
                 onClick={onReviewsClick}
-                className="text-slate-600 hover:text-[#2563EB] text-xs font-medium underline underline-offset-2 transition-colors cursor-pointer"
+                className="text-slate-600 hover:text-brand-primary text-xs font-medium underline underline-offset-2 transition-colors cursor-pointer"
               >
                 ({reviewCount} reviews)
               </button>
@@ -115,7 +115,7 @@ export function PdpInfoPanel({
       {/* Price Display Section */}
       {showPrice && (
         <div className="flex items-baseline gap-3 pt-1">
-          <span className="font-serif text-3xl sm:text-4xl font-bold text-[#0F172A] tracking-tight">
+          <span className="font-serif text-3xl sm:text-4xl font-bold text-brand-text tracking-tight">
             ₹{price}
           </span>
 
@@ -154,7 +154,7 @@ export function PdpInfoPanel({
             <Link
               key={occ.slug}
               href={`/occasions/${occ.slug}`}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white hover:bg-amber-50/60 border border-slate-200 text-xs font-medium text-slate-700 hover:text-[#2563EB] transition-all shadow-2xs"
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white hover:bg-brand-gold-light/60 border border-slate-200 text-xs font-medium text-slate-700 hover:text-brand-primary transition-all shadow-2xs"
             >
               <span>{occ.icon || "🎂"}</span>
               <span>{occ.name}</span>

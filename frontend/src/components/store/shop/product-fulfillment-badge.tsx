@@ -80,7 +80,7 @@ export function ProductFulfillmentBadge({
 
   if (!fulfillment.eligible) {
     if (fulfillment.reason === "SAME_DAY_CUTOFF_PASSED") {
-      badgeStyle = "bg-amber-50 text-amber-800 border-amber-200";
+      badgeStyle = "bg-brand-gold-light text-brand-gold-dark border-brand-gold/40";
       icon = "🌙";
       text = fulfillment.message || "Same-day cutoff passed — Pre-order for tomorrow";
     } else if (fulfillment.reason === "PRODUCT_REQUIRES_PREORDER") {
@@ -88,7 +88,7 @@ export function ProductFulfillmentBadge({
       icon = "📅";
       text = fulfillment.message || "Advance pre-order required";
     } else if (fulfillment.reason === "HOLIDAY" || fulfillment.reason === "OPERATIONS_CLOSED" || fulfillment.reason === "BRANCH_CLOSED") {
-      badgeStyle = "bg-brand-gold-soft text-[#1D2F5D] border-[#D4AF37]/30";
+      badgeStyle = "bg-brand-gold-soft text-brand-navy border-brand-gold/30";
       icon = "🛑";
       text = fulfillment.message || "Currently closed";
     } else if (fulfillment.reason === "OUT_OF_STOCK") {
@@ -96,7 +96,7 @@ export function ProductFulfillmentBadge({
       icon = "⚠️";
       text = "Out of stock at this location";
     } else {
-      badgeStyle = "bg-amber-50 text-amber-800 border-amber-200";
+      badgeStyle = "bg-brand-gold-light text-brand-gold-dark border-brand-gold/40";
       icon = "⏳";
       text = fulfillment.message || "Delivery timing restricted";
     }

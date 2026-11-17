@@ -110,7 +110,7 @@ export default function RazorpayCheckoutPage() {
           contact: "9876543210"
         },
         theme: {
-          color: "#2563EB" // Approved CakeToHome Brand Blue
+          color: "#245A96" // Approved CakeToHome Brand Blue
         },
         handler: async function (response: any) {
           setIsProcessingPayment(true);

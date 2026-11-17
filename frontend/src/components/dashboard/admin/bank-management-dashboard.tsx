@@ -426,8 +426,8 @@ export function BankManagementDashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-[#1D2F5D] flex items-center justify-center text-white shadow-xs">
-              <Landmark className="w-5 h-5 text-[#D4AF37]" />
+            <div className="w-10 h-10 rounded-xl bg-brand-navy flex items-center justify-center text-white shadow-xs">
+              <Landmark className="w-5 h-5 text-brand-gold" />
             </div>
             <div>
               <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
@@ -468,7 +468,7 @@ export function BankManagementDashboard() {
 
           <Button
             size="small"
-            className="bg-[#1D2F5D] hover:bg-[#162447] text-white flex items-center gap-1.5 shadow-xs"
+            className="bg-brand-navy hover:bg-[#162447] text-white flex items-center gap-1.5 shadow-xs"
             onClick={() => {
               setAccountNickname("");
               setAccountNumber("");
@@ -478,7 +478,7 @@ export function BankManagementDashboard() {
               setShowAddModal(true);
             }}
           >
-            <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <Plus className="w-3.5 h-3.5 text-brand-gold" />
             Add Bank Account
           </Button>
         </div>
@@ -518,11 +518,11 @@ export function BankManagementDashboard() {
               onClick={() => setActiveTab(tab.id as ActiveViewMode)}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-lg transition-all shrink-0 ${
                 isActive
-                  ? "bg-[#1D2F5D] text-white shadow-xs"
+                  ? "bg-brand-navy text-white shadow-xs"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60"
               }`}
             >
-              <Icon className={`w-3.5 h-3.5 ${isActive ? "text-[#D4AF37]" : ""}`} />
+              <Icon className={`w-3.5 h-3.5 ${isActive ? "text-brand-gold" : ""}`} />
               <span>{tab.label}</span>
             </button>
           );
@@ -562,7 +562,7 @@ export function BankManagementDashboard() {
 
             <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Cash Balances</span>
-              <div className="text-xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+              <div className="text-xl font-bold text-brand-gold dark:text-brand-gold mt-1">
                 ₹{Number(summary.totalCashBalance).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </div>
               <span className="text-[10px] text-slate-400">Branch &amp; petty floats</span>
@@ -570,7 +570,7 @@ export function BankManagementDashboard() {
 
             <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pending Recon</span>
-              <div className="text-xl font-bold text-purple-600 dark:text-purple-400 mt-1">
+              <div className="text-xl font-bold text-brand-primary dark:text-brand-primary mt-1">
                 {summary.pendingReconciliations}
               </div>
               <span className="text-[10px] text-slate-400">Open BRS periods</span>
@@ -590,7 +590,7 @@ export function BankManagementDashboard() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Landmark className="w-4 h-4 text-[#D4AF37]" />
+                  <Landmark className="w-4 h-4 text-brand-gold" />
                   Company Bank Accounts Overview
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -629,7 +629,7 @@ export function BankManagementDashboard() {
                     accounts.map((acc) => (
                       <tr key={acc.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                         <td className="py-3 px-3 font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-md bg-[#1D2F5D]/10 dark:bg-[#1D2F5D]/40 text-[#1D2F5D] dark:text-[#D4AF37] flex items-center justify-center font-bold text-[10px]">
+                          <span className="w-6 h-6 rounded-md bg-brand-navy/10 dark:bg-brand-navy/40 text-brand-navy dark:text-brand-gold flex items-center justify-center font-bold text-[10px]">
                             {acc.bank_name.charAt(0)}
                           </span>
                           {acc.bank_name}
@@ -699,9 +699,9 @@ export function BankManagementDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div
               onClick={() => setShowAddModal(true)}
-              className="p-4 rounded-xl bg-gradient-to-br from-[#1D2F5D]/5 to-[#1D2F5D]/10 dark:from-slate-900 dark:to-slate-850 border border-slate-200 dark:border-slate-800 hover:border-[#1D2F5D] cursor-pointer transition-all flex items-start gap-3"
+              className="p-4 rounded-xl bg-gradient-to-br from-brand-navy/5 to-brand-navy/10 dark:from-slate-900 dark:to-slate-850 border border-slate-200 dark:border-slate-800 hover:border-brand-navy cursor-pointer transition-all flex items-start gap-3"
             >
-              <div className="w-9 h-9 rounded-lg bg-[#1D2F5D] text-[#D4AF37] flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-brand-navy text-brand-gold flex items-center justify-center shrink-0">
                 <Plus className="w-5 h-5" />
               </div>
               <div>
@@ -725,9 +725,9 @@ export function BankManagementDashboard() {
 
             <div
               onClick={() => setActiveTab("reconciliation")}
-              className="p-4 rounded-xl bg-gradient-to-br from-purple-50/50 to-purple-100/50 dark:from-slate-900 dark:to-slate-850 border border-slate-200 dark:border-slate-800 hover:border-purple-500 cursor-pointer transition-all flex items-start gap-3"
+              className="p-4 rounded-xl bg-gradient-to-br from-brand-light/50 to-brand-light/50 dark:from-slate-900 dark:to-slate-850 border border-slate-200 dark:border-slate-800 hover:border-brand-primary cursor-pointer transition-all flex items-start gap-3"
             >
-              <div className="w-9 h-9 rounded-lg bg-purple-600 text-white flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-brand-primary text-white flex items-center justify-center shrink-0">
                 <FileSpreadsheet className="w-5 h-5" />
               </div>
               <div>
@@ -738,9 +738,9 @@ export function BankManagementDashboard() {
 
             <div
               onClick={() => setActiveTab("settlements")}
-              className="p-4 rounded-xl bg-gradient-to-br from-amber-50/50 to-amber-100/50 dark:from-slate-900 dark:to-slate-850 border border-slate-200 dark:border-slate-800 hover:border-amber-500 cursor-pointer transition-all flex items-start gap-3"
+              className="p-4 rounded-xl bg-gradient-to-br from-brand-gold-light/50 to-brand-gold-light/50 dark:from-slate-900 dark:to-slate-850 border border-slate-200 dark:border-slate-800 hover:border-brand-gold cursor-pointer transition-all flex items-start gap-3"
             >
-              <div className="w-9 h-9 rounded-lg bg-amber-600 text-white flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-brand-gold text-white flex items-center justify-center shrink-0">
                 <Clock className="w-5 h-5" />
               </div>
               <div>
@@ -799,10 +799,10 @@ export function BankManagementDashboard() {
 
               <Button
                 size="small"
-                className="bg-[#1D2F5D] text-white"
+                className="bg-brand-navy text-white"
                 onClick={() => setShowAddModal(true)}
               >
-                <Plus className="w-3.5 h-3.5 mr-1 text-[#D4AF37]" /> Add Bank
+                <Plus className="w-3.5 h-3.5 mr-1 text-brand-gold" /> Add Bank
               </Button>
             </div>
           </div>
@@ -918,7 +918,7 @@ export function BankManagementDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Wallet className="w-4 h-4 text-amber-500" />
+                <Wallet className="w-4 h-4 text-brand-gold" />
                 Cash in Hand &amp; Branch Petty Cash Accounts
               </h3>
               <p className="text-xs text-slate-500">
@@ -981,7 +981,7 @@ export function BankManagementDashboard() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Receipt className="w-4 h-4 text-[#D4AF37]" />
+                <Receipt className="w-4 h-4 text-brand-gold" />
                 Bank Transaction Register
               </h3>
               <p className="text-xs text-slate-500">
@@ -1171,7 +1171,7 @@ export function BankManagementDashboard() {
 
           <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
             <Button
-              className="bg-[#1D2F5D] text-white"
+              className="bg-brand-navy text-white"
               onClick={handleExecuteTransfer}
               disabled={transferSaving}
             >
@@ -1190,7 +1190,7 @@ export function BankManagementDashboard() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <FileSpreadsheet className="w-4 h-4 text-purple-600" />
+                <FileSpreadsheet className="w-4 h-4 text-brand-primary" />
                 Bank Reconciliation Statement (BRS) &amp; Statement Import
               </h3>
               <p className="text-xs text-slate-500">
@@ -1223,7 +1223,7 @@ export function BankManagementDashboard() {
                 rows={7}
                 value={reconCsvInput}
                 onChange={(e) => setReconCsvInput(e.target.value)}
-                className="w-full font-mono text-xs p-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-[#1D2F5D]"
+                className="w-full font-mono text-xs p-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-navy"
               />
               <div className="flex items-center gap-2">
                 <Input
@@ -1233,8 +1233,8 @@ export function BankManagementDashboard() {
                   onChange={(e) => setReconStatementBalance(e.target.value)}
                   className="w-48 text-xs font-mono"
                 />
-                <Button size="small" className="bg-[#1D2F5D] text-white" onClick={handleProcessCsvRecon}>
-                  <Upload className="w-3.5 h-3.5 mr-1 text-[#D4AF37]" /> Parse &amp; Match Statement
+                <Button size="small" className="bg-brand-navy text-white" onClick={handleProcessCsvRecon}>
+                  <Upload className="w-3.5 h-3.5 mr-1 text-brand-gold" /> Parse &amp; Match Statement
                 </Button>
               </div>
             </div>
@@ -1264,7 +1264,7 @@ export function BankManagementDashboard() {
                   <span className="font-bold text-slate-900 dark:text-white">Difference / Variance:</span>
                   <span
                     className={`font-mono font-bold ${
-                      reconImportResult && reconImportResult.difference === 0 ? "text-emerald-600" : "text-amber-600"
+                      reconImportResult && reconImportResult.difference === 0 ? "text-emerald-600" : "text-brand-gold"
                     }`}
                   >
                     ₹{reconImportResult ? reconImportResult.difference.toLocaleString("en-IN", { minimumFractionDigits: 2 }) : "0.00"}
@@ -1292,7 +1292,7 @@ export function BankManagementDashboard() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-4">
           <div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Clock className="w-4 h-4 text-amber-500" />
+              <Clock className="w-4 h-4 text-brand-gold" />
               Cashfree Settlement Clearing Ledger (1010_CASHFREE_CLEARING / 1113)
             </h3>
             <p className="text-xs text-slate-500">
@@ -1361,7 +1361,7 @@ export function BankManagementDashboard() {
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#1D2F5D] text-[#D4AF37] flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-brand-navy text-brand-gold flex items-center justify-center">
                   <Landmark className="w-5 h-5" />
                 </div>
                 <div>
@@ -1386,7 +1386,7 @@ export function BankManagementDashboard() {
 
             {/* A. Bank Information */}
             <div className="space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#1D2F5D] dark:text-[#D4AF37] flex items-center gap-1.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-brand-navy dark:text-brand-gold flex items-center gap-1.5">
                 <span>A. Bank Information</span>
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1451,7 +1451,7 @@ export function BankManagementDashboard() {
 
             {/* B. Account Classification */}
             <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#1D2F5D] dark:text-[#D4AF37]">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-brand-navy dark:text-brand-gold">
                 B. Account Classification
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -1515,7 +1515,7 @@ export function BankManagementDashboard() {
 
             {/* C. Accounting Configuration */}
             <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#1D2F5D] dark:text-[#D4AF37]">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-brand-navy dark:text-brand-gold">
                 C. Accounting Configuration (Chart of Accounts)
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1549,7 +1549,7 @@ export function BankManagementDashboard() {
 
             {/* D. Account Controls */}
             <div className="space-y-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#1D2F5D] dark:text-[#D4AF37]">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-brand-navy dark:text-brand-gold">
                 D. Operational Controls
               </h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
@@ -1558,7 +1558,7 @@ export function BankManagementDashboard() {
                     type="checkbox"
                     checked={isPrimary}
                     onChange={(e) => setIsPrimary(e.target.checked)}
-                    className="rounded text-[#1D2F5D]"
+                    className="rounded text-brand-navy"
                   />
                   <span>Primary Account</span>
                 </label>
@@ -1567,7 +1567,7 @@ export function BankManagementDashboard() {
                     type="checkbox"
                     checked={allowPayments}
                     onChange={(e) => setAllowPayments(e.target.checked)}
-                    className="rounded text-[#1D2F5D]"
+                    className="rounded text-brand-navy"
                   />
                   <span>Allow Payments</span>
                 </label>
@@ -1576,7 +1576,7 @@ export function BankManagementDashboard() {
                     type="checkbox"
                     checked={allowReceipts}
                     onChange={(e) => setAllowReceipts(e.target.checked)}
-                    className="rounded text-[#1D2F5D]"
+                    className="rounded text-brand-navy"
                   />
                   <span>Allow Receipts</span>
                 </label>
@@ -1585,7 +1585,7 @@ export function BankManagementDashboard() {
                     type="checkbox"
                     checked={reconciliationRequired}
                     onChange={(e) => setReconciliationRequired(e.target.checked)}
-                    className="rounded text-[#1D2F5D]"
+                    className="rounded text-brand-navy"
                   />
                   <span>Recon Required</span>
                 </label>
@@ -1607,7 +1607,7 @@ export function BankManagementDashboard() {
               </Button>
               <Button
                 size="small"
-                className="bg-[#1D2F5D] text-white"
+                className="bg-brand-navy text-white"
                 disabled={savingAccount}
                 onClick={() => handleSaveBankAccount(false)}
               >
@@ -1628,7 +1628,7 @@ export function BankManagementDashboard() {
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#1D2F5D] text-[#D4AF37] flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-xl bg-brand-navy text-brand-gold flex items-center justify-center font-bold">
                   {selectedAccountForDetail.bank_name.charAt(0)}
                 </div>
                 <div>
@@ -1659,7 +1659,7 @@ export function BankManagementDashboard() {
                   onClick={() => setDetailTab(t)}
                   className={`px-3 py-1.5 rounded-lg capitalize transition-colors ${
                     detailTab === t
-                      ? "bg-[#1D2F5D] text-white"
+                      ? "bg-brand-navy text-white"
                       : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
@@ -2026,7 +2026,7 @@ export function BankManagementDashboard() {
               <Button size="small" variant="secondary" onClick={() => setShowTransferModal(false)}>
                 Cancel
               </Button>
-              <Button size="small" className="bg-[#1D2F5D] text-white" onClick={handleExecuteTransfer} disabled={transferSaving}>
+              <Button size="small" className="bg-brand-navy text-white" onClick={handleExecuteTransfer} disabled={transferSaving}>
                 {transferSaving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
                 Execute Transfer
               </Button>

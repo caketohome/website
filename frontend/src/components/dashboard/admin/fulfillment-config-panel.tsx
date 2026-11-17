@@ -415,7 +415,7 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
         {/* Section 1.4: Express 45-Min Delivery Rules */}
         <Container className="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-5">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-            <Zap className="w-5 h-5 text-amber-500" />
+            <Zap className="w-5 h-5 text-brand-gold" />
             <h3 className="font-extrabold text-sm text-slate-900">⚡ Express 45-Min Priority Delivery Rules</h3>
           </div>
 
@@ -440,7 +440,7 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
             </div>
 
             {config.express_delivery?.enabled && (
-              <div className="space-y-3 p-3.5 rounded-2xl bg-amber-50/50 border border-amber-200/80">
+              <div className="space-y-3 p-3.5 rounded-2xl bg-brand-gold-light/50 border border-brand-gold/80">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-bold text-slate-700">Operating Start</Label>
@@ -512,7 +512,7 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-amber-200 mt-2">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-brand-gold/40 mt-2">
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-slate-800">Same-Day Only Delivery</span>
                     <span className="text-[10px] text-slate-500">
@@ -612,11 +612,11 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
         {/* Section 2: Global Preparation Delay (Rush Hour / Peak Load) */}
         <Container className="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-5">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-            <Timer className="w-5 h-5 text-amber-600" />
+            <Timer className="w-5 h-5 text-brand-gold" />
             <div className="flex items-center justify-between flex-1">
               <h3 className="font-extrabold text-sm text-slate-900">Kitchen Rush & Preparation Delay</h3>
               {config.global_preparation_delay_enabled && (
-                <Badge color="orange" className="bg-amber-100 text-amber-900 border-amber-300 font-bold">
+                <Badge color="orange" className="bg-brand-gold-light text-brand-gold-dark border-brand-gold/40 font-bold">
                   +{config.global_preparation_delay_minutes}m DELAY ACTIVE
                 </Badge>
               )}
@@ -624,11 +624,11 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
           </div>
 
           <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-3">
+            <div className="p-4 rounded-2xl bg-brand-gold-light/70 border border-brand-gold/80 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex flex-col">
-                  <span className="text-xs font-bold text-amber-950">Activate Kitchen Peak Delay</span>
-                  <span className="text-[11px] text-amber-800">
+                  <span className="text-xs font-bold text-brand-gold-dark">Activate Kitchen Peak Delay</span>
+                  <span className="text-[11px] text-brand-gold-dark">
                     Temporarily add prep buffer across all products during peak holiday/festival rush
                   </span>
                 </div>
@@ -639,9 +639,9 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
               </div>
 
               {config.global_preparation_delay_enabled && (
-                <div className="space-y-3 pt-3 border-t border-amber-200">
+                <div className="space-y-3 pt-3 border-t border-brand-gold/40">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-bold text-amber-950">Additional Prep Minutes (+min)</Label>
+                    <Label className="text-xs font-bold text-brand-gold-dark">Additional Prep Minutes (+min)</Label>
                     <Input
                       type="number"
                       value={config.global_preparation_delay_minutes}
@@ -652,7 +652,7 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-bold text-amber-950">Reason / Customer Notice</Label>
+                    <Label className="text-xs font-bold text-brand-gold-dark">Reason / Customer Notice</Label>
                     <Input
                       type="text"
                       value={config.preparation_delay_reason || ""}
@@ -745,7 +745,7 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
       <Container className="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-5">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-purple-600" />
+            <Calendar className="w-5 h-5 text-brand-primary" />
             <h3 className="font-extrabold text-sm text-slate-900">Weekly Operating Hours Schedule</h3>
           </div>
           <span className="text-xs font-semibold text-slate-500">Changes auto-save per day</span>
@@ -817,7 +817,7 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
       <Container className="p-6 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-5">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <Globe className="w-5 h-5 text-indigo-600" />
+            <Globe className="w-5 h-5 text-brand-primary" />
             <h3 className="font-extrabold text-sm text-slate-900">Holiday & Operational Closures Calendar</h3>
           </div>
           <span className="text-xs text-slate-500 font-semibold">{holidays.length} scheduled closures</span>
@@ -850,7 +850,7 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
 
           <Button
             type="submit"
-            className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 h-10"
+            className="bg-brand-primary hover:bg-brand-primary text-white font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 h-10"
           >
             <Plus className="w-4 h-4" />
             Add Closure
@@ -883,22 +883,22 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
       </Container>
 
       {/* Section 5: Live Slot Preview Simulator (Direct Cascading Verification) */}
-      <Container className="p-6 rounded-3xl border border-indigo-200 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/30 shadow-md space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-indigo-100">
+      <Container className="p-6 rounded-3xl border border-brand-primary/30 bg-gradient-to-br from-brand-light/50 via-white to-brand-light/30 shadow-md space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-brand-light">
           <div className="flex items-center gap-2">
-            <Sliders className="w-5 h-5 text-indigo-600" />
+            <Sliders className="w-5 h-5 text-brand-primary" />
             <div>
               <h3 className="font-extrabold text-sm text-slate-900">Live Customer Delivery Slot Simulator</h3>
               <p className="text-[11px] text-slate-500">Preview exact customer slot schedule generated from active configuration (Global &gt; Store &gt; Zone)</p>
             </div>
           </div>
-          <Badge color="purple" className="bg-purple-100 text-purple-800 font-bold border-purple-200">
+          <Badge color="purple" className="bg-brand-light text-brand-navy font-bold border-brand-primary/30">
             Realtime Engine Simulator
           </Badge>
         </div>
 
         {/* Simulator Controls */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-white border border-indigo-100 shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-white border border-brand-light shadow-sm">
           <div className="space-y-1">
             <Label className="text-xs font-bold text-slate-700">Target Store</Label>
             <select
@@ -955,7 +955,7 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
         <div className="space-y-3">
           <div className="flex items-center justify-between text-xs font-bold text-slate-700">
             <span>Generated Customer Slots ({simSlots.length} Total Windows):</span>
-            <span className="text-indigo-600 font-mono text-[11px]">
+            <span className="text-brand-primary font-mono text-[11px]">
               Active: {simSlots.filter((s) => s.available).length} Available | {simSlots.filter((s) => !s.available).length} Closed/Cutoff
             </span>
           </div>
@@ -980,7 +980,7 @@ export const FulfillmentConfigPanel = memo(function FulfillmentConfigPanel() {
                     className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-2 transition ${
                       isAvail
                         ? slot.slot_type === "express"
-                          ? "bg-amber-50/80 border-amber-300 shadow-sm"
+                          ? "bg-brand-gold-light/80 border-brand-gold/40 shadow-sm"
                           : "bg-white border-emerald-200 shadow-sm"
                         : "bg-slate-50 border-slate-200 opacity-60"
                     }`}

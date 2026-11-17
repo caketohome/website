@@ -164,8 +164,8 @@ export const SharedInventoryPanel = memo(function SharedInventoryPanel() {
           <div className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{totalPhysical}</div>
         </div>
         <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="text-xs font-medium text-amber-500">Active Order Reservations</div>
-          <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{totalReserved}</div>
+          <div className="text-xs font-medium text-brand-gold">Active Order Reservations</div>
+          <div className="text-2xl font-bold text-brand-gold dark:text-brand-gold mt-1">{totalReserved}</div>
         </div>
         <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-900/40 shadow-sm bg-emerald-50/20">
           <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Net Available to Promise</div>
@@ -261,8 +261,8 @@ export const SharedInventoryPanel = memo(function SharedInventoryPanel() {
                         <span
                           className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
                             item.category === "CAKE"
-                              ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
-                              : "bg-pink-500/10 text-pink-500 border border-pink-500/20"
+                              ? "bg-brand-gold/10 text-brand-gold border border-brand-gold/20"
+                              : "bg-brand-primary/10 text-brand-primary border border-brand-primary/20"
                           }`}
                         >
                           {item.category === "CAKE" ? "🎂 CAKE" : "💐 BOUQUET"}
@@ -271,7 +271,7 @@ export const SharedInventoryPanel = memo(function SharedInventoryPanel() {
                       <td className="py-3 px-4 text-center font-bold text-slate-900 dark:text-white">
                         {item.quantity} {item.unit_of_measure}
                       </td>
-                      <td className="py-3 px-4 text-center font-semibold text-amber-600 dark:text-amber-400">
+                      <td className="py-3 px-4 text-center font-semibold text-brand-gold dark:text-brand-gold">
                         {item.reserved}
                       </td>
                       <td className="py-3 px-4 text-center font-bold text-emerald-600 dark:text-emerald-400">
@@ -286,7 +286,7 @@ export const SharedInventoryPanel = memo(function SharedInventoryPanel() {
                             isOut
                               ? "bg-rose-500/10 text-rose-500 border border-rose-500/20"
                               : isLow
-                              ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                              ? "bg-brand-gold/10 text-brand-gold border border-brand-gold/20"
                               : "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
                           }`}
                         >
@@ -336,7 +336,7 @@ export const SharedInventoryPanel = memo(function SharedInventoryPanel() {
               <div className="font-semibold text-slate-900 dark:text-white">{adjustingItem.product_title}</div>
               <div className="text-slate-500 mt-1">
                 Current Physical: <span className="font-bold text-slate-900 dark:text-white">{adjustingItem.quantity}</span> |
-                Reserved: <span className="font-bold text-amber-500">{adjustingItem.reserved}</span> |
+                Reserved: <span className="font-bold text-brand-gold">{adjustingItem.reserved}</span> |
                 Available: <span className="font-bold text-emerald-500">{Number(adjustingItem.quantity) - Number(adjustingItem.reserved)}</span>
               </div>
             </div>

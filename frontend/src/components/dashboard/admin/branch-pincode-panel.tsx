@@ -218,10 +218,10 @@ export function BranchPincodePanel() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-amber-50/70 dark:bg-slate-800/80 p-4 rounded-xl border border-amber-200 dark:border-slate-700">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-brand-gold-light/70 dark:bg-slate-800/80 p-4 rounded-xl border border-brand-gold/40 dark:border-slate-700">
         <div>
           <Heading level="h2" className="text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-white">
-            <MapPin className="w-5 h-5 text-amber-600" /> Store Area Matrix &amp; Map-First Delivery Management
+            <MapPin className="w-5 h-5 text-brand-gold" /> Store Area Matrix &amp; Map-First Delivery Management
           </Heading>
           <Text className="text-xs text-slate-600 dark:text-slate-300">
             The central delivery configuration screen. Configure geographic delivery boundaries directly on the map (Polygon and Radius). Coordinates are strictly authoritative.
@@ -241,7 +241,7 @@ export function BranchPincodePanel() {
             className="cursor-pointer px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5"
             onClick={() => setActiveTab("simulator")}
           >
-            <Compass className="w-3.5 h-3.5 text-amber-500" /> Routing Simulator
+            <Compass className="w-3.5 h-3.5 text-brand-gold" /> Routing Simulator
           </Badge>
           <Badge
             color={activeTab === "matrix" ? "purple" : "grey"}
@@ -311,7 +311,7 @@ export function BranchPincodePanel() {
                       <Badge color="green" className="text-[10px] uppercase font-bold">Active</Badge>
                     </td>
                     <td className="p-3 text-right">
-                      <Button size="small" variant="transparent" onClick={() => handleOpenMoveModal(m.pincode)} className="text-[10px] text-amber-600 font-bold">
+                      <Button size="small" variant="transparent" onClick={() => handleOpenMoveModal(m.pincode)} className="text-[10px] text-brand-gold font-bold">
                         <ArrowRightLeft className="w-3.5 h-3.5 mr-1" /> Transfer Zone
                       </Button>
                     </td>
@@ -329,12 +329,12 @@ export function BranchPincodePanel() {
       {/* SERVICE AREAS TAB */}
       {activeTab === "service_areas" && (
         <div className="space-y-4">
-          <div className="p-4 bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200 rounded-xl flex items-center justify-between">
+          <div className="p-4 bg-brand-light/70 dark:bg-brand-navy/30 border border-brand-primary/30 rounded-xl flex items-center justify-between">
             <div>
-              <Heading level="h3" className="text-sm font-bold text-purple-900 dark:text-purple-200 flex items-center gap-2">
-                <Settings2 className="w-4 h-4 text-purple-600" /> Operational Service Areas ({serviceAreas.length})
+              <Heading level="h3" className="text-sm font-bold text-brand-navy dark:text-brand-primary/30 flex items-center gap-2">
+                <Settings2 className="w-4 h-4 text-brand-primary" /> Operational Service Areas ({serviceAreas.length})
               </Heading>
-              <Text className="text-xs text-purple-700 dark:text-purple-300">
+              <Text className="text-xs text-brand-navy dark:text-brand-primary/30">
                 Service Areas group multiple pincodes into operational regions for easy management and routing.
               </Text>
             </div>
@@ -346,7 +346,7 @@ export function BranchPincodePanel() {
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="font-bold text-sm text-slate-900 dark:text-white">{sa.service_area_name}</span>
-                    <span className="block text-xs text-slate-500">{sa.area_name} • Branch Code: <strong className="text-purple-600">{sa.branch_code}</strong></span>
+                    <span className="block text-xs text-slate-500">{sa.area_name} • Branch Code: <strong className="text-brand-primary">{sa.branch_code}</strong></span>
                   </div>
                   <Badge color="green" className="capitalize text-[10px] font-bold">{sa.status}</Badge>
                 </div>
@@ -368,9 +368,9 @@ export function BranchPincodePanel() {
       {showZoneModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col my-8">
-            <div className="p-4 border-b flex items-center justify-between bg-amber-50 dark:bg-amber-950/40">
+            <div className="p-4 border-b flex items-center justify-between bg-brand-gold-light dark:bg-brand-gold-dark/40">
               <Heading level="h3" className="text-base font-bold flex items-center gap-2">
-                <Layers className="w-5 h-5 text-purple-600" />
+                <Layers className="w-5 h-5 text-brand-primary" />
                 {editingZone ? `Configure Zone: ${editingZone.name}` : "Create Delivery Zone"}
               </Heading>
               <Button size="small" variant="transparent" onClick={() => setShowZoneModal(false)}>Close</Button>
@@ -430,7 +430,7 @@ export function BranchPincodePanel() {
 
               <div className="pt-4 border-t flex justify-end gap-2">
                 <Button type="button" variant="transparent" onClick={() => setShowZoneModal(false)}>Cancel</Button>
-                <Button type="submit" isLoading={submitting} className="bg-purple-600 hover:bg-purple-700 text-white font-bold">
+                <Button type="submit" isLoading={submitting} className="bg-brand-primary hover:bg-brand-navy text-white font-bold">
                   Save Zone Configuration
                 </Button>
               </div>
@@ -442,9 +442,9 @@ export function BranchPincodePanel() {
       {showMoveModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
-            <div className="p-4 border-b flex items-center justify-between bg-amber-50 dark:bg-amber-950/40">
+            <div className="p-4 border-b flex items-center justify-between bg-brand-gold-light dark:bg-brand-gold-dark/40">
               <Heading level="h3" className="text-base font-bold flex items-center gap-2">
-                <ArrowRightLeft className="w-5 h-5 text-amber-600" />
+                <ArrowRightLeft className="w-5 h-5 text-brand-gold" />
                 Transfer Pincode {movingPincode}
               </Heading>
               <Button size="small" variant="transparent" onClick={() => setShowMoveModal(false)}>Close</Button>
@@ -480,7 +480,7 @@ export function BranchPincodePanel() {
 
               <div className="pt-4 border-t flex justify-end gap-2">
                 <Button type="button" variant="transparent" onClick={() => setShowMoveModal(false)}>Cancel</Button>
-                <Button type="submit" isLoading={submitting} className="bg-amber-600 hover:bg-amber-700 text-white font-bold">
+                <Button type="submit" isLoading={submitting} className="bg-brand-gold hover:bg-brand-gold-dark text-white font-bold">
                   Confirm Transfer
                 </Button>
               </div>

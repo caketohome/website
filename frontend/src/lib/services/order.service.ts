@@ -1,4 +1,5 @@
 import { CrossAppEventService } from "./cross-app-event.service";
+import { notifyOrderCreated } from "./push-notification.service";
 import { dbQuery, dbTransaction } from "../db";
 import { OrderRepository } from "../repositories/order.repository";
 import { ProductRepository } from "../repositories/product.repository";
@@ -866,6 +867,7 @@ export class OrderService {
       return { success: false, error: txErr.message || "Failed to finalize order transaction." };
     }
 
+    notifyOrderCreated({ id: orderId, order_number: orderNumber, customer_uid: custUid, branch_id: branch.id });
     return { success: true, order: newOrder };
   }
 }

@@ -263,7 +263,7 @@ export function DrawerExpensePaymentModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 rounded-lg">
+            <div className="p-2 bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold/40 rounded-lg">
               <Receipt className="h-5 w-5" />
             </div>
             <div>
@@ -293,7 +293,7 @@ export function DrawerExpensePaymentModal({
             onClick={() => setActiveTab("pending_payment")}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center space-x-2 ${
               activeTab === "pending_payment"
-                ? "border-amber-600 text-amber-600 dark:text-amber-400"
+                ? "border-brand-gold text-brand-gold dark:text-brand-gold"
                 : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
@@ -304,7 +304,7 @@ export function DrawerExpensePaymentModal({
             onClick={() => setActiveTab("review")}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center space-x-2 ${
               activeTab === "review"
-                ? "border-amber-600 text-amber-600 dark:text-amber-400"
+                ? "border-brand-gold text-brand-gold dark:text-brand-gold"
                 : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
@@ -315,7 +315,7 @@ export function DrawerExpensePaymentModal({
             onClick={() => setActiveTab("submit")}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center space-x-2 ${
               activeTab === "submit"
-                ? "border-amber-600 text-amber-600 dark:text-amber-400"
+                ? "border-brand-gold text-brand-gold dark:text-brand-gold"
                 : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
@@ -407,7 +407,7 @@ export function DrawerExpensePaymentModal({
                               {formatCurrency(exp.total)}
                             </td>
                             <td className="px-4 py-3 text-center">
-                              <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                              <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-semibold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold/40">
                                 Approved / Ready
                               </span>
                             </td>
@@ -621,7 +621,7 @@ export function DrawerExpensePaymentModal({
                 <button
                   type="submit"
                   disabled={actionLoading || !newDesc || !newAmount}
-                  className="px-5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 rounded-lg transition-colors flex items-center space-x-2"
+                  className="px-5 py-2 text-xs font-bold text-white bg-brand-gold hover:bg-brand-gold-dark disabled:opacity-50 rounded-lg transition-colors flex items-center space-x-2"
                 >
                   {actionLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
                   <span>Submit Expense Request</span>

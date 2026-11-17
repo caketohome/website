@@ -97,7 +97,7 @@ export function ScheduleReminderModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+            <div className="p-2 rounded-xl bg-brand-primary/10 text-brand-primary dark:text-brand-primary">
               <Bell className="w-5 h-5" />
             </div>
             <div>
@@ -141,7 +141,7 @@ export function ScheduleReminderModal({
               value={reminderDate}
               onChange={(e) => setReminderDate(e.target.value)}
               required
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-primary"
             />
           </div>
 
@@ -153,7 +153,7 @@ export function ScheduleReminderModal({
               <select
                 value={reminderType}
                 onChange={(e) => setReminderType(e.target.value as any)}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-primary"
               >
                 <option value="PRE_DUE">Pre-Due Reminder (3-7 days prior)</option>
                 <option value="DUE_DATE">Due-Date Reminder (On due date)</option>
@@ -168,7 +168,7 @@ export function ScheduleReminderModal({
               <select
                 value={channel}
                 onChange={(e) => setChannel(e.target.value as any)}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-primary"
               >
                 <option value="EMAIL">Email Notification</option>
                 <option value="SMS">SMS Alert</option>
@@ -198,7 +198,7 @@ export function ScheduleReminderModal({
                         Date: {rem.data?.scheduled_for || rem.created_at?.split("T")[0]} • To: {rem.to}
                       </div>
                     </div>
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400">
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold">
                       {rem.status}
                     </span>
                   </div>
@@ -219,7 +219,7 @@ export function ScheduleReminderModal({
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-xl shadow-xs transition-colors"
+              className="px-5 py-2 text-xs font-bold text-white bg-brand-primary hover:bg-brand-navy disabled:opacity-50 rounded-xl shadow-xs transition-colors"
             >
               {loading ? "Scheduling..." : "Schedule Reminder"}
             </button>

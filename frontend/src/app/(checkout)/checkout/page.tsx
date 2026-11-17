@@ -25,15 +25,15 @@ export default async function CheckoutPage() {
   if (!cart || items.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center font-sans">
-        <div className="japandi-card p-10 md:p-16 flex flex-col items-center gap-6 shadow-xl border border-stone-200/80 bg-[#FDFBF7]">
-          <div className="w-24 h-24 rounded-full bg-amber-50/80 border border-amber-200/60 flex items-center justify-center text-5xl shadow-sm">
+        <div className="japandi-card p-10 md:p-16 flex flex-col items-center gap-6 shadow-xl border border-stone-200/80 bg-brand-warm-white">
+          <div className="w-24 h-24 rounded-full bg-brand-gold-light/80 border border-brand-gold/60 flex items-center justify-center text-5xl shadow-sm">
             🎂
           </div>
           <div className="flex flex-col gap-2 max-w-md">
             <span className="text-[11px] font-sans uppercase tracking-[0.25em] text-[#997A1E] font-semibold">
               Bespoke Patisserie
             </span>
-            <h1 className="text-2xl md:text-3xl font-serif font-bold text-[#1D2F5D]">
+            <h1 className="text-2xl md:text-3xl font-serif font-bold text-brand-navy">
               Your cart is waiting.
             </h1>
             <p className="text-sm md:text-base text-slate-600 leading-relaxed font-sans">
@@ -44,7 +44,7 @@ export default async function CheckoutPage() {
           <div className="flex flex-wrap gap-4 justify-center mt-2">
             <Link
               href="/products"
-              className="px-8 py-3.5 rounded-xl bg-[#1D2F5D] hover:bg-[#152347] text-white font-bold text-sm md:text-base shadow-lg shadow-[#1D2F5D]/20 transition-all hover:scale-[1.02] inline-flex items-center gap-2"
+              className="px-8 py-3.5 rounded-xl bg-brand-navy hover:bg-brand-deep text-white font-bold text-sm md:text-base shadow-lg shadow-brand-navy/20 transition-all hover:scale-[1.02] inline-flex items-center gap-2"
             >
               <span>Explore Cakes & Delicacies</span>
               <span>→</span>

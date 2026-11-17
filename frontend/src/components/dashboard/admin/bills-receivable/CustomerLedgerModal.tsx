@@ -60,7 +60,7 @@ export function CustomerLedgerModal({
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
         <div className="w-full max-w-3xl p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl flex flex-col items-center justify-center gap-3">
-          <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-3 border-brand-primary border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-slate-500">Calculating authoritative customer subledger...</p>
         </div>
       </div>
@@ -100,7 +100,7 @@ export function CustomerLedgerModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+            <div className="p-2 rounded-xl bg-brand-primary/10 text-brand-primary dark:text-brand-primary">
               <BookOpen className="w-5 h-5" />
             </div>
             <div>
@@ -149,12 +149,12 @@ export function CustomerLedgerModal({
                 ₹{Number(data.total_received || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </div>
             </div>
-            <div className="p-3 rounded-xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/30">
-              <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">Authoritative Balance</span>
-              <div className="text-base font-bold text-amber-700 dark:text-amber-300">
+            <div className="p-3 rounded-xl bg-brand-gold-light/50 dark:bg-brand-gold-dark/20 border border-brand-gold/50 dark:border-brand-gold-dark/30">
+              <span className="text-[11px] font-semibold text-brand-gold dark:text-brand-gold">Authoritative Balance</span>
+              <div className="text-base font-bold text-brand-gold-dark dark:text-brand-gold/40">
                 ₹{Number(data.closing_balance || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </div>
-              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">Net Trade AR</span>
+              <span className="text-[10px] text-brand-gold dark:text-brand-gold font-semibold">Net Trade AR</span>
             </div>
           </div>
 
@@ -167,7 +167,7 @@ export function CustomerLedgerModal({
                 placeholder="Filter ledger by Document #, UTR / Reference, or narration..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-brand-primary"
               />
             </div>
           </div>
@@ -207,7 +207,7 @@ export function CustomerLedgerModal({
                               ? "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"
                               : entry.entry_type === "RECEIPT"
                               ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"
-                              : "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400"
+                              : "bg-brand-light text-brand-navy dark:bg-brand-navy/40 dark:text-brand-primary"
                           }`}
                         >
                           {entry.entry_type}

@@ -35,7 +35,7 @@ export function PdpBreadcrumb({
           <Link
             href="/"
             itemProp="item"
-            className="flex items-center gap-1 text-slate-500 hover:text-[#2563EB] transition-colors py-1"
+            className="flex items-center gap-1 text-slate-500 hover:text-brand-primary transition-colors py-1"
           >
             <Home className="w-3.5 h-3.5 text-slate-400" />
             <span itemProp="name" className="hidden sm:inline">Home</span>
@@ -53,7 +53,7 @@ export function PdpBreadcrumb({
           <Link
             href={rootHref}
             itemProp="item"
-            className="text-slate-500 hover:text-[#2563EB] transition-colors py-1"
+            className="text-slate-500 hover:text-brand-primary transition-colors py-1"
           >
             <span itemProp="name">{rootLabel}</span>
           </Link>
@@ -71,7 +71,7 @@ export function PdpBreadcrumb({
             <Link
               href={`/products?category=${catSlug}`}
               itemProp="item"
-              className="text-slate-500 hover:text-[#2563EB] transition-colors py-1 truncate max-w-[140px] sm:max-w-[200px]"
+              className="text-slate-500 hover:text-brand-primary transition-colors py-1 truncate max-w-[140px] sm:max-w-[200px]"
             >
               <span itemProp="name">{category}</span>
             </Link>
@@ -88,7 +88,7 @@ export function PdpBreadcrumb({
         >
           <span
             itemProp="name"
-            className="text-[#0F172A] font-semibold truncate block py-1"
+            className="text-brand-text font-semibold truncate block py-1"
             aria-current="page"
           >
             {productTitle}

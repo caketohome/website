@@ -7,6 +7,7 @@ import { AuthProvider } from "@/providers/auth-provider";
 import { CustomerProvider } from "@frontend/providers/customer-provider";
 import { FavoritesProvider } from "@/providers/favorites-provider";
 import { MetaPixel } from "@/components/marketing/meta-pixel";
+import { PwaNotifications } from "@/components/pwa/pwa-notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -52,10 +53,10 @@ export default function RootLayout({
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#0F172A" />
+        <meta name="theme-color" content="#172033" />
         <OrganizationJsonLd />
       </head>
-      <body className={`${sans.variable} ${serif.variable} font-sans min-h-screen bg-[#F8FAFC] text-[#0F172A] antialiased`}>
+      <body className={`${sans.variable} ${serif.variable} font-sans min-h-screen bg-brand-warm-white text-brand-text antialiased`}>
         <Suspense fallback={null}>
           <MetaPixel />
         </Suspense>
@@ -65,27 +66,8 @@ export default function RootLayout({
               {children}
             </FavoritesProvider>
           </CustomerProvider>
+          <PwaNotifications />
         </AuthProvider>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    for (let registration of registrations) {
-                      registration.unregister();
-                    }
-                  });
-                  if (window.caches) {
-                    caches.keys().then(function(names) {
-                      for (let name of names) caches.delete(name);
-                    });
-                  }
-                });
-              }
-            `
-          }}
-        />
       </body>
     </html>
   );

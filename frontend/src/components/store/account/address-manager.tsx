@@ -100,27 +100,27 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
 
   const getTypeIcon = (t: string) => {
     if (t === "OFFICE") return <Briefcase className="w-4 h-4 text-blue-400" />;
-    if (t === "OTHER") return <Building className="w-4 h-4 text-purple-400" />;
-    return <Home className="w-4 h-4 text-amber-400" />;
+    if (t === "OTHER") return <Building className="w-4 h-4 text-brand-primary" />;
+    return <Home className="w-4 h-4 text-brand-gold" />;
   };
 
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-brand-border">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-            <MapPin className="w-6 h-6 text-[#D4AF37]" />
+          <h2 className="text-xl sm:text-2xl font-black text-brand-text tracking-tight flex items-center gap-2.5">
+            <MapPin className="w-6 h-6 text-brand-gold" />
             <span>Saved Addresses</span>
           </h2>
-          <p className="text-xs text-neutral-400 mt-1">
+          <p className="text-xs text-brand-text-muted mt-1">
             Seamless 1-click delivery checkout with instant branch kitchen routing.
           </p>
         </div>
 
         <button
           onClick={openAddModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-black transition-all shadow-md shadow-amber-500/20 active:scale-95 shrink-0"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-brand-navy hover:bg-brand-primary text-white text-xs font-black transition-all shadow-md shadow-brand-gold/20 active:scale-95 shrink-0"
         >
           <Plus className="w-4 h-4" /> Add New Address
         </button>
@@ -133,24 +133,24 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
             key={addr.id}
             className={`rounded-3xl p-5 sm:p-6 border transition-all relative overflow-hidden flex flex-col justify-between gap-4 shadow-xl backdrop-blur-sm ${
               addr.is_default
-                ? "bg-gradient-to-br from-neutral-900 via-neutral-900 to-amber-950/20 border-amber-500/40"
-                : "bg-neutral-900/80 border-neutral-800 hover:border-neutral-700"
+                ? "bg-gradient-to-br from-neutral-900 via-neutral-900 to-brand-gold-dark/20 border-brand-gold/40"
+                : "bg-white border-brand-border hover:border-brand-border"
             }`}
           >
             <div className="space-y-3">
               {/* Type Pill & Default Badge */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-neutral-800 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-xl bg-brand-surface-muted flex items-center justify-center">
                     {getTypeIcon(addr.type || "home")}
                   </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-white">
+                  <span className="text-xs font-bold uppercase tracking-wider text-brand-text">
                     {addr.label || addr.type || "Home"}
                   </span>
                 </div>
 
                 {addr.is_default && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold/40 border border-brand-gold/30">
                     <CheckCircle2 className="w-3 h-3" /> Default Delivery
                   </span>
                 )}
@@ -158,46 +158,46 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
 
               {/* Name & Phone */}
               <div>
-                <p className="text-sm font-bold text-white">{addr.name || "Alex R Ashok"}</p>
-                <p className="text-xs text-neutral-400 font-mono mt-0.5">{addr.phone || "+91 98765 43210"}</p>
+                <p className="text-sm font-bold text-brand-text">{addr.name || "Alex R Ashok"}</p>
+                <p className="text-xs text-brand-text-muted font-mono mt-0.5">{addr.phone || "+91 98765 43210"}</p>
               </div>
 
               {/* Full Address */}
-              <div className="text-xs text-neutral-300 space-y-0.5 leading-relaxed">
+              <div className="text-xs text-brand-text space-y-0.5 leading-relaxed">
                 <p>{addr.address_1 || (addr as any).line1 || ""}</p>
-                {addr.address_2 && <p className="text-neutral-400">{addr.address_2}</p>}
+                {addr.address_2 && <p className="text-brand-text-muted">{addr.address_2}</p>}
                 {addr.landmark && (
-                  <p className="text-neutral-400 italic">Landmark: {addr.landmark}</p>
+                  <p className="text-brand-text-muted italic">Landmark: {addr.landmark}</p>
                 )}
-                <p className="font-semibold text-neutral-200">
+                <p className="font-semibold text-brand-text">
                   {[addr.city, addr.state].filter(Boolean).join(", ")}{addr.postal_code || (addr as any).pincode ? ` – ${addr.postal_code || (addr as any).pincode}` : ""}
                 </p>
               </div>
 
               {/* Branch Connection Indicator */}
-              <div className="pt-2 border-t border-neutral-800/80 flex items-center gap-1.5 text-[11px] text-amber-400/90 font-medium">
+              <div className="pt-2 border-t border-brand-border flex items-center gap-1.5 text-[11px] text-brand-gold/90 font-medium">
                 <Store className="w-3.5 h-3.5" />
                 <span>Routed to: {(addr as any).branch_name || "Nearest Hub Kitchen"}</span>
               </div>
             </div>
 
             {/* Action Bar */}
-            <div className="flex items-center justify-between pt-3 border-t border-neutral-800/80">
+            <div className="flex items-center justify-between pt-3 border-t border-brand-border">
               {!addr.is_default ? (
                 <button
                   onClick={() => handleSetDefault(addr.id)}
-                  className="text-xs text-neutral-400 hover:text-amber-400 font-medium hover:underline transition-colors"
+                  className="text-xs text-brand-text-muted hover:text-brand-gold font-medium hover:underline transition-colors"
                 >
                   Set as Default
                 </button>
               ) : (
-                <span className="text-[11px] text-emerald-400 font-semibold">✓ Primary Delivery</span>
+                <span className="text-[11px] text-[#16834A] font-semibold">✓ Primary Delivery</span>
               )}
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => openEditModal(addr)}
-                  className="p-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white transition-colors"
+                  className="p-2 rounded-xl bg-brand-surface-muted hover:bg-brand-surface-muted text-brand-text hover:text-brand-navy transition-colors"
                   title="Edit Address"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
@@ -205,7 +205,7 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
 
                 <button
                   onClick={() => handleDelete(addr.id)}
-                  className="p-2 rounded-xl bg-neutral-800 hover:bg-[#0c1326]/80 text-neutral-400 hover:text-[#D4AF37] transition-colors"
+                  className="p-2 rounded-xl bg-brand-surface-muted hover:bg-brand-deep/80 text-brand-text-muted hover:text-brand-gold transition-colors"
                   title="Delete Address"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -218,16 +218,16 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
 
       {/* ── MODAL: ADD / EDIT ADDRESS ────────────────────────────────────── */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/80 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-lg bg-neutral-900 border border-neutral-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-amber-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-warm-white backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-lg bg-white border border-brand-border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-brand-border">
+              <h3 className="text-lg font-bold text-brand-text flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-brand-gold" />
                 <span>{editingId ? "Edit Delivery Address" : "Add Delivery Address"}</span>
               </h3>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-neutral-400 hover:text-white text-sm"
+                className="text-brand-text-muted hover:text-brand-navy text-sm"
               >
                 ✕
               </button>
@@ -236,7 +236,7 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
             <form onSubmit={handleSave} className="space-y-4">
               {/* Type Pill Selector */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-neutral-300">Address Category</label>
+                <label className="text-xs font-bold text-brand-text">Address Category</label>
                 <div className="grid grid-cols-3 gap-2">
                   {(["HOME", "OFFICE", "OTHER"] as const).map((t) => (
                     <button
@@ -245,8 +245,8 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
                       onClick={() => setType(t)}
                       className={`py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${
                         type === t
-                          ? "bg-amber-500 text-neutral-950 border-amber-500 font-black shadow-md shadow-amber-500/20"
-                          : "bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-white"
+                          ? "bg-brand-gold text-brand-text border-brand-gold font-black shadow-md shadow-brand-gold/20"
+                          : "bg-brand-warm-white border-brand-border text-brand-text-muted hover:text-brand-navy"
                       }`}
                     >
                       {getTypeIcon(t)}
@@ -259,34 +259,34 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
               {/* Name & Phone */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-neutral-300">Recipient Name</label>
+                  <label className="text-xs font-bold text-brand-text">Recipient Name</label>
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Alex R Ashok"
-                    className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-600 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                    className="w-full bg-brand-warm-white border border-brand-border rounded-xl px-3.5 py-2.5 text-xs text-brand-text placeholder:text-brand-text-muted/70 focus:border-brand-gold focus:ring-1 focus:ring-brand-gold"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-neutral-300">Contact Phone</label>
+                  <label className="text-xs font-bold text-brand-text">Contact Phone</label>
                   <input
                     type="tel"
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="e.g. +91 98765 43210"
-                    className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-600 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 font-mono"
+                    className="w-full bg-brand-warm-white border border-brand-border rounded-xl px-3.5 py-2.5 text-xs text-brand-text placeholder:text-brand-text-muted/70 focus:border-brand-gold focus:ring-1 focus:ring-brand-gold font-mono"
                   />
                 </div>
               </div>
 
               {/* Address Line 1 */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-neutral-300">
-                  Flat, House No., Building, Street <span className="text-[#D4AF37]">*</span>
+                <label className="text-xs font-bold text-brand-text">
+                  Flat, House No., Building, Street <span className="text-brand-gold">*</span>
                 </label>
                 <input
                   type="text"
@@ -294,55 +294,55 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
                   value={address1}
                   onChange={(e) => setAddress1(e.target.value)}
                   placeholder="e.g. Flat 402, Prestige Palms, 100ft Road"
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-600 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                  className="w-full bg-brand-warm-white border border-brand-border rounded-xl px-3.5 py-2.5 text-xs text-brand-text placeholder:text-brand-text-muted/70 focus:border-brand-gold focus:ring-1 focus:ring-brand-gold"
                 />
               </div>
 
               {/* Landmark */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-neutral-300">Nearby Landmark</label>
+                <label className="text-xs font-bold text-brand-text">Nearby Landmark</label>
                 <input
                   type="text"
                   value={landmark}
                   onChange={(e) => setLandmark(e.target.value)}
                   placeholder="e.g. Opposite Sony Center"
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-600 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                  className="w-full bg-brand-warm-white border border-brand-border rounded-xl px-3.5 py-2.5 text-xs text-brand-text placeholder:text-brand-text-muted/70 focus:border-brand-gold focus:ring-1 focus:ring-brand-gold"
                 />
               </div>
 
               {/* City, State, Pincode */}
               <div className="grid grid-cols-3 gap-2">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-neutral-300">City</label>
+                  <label className="text-xs font-bold text-brand-text">City</label>
                   <input
                     type="text"
                     required
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white"
+                    className="w-full bg-brand-warm-white border border-brand-border rounded-xl px-3 py-2 text-xs text-brand-text"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-neutral-300">State</label>
+                  <label className="text-xs font-bold text-brand-text">State</label>
                   <input
                     type="text"
                     required
                     value={state}
                     onChange={(e) => setState(e.target.value)}
-                    className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white"
+                    className="w-full bg-brand-warm-white border border-brand-border rounded-xl px-3 py-2 text-xs text-brand-text"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-neutral-300">Pincode <span className="text-neutral-500 font-normal">(Optional)</span></label>
+                  <label className="text-xs font-bold text-brand-text">Pincode <span className="text-brand-text-muted font-normal">(Optional)</span></label>
                   <input
                     type="text"
                     maxLength={6}
                     value={pincode}
                     onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
                     placeholder="Auto-filled from map"
-                    className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white font-mono"
+                    className="w-full bg-brand-warm-white border border-brand-border rounded-xl px-3 py-2 text-xs text-brand-text font-mono"
                   />
                 </div>
               </div>
@@ -354,25 +354,25 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
                   id="is_default_cb"
                   checked={isDefault}
                   onChange={(e) => setIsDefault(e.target.checked)}
-                  className="w-4 h-4 rounded bg-neutral-950 border-neutral-800 text-amber-500 focus:ring-amber-500"
+                  className="w-4 h-4 rounded bg-brand-warm-white border-brand-border text-brand-gold focus:ring-brand-gold"
                 />
-                <label htmlFor="is_default_cb" className="text-xs text-neutral-300 font-medium">
+                <label htmlFor="is_default_cb" className="text-xs text-brand-text font-medium">
                   Make this my default address for all cake deliveries
                 </label>
               </div>
 
               {/* Submit Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-800">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-brand-border">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-neutral-400 hover:text-white"
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-brand-text-muted hover:text-brand-navy"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-black shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
+                  className="px-6 py-2.5 rounded-2xl bg-brand-navy hover:bg-brand-primary text-white text-xs font-black shadow-lg shadow-brand-gold/20 active:scale-95 transition-all"
                 >
                   {editingId ? "Update Address" : "Save Address"}
                 </button>

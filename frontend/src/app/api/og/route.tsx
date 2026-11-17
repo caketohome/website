@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
                   width: "44px",
                   height: "44px",
                   borderRadius: "10px",
-                  backgroundColor: "#D4AF37", // Brand Gold
+                  backgroundColor: "#C28A2C", // Brand Gold
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
                     letterSpacing: "-0.5px",
                   }}
                 >
-                  Cake<span style={{ color: "#D4AF37" }}>To</span>Home
+                  Cake<span style={{ color: "#C28A2C" }}>To</span>Home
                 </span>
                 <span style={{ color: "#94A3B8", fontSize: "12px", letterSpacing: "1px", textTransform: "uppercase" }}>
                   Fresh Artisanal Bakery
@@ -151,18 +151,18 @@ export async function GET(req: NextRequest) {
               {price && (
                 <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
                   <span style={{ color: "#94A3B8", fontSize: "14px" }}>Starts at</span>
-                  <span style={{ color: "#D4AF37", fontSize: "36px", fontWeight: "800" }}>{price}</span>
+                  <span style={{ color: "#C28A2C", fontSize: "36px", fontWeight: "800" }}>{price}</span>
                 </div>
               )}
 
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <span style={{ color: "#F3C623", fontSize: "18px" }}>★</span>
                 <span style={{ color: "#FFFFFF", fontSize: "18px", fontWeight: "700" }}>{rating}</span>
-                <span style={{ color: "#64748B", fontSize: "14px" }}>({reviews} reviews)</span>
+                <span style={{ color: "#6B7280", fontSize: "14px" }}>({reviews} reviews)</span>
               </div>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#64748B", fontSize: "14px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#6B7280", fontSize: "14px" }}>
               <span>cakes2home.com</span>
               <span>•</span>
               <span>100% Eggless Options</span>

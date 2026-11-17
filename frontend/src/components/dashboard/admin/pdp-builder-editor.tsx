@@ -81,7 +81,7 @@ export function PdpBuilderEditor({ config, onChange }: PdpBuilderEditorProps) {
 
       {/* 2. Product Information Display Elements */}
       <div className="p-3.5 bg-ui-bg-subtle rounded-2xl border border-ui-border-base flex flex-col gap-3">
-        <Text className="text-xs font-bold uppercase tracking-wider text-purple-600 flex items-center gap-1.5">
+        <Text className="text-xs font-bold uppercase tracking-wider text-brand-primary flex items-center gap-1.5">
           <Eye className="w-3.5 h-3.5" /> Block Visibility Toggles
         </Text>
 

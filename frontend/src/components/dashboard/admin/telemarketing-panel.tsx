@@ -186,7 +186,7 @@ export const TelemarketingPanel = memo(function TelemarketingPanel() {
     setIsEvaluating(true);
     setFeedback(null);
     try {
-      const res: any = await apiClient.evaluateAdminTelemarketingCandidates("2026-08-17");
+      const res: any = await apiClient.evaluateAdminTelemarketingCandidates(new Date().toISOString());
       setFeedback({
         type: "success",
         message: `Evaluation Complete! Scanned ${res?.evaluated || 0} completed orders. Created ${res?.new_candidates || 0} new candidates, refreshed ${res?.updated_candidates || 0} existing records with zero duplicates.`,
@@ -329,7 +329,7 @@ export const TelemarketingPanel = memo(function TelemarketingPanel() {
       return (
         <button
           onClick={() => setScoreModalCandidate(selectedCandidate)}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-300 transition shadow-sm"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-brand-gold-light text-brand-gold-dark hover:bg-brand-gold/40 border border-brand-gold/40 transition shadow-sm"
           title="Click to view explainable 5-signal score breakdown"
         >
           MEDIUM ({score})
@@ -483,16 +483,16 @@ export const TelemarketingPanel = memo(function TelemarketingPanel() {
           <span className="text-[11px] text-rose-600 font-medium">Score 80–100</span>
         </div>
 
-        <div className="bg-amber-50/70 p-3.5 rounded-xl border border-amber-200/80 shadow-sm">
-          <Text className="text-xs font-semibold text-amber-800 uppercase tracking-wider">Calls Due Today</Text>
-          <div className="text-2xl font-black text-amber-900 mt-1">{metrics?.calls_due_today ?? 0}</div>
-          <span className="text-[11px] text-amber-700 font-medium">±3 Days Anniversary</span>
+        <div className="bg-brand-gold-light/70 p-3.5 rounded-xl border border-brand-gold/80 shadow-sm">
+          <Text className="text-xs font-semibold text-brand-gold-dark uppercase tracking-wider">Calls Due Today</Text>
+          <div className="text-2xl font-black text-brand-gold-dark mt-1">{metrics?.calls_due_today ?? 0}</div>
+          <span className="text-[11px] text-brand-gold-dark font-medium">±3 Days Anniversary</span>
         </div>
 
-        <div className="bg-orange-50/70 p-3.5 rounded-xl border border-orange-200/80 shadow-sm">
-          <Text className="text-xs font-semibold text-orange-800 uppercase tracking-wider">Follow-Ups Due</Text>
-          <div className="text-2xl font-black text-orange-900 mt-1">{metrics?.follow_ups_due ?? 0}</div>
-          <span className="text-[11px] text-orange-700 font-medium">Scheduled Today</span>
+        <div className="bg-brand-gold-light/70 p-3.5 rounded-xl border border-brand-gold/80 shadow-sm">
+          <Text className="text-xs font-semibold text-brand-gold-dark uppercase tracking-wider">Follow-Ups Due</Text>
+          <div className="text-2xl font-black text-brand-gold-dark mt-1">{metrics?.follow_ups_due ?? 0}</div>
+          <span className="text-[11px] text-brand-gold-dark font-medium">Scheduled Today</span>
         </div>
 
         <div className="bg-blue-50/70 p-3.5 rounded-xl border border-blue-200/80 shadow-sm">
@@ -501,10 +501,10 @@ export const TelemarketingPanel = memo(function TelemarketingPanel() {
           <span className="text-[11px] text-blue-700 font-medium">Outreach Attempted</span>
         </div>
 
-        <div className="bg-purple-50/70 p-3.5 rounded-xl border border-purple-200/80 shadow-sm">
-          <Text className="text-xs font-semibold text-purple-800 uppercase tracking-wider">Interested</Text>
-          <div className="text-2xl font-black text-purple-900 mt-1">{metrics?.interested_count ?? 0}</div>
-          <span className="text-[11px] text-purple-700 font-medium">Qualified Leads</span>
+        <div className="bg-brand-light/70 p-3.5 rounded-xl border border-brand-primary/80 shadow-sm">
+          <Text className="text-xs font-semibold text-brand-navy uppercase tracking-wider">Interested</Text>
+          <div className="text-2xl font-black text-brand-navy mt-1">{metrics?.interested_count ?? 0}</div>
+          <span className="text-[11px] text-brand-navy font-medium">Qualified Leads</span>
         </div>
 
         <div className="bg-emerald-50/70 p-3.5 rounded-xl border border-emerald-200/80 shadow-sm">
@@ -741,7 +741,7 @@ export const TelemarketingPanel = memo(function TelemarketingPanel() {
                         <div className="font-bold text-slate-900 leading-tight">
                           {cand.reference_product_name}
                         </div>
-                        <div className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                        <div className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-gold-light text-brand-gold-dark border border-brand-gold/40">
                           🎉 {cand.reference_occasion}
                         </div>
                         <div className="text-[11px] text-slate-500">
@@ -777,13 +777,13 @@ export const TelemarketingPanel = memo(function TelemarketingPanel() {
                           className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
                             cand.expected_date_confidence === "HIGH"
                               ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                              : "bg-amber-100 text-amber-800 border border-amber-200"
+                              : "bg-brand-gold-light text-brand-gold-dark border border-brand-gold/40"
                           }`}
                         >
                           {cand.expected_date_confidence} CONFIDENCE
                         </span>
                         {cand.next_followup_date && (
-                          <div className="text-[11px] text-amber-800 font-semibold mt-1">
+                          <div className="text-[11px] text-brand-gold-dark font-semibold mt-1">
                             Follow-Up: {new Date(cand.next_followup_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                           </div>
                         )}
@@ -1039,12 +1039,12 @@ export const TelemarketingPanel = memo(function TelemarketingPanel() {
                       <button type="button" onClick={() => fetchCustomerOrders(callModalCandidate.customer_uid)} className="font-bold underline">Retry</button>
                     </div>
                   ) : customerOrders.length === 0 ? (
-                    <div className="p-4 bg-white/80 rounded-xl border border-amber-200 text-center space-y-1.5">
-                      <AlertCircle className="w-5 h-5 text-amber-600 mx-auto" />
-                      <p className="text-xs font-bold text-amber-900">
+                    <div className="p-4 bg-white/80 rounded-xl border border-brand-gold/40 text-center space-y-1.5">
+                      <AlertCircle className="w-5 h-5 text-brand-gold mx-auto" />
+                      <p className="text-xs font-bold text-brand-gold-dark">
                         No eligible recent orders found for {callModalCandidate.customer_name}.
                       </p>
-                      <p className="text-[11px] text-amber-700">
+                      <p className="text-[11px] text-brand-gold-dark">
                         If the order was just placed on this call, click "Refresh Orders" to load newly placed orders.
                       </p>
                     </div>
@@ -1150,10 +1150,10 @@ export const TelemarketingPanel = memo(function TelemarketingPanel() {
             <div className="bg-slate-900 p-5 text-white flex items-center justify-between">
               <div>
                 <Heading level="h3" className="text-lg font-bold text-white flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-amber-400" /> Score Breakdown: {scoreModalCandidate.customer_name}
+                  <Sparkles className="w-5 h-5 text-brand-gold" /> Score Breakdown: {scoreModalCandidate.customer_name}
                 </Heading>
                 <Text className="text-xs text-slate-300 font-mono mt-0.5">
-                  Priority Score: <span className="font-bold text-amber-300">{scoreModalCandidate.score} / 100</span> ({scoreModalCandidate.priority})
+                  Priority Score: <span className="font-bold text-brand-gold/40">{scoreModalCandidate.score} / 100</span> ({scoreModalCandidate.priority})
                 </Text>
               </div>
               <button

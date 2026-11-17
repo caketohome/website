@@ -125,9 +125,9 @@ export function PdpCustomizationForm({
     <div className="flex flex-col gap-6 w-full pt-4 border-t border-slate-200/80">
       {/* 1. Dietary Enhancements */}
       {showDietary && hasAnyDietary && (
-        <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/60 flex flex-col gap-3">
-          <label className="text-xs uppercase tracking-wider font-bold text-[#0F172A] flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" /> Dietary Customization
+        <div className="p-4 rounded-2xl bg-brand-gold-light/50 border border-brand-gold/60 flex flex-col gap-3">
+          <label className="text-xs uppercase tracking-wider font-bold text-brand-text flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-brand-primary" /> Dietary Customization
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {hasSugarFree && (
@@ -161,7 +161,7 @@ export function PdpCustomizationForm({
                 <ImageIcon className="w-4 h-4" />
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-bold text-[#0F172A] uppercase tracking-wider">
+                <span className="text-xs font-bold text-brand-text uppercase tracking-wider">
                   Edible Photo Print (+₹250) {requiredPhotoCake && <span className="text-rose-500">*</span>}
                 </span>
                 <span className="text-[11px] text-slate-500">High-resolution edible sugar sheet placed on cake</span>
@@ -177,7 +177,7 @@ export function PdpCustomizationForm({
                 value={photoUrl}
                 onChange={(e) => onPhotoUrlChange(e.target.value)}
                 placeholder="Paste direct photo link (or upload URL)..."
-                className="w-full text-xs sm:text-sm py-2.5 px-3.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                className="w-full text-xs sm:text-sm py-2.5 px-3.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary"
               />
             </div>
           )}
@@ -190,9 +190,9 @@ export function PdpCustomizationForm({
           <div className="flex justify-between items-center">
             <label
               htmlFor="cake-inscription-input"
-              className="text-xs uppercase tracking-wider font-bold text-[#0F172A] flex items-center gap-1.5"
+              className="text-xs uppercase tracking-wider font-bold text-brand-text flex items-center gap-1.5"
             >
-              <MessageSquare className="w-3.5 h-3.5 text-[#0F172A]" />
+              <MessageSquare className="w-3.5 h-3.5 text-brand-text" />
               <span>Message on Cake</span>
               {requiredCakeMessage ? (
                 <span className="text-rose-500">*</span>
@@ -213,7 +213,7 @@ export function PdpCustomizationForm({
             maxLength={30}
             onChange={(e) => onCakeMessageChange(e.target.value.slice(0, 30))}
             placeholder="e.g., Happy 25th Anniversary Maya!"
-            className="w-full text-sm py-2.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB] text-slate-800 transition-all"
+            className="w-full text-sm py-2.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary text-slate-800 transition-all"
           />
         </div>
       )}
@@ -221,8 +221,8 @@ export function PdpCustomizationForm({
       {/* 4. Curated Celebration Accessories */}
       {accessories.length > 0 && (
         <div className="flex flex-col gap-3">
-          <label className="text-xs uppercase tracking-wider font-bold text-[#0F172A] flex items-center gap-1.5">
-            <Gift className="w-3.5 h-3.5 text-[#2563EB]" /> Complete the Celebration
+          <label className="text-xs uppercase tracking-wider font-bold text-brand-text flex items-center gap-1.5">
+            <Gift className="w-3.5 h-3.5 text-brand-primary" /> Complete the Celebration
           </label>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -237,7 +237,7 @@ export function PdpCustomizationForm({
                     isOutOfStock
                       ? "border-slate-200 bg-slate-50/80 opacity-60 cursor-not-allowed"
                       : isSelected
-                      ? "border-[#2563EB] bg-amber-50/40 shadow-xs ring-1 ring-[#2563EB] cursor-pointer"
+                      ? "border-brand-primary bg-brand-gold-light/40 shadow-xs ring-1 ring-brand-primary cursor-pointer"
                       : "border-slate-200 bg-white hover:border-slate-300 shadow-2xs cursor-pointer"
                   }`}
                 >
@@ -254,11 +254,11 @@ export function PdpCustomizationForm({
                   <div className="flex flex-col flex-1 min-w-0">
                     <span className="text-xs font-semibold text-slate-900 truncate">{item.name}</span>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs font-bold text-[#0F172A]">₹{item.price}</span>
+                      <span className="text-xs font-bold text-brand-text">₹{item.price}</span>
                       {isOutOfStock ? (
                         <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">Out of Stock at this Store</span>
                       ) : (item.available_stock !== undefined && item.available_stock <= (item.low_stock_threshold || 5)) ? (
-                        <span className="text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">Only {item.available_stock} left</span>
+                        <span className="text-[10px] font-medium text-brand-gold bg-brand-gold-light px-1.5 py-0.5 rounded">Only {item.available_stock} left</span>
                       ) : null}
                     </div>
                   </div>
@@ -268,7 +268,7 @@ export function PdpCustomizationForm({
                       isOutOfStock
                         ? "bg-slate-200 border-slate-300 text-slate-400"
                         : isSelected
-                        ? "bg-[#2563EB] border-[#2563EB] text-white"
+                        ? "bg-brand-primary border-brand-primary text-white"
                         : "bg-slate-100 border-slate-300 text-transparent"
                     }`}
                   >
@@ -290,7 +290,7 @@ export function PdpCustomizationForm({
                 onChange={(e) => onGreetingCardTextChange(e.target.value)}
                 rows={2}
                 placeholder="Write your heartfelt message here..."
-                className="w-full text-xs sm:text-sm p-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB] shadow-2xs"
+                className="w-full text-xs sm:text-sm p-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary shadow-2xs"
               />
             </div>
           )}

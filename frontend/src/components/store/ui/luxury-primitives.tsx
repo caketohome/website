@@ -28,15 +28,15 @@ export function BrandSectionWrapper({
   // Theme Backgrounds & Text Colors
   let bgStyles = "bg-[#FFFFFF] text-[#111827]";
   if (theme === "navy" || theme === "brand-primary") {
-    bgStyles = "bg-[#1D2F5D] text-[#FAF9F6]";
+    bgStyles = "bg-brand-navy text-brand-warm-white";
   } else if (theme === "cream" || theme === "warm-cream") {
-    bgStyles = "bg-[#FDFBF7] text-[#111827]";
+    bgStyles = "bg-brand-warm-white text-[#111827]";
   } else if (theme === "slate" || theme === "surface-muted") {
-    bgStyles = "bg-[#F8FAFC] text-[#111827]";
+    bgStyles = "bg-brand-surface-muted text-[#111827]";
   } else if (theme === "soft-blue") {
     bgStyles = "bg-[#F1F5F9] text-[#111827]";
   } else if (theme === "luxury-dark" || theme === "obsidian") {
-    bgStyles = "bg-gradient-to-b from-[#0D152B] to-[#07090E] text-[#F4F5F8]";
+    bgStyles = "bg-gradient-to-b from-brand-deep to-brand-deep text-[#F4F5F8]";
   }
 
   // Vertical Spacing
@@ -100,11 +100,11 @@ export function BrandHeading({
         <span
           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase ${
             isDark
-              ? "bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30"
-              : "bg-[#1D2F5D]/10 text-[#1D2F5D] border border-[#1D2F5D]/20"
+              ? "bg-brand-gold/15 text-brand-gold border border-brand-gold/30"
+              : "bg-brand-navy/10 text-brand-navy border border-brand-navy/20"
           }`}
         >
-          {eyebrowIcon || <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />}
+          {eyebrowIcon || <Sparkles className="w-3.5 h-3.5 text-brand-gold" />}
           {eyebrow}
         </span>
       )}
@@ -117,11 +117,11 @@ export function BrandHeading({
               : level === "h2"
               ? "text-2xl sm:text-3xl lg:text-4xl font-bold"
               : "text-xl sm:text-2xl font-semibold"
-          } ${isDark ? "text-[#FAF9F6]" : "text-[#111827]"}`}
+          } ${isDark ? "text-brand-warm-white" : "text-[#111827]"}`}
         >
           {title}{" "}
           {highlight && (
-            <span className="italic font-normal bg-gradient-to-r from-[#D4AF37] to-[#E5C158] bg-clip-text text-transparent">
+            <span className="italic font-normal bg-gradient-to-r from-brand-gold to-[#E5C158] bg-clip-text text-transparent">
               {highlight}
             </span>
           )}
@@ -131,7 +131,7 @@ export function BrandHeading({
       {subtitle && (
         <p
           className={`text-sm sm:text-base leading-relaxed ${
-            isDark ? "text-[#FAF9F6]/75" : "text-[#64748B]"
+            isDark ? "text-brand-warm-white/75" : "text-brand-text-muted"
           }`}
         >
           {subtitle}
@@ -160,7 +160,7 @@ export function BrandButton({
   if (variant === "secondary") styleClasses = "btn-brand-secondary";
   else if (variant === "gold") styleClasses = "btn-brand-gold";
   else if (variant === "ghost")
-    styleClasses = "inline-flex items-center text-sm font-semibold text-[#1D2F5D] hover:text-[#152347] transition-colors";
+    styleClasses = "inline-flex items-center text-sm font-semibold text-brand-navy hover:text-brand-deep transition-colors";
 
   if (href) {
     return (
@@ -239,8 +239,8 @@ export function ModularText({ role = "body-md", as: Tag = "p", className = "", c
     "body-md": "type-body-md text-ui-fg-base",
     "body-sm": "type-body-sm text-ui-fg-muted",
     caption: "type-caption text-ui-fg-subtle",
-    eyebrow: "type-eyebrow text-[#D4AF37]",
-    price: "type-price text-[#1D2F5D] dark:text-[#FAF9F6]",
+    eyebrow: "type-eyebrow text-brand-gold",
+    price: "type-price text-brand-navy dark:text-brand-warm-white",
     "price-compare": "type-price-compare text-ui-fg-muted",
     "admin-metric": "type-admin-metric text-ui-fg-base",
   };
@@ -281,8 +281,8 @@ export function SurrealPrecisionBadge({ metric, value, status, className = "" }:
     <span className={`surreal-precision-badge ${className}`}>
       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
       <span className="opacity-75">{metric}:</span>
-      <span className="font-bold text-[#FAF9F6]">{value}</span>
-      {status && <span className="text-[9px] px-1 py-0.5 rounded bg-emerald-950/60 text-emerald-300">{status}</span>}
+      <span className="font-bold text-brand-warm-white">{value}</span>
+      {status && <span className="text-[9px] px-1 py-0.5 rounded bg-emerald-950/60 text-[#16834A]">{status}</span>}
     </span>
   );
 }
@@ -316,7 +316,7 @@ export interface TenebrismSpotlightProps {
 }
 export function TenebrismSpotlight({ className = "", children }: TenebrismSpotlightProps) {
   return (
-    <div className={`w-full py-16 px-4 sm:px-8 tenebrism-spotlight text-[#FAF9F6] ${className}`}>
+    <div className={`w-full py-16 px-4 sm:px-8 tenebrism-spotlight text-brand-warm-white ${className}`}>
       <div className="relative z-10 max-w-6xl mx-auto">{children}</div>
     </div>
   );

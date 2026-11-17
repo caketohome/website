@@ -111,11 +111,11 @@ export function ExitIntentPopup() {
                 aria-modal="true"
             >
                 <div
-                    className="relative bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-[#D4AF37]/20 dark:border-[#0c1326] transform transition-all animate-scale-up"
+                    className="relative bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-brand-gold/20 dark:border-brand-deep transform transition-all animate-scale-up"
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Header Banner */}
-                    <div className="bg-gradient-to-r from-[#1D2F5D] via-[#1D2F5D] to-amber-500 p-5 text-white text-center relative">
+                    <div className="bg-gradient-to-r from-brand-navy via-brand-navy to-brand-gold p-5 text-white text-center relative">
                         <button
                             className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/20 text-white flex items-center justify-center hover:bg-black/40 transition focus:outline-none"
                             onClick={() => dismissEngagement("CART_RECOVERY")}
@@ -126,25 +126,25 @@ export function ExitIntentPopup() {
                         <span className="text-3xl block mb-1">🍰 Don&apos;t Leave Your Cake Behind!</span>
                         <h3 className="text-lg font-bold text-white">Your freshly baked selection is reserved</h3>
                         <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-xs">
-                            ⏳ Offer expires in: <span className="font-mono text-amber-200">{formatTime(timeLeft)}</span>
+                            ⏳ Offer expires in: <span className="font-mono text-brand-gold/40">{formatTime(timeLeft)}</span>
                         </div>
                     </div>
 
                     <div className="p-6 flex flex-col gap-4">
                         <p className="text-sm text-neutral-600 dark:text-neutral-300 text-center">
-                            Complete your order right now and get an extra <strong className="text-[#1D2F5D] dark:text-[#D4AF37]">10% OFF</strong> + free express delivery slot on us!
+                            Complete your order right now and get an extra <strong className="text-brand-navy dark:text-brand-gold">10% OFF</strong> + free express delivery slot on us!
                         </p>
 
                         {/* Promo Coupon Box */}
-                        <div className="flex items-center justify-between p-3 rounded-xl bg-brand-gold-soft dark:bg-[#0c1326]/40 border border-dashed border-[#D4AF37]/40 dark:border-[#D4AF37]/20">
+                        <div className="flex items-center justify-between p-3 rounded-xl bg-brand-gold-soft dark:bg-brand-deep/40 border border-dashed border-brand-gold/40 dark:border-brand-gold/20">
                             <div>
-                                <span className="text-xs text-[#152347] dark:text-[#D4AF37]/80 uppercase font-semibold tracking-wider block">Special Voucher</span>
-                                <span className="text-lg font-mono font-bold text-[#1D2F5D] dark:text-[#D4AF37]">SWEET10</span>
+                                <span className="text-xs text-brand-deep dark:text-brand-gold/80 uppercase font-semibold tracking-wider block">Special Voucher</span>
+                                <span className="text-lg font-mono font-bold text-brand-navy dark:text-brand-gold">SWEET10</span>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => handleCopyCode("SWEET10")}
-                                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#1D2F5D] hover:bg-[#152347] text-white transition-colors"
+                                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-navy hover:bg-brand-deep text-white transition-colors"
                             >
                                 {couponCopied ? "✓ Copied!" : "Apply & Copy"}
                             </button>
@@ -154,7 +154,7 @@ export function ExitIntentPopup() {
                         <div className="flex flex-col gap-2 pt-2">
                             <a
                                 href="/checkout?promo=SWEET10"
-                                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#1D2F5D] to-[#D4AF37] text-white font-bold text-center text-sm shadow-md hover:shadow-lg hover:from-[#152347] hover:to-[#c59e2b] transition"
+                                className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-navy to-brand-gold text-white font-bold text-center text-sm shadow-md hover:shadow-lg hover:from-brand-deep hover:to-[#c59e2b] transition"
                                 onClick={() => dismissEngagement("CART_RECOVERY")}
                             >
                                 ⚡ Complete Order with 10% Off

@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Optional separate build folder (e.g. NEXT_DIST_DIR=.next-prod) so a local production
+  // build can't collide with a running `next dev`. Unset on Render = default ".next".
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   typescript: {
     ignoreBuildErrors: true,
   },

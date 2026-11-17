@@ -37,7 +37,7 @@ export function BranchComplianceTab({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <Store className="w-5 h-5 text-amber-600" />
+            <Store className="w-5 h-5 text-brand-gold" />
             <Heading level="h3" className="text-base font-bold">Branch & Store Statutory Compliance Matrix</Heading>
           </div>
           <Text className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -98,7 +98,7 @@ export function BranchComplianceTab({
                       <td className="px-5 py-4">
                         {gst ? (
                           <div>
-                            <div className="font-mono text-xs font-bold text-amber-700 dark:text-amber-400">
+                            <div className="font-mono text-xs font-bold text-brand-gold-dark dark:text-brand-gold">
                               {gst.gstin}
                             </div>
                             <div className="text-[11px] text-slate-400">

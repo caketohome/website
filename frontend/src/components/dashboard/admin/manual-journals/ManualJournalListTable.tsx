@@ -59,7 +59,7 @@ export function ManualJournalListTable({
         );
       case "APPROVED":
         return (
-          <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 border border-indigo-200">
+          <span className="inline-flex items-center rounded-md bg-brand-light px-2 py-0.5 text-[11px] font-semibold text-brand-navy border border-brand-primary/30">
             APPROVED
           </span>
         );
@@ -136,17 +136,17 @@ export function ManualJournalListTable({
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <button
                           onClick={() => onViewDetail(j.id)}
-                          className="text-indigo-600 hover:text-indigo-800 hover:underline transition font-semibold"
+                          className="text-brand-primary hover:text-brand-navy hover:underline transition font-semibold"
                         >
                           {j.voucher_no}
                         </button>
                         {isReversed && (
-                          <span className="inline-flex items-center rounded bg-amber-50 px-1.5 py-0.2 text-[10px] font-medium text-amber-700 border border-amber-200">
+                          <span className="inline-flex items-center rounded bg-brand-gold-light px-1.5 py-0.2 text-[10px] font-medium text-brand-gold-dark border border-brand-gold/40">
                             Reversed
                           </span>
                         )}
                         {isReversal && (
-                          <span className="inline-flex items-center rounded bg-purple-50 px-1.5 py-0.2 text-[10px] font-medium text-purple-700 border border-purple-200">
+                          <span className="inline-flex items-center rounded bg-brand-light px-1.5 py-0.2 text-[10px] font-medium text-brand-navy border border-brand-primary/30">
                             Reversal
                           </span>
                         )}
@@ -200,7 +200,7 @@ export function ManualJournalListTable({
                           type="button"
                           onClick={() => onViewDetail(j.id)}
                           title="View Voucher Details & Audit Trail"
-                          className="rounded p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition"
+                          className="rounded p-1 text-slate-400 hover:text-brand-primary hover:bg-brand-light transition"
                         >
                           <Eye className="h-4 w-4" />
                         </button>

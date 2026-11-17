@@ -130,9 +130,9 @@ export function BusinessProfileTab({
       )}
 
       {/* Header Summary Card */}
-      <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-200/70 dark:border-amber-900/40 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-brand-gold/10 via-brand-gold/5 to-transparent border border-brand-gold/70 dark:border-brand-gold-dark/40 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-amber-500/10 dark:bg-amber-400/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-brand-gold/10 dark:bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-brand-gold dark:text-brand-gold shrink-0">
             <Building2 className="w-6 h-6" />
           </div>
           <div>
@@ -152,7 +152,7 @@ export function BusinessProfileTab({
         <Button
           type="submit"
           isLoading={saving}
-          className="bg-amber-600 hover:bg-amber-700 text-white shadow-sm flex items-center gap-1.5 self-start md:self-auto"
+          className="bg-brand-gold hover:bg-brand-gold-dark text-white shadow-sm flex items-center gap-1.5 self-start md:self-auto"
         >
           <Save className="w-4 h-4" /> Save Business Profile
         </Button>
@@ -162,7 +162,7 @@ export function BusinessProfileTab({
         {/* Company Identity & Registrations */}
         <Container className="p-5 flex flex-col gap-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <ShieldCheck className="w-4 h-4 text-amber-600" />
+            <ShieldCheck className="w-4 h-4 text-brand-gold" />
             <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
               Corporate Legal Identity
             </Text>
@@ -197,7 +197,7 @@ export function BusinessProfileTab({
                 id="business_type"
                 value={formData.business_type}
                 onChange={(e) => setFormData({ ...formData, business_type: e.target.value as any })}
-                className="w-full mt-1 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full mt-1 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-gold"
               >
                 {ENTITY_TYPES.map((t) => (
                   <option key={t.value} value={t.value}>
@@ -246,7 +246,7 @@ export function BusinessProfileTab({
         {/* Registered Corporate Office Address */}
         <Container className="p-5 flex flex-col gap-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <MapPin className="w-4 h-4 text-amber-600" />
+            <MapPin className="w-4 h-4 text-brand-gold" />
             <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
               Registered Corporate Address
             </Text>
@@ -357,7 +357,7 @@ export function BusinessProfileTab({
         {/* Support & Public Contact Channels */}
         <Container className="p-5 flex flex-col gap-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <Mail className="w-4 h-4 text-amber-600" />
+            <Mail className="w-4 h-4 text-brand-gold" />
             <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
               Customer Support & Communications
             </Text>
@@ -414,7 +414,7 @@ export function BusinessProfileTab({
         {/* Authorized Signatory & Compliance Officer */}
         <Container className="p-5 flex flex-col gap-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <User className="w-4 h-4 text-amber-600" />
+            <User className="w-4 h-4 text-brand-gold" />
             <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
               Authorized Signatory for Invoices
             </Text>

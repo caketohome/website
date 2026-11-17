@@ -131,11 +131,11 @@ export function ProductFilters({
       {/* Sort By */}
       <div className="flex flex-col gap-2">
         <Label className="font-bold text-xs flex items-center gap-1.5 text-slate-900 dark:text-white">
-          <ArrowUpDown className="w-3.5 h-3.5 text-[#1D2F5D]" /> Sort By
+          <ArrowUpDown className="w-3.5 h-3.5 text-brand-navy" /> Sort By
         </Label>
         <select
           data-testid="sort-select"
-          className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50/20 cursor-pointer"
+          className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-gold/50/20 cursor-pointer"
           value={filters.sort ?? "relevance"}
           onChange={(e) => onChange({ ...filters, sort: e.target.value as any })}
         >
@@ -152,7 +152,7 @@ export function ProductFilters({
         <Label className="font-bold text-xs text-slate-900 dark:text-white">Cake Category</Label>
         <select
           data-testid="category-select"
-          className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50/20 cursor-pointer"
+          className="w-full h-9 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-gold/50/20 cursor-pointer"
           value={filters.category ?? "all"}
           onChange={(e) => onChange({ ...filters, category: e.target.value === "all" ? undefined : e.target.value })}
         >
@@ -174,7 +174,7 @@ export function ProductFilters({
             onClick={() => onChange({ ...filters, flavour: undefined })}
             className={`px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition ${
               !filters.flavour
-                ? "bg-[#1D2F5D] text-white border-[#1D2F5D] shadow-sm"
+                ? "bg-brand-navy text-white border-brand-navy shadow-sm"
                 : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100"
             }`}
           >
@@ -191,7 +191,7 @@ export function ProductFilters({
                 onClick={() => onChange({ ...filters, flavour: isSelected ? undefined : fStr })}
                 className={`px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition ${
                   isSelected
-                    ? "bg-[#1D2F5D] text-white border-[#1D2F5D] shadow-sm"
+                    ? "bg-brand-navy text-white border-brand-navy shadow-sm"
                     : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100"
                 }`}
               >
@@ -211,7 +211,7 @@ export function ProductFilters({
             onClick={() => onChange({ ...filters, weight: undefined })}
             className={`px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition ${
               !filters.weight
-                ? "bg-[#1D2F5D] text-white border-[#1D2F5D] shadow-sm"
+                ? "bg-brand-navy text-white border-brand-navy shadow-sm"
                 : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100"
             }`}
           >
@@ -228,7 +228,7 @@ export function ProductFilters({
                 onClick={() => onChange({ ...filters, weight: isSelected ? undefined : wStr })}
                 className={`px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition ${
                   isSelected
-                    ? "bg-[#1D2F5D] text-white border-[#1D2F5D] shadow-sm"
+                    ? "bg-brand-navy text-white border-brand-navy shadow-sm"
                     : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100"
                 }`}
               >
@@ -252,12 +252,12 @@ export function ProductFilters({
                 onClick={() => onChange({ ...filters, min_price: p.min, max_price: p.max })}
                 className={`text-left px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition flex items-center justify-between ${
                   isSelected
-                    ? "bg-brand-gold-soft dark:bg-[#0c1326]/40 text-[#152347] dark:text-[#D4AF37]/80 font-bold border border-[#D4AF37]/30 dark:border-[#D4AF37]/20"
+                    ? "bg-brand-gold-soft dark:bg-brand-deep/40 text-brand-deep dark:text-brand-gold/80 font-bold border border-brand-gold/30 dark:border-brand-gold/20"
                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
                 <span>{p.label}</span>
-                {isSelected && <Check className="w-3.5 h-3.5 text-[#1D2F5D]" />}
+                {isSelected && <Check className="w-3.5 h-3.5 text-brand-navy" />}
               </button>
             );
           })}
@@ -296,7 +296,7 @@ export function ProductFilters({
         variant="transparent"
         size="small"
         onClick={() => onChange({})}
-        className="text-xs font-bold text-[#1D2F5D] hover:text-[#152347] mt-2"
+        className="text-xs font-bold text-brand-navy hover:text-brand-deep mt-2"
       >
         Clear All Filters
       </Button>
@@ -358,16 +358,16 @@ export function ActiveFilterChips({
           key={c.key}
           type="button"
           onClick={() => removeChip(c.key)}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand-gold-soft dark:bg-[#0c1326]/50 border border-[#D4AF37]/30 dark:border-[#D4AF37]/20 text-[#152347] dark:text-[#D4AF37]/80 text-xs font-medium hover:bg-brand-gold-soft transition"
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand-gold-soft dark:bg-brand-deep/50 border border-brand-gold/30 dark:border-brand-gold/20 text-brand-deep dark:text-brand-gold/80 text-xs font-medium hover:bg-brand-gold-soft transition"
         >
           <span>{c.label}</span>
-          <X className="w-3 h-3 text-[#D4AF37]" />
+          <X className="w-3 h-3 text-brand-gold" />
         </button>
       ))}
       <button
         type="button"
         onClick={() => onChange({})}
-        className="text-xs font-bold text-slate-500 hover:text-[#1D2F5D] underline ml-2"
+        className="text-xs font-bold text-slate-500 hover:text-brand-navy underline ml-2"
       >
         Clear All
       </button>
@@ -401,10 +401,10 @@ export function MobileFilterDrawer({
         {/* Header */}
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-850">
           <div className="flex items-center gap-2">
-            <SlidersHorizontal className="w-4 h-4 text-[#1D2F5D]" />
+            <SlidersHorizontal className="w-4 h-4 text-brand-navy" />
             <span className="font-bold text-sm text-slate-900 dark:text-white">Filter Cakes</span>
             {activeCount > 0 && (
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#1D2F5D] text-white">
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-brand-navy text-white">
                 {activeCount}
               </span>
             )}
@@ -424,7 +424,7 @@ export function MobileFilterDrawer({
           <Button variant="secondary" onClick={() => onChange({})} className="flex-1 text-xs font-bold">
             Clear All
           </Button>
-          <Button onClick={onClose} className="flex-1 bg-[#1D2F5D] hover:bg-[#152347] text-white text-xs font-bold">
+          <Button onClick={onClose} className="flex-1 bg-brand-navy hover:bg-brand-deep text-white text-xs font-bold">
             Apply Filters {activeCount > 0 ? `(${activeCount})` : ""}
           </Button>
         </div>

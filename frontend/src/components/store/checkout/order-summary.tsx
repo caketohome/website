@@ -49,14 +49,14 @@ export function OrderSummary({
     <Container className="flex flex-col gap-5 p-6 rounded-3xl bg-white border border-slate-200 shadow-lg sticky top-24">
       <div className="flex items-center justify-between border-b border-slate-200/80 pb-4">
         <div>
-          <Heading level="h2" className="text-lg font-extrabold text-[#0F172A] flex items-center gap-2">
+          <Heading level="h2" className="text-lg font-extrabold text-brand-text flex items-center gap-2">
             <span>🎂</span> Order Summary
           </Heading>
           <p className="text-xs text-slate-500 mt-0.5">
             {items.length} {items.length === 1 ? "handcrafted item" : "handcrafted items"}
           </p>
         </div>
-        <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-50 text-[#2563EB] border border-blue-200">
+        <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-50 text-brand-primary border border-blue-200">
           Fresh Batch
         </span>
       </div>
@@ -67,7 +67,7 @@ export function OrderSummary({
           <div className="flex items-center gap-2">
             <span className="text-base">{deliveryType === "pickup" ? "🏪" : "🛵"}</span>
             <div>
-              <p className="font-bold text-[#0F172A]">
+              <p className="font-bold text-brand-text">
                 {deliveryType === "pickup" ? "Pickup Store" : "Servicing Hub"}
               </p>
               <p className="text-[11px] text-slate-500 truncate max-w-[200px]">
@@ -106,10 +106,10 @@ export function OrderSummary({
 
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start">
-                  <h3 className="text-xs font-bold text-[#0F172A] truncate pr-1">
+                  <h3 className="text-xs font-bold text-brand-text truncate pr-1">
                     {item.title || item.name}
                   </h3>
-                  <span className="text-xs font-extrabold text-[#0F172A] shrink-0">
+                  <span className="text-xs font-extrabold text-brand-text shrink-0">
                     ₹{(unitPrice * quantity).toLocaleString("en-IN")}
                   </span>
                 </div>
@@ -140,7 +140,7 @@ export function OrderSummary({
       <div className="border-t border-slate-200/80 pt-4 flex flex-col gap-2.5 text-sm">
         <div className="flex justify-between text-slate-600">
           <span>Items Subtotal</span>
-          <span className="font-semibold text-[#0F172A]">
+          <span className="font-semibold text-brand-text">
             ₹{subtotal.toLocaleString("en-IN")}
           </span>
         </div>
@@ -169,7 +169,7 @@ export function OrderSummary({
               </span>
             ) : null}
           </div>
-          <span className="font-semibold text-[#0F172A]">
+          <span className="font-semibold text-brand-text">
             {deliveryFee === 0 ? "₹0" : `₹${deliveryFee}`}
           </span>
         </div>
@@ -177,7 +177,7 @@ export function OrderSummary({
         {slotSurcharge > 0 && (
           <div className="flex justify-between text-slate-600">
             <span>Slot Surcharge ({selectedSlot?.slot_type || "Priority"})</span>
-            <span className="font-semibold text-[#0F172A]">
+            <span className="font-semibold text-brand-text">
               ₹{slotSurcharge}
             </span>
           </div>
@@ -204,12 +204,12 @@ export function OrderSummary({
         {/* Grand Total */}
         <div className="border-t border-slate-200 pt-3.5 flex justify-between items-baseline">
           <div>
-            <span className="text-base font-extrabold text-[#0F172A]">
+            <span className="text-base font-extrabold text-brand-text">
               Grand Total
             </span>
             <p className="text-[10px] text-slate-400">Inclusive of all taxes</p>
           </div>
-          <span className="text-2xl font-black text-[#2563EB] tracking-tight">
+          <span className="text-2xl font-black text-brand-primary tracking-tight">
             ₹{grandTotal.toLocaleString("en-IN")}
           </span>
         </div>

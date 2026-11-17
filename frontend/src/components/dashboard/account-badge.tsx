@@ -54,7 +54,7 @@ export default function AccountBadge({ data, type = "delivery_partner", classNam
         </div>
       </div>
 
-      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-rose-600 to-amber-600 flex items-center justify-center text-white font-bold text-xs shadow-inner flex-shrink-0">
+      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-rose-600 to-brand-gold flex items-center justify-center text-white font-bold text-xs shadow-inner flex-shrink-0">
         {initials}
       </div>
     </div>

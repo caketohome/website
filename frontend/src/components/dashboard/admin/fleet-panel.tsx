@@ -400,7 +400,7 @@ export default function FleetPanel() {
           {tab === "vehicles" && (
             <button
               onClick={() => setShowVehicleModal(true)}
-              className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors flex items-center gap-1.5"
+              className="px-4 py-2 bg-brand-primary hover:bg-brand-navy text-white rounded-lg text-sm font-medium shadow-sm transition-colors flex items-center gap-1.5"
             >
               <span>+</span> Add Vehicle
             </button>
@@ -408,7 +408,7 @@ export default function FleetPanel() {
           {tab === "trips" && (
             <button
               onClick={() => setShowTripModal(true)}
-              className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors flex items-center gap-1.5"
+              className="px-4 py-2 bg-brand-primary hover:bg-brand-navy text-white rounded-lg text-sm font-medium shadow-sm transition-colors flex items-center gap-1.5"
             >
               <span>+</span> Log Trip
             </button>
@@ -416,7 +416,7 @@ export default function FleetPanel() {
           {tab === "fuel" && (
             <button
               onClick={() => setShowFuelModal(true)}
-              className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors flex items-center gap-1.5"
+              className="px-4 py-2 bg-brand-primary hover:bg-brand-navy text-white rounded-lg text-sm font-medium shadow-sm transition-colors flex items-center gap-1.5"
             >
               <span>+</span> Log Fuel Fill-Up
             </button>
@@ -455,7 +455,7 @@ export default function FleetPanel() {
               onClick={() => setTab(t.id)}
               className={`pb-3 text-sm font-medium transition-colors border-b-2 ${
                 tab === t.id
-                  ? "border-pink-600 text-pink-600"
+                  ? "border-brand-primary text-brand-primary"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
@@ -475,12 +475,12 @@ export default function FleetPanel() {
                 placeholder="Search registration, make..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm w-full sm:w-64 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm w-full sm:w-64 focus:outline-none focus:ring-1 focus:ring-brand-primary"
               />
               <select
                 value={filterVehicleType}
                 onChange={(e) => setFilterVehicleType(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-1 focus:ring-pink-500"
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-1 focus:ring-brand-primary"
               >
                 <option value="">All Types</option>
                 {VEHICLE_TYPES.map((t) => (
@@ -604,7 +604,7 @@ export default function FleetPanel() {
                               setClosingTrip(t);
                               setCloseEndOdo(String(t.start_odometer));
                             }}
-                            className="text-xs px-2.5 py-1 bg-pink-50 text-pink-600 hover:bg-pink-100 rounded-md font-medium transition-colors"
+                            className="text-xs px-2.5 py-1 bg-brand-light text-brand-primary hover:bg-brand-light rounded-md font-medium transition-colors"
                           >
                             Close Trip
                           </button>
@@ -731,7 +731,7 @@ export default function FleetPanel() {
               <select
                 value={reportType}
                 onChange={(e) => setReportType(e.target.value as ReportType)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white font-medium focus:outline-none focus:ring-1 focus:ring-pink-500"
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white font-medium focus:outline-none focus:ring-1 focus:ring-brand-primary"
               >
                 <option value="delivery">1. Delivery Report</option>
                 <option value="driver">2. Driver Report</option>
@@ -1061,7 +1061,7 @@ export default function FleetPanel() {
                   placeholder="e.g. MH12AB1234"
                   value={vehicleForm.registration_no}
                   onChange={(e) => setVehicleForm({ ...vehicleForm, registration_no: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm uppercase focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm uppercase focus:ring-1 focus:ring-brand-primary focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -1070,7 +1070,7 @@ export default function FleetPanel() {
                   <select
                     value={vehicleForm.vehicle_type}
                     onChange={(e) => setVehicleForm({ ...vehicleForm, vehicle_type: e.target.value as VehicleType })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-brand-primary focus:outline-none"
                   >
                     {VEHICLE_TYPES.map((t) => (
                       <option key={t} value={t}>{t}</option>
@@ -1082,7 +1082,7 @@ export default function FleetPanel() {
                   <select
                     value={vehicleForm.ownership_type}
                     onChange={(e) => setVehicleForm({ ...vehicleForm, ownership_type: e.target.value as OwnershipType })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-brand-primary focus:outline-none"
                   >
                     {OWNERSHIP_TYPES.map((t) => (
                       <option key={t} value={t}>{t}</option>
@@ -1098,7 +1098,7 @@ export default function FleetPanel() {
                     placeholder="e.g. Honda Activa"
                     value={vehicleForm.make_model ?? ""}
                     onChange={(e) => setVehicleForm({ ...vehicleForm, make_model: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-brand-primary focus:outline-none"
                   />
                 </div>
                 <div>
@@ -1109,7 +1109,7 @@ export default function FleetPanel() {
                     step="0.1"
                     value={vehicleForm.current_odometer}
                     onChange={(e) => setVehicleForm({ ...vehicleForm, current_odometer: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-1 focus:ring-brand-primary focus:outline-none"
                   />
                 </div>
               </div>
@@ -1120,7 +1120,7 @@ export default function FleetPanel() {
                   placeholder="Optional remarks..."
                   value={vehicleForm.notes ?? ""}
                   onChange={(e) => setVehicleForm({ ...vehicleForm, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-brand-primary focus:outline-none"
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
@@ -1133,7 +1133,7 @@ export default function FleetPanel() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm font-medium"
+                  className="px-4 py-2 bg-brand-primary hover:bg-brand-navy text-white rounded-lg text-sm font-medium"
                 >
                   Save Vehicle
                 </button>
@@ -1165,7 +1165,7 @@ export default function FleetPanel() {
                       start_odometer: selVeh ? Number(selVeh.current_odometer) : 0,
                     });
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-brand-primary focus:outline-none"
                 >
                   <option value="">Select vehicle</option>
                   {vehicles.map((v) => (
@@ -1180,7 +1180,7 @@ export default function FleetPanel() {
                 <select
                   value={tripForm.driver_partner_id ?? ""}
                   onChange={(e) => setTripForm({ ...tripForm, driver_partner_id: e.target.value || null })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-brand-primary focus:outline-none"
                 >
                   <option value="">Select driver (optional)</option>
                   {drivers.map((d) => (
@@ -1198,7 +1198,7 @@ export default function FleetPanel() {
                     required
                     value={tripForm.trip_date}
                     onChange={(e) => setTripForm({ ...tripForm, trip_date: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-brand-primary focus:outline-none"
                   />
                 </div>
                 <div>
@@ -1206,7 +1206,7 @@ export default function FleetPanel() {
                   <select
                     value={tripForm.purpose}
                     onChange={(e) => setTripForm({ ...tripForm, purpose: e.target.value as TripPurpose })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-brand-primary focus:outline-none"
                   >
                     {TRIP_PURPOSES.map((p) => (
                       <option key={p} value={p}>{p}</option>
@@ -1224,7 +1224,7 @@ export default function FleetPanel() {
                     step="0.1"
                     value={tripForm.start_odometer}
                     onChange={(e) => setTripForm({ ...tripForm, start_odometer: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-1 focus:ring-brand-primary focus:outline-none"
                   />
                 </div>
                 <div>
@@ -1241,7 +1241,7 @@ export default function FleetPanel() {
                         end_odometer: e.target.value ? Number(e.target.value) : null,
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-1 focus:ring-brand-primary focus:outline-none"
                   />
                 </div>
               </div>
@@ -1255,7 +1255,7 @@ export default function FleetPanel() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm font-medium"
+                  className="px-4 py-2 bg-brand-primary hover:bg-brand-navy text-white rounded-lg text-sm font-medium"
                 >
                   Save Trip
                 </button>
@@ -1295,11 +1295,11 @@ export default function FleetPanel() {
                   step="0.1"
                   value={closeEndOdo}
                   onChange={(e) => setCloseEndOdo(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-1 focus:ring-brand-primary focus:outline-none"
                 />
               </div>
               {Number(closeEndOdo) >= Number(closingTrip.start_odometer) && (
-                <div className="p-2.5 bg-pink-50 border border-pink-100 rounded-lg text-xs text-pink-800 font-medium">
+                <div className="p-2.5 bg-brand-light border border-brand-light rounded-lg text-xs text-brand-navy font-medium">
                   Derived Distance: {(Number(closeEndOdo) - Number(closingTrip.start_odometer)).toFixed(2)} km
                 </div>
               )}
@@ -1313,7 +1313,7 @@ export default function FleetPanel() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm font-medium"
+                  className="px-4 py-2 bg-brand-primary hover:bg-brand-navy text-white rounded-lg text-sm font-medium"
                 >
                   Confirm & Close
                 </button>
@@ -1338,7 +1338,7 @@ export default function FleetPanel() {
                   required
                   value={fuelForm.vehicle_id}
                   onChange={(e) => setFuelForm({ ...fuelForm, vehicle_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-brand-primary focus:outline-none"
                 >
                   <option value="">Select vehicle</option>
                   {vehicles.map((v) => (
@@ -1354,7 +1354,7 @@ export default function FleetPanel() {
                     required
                     value={fuelForm.fuel_date}
                     onChange={(e) => setFuelForm({ ...fuelForm, fuel_date: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-brand-primary focus:outline-none"
                   />
                 </div>
                 <div>
@@ -1362,7 +1362,7 @@ export default function FleetPanel() {
                   <select
                     value={fuelForm.driver_partner_id ?? ""}
                     onChange={(e) => setFuelForm({ ...fuelForm, driver_partner_id: e.target.value || null })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-1 focus:ring-brand-primary focus:outline-none"
                   >
                     <option value="">Select driver</option>
                     {drivers.map((d) => (
@@ -1389,7 +1389,7 @@ export default function FleetPanel() {
                         fuel_amount: +(qty * rate).toFixed(2),
                       });
                     }}
-                    className="w-full px-2.5 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                    className="w-full px-2.5 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-1 focus:ring-brand-primary focus:outline-none"
                   />
                 </div>
                 <div>
@@ -1409,7 +1409,7 @@ export default function FleetPanel() {
                         fuel_amount: +(qty * rate).toFixed(2),
                       });
                     }}
-                    className="w-full px-2.5 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                    className="w-full px-2.5 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-1 focus:ring-brand-primary focus:outline-none"
                   />
                 </div>
                 <div>
@@ -1421,7 +1421,7 @@ export default function FleetPanel() {
                     step="0.01"
                     value={fuelForm.fuel_amount}
                     onChange={(e) => setFuelForm({ ...fuelForm, fuel_amount: Number(e.target.value) })}
-                    className="w-full px-2.5 py-2 border border-gray-300 rounded-lg text-sm font-mono font-bold text-gray-900 focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                    className="w-full px-2.5 py-2 border border-gray-300 rounded-lg text-sm font-mono font-bold text-gray-900 focus:ring-1 focus:ring-brand-primary focus:outline-none"
                   />
                 </div>
               </div>
@@ -1433,7 +1433,7 @@ export default function FleetPanel() {
                     placeholder="e.g. Indian Oil HP"
                     value={fuelForm.fuel_station ?? ""}
                     onChange={(e) => setFuelForm({ ...fuelForm, fuel_station: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-brand-primary focus:outline-none"
                   />
                 </div>
                 <div>
@@ -1450,7 +1450,7 @@ export default function FleetPanel() {
                         odometer_at_fill: e.target.value ? Number(e.target.value) : null,
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-1 focus:ring-pink-500 focus:outline-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-1 focus:ring-brand-primary focus:outline-none"
                   />
                 </div>
               </div>
@@ -1464,7 +1464,7 @@ export default function FleetPanel() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm font-medium"
+                  className="px-4 py-2 bg-brand-primary hover:bg-brand-navy text-white rounded-lg text-sm font-medium"
                 >
                   Save Entry
                 </button>

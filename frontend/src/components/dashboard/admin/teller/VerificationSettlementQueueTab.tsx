@@ -65,7 +65,7 @@ export function VerificationSettlementQueueTab({
       <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
-            <FileCheck2 className="w-5 h-5 text-purple-600" />
+            <FileCheck2 className="w-5 h-5 text-brand-primary" />
             Verification & Settlement Work Queue
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -108,7 +108,7 @@ export function VerificationSettlementQueueTab({
             className="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors disabled:opacity-50"
             title="Refresh queue"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-purple-600" : ""}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-brand-primary" : ""}`} />
           </button>
         </div>
       </div>
@@ -116,13 +116,13 @@ export function VerificationSettlementQueueTab({
       {/* Queue 1: Awaiting Supervisor Verification */}
       {(queueFilter === "ALL" || queueFilter === "CLOSING") && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-slate-200 bg-amber-50/40 flex items-center justify-between">
+          <div className="px-5 py-3.5 border-b border-slate-200 bg-brand-gold-light/40 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-amber-600" />
+              <Clock className="w-4 h-4 text-brand-gold" />
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
                 1. Awaiting Supervisor Physical Count Verification
               </h4>
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-brand-gold-light text-brand-gold-dark">
                 {closingSessions.length}
               </span>
             </div>
@@ -143,7 +143,7 @@ export function VerificationSettlementQueueTab({
                     <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-xs font-bold text-slate-800">{s.id}</span>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-gold-light text-brand-gold-dark border border-brand-gold/40">
                           CLOSING
                         </span>
                         {isOpener && (
@@ -166,14 +166,14 @@ export function VerificationSettlementQueueTab({
                         <div className="font-mono text-xs font-bold text-slate-700">
                           ₹{formatAmount(s.closing_count)} <span className="text-slate-400 font-normal">/ ₹{formatAmount(s.expected_cash)}</span>
                         </div>
-                        <div className={`text-xs font-mono font-semibold ${variance === 0 ? "text-emerald-600" : variance < 0 ? "text-rose-600" : "text-teal-600"}`}>
+                        <div className={`text-xs font-mono font-semibold ${variance === 0 ? "text-emerald-600" : variance < 0 ? "text-rose-600" : "text-brand-primary"}`}>
                           Variance: {variance > 0 ? "+" : ""}₹{formatAmount(s.variance)}
                         </div>
                       </div>
 
                       <button
                         onClick={() => setSelectedVerifySession(s)}
-                        className="px-3.5 py-1.5 text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-sm transition-colors flex items-center gap-1 shrink-0"
+                        className="px-3.5 py-1.5 text-xs font-semibold bg-brand-primary hover:bg-brand-navy text-white rounded-xl shadow-sm transition-colors flex items-center gap-1 shrink-0"
                       >
                         <ShieldCheck className="w-3.5 h-3.5" />
                         <span>Verify Count</span>
@@ -217,7 +217,7 @@ export function VerificationSettlementQueueTab({
                     <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-xs font-bold text-slate-800">{s.id}</span>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-light text-brand-navy border border-brand-primary/30">
                           PENDING_VERIFICATION
                         </span>
                         {variance === 0 ? (
@@ -229,7 +229,7 @@ export function VerificationSettlementQueueTab({
                             Shortage (Dr 5296 / Cr 1111)
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-teal-50 text-teal-700 border border-teal-200">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-light text-brand-navy border border-brand-primary/30">
                             Excess (Dr 1111 / Cr 5296)
                           </span>
                         )}
@@ -253,7 +253,7 @@ export function VerificationSettlementQueueTab({
                         <div className="font-mono text-xs font-bold text-slate-700">
                           ₹{formatAmount(s.closing_count)}
                         </div>
-                        <div className={`text-xs font-mono font-bold ${variance === 0 ? "text-emerald-600" : variance < 0 ? "text-rose-600" : "text-teal-600"}`}>
+                        <div className={`text-xs font-mono font-bold ${variance === 0 ? "text-emerald-600" : variance < 0 ? "text-rose-600" : "text-brand-primary"}`}>
                           {variance > 0 ? "+" : ""}₹{formatAmount(s.variance)}
                         </div>
                       </div>

@@ -14,7 +14,7 @@ import {
   ChevronDown, ChevronRight, PanelLeftClose, PanelLeft,
   Search, Receipt, Landmark, ClipboardCheck, BookOpen, Scale, Waves, Settings2, Wallet, Gift,
 } from "lucide-react";
-import { useAdminShell } from "./AdminShell";
+import { adminDisplayName, useAdminShell } from "./AdminShell";
 import { CakeToHomeLogo } from "@frontend/components/common/logo";
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -255,7 +255,7 @@ export function AdminSidebar({ activeTabId, onNavigate, user }: AdminSidebarProp
                 className={`
                   w-full flex items-center gap-2.5 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider
                   transition-colors
-                  ${hasActiveItem ? "text-[#D4AF37]" : "text-white/40 hover:text-white/70"}
+                  ${hasActiveItem ? "text-brand-gold" : "text-white/40 hover:text-white/70"}
                   ${sidebarCollapsed ? "justify-center px-0" : ""}
                 `}
                 title={sidebarCollapsed ? group.label : undefined}
@@ -292,14 +292,14 @@ export function AdminSidebar({ activeTabId, onNavigate, user }: AdminSidebarProp
                           ${sidebarCollapsed ? "w-10 h-10 justify-center mx-auto" : "mx-2 px-3 py-2"}
                           ${
                             isActive
-                              ? "bg-[#1D2F5D] text-white shadow-md border-l-2 border-[#D4AF37]"
+                              ? "bg-brand-navy text-white shadow-md border-l-2 border-brand-gold"
                               : "text-white/70 hover:bg-white/8 hover:text-white"
                           }
                         `}
                         title={sidebarCollapsed ? item.label : undefined}
                         aria-current={isActive ? "page" : undefined}
                       >
-                        <ItemIcon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#D4AF37]" : ""}`} />
+                        <ItemIcon className={`w-4 h-4 shrink-0 ${isActive ? "text-brand-gold" : ""}`} />
                         {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
                       </button>
                     );
@@ -315,12 +315,12 @@ export function AdminSidebar({ activeTabId, onNavigate, user }: AdminSidebarProp
       {!sidebarCollapsed && (
         <div className="shrink-0 border-t border-white/10 px-4 py-3">
           <div className="flex items-center gap-2.5 text-white/70">
-            <div className="w-8 h-8 rounded-full bg-[#1D2F5D] flex items-center justify-center text-xs font-bold text-[#D4AF37]">
+            <div className="w-8 h-8 rounded-full bg-brand-navy flex items-center justify-center text-xs font-bold text-brand-gold">
               {user?.role?.[0] || "A"}
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-xs font-semibold text-white truncate">
-                {user?.userId || "Admin"}
+                {adminDisplayName(user)}
               </div>
               <div className="text-[10px] text-white/50 truncate">
                 {user?.role || "SUPER_ADMIN"}

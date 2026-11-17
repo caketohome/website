@@ -45,29 +45,29 @@ export function SmartLoginModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-deep/50 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="smart-login-modal-title"
     >
       <div
-        className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-[#D4AF37]/20 overflow-hidden transform transition-all animate-scale-up"
+        className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-brand-gold/20 overflow-hidden transform transition-all animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Ribbon */}
-        <div className="bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#D97706] px-6 py-4 text-white">
+        <div className="bg-white border-b border-brand-border px-6 py-4 text-brand-navy">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CakeToHomeLogo variant="white" mode="symbol" width={28} height={28} />
-              <h2 id="smart-login-modal-title" className="text-lg font-bold tracking-tight text-white">
+              <h2 id="smart-login-modal-title" className="text-lg font-serif font-semibold tracking-tight text-brand-navy">
                 {title}
               </h2>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full p-1.5 text-white/80 hover:text-white hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+              className="rounded-full p-1.5 text-brand-text-muted hover:text-brand-navy hover:bg-brand-surface-muted transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
               aria-label="Close modal"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -76,7 +76,7 @@ export function SmartLoginModal({
             </button>
           </div>
           {intentAction && (
-            <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-xs">
+            <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-light text-brand-primary">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               Resume: {intentAction.replace(/_/g, " ")}
             </div>
@@ -86,7 +86,7 @@ export function SmartLoginModal({
         {/* Modal Body */}
         <div className="p-6">
           {subtitle && (
-            <p className="text-sm text-neutral-600 mb-6 text-center leading-relaxed">
+            <p className="text-sm text-brand-text-muted mb-6 text-center leading-relaxed">
               {subtitle}
             </p>
           )}
@@ -102,7 +102,7 @@ export function SmartLoginModal({
             onClose={onClose}
           />
 
-          <div className="mt-6 pt-4 border-t border-neutral-100 text-center text-xs text-neutral-500">
+          <div className="mt-6 pt-4 border-t border-brand-border text-center text-xs text-brand-text-muted">
             🔒 Fast & Secure Login • No Password Required
           </div>
         </div>

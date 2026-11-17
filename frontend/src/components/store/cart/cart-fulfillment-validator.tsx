@@ -90,11 +90,11 @@ export function CartFulfillmentValidator({
 
   if (loading) {
     return (
-      <div className={`p-4 rounded-2xl bg-amber-50/60 border border-amber-200/80 animate-pulse flex items-center gap-3 ${className}`}>
-        <div className="w-5 h-5 rounded-full border-2 border-amber-600 border-t-transparent animate-spin shrink-0" />
+      <div className={`p-4 rounded-2xl bg-brand-gold-light/60 border border-brand-gold/80 animate-pulse flex items-center gap-3 ${className}`}>
+        <div className="w-5 h-5 rounded-full border-2 border-brand-gold border-t-transparent animate-spin shrink-0" />
         <div className="flex flex-col gap-1">
-          <span className="text-xs font-bold text-amber-900">Calculating kitchen baking & delivery slots...</span>
-          <span className="text-[11px] text-amber-700">Verifying live branch capacity & cutoff times</span>
+          <span className="text-xs font-bold text-brand-gold-dark">Calculating kitchen baking & delivery slots...</span>
+          <span className="text-[11px] text-brand-gold-dark">Verifying live branch capacity & cutoff times</span>
         </div>
       </div>
     );
@@ -115,7 +115,7 @@ export function CartFulfillmentValidator({
   return (
     <div className={`flex flex-col gap-3 p-4 rounded-2xl border transition-all ${
       hasIneligibleItems
-        ? "bg-amber-50/80 border-amber-300"
+        ? "bg-brand-gold-light/80 border-brand-gold/40"
         : "bg-emerald-50/60 border-emerald-200"
     } ${className}`}>
       {/* Header Banner */}
@@ -124,12 +124,12 @@ export function CartFulfillmentValidator({
           <span className="text-lg">{hasIneligibleItems ? "🌙" : "⚡"}</span>
           <div className="flex flex-col">
             <span className={`text-xs font-black uppercase tracking-wider ${
-              hasIneligibleItems ? "text-amber-900" : "text-emerald-900"
+              hasIneligibleItems ? "text-brand-gold-dark" : "text-emerald-900"
             }`}>
               {hasIneligibleItems ? "Fulfillment Notice" : "Live Kitchen Timing"}
             </span>
             <span className={`text-xs font-medium ${
-              hasIneligibleItems ? "text-amber-800" : "text-emerald-800"
+              hasIneligibleItems ? "text-brand-gold-dark" : "text-emerald-800"
             }`}>
               {result.message}
             </span>
@@ -145,8 +145,8 @@ export function CartFulfillmentValidator({
 
       {/* Item-Specific Ineligibility / Pre-order Warnings */}
       {hasIneligibleItems && (
-        <div className="flex flex-col gap-1.5 pt-2 border-t border-amber-200/80">
-          <span className="text-[11px] font-bold text-amber-900 uppercase tracking-wider">Item Restrictions:</span>
+        <div className="flex flex-col gap-1.5 pt-2 border-t border-brand-gold/80">
+          <span className="text-[11px] font-bold text-brand-gold-dark uppercase tracking-wider">Item Restrictions:</span>
           {result.items
             .filter((item) => !item.eligible)
             .map((item) => {
@@ -155,10 +155,10 @@ export function CartFulfillmentValidator({
               return (
                 <div
                   key={item.product_id}
-                  className="flex items-center justify-between p-2 rounded-xl bg-white/80 border border-amber-200 text-xs text-amber-950"
+                  className="flex items-center justify-between p-2 rounded-xl bg-white/80 border border-brand-gold/40 text-xs text-brand-gold-dark"
                 >
                   <span className="font-semibold truncate flex-1">{title}</span>
-                  <span className="text-[11px] font-bold text-amber-800 shrink-0 ml-2">
+                  <span className="text-[11px] font-bold text-brand-gold-dark shrink-0 ml-2">
                     {item.message || "Advance pre-order required"}
                   </span>
                 </div>

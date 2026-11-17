@@ -335,6 +335,7 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
         seo_title: meta.seo_title || `${p.title} - CakeToHome`,
         seo_description: meta.seo_description || p.description || "",
         seo_keywords: meta.seo_keywords || "",
+        search_keywords: meta.search_keywords || "",
         max_delivery_distance_km: (meta.max_delivery_distance_km != null || meta.pim_config?.max_delivery_distance_km != null)
           ? Number(meta.max_delivery_distance_km ?? meta.pim_config?.max_delivery_distance_km)
           : null,
@@ -1165,6 +1166,7 @@ export async function persistProductToDb(product: any): Promise<void> {
     seo_title: product.seo_title || `${product.title || product.name} - CakeToHome`,
     seo_description: product.seo_description || product.description || "",
     seo_keywords: product.seo_keywords || "",
+    search_keywords: product.search_keywords || "",
     max_delivery_distance_km: (product.max_delivery_distance_km != null || product.pim_config?.max_delivery_distance_km != null)
       ? Number(product.max_delivery_distance_km ?? product.pim_config?.max_delivery_distance_km)
       : null,

@@ -543,22 +543,22 @@ export default function AccountingWorkQueuePanel() {
       )}
 
       {/* ── Segregation of Duties Governance Banner ── */}
-      <div className="p-4 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 text-xs flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
+      <div className="p-4 rounded-2xl bg-brand-gold-light/80 dark:bg-brand-gold-dark/30 border border-brand-gold/40 dark:border-brand-gold-dark/60 text-xs flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-brand-gold/20 text-brand-gold-dark dark:text-brand-gold/40 flex items-center justify-center shrink-0">
             <ShieldCheck className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="font-bold text-amber-900 dark:text-amber-200">
+            <h4 className="font-bold text-brand-gold-dark dark:text-brand-gold/40">
               Segregation of Duties (SoD) Active Invariant
             </h4>
-            <p className="text-amber-800/80 dark:text-amber-300/80 mt-0.5">
+            <p className="text-brand-gold-dark/80 dark:text-brand-gold/80 mt-0.5">
               Preparer ≠ Approver ≠ Poster is enforced. A single user cannot approve or post their own submitted documents.
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="px-2.5 py-1 rounded-full font-mono font-bold text-[11px] bg-amber-200/60 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 border border-amber-300/60 dark:border-amber-800">
+          <span className="px-2.5 py-1 rounded-full font-mono font-bold text-[11px] bg-brand-gold/60 dark:bg-brand-gold-dark/60 text-brand-gold-dark dark:text-brand-gold/40 border border-brand-gold/60 dark:border-brand-gold-dark">
             3-TIER SO-D LOCKED
           </span>
         </div>
@@ -595,16 +595,16 @@ export default function AccountingWorkQueuePanel() {
           onClick={() => setActiveStream("expenses")}
           className={`cursor-pointer rounded-2xl p-5 border transition-all ${
             activeStream === "expenses"
-              ? "bg-amber-50/60 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700 shadow-md ring-2 ring-amber-500/20"
+              ? "bg-brand-gold-light/60 dark:bg-brand-gold-dark/30 border-brand-gold/40 dark:border-brand-gold-dark shadow-md ring-2 ring-brand-gold/20"
               : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300"
           }`}
         >
           <div className="flex items-center justify-between text-xs text-slate-500 font-bold mb-2">
             <span className="flex items-center gap-1.5">
-              <Receipt className="w-3.5 h-3.5 text-amber-600" />
+              <Receipt className="w-3.5 h-3.5 text-brand-gold" />
               <span>Expense Claims</span>
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-brand-gold-light dark:bg-brand-gold-dark/60 text-brand-gold-dark dark:text-brand-gold/40 text-[10px]">
               {summary?.pending_expenses.count ?? expenses.filter(e => e.status === "SUBMITTED" || e.status === "APPROVED").length} pending
             </span>
           </div>
@@ -643,16 +643,16 @@ export default function AccountingWorkQueuePanel() {
           onClick={() => setActiveStream("gateways")}
           className={`cursor-pointer rounded-2xl p-5 border transition-all ${
             activeStream === "gateways"
-              ? "bg-purple-50/60 dark:bg-purple-950/30 border-purple-300 dark:border-purple-700 shadow-md ring-2 ring-purple-500/20"
+              ? "bg-brand-light/60 dark:bg-brand-navy/30 border-brand-primary/30 dark:border-brand-navy shadow-md ring-2 ring-brand-primary/20"
               : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300"
           }`}
         >
           <div className="flex items-center justify-between text-xs text-slate-500 font-bold mb-2">
             <span className="flex items-center gap-1.5">
-              <CreditCard className="w-3.5 h-3.5 text-purple-600" />
+              <CreditCard className="w-3.5 h-3.5 text-brand-primary" />
               <span>Gateway Payouts</span>
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary/30 text-[10px]">
               {summary?.pending_gateways.count ?? gateways.filter(g => g.status === "INGESTED" || g.status === "APPROVED").length} ingested
             </span>
           </div>
@@ -667,16 +667,16 @@ export default function AccountingWorkQueuePanel() {
           onClick={() => setActiveStream("sales")}
           className={`cursor-pointer rounded-2xl p-5 border transition-all ${
             activeStream === "sales"
-              ? "bg-teal-50/60 dark:bg-teal-950/30 border-teal-300 dark:border-teal-700 shadow-md ring-2 ring-teal-500/20"
+              ? "bg-brand-light/60 dark:bg-brand-navy/30 border-brand-primary/30 dark:border-brand-navy shadow-md ring-2 ring-brand-primary/20"
               : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300"
           }`}
         >
           <div className="flex items-center justify-between text-xs text-slate-500 font-bold mb-2">
             <span className="flex items-center gap-1.5">
-              <FileCheck className="w-3.5 h-3.5 text-teal-600" />
+              <FileCheck className="w-3.5 h-3.5 text-brand-primary" />
               <span>Sales Vouchers</span>
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary/30 text-[10px]">
               {summary?.pending_sales?.count ?? sales.filter(s => s.status === "DRAFT" || s.status === "SUBMITTED").length} pending
             </span>
           </div>
@@ -863,7 +863,7 @@ export default function AccountingWorkQueuePanel() {
                                 : p.status === "APPROVED"
                                 ? "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
                                 : p.status === "SUBMITTED"
-                                ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                                ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold/40"
                                 : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300"
                             }`}
                           >
@@ -994,7 +994,7 @@ export default function AccountingWorkQueuePanel() {
                         <td className="py-3 px-4 text-right font-mono text-slate-700 dark:text-slate-300">
                           {fmtCurrency(e.taxable_value)}
                         </td>
-                        <td className="py-3 px-4 text-right font-mono font-bold text-amber-600 dark:text-amber-400">
+                        <td className="py-3 px-4 text-right font-mono font-bold text-brand-gold dark:text-brand-gold">
                           {fmtCurrency(e.total)}
                         </td>
                         <td className="py-3 px-4 text-center">
@@ -1005,7 +1005,7 @@ export default function AccountingWorkQueuePanel() {
                                 : e.status === "APPROVED"
                                 ? "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
                                 : e.status === "SUBMITTED"
-                                ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                                ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold/40"
                                 : "bg-slate-100 text-slate-800"
                             }`}
                           >
@@ -1033,7 +1033,7 @@ export default function AccountingWorkQueuePanel() {
                                   className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
                                     isSelfAction
                                       ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                      : "bg-amber-600 text-white hover:bg-amber-700"
+                                      : "bg-brand-gold text-white hover:bg-brand-gold-dark"
                                   }`}
                                 >
                                   Approve
@@ -1194,7 +1194,7 @@ export default function AccountingWorkQueuePanel() {
                                 : d.status === "APPROVED"
                                 ? "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
                                 : d.status === "PREPARED"
-                                ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                                ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold/40"
                                 : "bg-rose-100 text-rose-800"
                             }`}
                           >
@@ -1313,7 +1313,7 @@ export default function AccountingWorkQueuePanel() {
                         <td className="py-3 px-4 font-mono font-bold text-slate-900 dark:text-white">
                           {g.payout_reference}
                         </td>
-                        <td className="py-3 px-4 font-bold text-purple-600 dark:text-purple-400">
+                        <td className="py-3 px-4 font-bold text-brand-primary dark:text-brand-primary">
                           {g.provider}
                         </td>
                         <td className="py-3 px-4 text-slate-600 dark:text-slate-400">
@@ -1335,7 +1335,7 @@ export default function AccountingWorkQueuePanel() {
                                 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
                                 : g.status === "APPROVED"
                                 ? "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
-                                : "bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300"
+                                : "bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary/30"
                             }`}
                           >
                             {g.status}
@@ -1465,7 +1465,7 @@ export default function AccountingWorkQueuePanel() {
                                 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
                                 : s.status === "APPROVED"
                                 ? "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
-                                : "bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300"
+                                : "bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary/30"
                             }`}
                           >
                             {s.status}
@@ -1486,7 +1486,7 @@ export default function AccountingWorkQueuePanel() {
                                 className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
                                   isSelfAction
                                     ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                    : "bg-teal-600 text-white hover:bg-teal-700 shadow-xs"
+                                    : "bg-brand-primary text-white hover:bg-brand-navy shadow-xs"
                                 }`}
                               >
                                 {isSelfAction ? "SoD Locked" : "Approve"}

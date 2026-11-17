@@ -393,7 +393,7 @@ export function CmsImageUploader({
                 onClick={handleSelectFromLibrary}
                 className="text-[11px] h-6 px-2.5"
               >
-                <FolderOpen className="w-3 h-3 mr-1 text-purple-600" /> Choose from Media Library
+                <FolderOpen className="w-3 h-3 mr-1 text-brand-primary" /> Choose from Media Library
               </Button>
             </div>
           )}
@@ -420,7 +420,7 @@ export function CmsImageUploader({
           <div className="flex items-center justify-between text-[11px]">
             <span className="font-semibold text-ui-fg-base flex items-center gap-1.5">
               {uploadStatus === "UPLOADING" && <RefreshCw className="w-3 h-3 animate-spin text-rose-500" />}
-              {uploadStatus === "PROCESSING" && <RefreshCw className="w-3 h-3 animate-spin text-amber-500" />}
+              {uploadStatus === "PROCESSING" && <RefreshCw className="w-3 h-3 animate-spin text-brand-gold" />}
               {uploadStatus === "READY" && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
               {uploadStatus === "FAILED" && <AlertCircle className="w-3 h-3 text-red-500" />}
               {uploadStatus === "UPLOADING" && `Uploading image... ${uploadProgress}%`}

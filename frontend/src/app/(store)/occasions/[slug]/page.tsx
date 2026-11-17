@@ -48,23 +48,23 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
   const isCoquette = slug.includes("anniversary") || slug.includes("valentine") || slug.includes("romantic") || slug.includes("wedding");
 
   return (
-    <main className={`min-h-screen pb-24 ${isScrapbook ? "bg-[#FDFBF7]" : isCoquette ? "bg-[#FFF5F7]/60" : "bg-slate-50 dark:bg-slate-950"}`}>
+    <main className={`min-h-screen pb-24 ${isScrapbook ? "bg-brand-warm-white" : isCoquette ? "bg-[#FFF5F7]/60" : "bg-slate-50 dark:bg-slate-950"}`}>
       {/* ── HERO OCCASION BANNER (Royal Patisserie Navy #1D2F5D Anchor) ── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0D152B] via-[#1D2F5D] to-[#142040] text-white py-16 px-4 sm:px-6 lg:px-8 border-b border-[#D4AF37]/30 shadow-xl">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#D4AF37]/15 via-transparent to-transparent pointer-events-none" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-deep via-brand-navy to-brand-navy text-white py-16 px-4 sm:px-6 lg:px-8 border-b border-brand-gold/30 shadow-xl">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-brand-gold/15 via-transparent to-transparent pointer-events-none" />
         
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="space-y-3 max-w-2xl">
               {/* Badge & Mode Tag */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-semibold uppercase tracking-wider backdrop-blur-md shadow-sm">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-brand-gold/40 text-brand-gold text-xs font-semibold uppercase tracking-wider backdrop-blur-md shadow-sm">
                 <span>{occasion.icon || "🎉"}</span>
                 <span>{isCoquette ? "Romantic Celebration Edition" : isScrapbook ? "Celebration Memory Album" : "Artisanal Collection"}</span>
               </div>
 
               <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
                 {occasion.name}{" "}
-                <span className="italic font-normal text-[#D4AF37]">
+                <span className="italic font-normal text-brand-gold">
                   &amp; Celebration Cakes
                 </span>
               </h1>
@@ -77,15 +77,15 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
             {/* Guarantees with Glassmorphic elevation */}
             <div className="flex flex-wrap gap-3 text-xs font-medium text-white/90">
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/15 shadow-sm">
-                <Clock className="w-4 h-4 text-[#D4AF37]" />
+                <Clock className="w-4 h-4 text-brand-gold" />
                 <span>Express 2-Hr &amp; Scheduled Delivery</span>
               </div>
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/15 shadow-sm">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <ShieldCheck className="w-4 h-4 text-[#16834A]" />
                 <span>100% Freshness Guarantee</span>
               </div>
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/15 shadow-sm">
-                <Award className="w-4 h-4 text-amber-300" />
+                <Award className="w-4 h-4 text-brand-gold/40" />
                 <span>Master Patissier Quality</span>
               </div>
             </div>
@@ -99,9 +99,9 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
           <div>
             <div className="flex items-center gap-2">
               <h2 className="font-serif text-2xl sm:text-3xl font-bold text-navy-accent flex items-center gap-2">
-                <Cake className="w-6 h-6 text-[#1D2F5D]" /> Curated for {occasion.name}
+                <Cake className="w-6 h-6 text-brand-navy" /> Curated for {occasion.name}
               </h2>
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#1D2F5D]/10 text-[#1D2F5D] font-bold">
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-brand-navy/10 text-brand-navy font-bold">
                 {products.length} {products.length === 1 ? "Cake" : "Cakes"}
               </span>
             </div>
@@ -112,7 +112,7 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
 
           <Link
             href="/products"
-            className="text-xs sm:text-sm font-bold text-[#1D2F5D] hover:text-navy-glow flex items-center gap-1.5 transition-colors group"
+            className="text-xs sm:text-sm font-bold text-brand-navy hover:text-navy-glow flex items-center gap-1.5 transition-colors group"
           >
             <span>All Cakes</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -121,12 +121,12 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
 
         {products.length === 0 ? (
           <div className="p-12 text-center bg-white rounded-3xl border border-navy-accent/15 shadow-sm space-y-4 max-w-md mx-auto">
-            <Cake className="w-12 h-12 mx-auto text-[#1D2F5D]/40" />
+            <Cake className="w-12 h-12 mx-auto text-brand-navy/40" />
             <h3 className="font-serif text-lg font-bold text-navy-accent">Cakes are being freshly baked!</h3>
             <p className="text-xs text-slate-600">Browse our signature gourmet collection below or explore the full catalog.</p>
             <Link
               href="/products"
-              className="inline-flex items-center px-5 py-2.5 rounded-xl bg-[#1D2F5D] hover:bg-navy-glow text-white text-xs font-bold shadow-md shadow-navy-accent/20 transition-all"
+              className="inline-flex items-center px-5 py-2.5 rounded-xl bg-brand-navy hover:bg-navy-glow text-white text-xs font-bold shadow-md shadow-navy-accent/20 transition-all"
             >
               Explore Full Catalog
             </Link>
@@ -145,7 +145,7 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
                     isScrapbook
                       ? "scrapbook-polaroid p-4 bg-white rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1.5 hover:rotate-1"
                       : isCoquette
-                      ? "coquette-blush-card p-5 rounded-3xl shadow-sm hover:shadow-lg hover:-translate-y-1 border border-pink-200"
+                      ? "coquette-blush-card p-5 rounded-3xl shadow-sm hover:shadow-lg hover:-translate-y-1 border border-brand-primary/30"
                       : "bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1"
                   }`}
                 >
@@ -172,7 +172,7 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                     />
-                    <span className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-md bg-[#0D152B]/85 text-white text-[10px] font-bold backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+                    <span className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-md bg-brand-deep/85 text-white text-[10px] font-bold backdrop-blur-md flex items-center gap-1.5 shadow-sm">
                       <span>{occasion.icon || "🎂"}</span>
                       <span>{occasion.name}</span>
                     </span>
@@ -200,11 +200,11 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
                     <div className="pt-3 border-t border-navy-accent/10 flex items-center justify-between mt-auto">
                       <div>
                         <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold block">Starts from</span>
-                        <span className="font-sans text-base sm:text-lg font-bold text-[#1D2F5D]">
+                        <span className="font-sans text-base sm:text-lg font-bold text-brand-navy">
                           ₹{prodPrice}
                         </span>
                       </div>
-                      <span className="px-3.5 py-1.5 rounded-xl bg-[#1D2F5D] text-white font-bold text-xs group-hover:bg-navy-glow transition-all flex items-center gap-1 shadow-sm">
+                      <span className="px-3.5 py-1.5 rounded-xl bg-brand-navy text-white font-bold text-xs group-hover:bg-navy-glow transition-all flex items-center gap-1 shadow-sm">
                         <span>Customize</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </span>
@@ -222,7 +222,7 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-serif text-xl sm:text-2xl font-bold text-navy-accent flex items-center gap-2">
-                  <Gift className="w-5 h-5 text-[#D4AF37]" /> Complete the {occasion.name} Celebration
+                  <Gift className="w-5 h-5 text-brand-gold" /> Complete the {occasion.name} Celebration
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-600 mt-1 font-sans">
                   Party candles, designer toppers, rose bouquets, and occasion greeting cards.
@@ -246,7 +246,7 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-navy-accent line-clamp-1">{acc.name}</h4>
-                    <span className="text-xs font-extrabold text-[#1D2F5D] mt-1 block">
+                    <span className="text-xs font-extrabold text-brand-navy mt-1 block">
                       ₹{acc.price}
                     </span>
                   </div>

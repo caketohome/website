@@ -72,14 +72,14 @@ export function PdpEmptyMessageModal({
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+          <div className="w-12 h-12 rounded-2xl bg-brand-gold-light text-brand-gold-dark flex items-center justify-center text-2xl shrink-0 shadow-inner">
             🎂
           </div>
           <div className="flex flex-col">
             <h3 id="empty-msg-dialog-title" className="text-lg font-black text-slate-900 leading-snug">
               Add cake without a message?
             </h3>
-            <span className="text-xs font-semibold text-[#0F172A] uppercase tracking-wider">
+            <span className="text-xs font-semibold text-brand-text uppercase tracking-wider">
               Optional Personalization
             </span>
           </div>
@@ -96,13 +96,13 @@ export function PdpEmptyMessageModal({
                 htmlFor="modal-cake-message-input"
                 className="text-xs font-bold text-slate-700 flex items-center gap-1.5"
               >
-                <MessageSquare className="w-3.5 h-3.5 text-[#2563EB]" />
+                <MessageSquare className="w-3.5 h-3.5 text-brand-primary" />
                 <span>Message on Cake (Optional)</span>
               </label>
               <span
                 data-testid="modal-cake-message-counter"
                 className={`text-[11px] font-bold ${
-                  (cakeMessage || "").length >= 30 ? "text-amber-600" : "text-slate-500"
+                  (cakeMessage || "").length >= 30 ? "text-brand-gold" : "text-slate-500"
                 }`}
               >
                 {(cakeMessage || "").length}/30
@@ -116,7 +116,7 @@ export function PdpEmptyMessageModal({
               value={cakeMessage}
               onChange={(e) => onCakeMessageChange(e.target.value.slice(0, 30))}
               placeholder="e.g. Happy Birthday Maya! 🎂"
-              className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent"
+              className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             />
           </div>
         )}
@@ -140,7 +140,7 @@ export function PdpEmptyMessageModal({
             type="button"
             disabled={cartLoading}
             onClick={() => onConfirm(hasTypedMessage ? trimmedMsg : undefined)}
-            className="flex-1 py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all"
+            className="flex-1 py-3 px-4 rounded-xl bg-brand-primary hover:bg-brand-secondary text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all"
           >
             {cartLoading ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />

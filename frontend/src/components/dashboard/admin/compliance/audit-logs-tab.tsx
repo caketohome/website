@@ -40,7 +40,7 @@ export function AuditLogsTab({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <ScrollText className="w-5 h-5 text-amber-600" />
+            <ScrollText className="w-5 h-5 text-brand-gold" />
             <Heading level="h3" className="text-base font-bold">Statutory & Administrative Audit Logs</Heading>
           </div>
           <Text className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -66,7 +66,7 @@ export function AuditLogsTab({
             onClick={() => setFilterType("all")}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
               filterType === "all"
-                ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30"
+                ? "bg-brand-gold/10 text-brand-gold-dark dark:text-brand-gold border border-brand-gold/30"
                 : "bg-white dark:bg-slate-900 text-slate-500 border border-slate-200 dark:border-slate-800"
             }`}
           >
@@ -76,7 +76,7 @@ export function AuditLogsTab({
             onClick={() => setFilterType("compliance")}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
               filterType === "compliance"
-                ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30"
+                ? "bg-brand-gold/10 text-brand-gold-dark dark:text-brand-gold border border-brand-gold/30"
                 : "bg-white dark:bg-slate-900 text-slate-500 border border-slate-200 dark:border-slate-800"
             }`}
           >
@@ -86,7 +86,7 @@ export function AuditLogsTab({
             onClick={() => setFilterType("security")}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
               filterType === "security"
-                ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30"
+                ? "bg-brand-gold/10 text-brand-gold-dark dark:text-brand-gold border border-brand-gold/30"
                 : "bg-white dark:bg-slate-900 text-slate-500 border border-slate-200 dark:border-slate-800"
             }`}
           >

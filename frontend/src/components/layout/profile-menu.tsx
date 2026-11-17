@@ -43,8 +43,8 @@ interface ProfileMenuProps {
 const ROLE_CONFIGS = {
   SUPER_ADMIN: {
     label: "Super Admin",
-    badgeClass: "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800",
-    avatarBg: "bg-gradient-to-br from-purple-600 to-indigo-700 text-white ring-purple-400/40",
+    badgeClass: "bg-brand-light text-brand-navy border-brand-primary/20",
+    avatarBg: "bg-brand-navy text-white ring-brand-navy/15",
     icon: Shield,
     links: [
       { label: "Admin Dashboard", href: "/dashboard", icon: Layers },
@@ -52,8 +52,8 @@ const ROLE_CONFIGS = {
   },
   BRANCH_MANAGER: {
     label: "Branch Manager",
-    badgeClass: "bg-amber-100 text-amber-900 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800",
-    avatarBg: "bg-gradient-to-br from-amber-500 to-orange-600 text-white ring-amber-400/40",
+    badgeClass: "bg-brand-gold-light text-brand-gold-dark border-brand-gold/30",
+    avatarBg: "bg-brand-navy text-white ring-brand-navy/15",
     icon: Store,
     links: [
       { label: "Shop Dashboard", href: "/dashboard/shop", icon: Store },
@@ -63,8 +63,8 @@ const ROLE_CONFIGS = {
   },
   DELIVERY_PARTNER: {
     label: "Delivery Partner",
-    badgeClass: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800",
-    avatarBg: "bg-gradient-to-br from-blue-500 to-cyan-600 text-white ring-blue-400/40",
+    badgeClass: "bg-brand-light text-brand-primary border-brand-primary/20",
+    avatarBg: "bg-brand-navy text-white ring-brand-navy/15",
     icon: Truck,
     links: [
       { label: "Partner Portal", href: "/dashboard/delivery-partner", icon: Truck },
@@ -73,8 +73,8 @@ const ROLE_CONFIGS = {
   },
   CUSTOMER: {
     label: "Customer",
-    badgeClass: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800",
-    avatarBg: "bg-gradient-to-br from-emerald-500 to-teal-600 text-white ring-emerald-400/40",
+    badgeClass: "bg-[#EAF7EF] text-[#16834A] border-[#16834A]/20",
+    avatarBg: "bg-brand-navy text-white ring-brand-navy/15",
     icon: User,
     links: [
       { label: "My Profile", href: "/account", icon: User },
@@ -273,7 +273,7 @@ export const ProfileMenu = memo(function ProfileMenu({
       <Link
         href="/login"
         prefetch={false}
-        className={`flex items-center justify-center min-w-[40px] min-h-[40px] sm:min-w-0 p-2 sm:px-3.5 sm:py-2 rounded-xl text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 ${className}`}
+        className={`flex items-center justify-center min-w-[40px] min-h-[40px] sm:min-w-0 p-2 sm:px-3.5 sm:py-2 rounded-xl text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/20 ${className}`}
         aria-label="Sign in to your account"
         title="Sign in"
       >
@@ -281,7 +281,7 @@ export const ProfileMenu = memo(function ProfileMenu({
         <span className="hidden sm:inline ml-1.5">Login</span>
         <span className="hidden sm:inline relative flex h-2 w-2 ml-1">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2563EB]"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-primary"></span>
         </span>
       </Link>
     );
@@ -298,7 +298,7 @@ export const ProfileMenu = memo(function ProfileMenu({
         aria-haspopup="menu"
         aria-label="User profile and account settings menu"
         data-testid="profile-menu-trigger"
-        className={`flex items-center gap-2 min-w-[40px] min-h-[40px] p-1.5 md:px-3 md:py-1.5 rounded-xl transition-colors duration-100 border select-none focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 cursor-pointer justify-center ${
+        className={`flex items-center gap-2 min-w-[40px] min-h-[40px] p-1.5 md:px-3 md:py-1.5 rounded-xl transition-colors duration-100 border select-none focus:outline-none focus:ring-2 focus:ring-brand-primary/20 cursor-pointer justify-center ${
           isOpen
             ? "bg-navy-accent/10 border-slate-300 ring-2 ring-navy-accent/10 text-slate-700"
             : "bg-transparent hover:bg-slate-100 border-transparent text-slate-700 hover:text-slate-700"
@@ -398,20 +398,20 @@ export const ProfileMenu = memo(function ProfileMenu({
               type="button"
               onClick={handleLogoutClick}
               disabled={isLoggingOut}
-              className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold rounded-lg text-[#2563EB] dark:text-[#D4AF37] hover:bg-blue-50 dark:hover:bg-rose-950/40 transition-colors group focus:outline-none focus:bg-blue-50 dark:focus:bg-rose-950/40 disabled:opacity-50 cursor-pointer"
+              className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold rounded-lg text-brand-primary dark:text-brand-gold hover:bg-blue-50 dark:hover:bg-rose-950/40 transition-colors group focus:outline-none focus:bg-blue-50 dark:focus:bg-rose-950/40 disabled:opacity-50 cursor-pointer"
               role="menuitem"
               tabIndex={0}
               data-testid="profile-menu-logout-button"
             >
               <div className="flex items-center gap-2.5">
                 {isLoggingOut ? (
-                  <span className="w-4 h-4 border-2 border-[#1D2F5D] dark:border-[#D4AF37]/60 border-t-transparent rounded-full animate-spin shrink-0" />
+                  <span className="w-4 h-4 border-2 border-brand-navy dark:border-brand-gold/60 border-t-transparent rounded-full animate-spin shrink-0" />
                 ) : (
                   <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform shrink-0" />
                 )}
                 <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
               </div>
-              <span className="text-[10px] text-neutral-400 group-hover:text-[#D4AF37] font-normal">Sign out</span>
+              <span className="text-[10px] text-neutral-400 group-hover:text-brand-gold font-normal">Sign out</span>
             </button>
           </div>
         </div>
