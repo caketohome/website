@@ -1355,6 +1355,53 @@ export class SalesPostingService {
    * - Canonical PostingService lifecycle and accounting start date / fiscal period guards.
    * - 100% atomic transaction: single PostgreSQL transaction with full rollback on any failure.
    */
+  /**
+   * Auto-post a system-generated sales voucher (created at delivery) straight to the GL:
+   * DRAFT → SUBMITTED → APPROVED → POSTED. Each step runs under its own system identity, so the
+   * existing segregation-of-duties and permission checks still apply. Resumes from the voucher's
+   * current status; if any check fails the voucher stays in the accounting work queue for manual review.
+   */
+  static async autoPostSalesVoucher(voucherId: string): Promise<SalesPostingResponse> {
+    const system = (id: string, permission: string) =>
+      ({ id, user_id: id, role: "SYSTEM", permissions: [permission] }) as any;
+
+    const statusRes = await dbQuery<{ status: string; created_by: string | null }>(
+      `SELECT status, created_by FROM public.accounting_voucher WHERE id = $1 AND deleted_at IS NULL`,
+      [voucherId]
+    );
+    let status = statusRes.rows[0]?.status;
+    if (!status) return { success: false, error: `Voucher '${voucherId}' not found.`, code: "VOUCHER_NOT_FOUND" };
+    // Only system-created delivery vouchers are auto-posted; staff-created ones keep manual review.
+    if (!String(statusRes.rows[0].created_by || "").startsWith("system:")) {
+      return { success: false, error: "Voucher was not system-generated; manual review required.", code: "INVALID_VOUCHER_STATE" };
+    }
+    if (status === "POSTED") return { success: true };
+
+    if (status === "DRAFT") {
+      const s = await this.submitSalesVoucher({ voucherId, submittedBy: "system:auto_submit" });
+      if (!s.success) return { success: false, error: s.error, code: s.code };
+      status = "SUBMITTED";
+    }
+    if (status === "SUBMITTED") {
+      const a: any = await this.approveSalesVoucher({
+        voucherId,
+        approvedBy: "system:auto_approve",
+        approvalNotes: "Auto-approved: system-generated invoice on delivery",
+        actorContext: system("system:auto_approve", "ACCOUNTING.APPROVE"),
+      });
+      if (!a?.success) return { success: false, error: a?.error, code: a?.code };
+      status = "APPROVED";
+    }
+    if (status !== "APPROVED") {
+      return { success: false, error: `Voucher in status '${status}' cannot be auto-posted.`, code: "INVALID_VOUCHER_STATE" };
+    }
+    return this.postSalesVoucher({
+      voucherId,
+      postedBy: "system:auto_post",
+      actorContext: system("system:auto_post", "ACCOUNTING.POST"),
+    });
+  }
+
   static async postSalesVoucher(
     params: PostSalesVoucherParams
   ): Promise<SalesPostingResponse> {

@@ -1044,6 +1044,20 @@ export class DeliveryInvoicingService {
       `INVOICE_GENERATED: Statutory invoice ${invoiceNumber} (${invoiceId}) generated for Order ${order.order_number || order.id} upon delivery confirmation.${accountingVoucherId ? ` Accounting Voucher Draft: ${accountingVoucherId}.` : ""}`
     );
 
+    // ── Auto-post the sales voucher to the General Ledger (non-blocking) ──
+    // On failure the voucher stays in the accounting work queue for manual review.
+    if (accountingVoucherId) {
+      try {
+        const { SalesPostingService } = await import("./sales-posting.service");
+        const postRes = await SalesPostingService.autoPostSalesVoucher(accountingVoucherId);
+        if (!postRes.success) {
+          console.warn(`[DeliveryInvoicingService] Auto-post of voucher ${accountingVoucherId} deferred to work queue: ${postRes.error} (${postRes.code})`);
+        }
+      } catch (postErr: any) {
+        console.warn("[DeliveryInvoicingService] Auto-post deferred to work queue:", postErr?.message);
+      }
+    }
+
     return {
       success: true,
       invoice_number: invoiceNumber,

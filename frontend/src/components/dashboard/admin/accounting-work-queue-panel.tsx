@@ -459,9 +459,30 @@ export default function AccountingWorkQueuePanel() {
     }
   };
 
+  // Post every pending system-generated sales voucher (delivery invoices) to the GL in one go.
+  const handleAutoPostPendingSales = async () => {
+    setActionLoading(true);
+    try {
+      const res = await fetch("/api/v1/admin/accounting/sales-vouchers/auto-post-pending", { method: "POST" });
+      const json = await res.json();
+      if (!res.ok || !json?.success) throw new Error(json?.error || json?.message || "Auto-post failed.");
+      const { pending, posted, failed } = json.data || {};
+      if (failed?.length) {
+        showError(`Posted ${posted} of ${pending}. ${failed.length} need review: ${failed.slice(0, 3).map((f: any) => `${f.voucher_no} (${f.error})`).join("; ")}`);
+      } else {
+        showSuccess(pending ? `Posted all ${posted} pending sales vouchers to the General Ledger.` : "No pending sales vouchers.");
+      }
+      loadData();
+    } catch (e: any) {
+      showError(e.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  const fmtCurrency = (n: number | string | null | undefined) => {
+  const fmtCurrency =(n: number | string | null | undefined) => {
     if (n == null) return "₹0.00";
     return "₹" + Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
@@ -518,6 +539,15 @@ export default function AccountingWorkQueuePanel() {
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-blue-600" : ""}`} />
             <span>Refresh</span>
+          </button>
+
+          <button
+            onClick={handleAutoPostPendingSales}
+            disabled={loading || actionLoading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition disabled:opacity-50"
+            title="Post all pending system-generated sales vouchers (delivery invoices) to the General Ledger"
+          >
+            <span>Post all pending sales</span>
           </button>
         </div>
       </div>

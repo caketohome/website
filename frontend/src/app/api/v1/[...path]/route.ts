@@ -7766,6 +7766,27 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
         }
 
+        // POST admin/accounting/sales-vouchers/auto-post-pending — post all pending system-generated sales vouchers
+        if (acctSubPath === "sales-vouchers/auto-post-pending") {
+          const permErr = verifyApiPermission(req, "ACCOUNTING", "POST");
+          if (permErr) return permErr;
+          const pendingQ = await dbQuery<{ id: string; voucher_no: string }>(
+            `SELECT id, voucher_no FROM public.accounting_voucher
+             WHERE voucher_type = 'SALES' AND status IN ('DRAFT', 'SUBMITTED', 'APPROVED')
+               AND created_by LIKE 'system:%' AND deleted_at IS NULL
+             ORDER BY voucher_date ASC, created_at ASC
+             LIMIT 200`
+          );
+          let posted = 0;
+          const failed: Array<{ voucher_no: string; error?: string }> = [];
+          for (const v of pendingQ.rows) {
+            const r = await SalesPostingService.autoPostSalesVoucher(v.id);
+            if (r.success) posted++;
+            else failed.push({ voucher_no: v.voucher_no, error: r.error });
+          }
+          return jsonWithDataSource({ success: true, data: { pending: pendingQ.rows.length, posted, failed } }, "postgres", 200);
+        }
+
         // POST admin/accounting/customer-receipts/prepaid
         if (acctSubPath === "customer-receipts/prepaid") {
           const { order_id, amount, payment_txn_id, branch_id, created_by, approved_by, posted_by, notes } = body || {};
