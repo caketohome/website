@@ -163,7 +163,7 @@ export async function GET(req: NextRequest) {
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#6B7280", fontSize: "14px" }}>
-              <span>cakes2home.com</span>
+              <span>caketohome.com</span>
               <span>•</span>
               <span>100% Eggless Options</span>
               <span>•</span>

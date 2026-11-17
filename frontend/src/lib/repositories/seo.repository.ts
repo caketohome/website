@@ -105,12 +105,12 @@ const DEFAULT_SEO_CONFIG: GlobalSeoConfig = {
   meta_title: "CakeToHome — Fresh Handcrafted Cakes Delivered Same Day",
   meta_description: "Order fresh handcrafted cakes online for birthdays, anniversaries, and celebrations with same-day 2-hour delivery across Bangalore.",
   keywords: "cake delivery, online cake order, birthday cakes, anniversary cakes, chocolate truffle, customized cakes bangalore",
-  canonical_url: "https://cakes2home.com",
+  canonical_url: "https://caketohome.com",
   og_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587",
   ga_id: "",
   fb_pixel_id: "",
   gtm_id: "",
-  robots_txt: "User-agent: *\nAllow: /\nDisallow: /account\nDisallow: /checkout\nDisallow: /cart\nDisallow: /dashboard\nDisallow: /admin\nSitemap: https://cakes2home.com/sitemap.xml",
+  robots_txt: "User-agent: *\nAllow: /\nDisallow: /account\nDisallow: /checkout\nDisallow: /cart\nDisallow: /dashboard\nDisallow: /admin\nSitemap: https://caketohome.com/sitemap.xml",
   schema_type: "Bakery",
 };
 
@@ -455,13 +455,24 @@ export class SeoRepository {
     const totalIndexed = withMeta;
     const avgScore = totalPages > 0 ? Math.round((withMeta / totalPages) * 85) + 15 : 85;
 
+    // GEO / AEO from real data instead of fixed numbers.
+    const { ApiEngine } = await import("../api-engine");
+    const { LocalSeoRepository } = await import("./local-seo.repository");
+    const localPages = await LocalSeoRepository.listAllLocalPages().catch(() => []);
+    const aeoEntries = (() => { try { return ApiEngine.getSeoAeoEntries() || []; } catch { return []; } })();
+    const keywords = (() => { try { return ApiEngine.getSeoKeywords() || []; } catch { return []; } })();
+    const geoScore = localPages.length > 0
+      ? Math.round(localPages.reduce((a: number, p: any) => a + (p.geo_score || 0), 0) / localPages.length)
+      : 0;
+    const aeoScore = Math.min(100, aeoEntries.length * 10); // 10+ published Q&A answers = full score
+
     return {
       total_pages: totalPages,
       indexed_pages: totalIndexed,
       non_indexed_pages: totalPages - totalIndexed,
       seo_score: avgScore,
-      geo_score: 88,
-      aeo_score: 82,
+      geo_score: geoScore,
+      aeo_score: aeoScore,
       broken_links: 0,
       missing_alt: 0,
       duplicate_titles: 0,
@@ -470,19 +481,16 @@ export class SeoRepository {
       missing_canonical: totalPages - withCanonical,
       missing_h1: withoutMeta,
       multiple_h1: 0,
-      tracked_keywords: 24,
+      tracked_keywords: keywords.length,
       total_redirects: totalRedirs,
       active_redirects: activeRedirs,
-      geo_pages: 5,
-      aeo_entries: 8,
-      competitors: 3,
-      utm_campaigns: 4,
-      backlinks: 12,
-      core_web_vitals: {
-        lcp_ms: 1850,
-        cls: 0.04,
-        inp_ms: 68,
-      },
+      geo_pages: localPages.length,
+      aeo_entries: aeoEntries.length,
+      competitors: 0,
+      utm_campaigns: 0,
+      backlinks: 0,
+      // Not measured: no CrUX / PageSpeed integration yet.
+      core_web_vitals: null as any,
       sitemap_health: {
         valid: true,
         entry_count: totalPages + totalProds + 5,

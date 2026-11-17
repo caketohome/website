@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://cakes2home.com";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://caketohome.com";
 
 /**
  * robots.txt — allows all public crawling, blocks private admin/checkout/cart routes.

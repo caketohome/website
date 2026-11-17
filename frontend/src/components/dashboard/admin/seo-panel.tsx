@@ -86,12 +86,12 @@ export const SeoPanel = memo(function SeoPanel() {
   // Integrations & APIs
   const [gscData, setGscData] = useState<any>(null);
   const [ga4Data, setGa4Data] = useState<any>(null);
-  const [bingUrlInput, setBingUrlInput] = useState("https://cakes2home.com/products");
-  const [indexingUrlInput, setIndexingUrlInput] = useState("https://cakes2home.com/cakes/kollam");
+  const [bingUrlInput, setBingUrlInput] = useState("https://caketohome.com/products");
+  const [indexingUrlInput, setIndexingUrlInput] = useState("https://caketohome.com/cakes/kollam");
 
   // UTM Generator
   const [utmCampaigns, setUtmCampaigns] = useState<any[]>([]);
-  const [utmUrl, setUtmUrl] = useState("https://cakes2home.com/products");
+  const [utmUrl, setUtmUrl] = useState("https://caketohome.com/products");
   const [utmSource, setUtmSource] = useState("instagram");
   const [utmMedium, setUtmMedium] = useState("story");
   const [utmCampaign, setUtmCampaign] = useState("monsoon_sale");
@@ -144,12 +144,12 @@ export const SeoPanel = memo(function SeoPanel() {
           setMetaTitle(config.meta_title || "");
           setMetaDesc(config.meta_description || "");
           setKeywords(config.keywords || "");
-          setCanonicalUrl(config.canonical_url || "https://cakes2home.com");
+          setCanonicalUrl(config.canonical_url || "https://caketohome.com");
           setOgImage(config.og_image || "");
           setGaId(config.ga_id || "");
           setFbPixelId(config.fb_pixel_id || "");
           setGtmId(config.gtm_id || "");
-          setRobotsTxt(config.robots_txt || "User-agent: *\nAllow: /\nSitemap: https://cakes2home.com/sitemap.xml");
+          setRobotsTxt(config.robots_txt || "User-agent: *\nAllow: /\nSitemap: https://caketohome.com/sitemap.xml");
           setSchemaType(config.schema_type || "Bakery");
         }
         if (sumData) setSummary(sumData);
@@ -555,7 +555,7 @@ export const SeoPanel = memo(function SeoPanel() {
                 <p className="text-xs text-ui-fg-subtle mt-1">{aeoEntries.length} Q&amp;A blocks deployed for Perplexity &amp; ChatGPT citations.</p>
               </div>
               <div className="flex items-center justify-between pt-2 border-t">
-                <Badge color="purple" className="text-[10px]">AEO Active ✓</Badge>
+                <Badge color={aeoEntries.length > 0 ? "purple" : "orange"} className="text-[10px]">{aeoEntries.length > 0 ? "AEO Active ✓" : "No answers yet"}</Badge>
                 <button onClick={() => setActiveTab("aeo_geo")} className="text-xs text-brand-primary hover:underline font-semibold">Edit Content ↗</button>
               </div>
             </Container>
@@ -564,10 +564,10 @@ export const SeoPanel = memo(function SeoPanel() {
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">Performance &amp; CWV</span>
                 <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Core Web Vitals Lab Benchmarks</p>
-                <p className="text-xs text-ui-fg-subtle mt-1">LCP: 1.85s &bull; INP: 68ms &bull; CLS: 0.04 &bull; Passing 3/3 metrics.</p>
+                <p className="text-xs text-ui-fg-subtle mt-1">{vitalsList.length > 0 ? vitalsList.map((v: any) => `${v.metric}: ${v.value}${v.unit || ""}`).join(" • ") : "Not measured yet — connect Google PageSpeed / Search Console to see real field data."}</p>
               </div>
               <div className="flex items-center justify-between pt-2 border-t">
-                <Badge color="green" className="text-[10px]">All Good ✓</Badge>
+                <Badge color={vitalsList.length > 0 ? "green" : "grey"} className="text-[10px]">{vitalsList.length > 0 ? "Measured" : "Not measured"}</Badge>
                 <button onClick={() => setActiveTab("cwv")} className="text-xs text-emerald-600 hover:underline font-semibold">View CWV ↗</button>
               </div>
             </Container>
@@ -604,7 +604,7 @@ export const SeoPanel = memo(function SeoPanel() {
 
             <div>
               <Label htmlFor="canonical">Canonical Base URL</Label>
-              <Input id="canonical" value={canonicalUrl} onChange={(e) => setCanonicalUrl(e.target.value)} placeholder="https://cakes2home.com" />
+              <Input id="canonical" value={canonicalUrl} onChange={(e) => setCanonicalUrl(e.target.value)} placeholder="https://caketohome.com" />
             </div>
 
             <div className="md:col-span-2">
@@ -624,14 +624,14 @@ export const SeoPanel = memo(function SeoPanel() {
 
             <div>
               <Label htmlFor="og_image">Social Sharing Image URL (OpenGraph)</Label>
-              <Input id="og_image" value={ogImage} onChange={(e) => setOgImage(e.target.value)} placeholder="https://cakes2home.com/og-banner.jpg" />
+              <Input id="og_image" value={ogImage} onChange={(e) => setOgImage(e.target.value)} placeholder="https://caketohome.com/og-banner.jpg" />
             </div>
           </div>
 
           {/* SERP Live Preview */}
           <div className="mt-2 p-4 bg-slate-50 dark:bg-slate-900 border rounded-lg flex flex-col gap-1">
             <Text className="text-xs font-semibold text-ui-fg-subtle uppercase tracking-wider mb-1">Google SERP Live Preview</Text>
-            <Text className="text-xs text-emerald-700 dark:text-emerald-400 font-mono truncate">{canonicalUrl || "https://cakes2home.com"}</Text>
+            <Text className="text-xs text-emerald-700 dark:text-emerald-400 font-mono truncate">{canonicalUrl || "https://caketohome.com"}</Text>
             <Text className="text-sm font-semibold text-blue-700 dark:text-blue-400 line-clamp-1">{metaTitle || "CakeToHome — Premium Gourmet Cakes Delivered in 2 Hours"}</Text>
             <Text className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">{metaDesc || "Order handcrafted artisanal cakes online in Kerala. Express 2-hour delivery, customized birthday cakes, and same-day fresh delivery."}</Text>
           </div>
@@ -795,7 +795,7 @@ export const SeoPanel = memo(function SeoPanel() {
                 Sharp Engine: Active ✓
               </Badge>
               <Badge color="blue" className="text-xs font-mono">
-                {mediaList.length || 142} Assets Indexed
+                {mediaList.length} Assets Indexed
               </Badge>
             </div>
           </div>
@@ -809,14 +809,14 @@ export const SeoPanel = memo(function SeoPanel() {
 
             <Container className="p-4 flex flex-col gap-1 border-l-4 border-l-blue-500">
               <Text className="text-[11px] text-ui-fg-muted uppercase tracking-wider font-semibold">Alt Text Coverage</Text>
-              <Text className="text-xl font-bold text-blue-600">98.2%</Text>
-              <Text className="text-[10px] text-ui-fg-subtle">139 / 142 assets documented</Text>
+              <Text className="text-xl font-bold text-blue-600">{mediaList.length ? Math.round((mediaList.filter((m: any) => m.alt || m.alt_text).length / mediaList.length) * 100) : 0}%</Text>
+              <Text className="text-[10px] text-ui-fg-subtle">{mediaList.filter((m: any) => m.alt || m.alt_text).length} / {mediaList.length} assets documented</Text>
             </Container>
 
             <Container className="p-4 flex flex-col gap-1 border-l-4 border-l-purple-500">
               <Text className="text-[11px] text-ui-fg-muted uppercase tracking-wider font-semibold">Bandwidth Reduction</Text>
-              <Text className="text-xl font-bold text-brand-primary">-68.4%</Text>
-              <Text className="text-[10px] text-ui-fg-subtle">Average byte payload savings</Text>
+              <Text className="text-xl font-bold text-brand-primary">—</Text>
+              <Text className="text-[10px] text-ui-fg-subtle">Not measured</Text>
             </Container>
 
             <Container className="p-4 flex flex-col gap-1 border-l-4 border-l-amber-500">
@@ -1145,7 +1145,7 @@ export const SeoPanel = memo(function SeoPanel() {
             <div className="space-y-4">
               <div className="p-4 border rounded-xl bg-white dark:bg-slate-950 space-y-2">
                 <span className="text-xs font-semibold block text-slate-800">Sitemap Endpoint</span>
-                <p className="font-mono text-xs text-emerald-600">https://cakes2home.com/sitemap.xml</p>
+                <p className="font-mono text-xs text-emerald-600">https://caketohome.com/sitemap.xml</p>
                 <p className="text-[11px] text-ui-fg-subtle">
                   Automatically generated from published products, categories, branches, and CMS pages.
                 </p>
@@ -1353,11 +1353,16 @@ export const SeoPanel = memo(function SeoPanel() {
                 Chrome User Experience (CrUX) and 75th percentile lab metrics for CakeToHome storefront.
               </Text>
             </div>
-            <Badge color="green" className="text-xs font-mono">
-              CWV Passed: 5 / 5 ✓
+            <Badge color={vitalsList.length > 0 ? "green" : "grey"} className="text-xs font-mono">
+              {vitalsList.length > 0 ? `CWV Passed: ${vitalsList.filter((v: any) => v.status === "good").length} / ${vitalsList.length}` : "Not measured"}
             </Badge>
           </div>
 
+          {vitalsList.length === 0 && (
+            <div className="p-4 rounded-xl border border-dashed text-sm text-ui-fg-subtle">
+              No real-user performance data yet. Core Web Vitals will appear here once Google PageSpeed / Search Console is connected in Settings.
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
             {vitalsList.map((vital) => (
               <div

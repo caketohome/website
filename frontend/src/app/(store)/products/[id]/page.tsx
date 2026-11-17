@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const desc = `Order ${title} online from CakeToHome Kerala. ${rawDesc} Freshly baked with same-day and scheduled delivery available.`;
   const handle = fetched?.handle || targetId;
   const isAccessory = (fetched?.merchandise_type || "").toUpperCase() === "ACCESSORY" || (targetId && String(targetId).startsWith("acc_"));
-  const image = fetched?.thumbnail || (isAccessory ? "/images/gold-acrylic-topper.jpg" : "https://cakes2home.com/images/default-cake.jpg");
+  const image = fetched?.thumbnail || (isAccessory ? "/images/gold-acrylic-topper.jpg" : "https://caketohome.com/images/default-cake.jpg");
 
   return SeoMetadataBuilder.buildMetadata({
     entityType: "product",

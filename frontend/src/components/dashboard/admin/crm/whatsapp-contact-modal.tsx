@@ -20,28 +20,28 @@ const WHATSAPP_TEMPLATES = [
     name: "Abandoned Cart 10% Discount",
     category: "RECOVERY",
     text: (name: string, cartVal: number) =>
-      `Hi ${name || "there"}! 🎂 Your delicious celebration cake (₹${cartVal || 749}) is reserved at Cakes2Home. Complete your order now with 10% OFF using code *SWEET10* with instant 60-min delivery! Tap here to complete: https://cakes2home.com/cart`,
+      `Hi ${name || "there"}! 🎂 Your delicious celebration cake (₹${cartVal || 749}) is reserved at Cakes2Home. Complete your order now with 10% OFF using code *SWEET10* with instant 60-min delivery! Tap here to complete: https://caketohome.com/cart`,
   },
   {
     id: "WELCOME_OFFER",
     name: "New Customer Welcome 15% Voucher",
     category: "MARKETING",
     text: (name: string) =>
-      `Welcome to Cakes2Home, ${name || "Valued Customer"}! 🎉 Enjoy 15% OFF your very first order of artisan handcrafted cakes. Use coupon code *FIRSTTREAT* at checkout: https://cakes2home.com`,
+      `Welcome to Cakes2Home, ${name || "Valued Customer"}! 🎉 Enjoy 15% OFF your very first order of artisan handcrafted cakes. Use coupon code *FIRSTTREAT* at checkout: https://caketohome.com`,
   },
   {
     id: "VIP_REORDER",
     name: "VIP Special Celebration Re-order",
     category: "LOYALTY",
     text: (name: string) =>
-      `Hello ${name || "VIP Customer"}! ⭐ As a valued VIP member of Cakes2Home, enjoy complimentary priority delivery and double loyalty points on your next birthday order. Browse our freshest cakes: https://cakes2home.com`,
+      `Hello ${name || "VIP Customer"}! ⭐ As a valued VIP member of Cakes2Home, enjoy complimentary priority delivery and double loyalty points on your next birthday order. Browse our freshest cakes: https://caketohome.com`,
   },
   {
     id: "ANNUAL_REORDER_REMINDER",
     name: "Annual Celebration Reorder Reminder",
     category: "REORDER",
     text: (name: string) =>
-      `Hi ${name || "Valued Patron"}! 🎂 Warm wishes from CakeToHome! Around this time last year, you celebrated with our handcrafted cakes. We would love to bake a fresh gourmet cake with custom message decoration for your upcoming celebration this year! Explore our fresh menu: https://cakes2home.com`,
+      `Hi ${name || "Valued Patron"}! 🎂 Warm wishes from CakeToHome! Around this time last year, you celebrated with our handcrafted cakes. We would love to bake a fresh gourmet cake with custom message decoration for your upcoming celebration this year! Explore our fresh menu: https://caketohome.com`,
   },
   {
     id: "CUSTOM",

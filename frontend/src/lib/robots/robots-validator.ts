@@ -64,7 +64,7 @@ export class RobotsTxtValidator {
     });
 
     if (!hasSitemap) {
-      warnings.push("No Sitemap directive found. Adding 'Sitemap: https://cakes2home.com/sitemap.xml' is recommended.");
+      warnings.push("No Sitemap directive found. Adding 'Sitemap: https://caketohome.com/sitemap.xml' is recommended.");
     }
 
     return {

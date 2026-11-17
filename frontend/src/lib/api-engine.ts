@@ -722,7 +722,7 @@ const DEFAULT_BUSINESS_PROFILE: BusinessProfile = {
   cin: "U15400KA2024PTC189001",
   registered_email: "compliance@cakes2home.com",
   registered_phone: "+91 80 4900 1234",
-  website: "https://cakes2home.com",
+  website: "https://caketohome.com",
   support_email: "support@cakes2home.com",
   support_phone: "+91 80 4900 1234",
   registered_address: {
@@ -1343,9 +1343,9 @@ const DEFAULT_SEO_CONFIG = {
   ga_id: "G-CTH987654321",
   fb_pixel_id: "123456789012345",
   gtm_id: "GTM-CTH2026",
-  canonical_url: "https://cakes2home.com",
-  og_image: "https://cakes2home.com/og-banner.jpg",
-  robots_txt: "User-agent: *\nAllow: /\nSitemap: https://cakes2home.com/sitemap.xml",
+  canonical_url: "https://caketohome.com",
+  og_image: "https://caketohome.com/og-banner.jpg",
+  robots_txt: "User-agent: *\nAllow: /\nSitemap: https://caketohome.com/sitemap.xml",
   schema_type: "Bakery",
 };
 
@@ -1377,7 +1377,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "Order Fresh Cakes Online in Bangalore — Delivered in 2 Hours | CakeToHome",
     meta_description: "CakeToHome delivers handcrafted artisanal cakes across Bangalore in under 2 hours. Birthday, wedding, and custom photo cakes with express delivery slots.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/",
+    canonical_url: "https://caketohome.com/",
     keywords: "cake delivery bangalore, birthday cake online, custom cakes bangalore, 2 hour cake delivery",
     og_title: "Fresh Cakes Delivered in 2 Hours — CakeToHome",
     og_description: "Handcrafted birthday, wedding & photo cakes delivered fresh across Bangalore. Same-day & express delivery available.",
@@ -1516,7 +1516,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "Order Fresh Cakes Online — Birthday, Wedding & Custom Cakes | CakeToHome",
     meta_description: "Browse 100+ fresh handcrafted cakes online. Birthday cakes, wedding cakes, photo cakes, and artisan specialties. Delivery across Bangalore in 2 hours.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/products",
+    canonical_url: "https://caketohome.com/products",
     keywords: "buy cakes online, birthday cake order, wedding cake bangalore, gourmet cakes photo cakes",
     og_title: "Order Fresh Cakes Online — CakeToHome",
     og_description: "100+ artisanal cakes with same-day delivery across Bangalore.",
@@ -1554,7 +1554,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "About CakeToHome — Our Story, Our Bakers, Our Promise | CakeToHome",
     meta_description: "CakeToHome is Bangalore's premium artisanal cake bakery. Founded in 2020, we deliver handcrafted cakes with love and same-day delivery across Bangalore.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/about-us",
+    canonical_url: "https://caketohome.com/about-us",
     og_title: "About CakeToHome — Our Story",
     og_description: "Bangalore's premier artisanal cake bakery with 2-hour delivery.",
     og_type: "website",
@@ -1591,7 +1591,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "Contact CakeToHome — Get in Touch | CakeToHome",
     meta_description: "Contact CakeToHome for bulk orders, corporate cakes, wedding inquiries, and customer support. We reply within 2 hours.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/contact-us",
+    canonical_url: "https://caketohome.com/contact-us",
     structured_data_type: "ContactPage",
     sitemap_include: true,
     sitemap_priority: "0.6",
@@ -1619,7 +1619,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "Frequently Asked Questions — Cake Delivery, Orders & More | CakeToHome",
     meta_description: "Find answers to your questions about cake delivery timings, customization options, payment, express delivery and more at CakeToHome.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/faq",
+    canonical_url: "https://caketohome.com/faq",
     structured_data_type: "FAQPage",
     sitemap_include: true,
     sitemap_priority: "0.6",
@@ -1701,7 +1701,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "Best Birthday Cakes in Bangalore — Same Day Delivery | CakeToHome",
     meta_description: "Order the best birthday cakes in Bangalore with same-day & express delivery. Customizable, artisan, and photo cakes from ₹399. Free delivery above ₹599.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/birthday-cakes-bangalore",
+    canonical_url: "https://caketohome.com/birthday-cakes-bangalore",
     keywords: "birthday cakes bangalore, birthday cake delivery, custom birthday cake, express birthday cake delivery",
     structured_data_type: "Product",
     sitemap_include: true,
@@ -1734,7 +1734,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "Our Story — The CakeToHome Artisanal Heritage | CakeToHome",
     meta_description: "Discover how CakeToHome started as a small neighborhood kitchen in Bangalore and grew into a beloved artisanal bakery with 2-hour delivery.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/our-story",
+    canonical_url: "https://caketohome.com/our-story",
     structured_data_type: "AboutPage",
     sitemap_include: true,
     sitemap_priority: "0.6",
@@ -1764,7 +1764,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "Mission & Vision — Pure Ingredients, On-Time Celebrations | CakeToHome",
     meta_description: "Our mission is to deliver Bangalore's freshest, most delightful cakes within 2 hours while championing sustainability and artisanal craft.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/mission-vision",
+    canonical_url: "https://caketohome.com/mission-vision",
     structured_data_type: "AboutPage",
     sitemap_include: true,
     sitemap_priority: "0.5",
@@ -1794,7 +1794,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "Meet Our Master Pastry Chefs & Team | CakeToHome",
     meta_description: "Meet the passionate pastry chefs, cake stylists, and logistics professionals behind every CakeToHome celebration.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/team",
+    canonical_url: "https://caketohome.com/team",
     structured_data_type: "AboutPage",
     sitemap_include: true,
     sitemap_priority: "0.5",
@@ -1824,7 +1824,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "Careers at CakeToHome — Join Our Bakery & Logistics Family",
     meta_description: "Explore exciting career opportunities at CakeToHome. We're hiring pastry chefs, cake decorators, kitchen leads, and delivery champions in Bangalore.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/careers",
+    canonical_url: "https://caketohome.com/careers",
     structured_data_type: "AboutPage",
     sitemap_include: true,
     sitemap_priority: "0.5",
@@ -1854,7 +1854,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "CakeToHome Bakery Hub Locations — Indiranagar, Koramangala, HSR, Whitefield",
     meta_description: "Visit or order from our physical bakery kitchen hubs across Bangalore. Open daily from 9:00 AM to 11:30 PM for dine-in pickup and express delivery.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/locations",
+    canonical_url: "https://caketohome.com/locations",
     structured_data_type: "ContactPage",
     sitemap_include: true,
     sitemap_priority: "0.7",
@@ -1884,7 +1884,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "Customer Reviews & Testimonials | CakeToHome",
     meta_description: "Read genuine customer reviews and ratings for CakeToHome birthday cakes, 2-hour express deliveries, and customized photo cakes in Bangalore.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/testimonials",
+    canonical_url: "https://caketohome.com/testimonials",
     structured_data_type: "AboutPage",
     sitemap_include: true,
     sitemap_priority: "0.6",
@@ -1914,7 +1914,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "About Us — The CakeToHome Artisanal Bakery | CakeToHome",
     meta_description: "Discover CakeToHome's commitment to 100% fresh, handcrafted gourmet cakes with pure Belgian chocolate and 2-hour express delivery.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/about-us",
+    canonical_url: "https://caketohome.com/about-us",
     structured_data_type: "AboutPage",
     sitemap_include: true,
     sitemap_priority: "0.8",
@@ -1945,7 +1945,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "Contact CakeToHome — Customer Support & Order Assistance",
     meta_description: "Need help with an ongoing order, bulk corporate cakes, or wedding enquiries? Reach CakeToHome support via phone, WhatsApp, or email.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/contact-us",
+    canonical_url: "https://caketohome.com/contact-us",
     structured_data_type: "ContactPage",
     sitemap_include: true,
     sitemap_priority: "0.8",
@@ -1975,7 +1975,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "Refund Policy | CakeToHome",
     meta_description: "Understand CakeToHome's transparent refund terms, resolution timelines, and replacement policies for perishable bakery goods.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/refund-policy",
+    canonical_url: "https://caketohome.com/refund-policy",
     structured_data_type: "WebPage",
     sitemap_include: true,
     sitemap_priority: "0.4",
@@ -2005,7 +2005,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "Cancellation Policy | CakeToHome",
     meta_description: "Learn about order cancellation cutoffs, same-day delivery cancellations, and fee structures at CakeToHome.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/cancellation-policy",
+    canonical_url: "https://caketohome.com/cancellation-policy",
     structured_data_type: "WebPage",
     sitemap_include: true,
     sitemap_priority: "0.4",
@@ -2035,7 +2035,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "Shipping & Delivery Policy | CakeToHome",
     meta_description: "Details on our 2-hour express delivery, scheduled slots, insulated temperature packaging, and serviceability across Bengaluru.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/shipping-policy",
+    canonical_url: "https://caketohome.com/shipping-policy",
     structured_data_type: "WebPage",
     sitemap_include: true,
     sitemap_priority: "0.4",
@@ -2065,7 +2065,7 @@ const DEFAULT_CMS_PAGES = [
     meta_title: "Cookie Policy | CakeToHome",
     meta_description: "How CakeToHome uses cookies to enhance your shopping experience, secure your cart, and remember your delivery preferences.",
     robots_tag: "index, follow",
-    canonical_url: "https://cakes2home.com/cookie-policy",
+    canonical_url: "https://caketohome.com/cookie-policy",
     structured_data_type: "WebPage",
     sitemap_include: true,
     sitemap_priority: "0.3",
@@ -12294,9 +12294,9 @@ export class ApiEngine {
         { question: `Can I order a custom cake in ${label}?`, answer: `Absolutely! We specialize in custom birthday, wedding, and theme cakes in ${label}.` },
       ]),
       schema_json: JSON.stringify({
-        "@context": "https://schema.org", "@type": "LocalBusiness", "@id": `https://cakes2home.com/${slug}`,
+        "@context": "https://schema.org", "@type": "LocalBusiness", "@id": `https://caketohome.com/${slug}`,
         name: `CakeToHome ${label}`, description: `Premium cake delivery service in ${label}`,
-        url: `https://cakes2home.com/${slug}`, areaServed: { "@type": "City", name: label },
+        url: `https://caketohome.com/${slug}`, areaServed: { "@type": "City", name: label },
       }),
       breadcrumbs: JSON.stringify([{ name: "Home", url: "/" }, { name: "Cakes", url: "/cakes" }, { name: label, url: `/${slug}` }]),
       internal_links: JSON.stringify([]), keywords: `cake delivery ${label.toLowerCase()}, cakes online ${label.toLowerCase()}, birthday cake ${label.toLowerCase()}`,
@@ -12402,7 +12402,7 @@ export class ApiEngine {
   static getSeoUtmCampaigns() { return memoryStore.seo_utm_campaigns || []; }
 
   static createSeoUtmCampaign(data: any) {
-    const url = data.url || "https://cakes2home.com";
+    const url = data.url || "https://caketohome.com";
     const params = new URLSearchParams();
     if (data.source) params.set("utm_source", data.source);
     if (data.medium) params.set("utm_medium", data.medium);
@@ -12571,7 +12571,7 @@ export class ApiEngine {
           entity_type: "product", entity_id: p.id,
           slug: p.handle || p.id, url: `/products/${p.handle || p.id}`,
           meta_title: p.seo_title || p.title, meta_description: p.seo_description || p.description?.substring(0, 160),
-          canonical_url: `https://cakes2home.com/products/${p.handle || p.id}`,
+          canonical_url: `https://caketohome.com/products/${p.handle || p.id}`,
           h1_text: p.title, h1_count: 1, word_count: (p.description || "").split(/\s+/).length,
           has_schema: true, schema_types: JSON.stringify(["Product"]),
           og_title: p.title, og_image: p.thumbnail || null,
@@ -12587,7 +12587,7 @@ export class ApiEngine {
           entity_type: "category", entity_id: c.id,
           slug: c.slug || c.id, url: `/categories/${c.slug || c.id}`,
           meta_title: c.seo_title || c.name, meta_description: c.seo_description || c.description?.substring(0, 160),
-          canonical_url: `https://cakes2home.com/categories/${c.slug || c.id}`,
+          canonical_url: `https://caketohome.com/categories/${c.slug || c.id}`,
           h1_text: c.name, h1_count: 1, has_schema: true, schema_types: JSON.stringify(["CollectionPage"]),
           og_title: c.name, og_image: c.image_url || null,
         });
@@ -12603,7 +12603,7 @@ export class ApiEngine {
           slug, url: `/cakes/${slug}`,
           meta_title: `CakeToHome ${b.name} — Cake Delivery in ${b.city || ""}`,
           meta_description: `Order premium cakes from CakeToHome ${b.name}. Same-day delivery, scheduled delivery, custom cakes in ${b.city || ""}.`,
-          canonical_url: `https://cakes2home.com/cakes/${slug}`,
+          canonical_url: `https://caketohome.com/cakes/${slug}`,
           h1_text: `Cake Delivery in ${b.name}`, h1_count: 1,
           has_schema: true, schema_types: JSON.stringify(["LocalBusiness", "Bakery"]),
           og_title: `CakeToHome ${b.name}`,
@@ -12620,7 +12620,7 @@ export class ApiEngine {
           slug: pg.slug, url: pg.type === "blog" ? `/blog/${pg.slug}` : `/${pg.slug}`,
           meta_title: pg.meta_title || pg.title,
           meta_description: pg.meta_description || pg.excerpt,
-          canonical_url: pg.canonical_url || `https://cakes2home.com/${pg.slug}`,
+          canonical_url: pg.canonical_url || `https://caketohome.com/${pg.slug}`,
           h1_text: pg.title, h1_count: 1,
           has_schema: pg.type === "blog",
           schema_types: pg.type === "blog" ? JSON.stringify(["Article"]) : null,
@@ -12681,7 +12681,7 @@ export class ApiEngine {
         const before = { ...page };
         if (!page.meta_title) page.meta_title = `${page.h1_text || page.slug} — CakeToHome Order Online`;
         if (!page.meta_description) page.meta_description = `Order ${page.h1_text || page.slug} online from CakeToHome. Fresh, handcrafted with premium ingredients. Same-day delivery.`;
-        if (!page.canonical_url) page.canonical_url = `https://cakes2home.com${page.url || `/${page.slug}`}`;
+        if (!page.canonical_url) page.canonical_url = `https://caketohome.com${page.url || `/${page.slug}`}`;
         ApiEngine.updateSeoPage(page.id, page);
         ApiEngine.addSeoAuditLogWithDiff("auto_fixed", "seo_page", page.id, before, page, "super_admin");
         return { fixed: true, message: `Auto-fixed metadata for page ${page.slug}` };
@@ -12723,12 +12723,12 @@ export class ApiEngine {
 
   // ── Robots & Sitemap Syntax Validators ───────────────────────
   static validateRobotsSyntax(content?: string) {
-    const txt = content || memoryStore.seo_config?.robots_txt || "User-agent: *\nAllow: /\nSitemap: https://cakes2home.com/sitemap.xml";
+    const txt = content || memoryStore.seo_config?.robots_txt || "User-agent: *\nAllow: /\nSitemap: https://caketohome.com/sitemap.xml";
     return RobotsTxtValidator.validate(txt);
   }
 
   static validateSitemapXml(xmlContent?: string) {
-    const defaultXml = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://cakes2home.com/</loc><lastmod>2026-08-08</lastmod></url></urlset>`;
+    const defaultXml = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://caketohome.com/</loc><lastmod>2026-08-08</lastmod></url></urlset>`;
     return XmlSitemapValidator.validateSitemapXml(xmlContent || defaultXml);
   }
 
@@ -14442,7 +14442,7 @@ export class ApiEngine {
       seo_description: data.seo_description || `Handcrafted ${cleanName} cakes delivered in 2 hours across Bangalore.`,
       seo_keywords: data.seo_keywords || `${cleanName.toLowerCase()} cake, online ${cleanName.toLowerCase()} cake bangalore`,
       og_image: data.og_image || cover,
-      canonical_url: data.canonical_url || `https://cakes2home.com/occasions/${cleanSlug}`,
+      canonical_url: data.canonical_url || `https://caketohome.com/occasions/${cleanSlug}`,
       featured_product_ids: Array.isArray(data.featured_product_ids) ? data.featured_product_ids : [],
       included_category_ids: Array.isArray(data.included_category_ids) ? data.included_category_ids : [],
       excluded_product_ids: Array.isArray(data.excluded_product_ids) ? data.excluded_product_ids : [],

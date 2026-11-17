@@ -6426,7 +6426,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
     }
     if (path === "admin/seo/vitals") {
-      return jsonWithDataSource({ vitals: CORE_WEB_VITALS_DATA }, "postgres");
+      // No CrUX/PageSpeed integration yet: report nothing rather than fixed sample numbers.
+      return jsonWithDataSource({ vitals: [] }, "postgres");
     }
     if (path === "admin/seo/reports") return jsonWithDataSource({ reports: ApiEngine.getSeoReports() }, "postgres");
     if (path === "admin/seo/crawl-history") return jsonWithDataSource({ crawl_history: ApiEngine.getSeoCrawlHistory() }, "postgres");

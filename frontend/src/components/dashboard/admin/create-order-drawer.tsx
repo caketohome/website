@@ -339,7 +339,7 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
 
   // Generate Payment Link
   const handleGeneratePaymentLink = () => {
-    const link = `https://cakes2home.com/pay/pay_${Date.now().toString(36)}`;
+    const link = `https://caketohome.com/pay/pay_${Date.now().toString(36)}`;
     setGeneratedPaymentLink(link);
   };
 

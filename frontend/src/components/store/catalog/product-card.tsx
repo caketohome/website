@@ -64,7 +64,7 @@ export function ProductCard({ product }: { product: SearchResult }) {
         <div
             data-testid="product-card"
             data-product-id={prodId}
-            className="group relative flex flex-col h-full justify-between p-3.5 sm:p-4 rounded-xl shadow-sm hover:shadow-md hover:border-brand-primary/30 transition-all duration-300 bg-white text-inherit border border-brand-border hover:border-blue-200"
+            className="group relative flex flex-col h-full justify-between p-3.5 sm:p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 bg-[#1D2F5D] text-white border border-white/10 hover:border-white/25"
         >
             {/* Stretched Link: Makes entire card clickable without invalid nested HTML */}
             <Link
@@ -93,7 +93,7 @@ export function ProductCard({ product }: { product: SearchResult }) {
                     {merchandising.map((m) => (
                         <div
                             key={m}
-                            className="bg-brand-navy text-brand-gold-light px-2.5 py-1 rounded-md text-[9px] uppercase tracking-widest font-semibold"
+                            className="bg-brand-gold text-[#1D2F5D] px-2.5 py-1 rounded-md text-[9px] uppercase tracking-widest font-semibold"
                         >
                             {m}
                         </div>
@@ -123,12 +123,12 @@ export function ProductCard({ product }: { product: SearchResult }) {
             {(product.category || product.flavour) && (
                 <div className="flex items-center justify-between gap-1 text-[11px] mt-3.5">
                     {product.category && (
-                        <span className="font-sans text-[10px] uppercase tracking-[0.2em] text-brand-gold-dark truncate max-w-[70%] font-semibold">
+                        <span className="font-sans text-[10px] uppercase tracking-[0.2em] text-brand-gold-light truncate max-w-[70%] font-semibold">
                             {product.category}
                         </span>
                     )}
                     {product.flavour && (
-                        <span className="font-sans text-[10px] text-brand-text-muted truncate ml-auto italic">
+                        <span className="font-sans text-[10px] text-white/75 truncate ml-auto italic">
                             {product.flavour}
                         </span>
                     )}
@@ -137,12 +137,12 @@ export function ProductCard({ product }: { product: SearchResult }) {
 
             {/* Title & Description with controlled heights for strict grid alignment */}
             <div className="flex flex-col gap-1 flex-1 mt-2">
-                <h3 className="font-serif text-[18px] sm:text-[20px] font-semibold text-brand-navy leading-snug line-clamp-2 min-h-[3rem] group-hover:text-brand-primary transition-colors">
+                <h3 className="font-serif text-[18px] sm:text-[20px] font-semibold text-white leading-snug line-clamp-2 min-h-[3rem] group-hover:text-brand-gold-light transition-colors">
                     {product.title}
                 </h3>
 
                 {product.description && (
-                    <p className="font-sans text-brand-text-muted text-[12px] sm:text-[13px] leading-relaxed line-clamp-2 mt-0.5 min-h-[2.5rem]">
+                    <p className="font-sans text-white/80 text-[12px] sm:text-[13px] leading-relaxed line-clamp-2 mt-0.5 min-h-[2.5rem]">
                         {product.description}
                     </p>
                 )}
@@ -153,7 +153,7 @@ export function ProductCard({ product }: { product: SearchResult }) {
                     {dietary.map((d) => (
                         <div
                             key={d}
-                            className="bg-brand-cream border border-brand-gold/25 px-2 py-0.5 rounded-md text-[10px] uppercase tracking-wider text-brand-gold-dark font-medium"
+                            className="bg-white/10 border border-white/20 px-2 py-0.5 rounded-md text-[10px] uppercase tracking-wider text-brand-gold-light font-medium"
                         >
                             {d}
                         </div>
@@ -162,9 +162,9 @@ export function ProductCard({ product }: { product: SearchResult }) {
             )}
 
             {/* Price & Non-interactive Action Hint */}
-            <div className="flex items-center justify-between mt-auto pt-3 border-t border-brand-border shrink-0">
+            <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/15 shrink-0">
                 <div className="flex flex-col">
-                    <span className="font-sans text-base sm:text-lg font-bold text-brand-navy tabular-nums">
+                    <span className="font-sans text-base sm:text-lg font-bold text-white tabular-nums">
                         {(() => {
                             const pVal = (product.price && product.price > 0)
                                 ? product.price
@@ -178,15 +178,15 @@ export function ProductCard({ product }: { product: SearchResult }) {
                         })()}
                     </span>
                     {product.review_count > 0 && (
-                        <span className="font-sans text-brand-gold-dark text-[11px] flex items-center gap-1 font-semibold">
+                        <span className="font-sans text-brand-gold-light text-[11px] flex items-center gap-1 font-semibold">
                             <span>★</span> <span>{product.rating.toFixed(1)}</span>
-                            <span className="text-brand-text-muted font-normal">({product.review_count})</span>
+                            <span className="text-white/70 font-normal">({product.review_count})</span>
                         </span>
                     )}
                 </div>
 
                 {/* Non-interactive action hint */}
-                <span className="font-sans text-xs font-semibold text-brand-primary flex items-center gap-1 group-hover:translate-x-1 group-hover:text-brand-secondary transition-all">
+                <span className="font-sans text-xs font-semibold text-brand-gold-light flex items-center gap-1 group-hover:translate-x-1 group-hover:text-white transition-all">
                     View details <span aria-hidden="true">→</span>
                 </span>
             </div>

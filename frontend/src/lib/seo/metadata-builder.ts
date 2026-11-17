@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-const PRODUCTION_DOMAIN = process.env.NEXT_PUBLIC_BASE_URL || "https://cakes2home.com";
+const PRODUCTION_DOMAIN = process.env.NEXT_PUBLIC_BASE_URL || "https://caketohome.com";
 
 export interface MetadataOptions {
   entityType?: "product" | "category" | "branch" | "city" | "cms" | "blog" | "page";

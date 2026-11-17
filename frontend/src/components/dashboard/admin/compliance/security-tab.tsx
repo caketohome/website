@@ -14,7 +14,7 @@ export function SecurityTab({
     jwt_expiry_hours: securityConfig?.jwt_expiry_hours ?? 24,
     otp_cooldown_seconds: securityConfig?.otp_cooldown_seconds ?? 60,
     rate_limit_per_min: securityConfig?.rate_limit_per_min ?? 120,
-    allowed_origins: securityConfig?.allowed_origins || "https://cakes2home.com, http://localhost:3000",
+    allowed_origins: securityConfig?.allowed_origins || "https://caketohome.com, http://localhost:3000",
     max_login_attempts: securityConfig?.max_login_attempts ?? 5,
   });
 

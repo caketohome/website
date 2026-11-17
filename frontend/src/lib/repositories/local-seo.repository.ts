@@ -73,11 +73,10 @@ export class LocalSeoRepository {
     const cityBranches = branchesData.filter(
       (b) =>
         b.city.toLowerCase() === city.name.toLowerCase() ||
-        b.city_id === city.id ||
-        (b.state.toLowerCase() === city.state.toLowerCase() && b.is_open)
+        b.city_id === city.id
     );
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://cakes2home.com";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://caketohome.com";
     const canonical = `${baseUrl}/city/${city.slug}`;
 
     const faqs = [
@@ -106,22 +105,21 @@ export class LocalSeoRepository {
       "@id": `${canonical}#bakery`,
       name: `CakeToHome Bakery — ${city.name}`,
       url: canonical,
-      telephone: cityBranches[0]?.phone || "+91 80 4900 9999",
+      telephone: cityBranches[0]?.phone || undefined,
       priceRange: "₹₹",
-      image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587",
       address: {
         "@type": "PostalAddress",
-        streetAddress: cityBranches[0]?.address || "Bakery Hub",
+        streetAddress: cityBranches[0]?.address || undefined,
         addressLocality: city.name,
         addressRegion: city.state,
-        postalCode: cityBranches[0]?.pincode || "560001",
+        postalCode: cityBranches[0]?.pincode || undefined,
         addressCountry: "IN",
       },
-      geo: {
+      geo: cityBranches[0]?.latitude && cityBranches[0]?.longitude ? {
         "@type": "GeoCoordinates",
-        latitude: cityBranches[0]?.latitude || 12.9716,
-        longitude: cityBranches[0]?.longitude || 77.5946,
-      },
+        latitude: cityBranches[0].latitude,
+        longitude: cityBranches[0].longitude,
+      } : undefined,
       openingHoursSpecification: [
         {
           "@type": "OpeningHoursSpecification",
@@ -200,8 +198,9 @@ export class LocalSeoRepository {
         faq_schema: faqSchema,
         breadcrumb_schema: breadcrumbSchema,
       },
-      geo_score: 95,
-      aeo_score: 92,
+      // Real coverage scores: a local page only ranks/gets cited if it has a branch and pincodes behind it.
+      geo_score: cityBranches.length === 0 ? 20 : cityBranches.some((b) => b.pincode) ? 100 : 70,
+      aeo_score: cityBranches.length === 0 ? 20 : 80,
       updated_at: new Date().toISOString(),
     };
   }
@@ -215,7 +214,8 @@ export class LocalSeoRepository {
 
     for (const city of cities) {
       const page = await this.getCityLandingPage(city.slug);
-      if (page) pages.push(page);
+      // Only cities actually served by a branch get a landing page (no empty demo city pages).
+      if (page && page.branches.length > 0) pages.push(page);
     }
 
     return pages;

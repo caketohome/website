@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export const dynamic = "force-dynamic";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://cakes2home.com";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://caketohome.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let ApiEngine: any = null;

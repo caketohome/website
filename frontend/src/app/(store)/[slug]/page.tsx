@@ -38,7 +38,7 @@ export default async function CmsPageRoute({
     listPimCategories(),
     listOccasions(),
   ]);
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://cakes2home.com";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://caketohome.com";
   const pageUrl = `${baseUrl}/${params.slug}`;
 
   const sections = Array.isArray(page.sections) ? page.sections : [];

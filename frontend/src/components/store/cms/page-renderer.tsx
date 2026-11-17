@@ -2264,7 +2264,7 @@ export function PageRenderer({
                     key={pid}
                     data-testid="product-card"
                     data-product-id={pid}
-                    className={`product-card-${sectionKey} group relative overflow-hidden flex flex-col justify-between transition-all duration-300 shrink-0 bg-white border border-brand-border hover:border-slate-300 shadow-[0_4px_20px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)] ${
+                    className={`product-card-${sectionKey} group relative overflow-hidden flex flex-col justify-between transition-all duration-300 shrink-0 bg-[#1D2F5D] text-white border border-white/10 hover:border-white/25 shadow-[0_4px_20px_rgba(15,23,42,0.18)] hover:shadow-[0_12px_30px_rgba(15,23,42,0.32)] ${
                       layoutMode === "carousel" ? "w-[240px] sm:w-[280px] snap-start" : ""
                     }`}
                     style={{ borderRadius: cardRadius }}
@@ -2287,7 +2287,7 @@ export function PageRenderer({
                         />
                         {showBadge && (product.is_bestseller || product.is_featured || product.is_new_arrival) && (
                           <div className="absolute top-2.5 left-2.5 pointer-events-none">
-                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-semibold uppercase tracking-wider shadow-xs bg-brand-text text-white">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-semibold uppercase tracking-wider shadow-xs bg-brand-gold text-[#1D2F5D]">
                               {product.is_bestseller ? "Bestseller" : product.is_new_arrival ? "New" : "Featured"}
                             </span>
                           </div>
@@ -2314,58 +2314,58 @@ export function PageRenderer({
                       <div className="flex flex-col gap-1.5">
                         <div className="flex items-center gap-2 flex-wrap">
                           {showRating && rating > 0 && reviewCount > 0 && (
-                            <div className="flex items-center gap-1 text-[11px] font-semibold text-brand-gold-dark">
+                            <div className="flex items-center gap-1 text-[11px] font-semibold text-brand-gold-light">
                               <Star className="w-3 h-3 fill-brand-gold text-brand-gold" />
                               <span>{rating}</span>
-                              {showReviewCount && <span className="text-brand-text-muted font-normal">({reviewCount})</span>}
+                              {showReviewCount && <span className="text-white/70 font-normal">({reviewCount})</span>}
                             </div>
                           )}
                           {showFlavour && flavour && (
-                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded text-[#475569] bg-[#F1F5F9] border border-slate-200">
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded text-white bg-white/10 border border-white/20">
                               {flavour}
                             </span>
                           )}
                           {showWeight && weight && (
-                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border text-brand-text-muted bg-brand-surface-muted border-brand-border">
+                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border text-white/90 bg-white/10 border-white/20">
                               {weight}
                             </span>
                           )}
                         </div>
 
                         {showTitle && (
-                          <h3 className="font-serif text-sm sm:text-base font-semibold text-brand-text leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-brand-navy transition-colors">
+                          <h3 className="font-serif text-sm sm:text-base font-semibold text-white leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-brand-gold-light transition-colors">
                             {product.title}
                           </h3>
                         )}
                         {showDesc && product.description && (
-                          <p className="font-sans text-[11px] sm:text-[12px] text-brand-text-muted leading-relaxed line-clamp-2 min-h-[2rem]">
+                          <p className="font-sans text-[11px] sm:text-[12px] text-white/80 leading-relaxed line-clamp-2 min-h-[2rem]">
                             {product.description}
                           </p>
                         )}
                         {showStock && (
                           <span className={`text-[10px] font-semibold ${
-                            product.in_stock !== false ? "text-emerald-600" : "text-brand-gold"
+                            product.in_stock !== false ? "text-emerald-300" : "text-brand-gold-light"
                           }`}>
                             {product.in_stock !== false ? "● In Stock" : "● Made to Order"}
                           </span>
                         )}
                       </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t border-brand-border">
+                      <div className="flex items-center justify-between pt-2 border-t border-white/15">
                         {showPrice && price > 0 && (
                           <div className="flex flex-col">
-                            <span className="text-base sm:text-lg font-bold font-sans text-brand-text tabular-nums">
+                            <span className="text-base sm:text-lg font-bold font-sans text-white tabular-nums">
                               ₹{price.toLocaleString("en-IN")}
                             </span>
                             {showComparePrice && originalPrice > price && (
-                              <span className="text-[10px] sm:text-xs line-through font-sans text-brand-text-muted">
+                              <span className="text-[10px] sm:text-xs line-through font-sans text-white/60">
                                 ₹{originalPrice.toLocaleString()}
                               </span>
                             )}
                           </div>
                         )}
                         {/* Non-interactive Action Hint instead of separate Order button */}
-                        <span className="inline-flex items-center gap-1 text-xs font-sans font-semibold tracking-wide transition-transform group-hover:translate-x-1 text-brand-navy group-hover:text-brand-text">
+                        <span className="inline-flex items-center gap-1 text-xs font-sans font-semibold tracking-wide transition-transform group-hover:translate-x-1 text-brand-gold-light group-hover:text-white">
                           Explore cake <ArrowRight className="w-3 h-3" />
                         </span>
                       </div>

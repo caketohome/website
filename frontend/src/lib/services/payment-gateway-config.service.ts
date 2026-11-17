@@ -495,7 +495,28 @@ export class PaymentGatewayConfigService {
         const cfg = await this.getAdminConfigAll("razorpay");
         target = cfg.active_environment || "TEST";
       }
-      const stored = await this.getEnvironmentCredentials("razorpay", target);
+      let stored: { key_id: string; key_secret: string } | null = null;
+      try {
+        stored = await this.getEnvironmentCredentials("razorpay", target);
+      } catch (decryptErr: any) {
+        // Stored secret was encrypted with a different master key (e.g. saved from a dev machine) or
+        // GATEWAY_SECRET_MASTER_KEY is missing on this server. Probe the env keys checkout falls back to.
+        console.warn("[PaymentGatewayConfig] stored secret unreadable:", decryptErr?.message);
+        const envId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "";
+        const envSecret = process.env.RAZORPAY_KEY_SECRET || "";
+        if (envId && envSecret && envId.startsWith(`rzp_${target.toLowerCase()}`)) {
+          stored = { key_id: envId, key_secret: envSecret };
+        } else {
+          return {
+            success: false,
+            status_code: 500,
+            environment: target,
+            category: "NETWORK_FAILURE",
+            message: "Saved Razorpay secret cannot be decrypted on this server. Set GATEWAY_SECRET_MASTER_KEY on the server, then re-enter and save the keys in Payment Settings.",
+            tested_at
+          } as DiagnosticProbeResult;
+        }
+      }
       if (!stored) {
         return {
           success: false,

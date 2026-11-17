@@ -695,7 +695,7 @@ export class PaymentVerificationService {
               customer_name: customerName,
               amount: paidAmount,
               delivery_date: order.metadata?.delivery_date || "Today",
-              tracking_url: `https://cakes2home.com/your-order?order_id=${order.id}`,
+              tracking_url: `https://caketohome.com/your-order?order_id=${order.id}`,
             }),
           ]
         );
@@ -717,7 +717,7 @@ export class PaymentVerificationService {
               customer_name: customerName,
               amount: paidAmount,
               kot_number: kotNumber,
-              tracking_url: `https://cakes2home.com/your-order?order_id=${order.id}`,
+              tracking_url: `https://caketohome.com/your-order?order_id=${order.id}`,
             }),
           ]
         );
@@ -871,7 +871,7 @@ export class PaymentVerificationService {
               JSON.stringify({
                 order_number: order.order_number || order.id,
                 reason: errorDescription || "Payment failed",
-                retry_url: `https://cakes2home.com/checkout?order_id=${order.id}`,
+                retry_url: `https://caketohome.com/checkout?order_id=${order.id}`,
               }),
             ]
           );

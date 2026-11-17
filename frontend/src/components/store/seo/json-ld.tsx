@@ -11,13 +11,13 @@
  * (Catalog) once product/review models exist.
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://cakes2home.com";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://caketohome.com";
 
 type JsonLd = Record<string, unknown>;
 
 function Script({ data }: { data: JsonLd }) {
     let jsonStr = JSON.stringify(data);
-    jsonStr = jsonStr.replace(/http:\/\/localhost(:\d+)?/g, "https://cakes2home.com").replace(/http:\/\/127\.0\.0\.1(:\d+)?/g, "https://cakes2home.com");
+    jsonStr = jsonStr.replace(/http:\/\/localhost(:\d+)?/g, "https://caketohome.com").replace(/http:\/\/127\.0\.0\.1(:\d+)?/g, "https://caketohome.com");
     return (
         <script
             type="application/ld+json"

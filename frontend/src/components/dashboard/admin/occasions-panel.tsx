@@ -154,7 +154,7 @@ export function OccasionsPanel() {
     setSeoDescription(occ.seo_description || "");
     setSeoKeywords(occ.seo_keywords || "");
     setOgImage(occ.og_image || cover);
-    setCanonicalUrl(occ.canonical_url || `https://cakes2home.com/occasions/${occ.slug}`);
+    setCanonicalUrl(occ.canonical_url || `https://caketohome.com/occasions/${occ.slug}`);
     setFeaturedProductIds(Array.isArray(occ.featured_product_ids) ? occ.featured_product_ids : []);
     setIncludedCategoryIds(Array.isArray(occ.included_category_ids) ? occ.included_category_ids : []);
     setShowModal(true);
@@ -232,7 +232,7 @@ export function OccasionsPanel() {
       seo_description: seoDescription.trim() || `Order handcrafted ${name.trim()} cakes delivered in 2 hours across Kerala.`,
       seo_keywords: seoKeywords.trim(),
       og_image: (ogImage || coverImage).trim(),
-      canonical_url: canonicalUrl.trim() || `https://cakes2home.com/occasions/${cleanSlug}`,
+      canonical_url: canonicalUrl.trim() || `https://caketohome.com/occasions/${cleanSlug}`,
       featured_product_ids: featuredProductIds,
       included_category_ids: includedCategoryIds,
     };
@@ -888,7 +888,7 @@ export function OccasionsPanel() {
                       id="occ_canon_url"
                       value={canonicalUrl}
                       onChange={(e) => setCanonicalUrl(e.target.value)}
-                      placeholder={`https://cakes2home.com/occasions/${slug || "birthday"}`}
+                      placeholder={`https://caketohome.com/occasions/${slug || "birthday"}`}
                       className="mt-1 text-xs font-mono"
                     />
                   </div>
