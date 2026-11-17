@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Container, Heading, Text, Button, Input, Label, Badge } from "@medusajs/ui";
-import { ShieldAlert, Plus, CheckCircle2, AlertTriangle, AlertOctagon, RefreshCw, Edit2, Calendar, FileCheck, X, FileText } from "lucide-react";
+import { ShieldAlert, Plus, CheckCircle2, AlertTriangle, AlertOctagon, RefreshCw, Edit2, Calendar, FileCheck, X, FileText, Trash2 } from "lucide-react";
 import { apiClient } from "@frontend/lib/api-client";
 
 export function FssaiComplianceTab({
@@ -146,6 +146,17 @@ export function FssaiComplianceTab({
       alert("Verification failed: " + (err.message || "Provider error"));
     } finally {
       setVerifyingId(null);
+    }
+  };
+
+  const handleDeleteLicense = async (comp: any) => {
+    if (!window.confirm(`Delete FSSAI license ${comp.fssai_number} for ${comp.branch_name}? This cannot be undone.`)) return;
+    try {
+      const res: any = await apiClient.deleteBranchCompliance(comp.id);
+      if (res?.success === false) throw new Error(res.error || "Failed to delete FSSAI license");
+      onReload();
+    } catch (err: any) {
+      window.alert(err.message || "Failed to delete FSSAI license");
     }
   };
 
@@ -353,6 +364,14 @@ export function FssaiComplianceTab({
                             className="text-xs"
                           >
                             <Edit2 className="w-3.5 h-3.5 mr-1" /> Edit
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="small"
+                            onClick={() => handleDeleteLicense(comp)}
+                            className="text-xs text-rose-600 hover:text-rose-700"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
                           </Button>
                         </div>
                       </td>

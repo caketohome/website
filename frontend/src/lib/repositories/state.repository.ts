@@ -74,8 +74,17 @@ export class StateRepository {
     const existing = await StateRepository.findByCode(code);
     if (existing) throw new Error(`State with code "${code}" already exists.`);
 
+    if (!/^[A-Z]{2}$/.test(code)) throw new Error("State code must be exactly 2 letters (e.g. KA, KL).");
     const id = payload.id || `state_${code.toLowerCase()}`;
     const gstCode = (payload.gst_state_code || "").trim();
+    if (gstCode && !/^\d{2}$/.test(gstCode)) throw new Error("GST state code must be exactly 2 digits (e.g. 29, 32).");
+    if (gstCode) {
+      const gstTaken = await dbQuery(
+        `SELECT name FROM "state" WHERE gst_state_code = $1 AND deleted_at IS NULL LIMIT 1`,
+        [gstCode]
+      );
+      if (gstTaken.rows?.length) throw new Error(`GST state code ${gstCode} already belongs to ${gstTaken.rows[0].name}.`);
+    }
     const countryId = payload.country_id || "country_in";
     const countryCode = (payload.country_code || "IN").trim().toUpperCase();
     const timezone = payload.timezone || "Asia/Kolkata";
@@ -91,9 +100,18 @@ export class StateRepository {
         "timezone", "currency", "currency_symbol", "is_active", "status",
         "display_order", "created_at", "updated_at"
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+      ON CONFLICT ("id") DO UPDATE SET
+        "code" = EXCLUDED.code, "name" = EXCLUDED.name, "gst_state_code" = EXCLUDED.gst_state_code,
+        "country_id" = EXCLUDED.country_id, "country_code" = EXCLUDED.country_code,
+        "timezone" = EXCLUDED.timezone, "currency" = EXCLUDED.currency,
+        "currency_symbol" = EXCLUDED.currency_symbol, "is_active" = EXCLUDED.is_active,
+        "status" = EXCLUDED.status, "display_order" = EXCLUDED.display_order,
+        "deleted_at" = NULL, "updated_at" = NOW()
+      WHERE "state".deleted_at IS NOT NULL
       RETURNING *`,
       [id, code, name, gstCode, countryId, countryCode, timezone, currency, currencySymbol, isActive, status, displayOrder]
     );
+    if (!res.rows?.length) throw new Error(`State id "${id}" already exists.`);
 
     return StateRepository.mapRowToDomain(res.rows[0]);
   }

@@ -25,7 +25,7 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
     phone: "",
     alternate_phone: "",
     email: "",
-    date_of_birth: "1996-05-15",
+    date_of_birth: "",
     address: "",
     city: "",
     state: "",
@@ -35,12 +35,12 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
     emergency_contact_phone: "",
 
     // Step 2: Branch Associations
-    primary_branch_id: branches[0]?.id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+    primary_branch_id: "",
     secondary_branch_ids: [] as string[],
 
-    // Step 3: Coverage Areas
-    pincodes: "560038, 560034, 560047",
-    areas: "Indiranagar, Koramangala, Domlur",
+    // Step 3: Coverage Areas (derived from selected branches)
+    pincodes: "",
+    areas: "",
 
     // Step 4: Working Hours
     working_hours: {
@@ -76,6 +76,9 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
         return setErrorMsg("Valid 10-digit phone number is required.");
       }
     }
+    if (step === 2 && !branches.some((b: any) => b.id === formData.primary_branch_id)) {
+      return setErrorMsg("Select the partner's primary hub / branch.");
+    }
     setStep((prev) => Math.min(7, prev + 1));
   };
 
@@ -89,13 +92,18 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
     setErrorMsg(null);
 
     try {
-      const primaryBranch = branches.find((b: any) => b.id === formData.primary_branch_id) || branches[0] || { id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", name: "Indiranagar Flagship Kitchen", code: "HUB-BLR-01" };
+      const primaryBranch = branches.find((b: any) => b.id === formData.primary_branch_id);
+      if (!primaryBranch) {
+        setErrorMsg("Select the partner's primary hub / branch.");
+        setStep(2);
+        return;
+      }
 
       const associatedBranches = [
-        { branch_id: primaryBranch.id, branch_name: primaryBranch.name, branch_code: primaryBranch.code || "HUB-BLR", is_primary: true, active: true, priority: 1 },
+        { branch_id: primaryBranch.id, branch_name: primaryBranch.name, branch_code: primaryBranch.code || "", is_primary: true, active: true, priority: 1 },
         ...formData.secondary_branch_ids.map((bId) => {
           const bObj = branches.find((b: any) => b.id === bId);
-          return { branch_id: bId, branch_name: bObj?.name || "Hub", branch_code: bObj?.code || "HUB-BLR", is_primary: false, active: true, priority: 2 };
+          return { branch_id: bId, branch_name: bObj?.name || bId, branch_code: bObj?.code || "", is_primary: false, active: true, priority: 2 };
         }),
       ];
 
@@ -128,10 +136,10 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
         associated_branches: associatedBranches,
 
         documents: {
-          driving_license: { number: formData.dl_number || "DL-PENDING", expiry: "2032-12-31", status: "verified" },
-          rc: { number: formData.rc_number || "RC-PENDING", status: "verified" },
-          insurance: { number: formData.insurance_number || "INS-PENDING", expiry: "2027-01-01", status: "verified" },
-          id_proof: { type: "Aadhaar", number: formData.aadhaar_number || "XXXX-XXXX-0000", status: "verified" },
+          driving_license: { number: formData.dl_number, status: "pending" },
+          rc: { number: formData.rc_number, status: "pending" },
+          insurance: { number: formData.insurance_number, status: "pending" },
+          id_proof: { type: "Aadhaar", number: formData.aadhaar_number, status: "pending" },
         },
 
         notes: formData.notes,

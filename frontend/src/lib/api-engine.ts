@@ -17,6 +17,7 @@ import {
   persistCustomerAddressToDb,
   deleteCustomerAddressFromDb,
   persistDeliveryPartnerToDb,
+  deleteDeliveryPartnerFromDb,
   persistOrderToDb,
   persistCmsPageToDb,
   deleteCmsPageFromDb,
@@ -4935,7 +4936,23 @@ export function safeDateSlice(d: any, len = 10): string {
 export class ApiEngine {
   static async ensureHydrated() {
     if (_hydrationPromise) {
-      await _hydrationPromise;
+      const summary: any = await _hydrationPromise;
+      // Startup hydration failed (e.g. DB cold start) — retry, throttled to once per 30s,
+      // instead of serving an empty/stale store for the lifetime of the process.
+      const g = globalThis as any;
+      if (summary && summary.success === false && Date.now() - (g.__CTH_HYDRATION_RETRY_AT__ || 0) > 30_000) {
+        g.__CTH_HYDRATION_RETRY_AT__ = Date.now();
+        _hydrationPromise = hydrateStoreFromDatabase(memoryStore).then((s: any) => {
+          if (s?.success) {
+            _dbHydrationStatus = { hydrated: true, error: null, hydratedAt: new Date().toISOString() };
+            g.__CTH_HYDRATION_STATUS__ = _dbHydrationStatus;
+            console.log(`[ApiEngine] PostgreSQL store re-hydration succeeded (${s.branchesCount} branches)`);
+          }
+          return s;
+        });
+        g.__CTH_HYDRATION_PROMISE__ = _hydrationPromise;
+        await _hydrationPromise;
+      }
     }
     return _dbHydrationStatus;
   }
@@ -8595,7 +8612,8 @@ export class ApiEngine {
 
   // ── Delivery Partner & Fleet Engine ──────────────────────────────
   static ensureDeliveryPartnersStore() {
-    if (!Array.isArray(memoryStore.delivery_partners) || memoryStore.delivery_partners.length === 0) {
+    // Seed demo partners only on a brand-new store; an empty list means the admin deleted them.
+    if (!Array.isArray(memoryStore.delivery_partners)) {
       memoryStore.delivery_partners = DEFAULT_DELIVERY_PARTNERS.map(p => ({ ...p }));
     }
 
@@ -8987,11 +9005,15 @@ export class ApiEngine {
     const lName = data.last_name || data.name?.split(" ").slice(1).join(" ") || "Rider";
     const fullName = `${fName} ${lName}`.trim();
 
-    const primaryBranchId = data.primary_branch_id || data.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT";
-    const branchObj = (memoryStore.branches || []).find((b: any) => b.id === primaryBranchId) || {
+    const primaryBranchId = data.primary_branch_id || data.branch_id;
+    if (!primaryBranchId) {
+      throw new Error("Primary hub / branch is required.");
+    }
+    const knownBranch = (memoryStore.branches || []).find((b: any) => b.id === primaryBranchId);
+    const branchObj = knownBranch || {
       id: primaryBranchId,
-      name: data.primary_branch_name || "Indiranagar Flagship Kitchen",
-      code: "HUB-BLR-01",
+      name: data.primary_branch_name || primaryBranchId,
+      code: data.primary_branch_code || "",
     };
 
     const formattedPhone = data.phone?.startsWith("+91") ? data.phone : `+91 ${phoneClean.slice(0, 5)} ${phoneClean.slice(5)}`;
@@ -9063,13 +9085,13 @@ export class ApiEngine {
       coverage: { pincodes: [] as string[], cities: (data.city || branchObj.city) ? [data.city || branchObj.city] : [] as string[], areas: [] as string[] },
 
       documents: data.documents || {
-        driving_license: { number: data.dl_number || "KA-DL-PENDING", expiry: "2032-12-31", status: "verified" },
-        rc: { number: data.rc_number || "KA-RC-PENDING", status: "verified" },
-        insurance: { number: data.insurance_number || "INS-PENDING", expiry: "2027-01-01", status: "verified" },
-        id_proof: { type: "Aadhaar", number: data.aadhaar_number || "XXXX-XXXX-0000", status: "verified" },
+        driving_license: { number: data.dl_number || "", status: "pending" },
+        rc: { number: data.rc_number || "", status: "pending" },
+        insurance: { number: data.insurance_number || "", status: "pending" },
+        id_proof: { type: "Aadhaar", number: data.aadhaar_number || "", status: "pending" },
       },
 
-      notes: data.notes || "Registered via Super Admin Command Center",
+      notes: data.notes || "",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -9085,8 +9107,34 @@ export class ApiEngine {
     memoryStore.delivery_partners.unshift(newPartner);
     ApiEngine.addAuditLog(`Registered Delivery Partner ${fullName} (${partnerNumber}) assigned to ${branchObj.name} (Staff ID: ${staff.id})`);
     ApiEngine.persist();
+    persistDeliveryPartnerToDb(newPartner).catch((err) => {
+      console.error("[ApiEngine] Failed to persist new delivery partner to PostgreSQL:", err);
+    });
 
     return newPartner;
+  }
+
+  static deleteAdminDeliveryPartner(id: string) {
+    ApiEngine.ensureDeliveryPartnersStore();
+    const list = memoryStore.delivery_partners || [];
+    const idx = list.findIndex((p: any) => p.id === id || p.partner_number === id);
+    if (idx < 0) throw new Error(`Delivery partner ${id} not found.`);
+    const partner = list[idx];
+
+    const activeOrders = (memoryStore.orders || []).filter(
+      (o: any) => o.delivery_partner_id === partner.id && ["confirmed", "preparing", "packed", "out_for_delivery"].includes(o.status)
+    ).length;
+    if (activeOrders > 0) {
+      throw new Error(`Cannot delete ${partner.full_name || partner.name}: ${activeOrders} active order(s) assigned. Reassign them first.`);
+    }
+
+    list.splice(idx, 1);
+    ApiEngine.addAuditLog(`Deleted Delivery Partner ${partner.full_name || partner.name} (${partner.partner_number})`);
+    ApiEngine.persist();
+    deleteDeliveryPartnerFromDb(partner.id).catch((err) => {
+      console.error("[ApiEngine] Failed to delete delivery partner in PostgreSQL:", err);
+    });
+    return { success: true, id: partner.id };
   }
 
   static saveDeliveryPartner(partnerData: any) {
@@ -13025,7 +13073,8 @@ export class ApiEngine {
 
   // ── Branch / Store FSSAI Compliance ──────────────────────────────
   static listBranchCompliance(branchId?: string): BranchComplianceItem[] {
-    if (!Array.isArray(memoryStore.branch_compliance) || memoryStore.branch_compliance.length === 0) {
+    // Seed defaults only on a brand-new store; an empty list means records were deleted.
+    if (!Array.isArray(memoryStore.branch_compliance)) {
       memoryStore.branch_compliance = [...DEFAULT_BRANCH_COMPLIANCE];
     }
     const cleanList = (memoryStore.branch_compliance || []).filter(Boolean);
@@ -13133,6 +13182,16 @@ export class ApiEngine {
     ApiEngine.addAuditLog(`Updated FSSAI Compliance for Branch "${updated.branch_name}" (${updated.fssai_number})`);
     ApiEngine.persist();
     return updated;
+  }
+
+  static deleteBranchCompliance(id: string): boolean {
+    const list = ApiEngine.listBranchCompliance();
+    const target = list.find((c: any) => c.id === id || c.branch_id === id);
+    if (!target) return false;
+    memoryStore.branch_compliance = (memoryStore.branch_compliance || []).filter((c: any) => c && c.id !== target.id);
+    ApiEngine.addAuditLog(`Deleted FSSAI Compliance for Branch "${target.branch_name}" (${target.fssai_number})`);
+    ApiEngine.persist();
+    return true;
   }
 
   static async verifyBranchCompliance(id: string): Promise<BranchComplianceItem | null> {
@@ -15502,7 +15561,9 @@ export class ApiEngine {
       return [];
     }
     if (memoryStore.branches.length === 0) {
-      if (Array.isArray(DEFAULT_BRANCHES) && DEFAULT_BRANCHES.length > 0) {
+      // Database-first: never inject demo branches when a real DB is configured
+      // (they would route real checkouts to non-existent kitchens).
+      if (!process.env.DATABASE_URL && Array.isArray(DEFAULT_BRANCHES) && DEFAULT_BRANCHES.length > 0) {
         memoryStore.branches = DEFAULT_BRANCHES.map((b) => ({ ...b }));
       } else {
         return [];
@@ -17909,6 +17970,23 @@ export class ApiEngine {
         role: "STAFF",
         branch_id: staffMember.branch_id || undefined,
         user: staffMember,
+      };
+    }
+
+    // 2b. Branch managers persisted on the DB branch record (survives restarts, unlike the
+    // in-memory staff list). Suspended managers and archived branches are not granted access.
+    const mgrBranch = (memoryStore.branches || []).find((b: any) =>
+      !b.is_archived &&
+      b.manager_account &&
+      b.manager_account.status !== "suspended" &&
+      normalizePhone(String(b.manager_account.phone || "")) === cleanDigits
+    );
+    if (mgrBranch) {
+      return {
+        exists: true,
+        role: "BRANCH_MANAGER",
+        branch_id: mgrBranch.id,
+        user: { ...mgrBranch.manager_account, role: "BRANCH_MANAGER", branch_id: mgrBranch.id },
       };
     }
 
@@ -21531,7 +21609,7 @@ export class ApiEngine {
 
   static resolveBranchRecord(branchId: string) {
     if (!memoryStore.branches || memoryStore.branches.length === 0) {
-      if (Array.isArray(DEFAULT_BRANCHES) && DEFAULT_BRANCHES.length > 0) {
+      if (!process.env.DATABASE_URL && Array.isArray(DEFAULT_BRANCHES) && DEFAULT_BRANCHES.length > 0) {
         memoryStore.branches = DEFAULT_BRANCHES.map((b) => ({ ...b }));
       } else {
         memoryStore.branches = [];

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Container, Heading, Text, Button, Input, Label, Badge } from "@medusajs/ui";
-import { Receipt, Plus, ShieldCheck, CheckCircle2, AlertCircle, RefreshCw, Edit2, Store, ExternalLink, X } from "lucide-react";
+import { Receipt, Plus, ShieldCheck, CheckCircle2, AlertCircle, RefreshCw, Edit2, Store, ExternalLink, X, Trash2 } from "lucide-react";
 import { apiClient } from "@frontend/lib/api-client";
 
 export function GstRegistrationsTab({
@@ -143,6 +143,19 @@ export function GstRegistrationsTab({
       alert("Verification failed: " + (err.message || "Provider error"));
     } finally {
       setVerifyingId(null);
+    }
+  };
+
+  const handleDelete = async (reg: any) => {
+    if (!window.confirm(`Delete GST registration ${reg.gstin} (${reg.state})? This cannot be undone.`)) return;
+    try {
+      const res: any = await apiClient.deleteGstRegistration(reg.id);
+      if (res?.success === false) throw new Error(res.error || "Failed to delete GST registration");
+      setSuccessMsg(`GST Registration "${reg.gstin}" deleted.`);
+      setTimeout(() => setSuccessMsg(null), 4000);
+      onReload();
+    } catch (err: any) {
+      window.alert(err.message || "Failed to delete GST registration");
     }
   };
 
@@ -301,6 +314,14 @@ export function GstRegistrationsTab({
                             className="text-xs"
                           >
                             <Edit2 className="w-3.5 h-3.5 mr-1" /> Edit
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="small"
+                            onClick={() => handleDelete(reg)}
+                            className="text-xs text-rose-600 hover:text-rose-700"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
                           </Button>
                         </div>
                       </td>

@@ -445,32 +445,33 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
     });
 
     // 8. Delivery Partners — HYDRATION FROM POSTGRESQL + PRESERVE IN-MEMORY
-    const dbPartnerMap = new Map<string, any>((partnersRes.rows || []).map((d) => [
-      d.id,
-      {
-        id: d.id,
-        name: `${d.first_name || ""} ${d.last_name || ""}`.trim() || "Delivery Partner",
-        first_name: d.first_name,
-        last_name: d.last_name,
-        email: d.email,
-        phone: d.phone,
-        avatar_url: d.avatar_url,
-        is_active: d.is_active !== false,
-        status: d.is_active !== false ? "active" : "inactive",
-        total_deliveries: Number(d.total_deliveries || 0),
-        active_orders: Number(d.active_orders || 0),
-        rating: Number(d.rating || 4.9),
-        created_at: d.created_at,
-      },
-    ]));
+    const dbPartnerMap = new Map<string, any>((partnersRes.rows || []).map((d) => {
+      const meta = d.metadata && typeof d.metadata === "object" ? d.metadata : {};
+      const fullName = `${d.first_name || ""} ${d.last_name || ""}`.trim() || meta.full_name || "Delivery Partner";
+      return [
+        d.id,
+        {
+          ...meta,
+          id: d.id,
+          name: fullName,
+          full_name: fullName,
+          first_name: d.first_name,
+          last_name: d.last_name,
+          email: d.email ?? meta.email,
+          phone: d.phone ?? meta.phone,
+          avatar_url: d.avatar_url,
+          is_active: d.is_active !== false,
+          status: meta.status || (d.is_active !== false ? "active" : "inactive"),
+          total_deliveries: Number(meta.total_deliveries || 0),
+          rating: Number(meta.rating || 5),
+          created_at: d.created_at,
+        },
+      ];
+    }));
     for (const existing of targetStore.delivery_partners || []) {
       if (existing && existing.id && !dbPartnerMap.has(existing.id)) {
         dbPartnerMap.set(existing.id, existing);
       }
-    }
-    if (dbPartnerMap.size === 0) {
-      dbPartnerMap.set("dlp_01", { id: "dlp_01", first_name: "Ramesh", last_name: "Rider", name: "Ramesh Rider", phone: "+91 99000 11111", is_active: true, status: "active", rating: 4.9, total_deliveries: 142, active_orders: 0 });
-      dbPartnerMap.set("dlp_02", { id: "dlp_02", first_name: "Mahesh", last_name: "Rider", name: "Mahesh Rider", phone: "+91 99000 22222", is_active: true, status: "active", rating: 4.8, total_deliveries: 98, active_orders: 0 });
     }
     targetStore.delivery_partners = Array.from(dbPartnerMap.values());
 
@@ -1370,8 +1371,8 @@ export async function persistDeliveryPartnerToDb(partner: any): Promise<void> {
 
   await dbQuery(
     `
-    INSERT INTO "delivery_partner" ("id", "first_name", "last_name", "email", "phone", "avatar_url", "is_active", "created_at", "updated_at")
-    VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+    INSERT INTO "delivery_partner" ("id", "first_name", "last_name", "email", "phone", "avatar_url", "is_active", "metadata", "created_at", "updated_at")
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, NOW(), NOW())
     ON CONFLICT ("id") DO UPDATE SET
       "first_name" = EXCLUDED.first_name,
       "last_name" = EXCLUDED.last_name,
@@ -1379,17 +1380,29 @@ export async function persistDeliveryPartnerToDb(partner: any): Promise<void> {
       "phone" = EXCLUDED.phone,
       "avatar_url" = EXCLUDED.avatar_url,
       "is_active" = EXCLUDED.is_active,
+      "metadata" = EXCLUDED.metadata,
+      "deleted_at" = NULL,
       "updated_at" = NOW()
   `,
     [
       id,
       firstName,
       lastName,
-      partner.email || `rider_${id}@caketohome.com`,
-      partner.phone || "+91 99887 76655",
-      partner.avatar_url || null,
-      partner.is_active !== false,
+      partner.email || null,
+      partner.phone || null,
+      partner.avatar_url || partner.profile_photo || null,
+      partner.is_active !== false && !["inactive", "suspended"].includes(String(partner.status || "").toLowerCase()),
+      JSON.stringify(partner),
     ]
+  );
+}
+
+/** Soft-deletes a delivery partner row in PostgreSQL. */
+export async function deleteDeliveryPartnerFromDb(id: string): Promise<void> {
+  if (!process.env.DATABASE_URL || process.env.SKIP_DB_PERSISTENCE === "true") return;
+  await dbQuery(
+    `UPDATE "delivery_partner" SET "deleted_at" = NOW(), "is_active" = false, "updated_at" = NOW() WHERE "id" = $1`,
+    [id]
   );
 }
 

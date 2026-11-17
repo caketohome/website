@@ -163,11 +163,17 @@ export class CityRepository {
     }
 
     const res = await dbQuery(
-      `INSERT INTO "city" (id, name, state, state_id, is_active, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+      `INSERT INTO "city" (id, name, state, state_id, state_code, is_active, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+       ON CONFLICT (id) DO UPDATE SET
+         name = EXCLUDED.name, state = EXCLUDED.state, state_id = EXCLUDED.state_id,
+         state_code = EXCLUDED.state_code, is_active = EXCLUDED.is_active,
+         deleted_at = NULL, updated_at = NOW()
+       WHERE "city".deleted_at IS NOT NULL
        RETURNING id, name, state, state_id, is_active, created_at, updated_at`,
-      [id, name, stateName, stateId, isActive]
+      [id, name, stateName, stateId, matchedState?.code || payload.stateCode || null, isActive]
     );
+    if (!res.rows?.length) throw new Error(`City with ID "${id}" already exists.`);
 
     return CityRepository.mapRowToDomain(res.rows[0]);
   }

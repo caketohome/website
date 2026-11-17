@@ -4,7 +4,7 @@ import { useEffect, useState, memo, useCallback } from "react";
 import { Container, Heading, Text, Badge, Button, Input, Label, Select } from "@medusajs/ui";
 import { apiClient } from "@frontend/lib/api-client";
 import dynamic from "next/dynamic";
-import { Plus, RefreshCw, Truck, Search, Filter, ShieldCheck, Settings, Eye, Power, CheckCircle2, AlertCircle, Clock, X } from "lucide-react";
+import { Plus, RefreshCw, Truck, Search, Filter, ShieldCheck, Settings, Eye, Power, CheckCircle2, AlertCircle, Clock, X, Trash2 } from "lucide-react";
 
 const DeliveryCoverageMap = dynamic(
   () => import("@frontend/components/store/coverage-map").then((m) => m.DeliveryCoverageMap),
@@ -56,13 +56,21 @@ export const DeliveryPanel = memo(function DeliveryPanel() {
         setBranches(res?.branches || res || []);
       })
       .catch(() => {
-        setBranches([
-          { id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", name: "Indiranagar Flagship Kitchen", code: "HUB-BLR-01" },
-          { id: "res_02KXYMAHGFPRY1G9TZKEVGAGAT", name: "Koramangala Gourmet Bakery", code: "HUB-BLR-02" },
-          { id: "res_03KXYMAHGFPRY1G9TZKEVGAGAT", name: "Whitefield Central Kitchen", code: "HUB-BLR-03" },
-        ]);
+        setBranches([]);
       });
   }, []);
+
+  const handleDeletePartner = async (p: any) => {
+    const label = `${p.full_name || p.name} (${p.partner_number || p.id})`;
+    if (!window.confirm(`Delete delivery partner ${label}? This removes them from the fleet and cannot be undone here.`)) return;
+    try {
+      const res: any = await apiClient.deleteAdminDeliveryPartner(p.id);
+      if (res?.success === false) throw new Error(res.error || "Failed to delete delivery partner");
+      fetchPartners();
+    } catch (err: any) {
+      window.alert(err.message || "Failed to delete delivery partner");
+    }
+  };
 
   const fetchPartners = useCallback(() => {
     setLoading(true);
@@ -386,14 +394,25 @@ export const DeliveryPanel = memo(function DeliveryPanel() {
 
                           {/* Actions */}
                           <td className="p-3.5 whitespace-nowrap text-right">
-                            <Button
-                              size="small"
-                              variant="secondary"
-                              onClick={() => setSelectedPartnerId(p.id)}
-                              className="flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-800"
-                            >
-                              <Eye className="w-3.5 h-3.5" /> View Profile
-                            </Button>
+                            <div className="inline-flex items-center gap-1.5">
+                              <Button
+                                size="small"
+                                variant="secondary"
+                                onClick={() => setSelectedPartnerId(p.id)}
+                                className="flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-800"
+                              >
+                                <Eye className="w-3.5 h-3.5" /> View Profile
+                              </Button>
+                              <Button
+                                size="small"
+                                variant="secondary"
+                                onClick={() => handleDeletePartner(p)}
+                                title="Delete delivery partner"
+                                className="flex items-center gap-1 text-[11px] font-bold text-rose-600 hover:text-rose-800"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" /> Delete
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       );

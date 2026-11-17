@@ -223,6 +223,7 @@ async function resolveSessionClaims(userId: string, phone: string) {
   if (role === "CUSTOMER") {
     try {
       const { ApiEngine } = await import("../api-engine");
+      await ApiEngine.ensureHydrated();
       const staff = ApiEngine.checkAccountByPhone(digits);
       if (staff.exists && staff.role !== "CUSTOMER" && staff.role !== "SUPER_ADMIN") {
         role = staff.role;

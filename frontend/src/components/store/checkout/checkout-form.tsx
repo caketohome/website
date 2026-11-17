@@ -1053,8 +1053,8 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  onFocus={() => {
  if (locationSearchResults.length > 0 || locationSearchQuery.trim().length >= 2) setShowLocationDropdown(true);
  }}
- style={{ color: "#F4F5F8", caretColor: "#C28A2C" }}
- className="pl-10 pr-10 text-xs sm:text-sm bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200/80 focus:border-brand-primary focus:ring-1 focus:ring-brand-gold/50 focus:outline-none selection:bg-brand-primary/30 selection:text-white disabled:opacity-50 disabled:cursor-not-allowed [&:-webkit-autofill]:[box-shadow:0_0_0_1000px_#07090E_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:#F4F5F8]"
+ style={{ color: "#0F172A", caretColor: "#C28A2C" }}
+ className="pl-10 pr-10 text-xs sm:text-sm bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200/80 focus:border-brand-primary focus:ring-1 focus:ring-brand-gold/50 focus:outline-none selection:bg-brand-primary/30 disabled:opacity-50 disabled:cursor-not-allowed [&:-webkit-autofill]:[box-shadow:0_0_0_1000px_#F8FAFC_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:#0F172A]"
  />
  {isSearchingLocation && (
  <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-brand-primary" />

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Container, Heading, Text, Button, Badge } from "@medusajs/ui";
-import { Store, ShieldCheck, AlertTriangle, AlertCircle, Edit2, CheckCircle2, FileText, Plus } from "lucide-react";
+import { Store, ShieldCheck, AlertTriangle, AlertCircle, Edit2, CheckCircle2, FileText, Plus, Trash2 } from "lucide-react";
+import { apiClient } from "@frontend/lib/api-client";
 import { BranchComplianceModal } from "./branch-compliance-modal";
 
 export function BranchComplianceTab({
@@ -17,6 +18,18 @@ export function BranchComplianceTab({
   onReload: () => void;
 }) {
   const [selectedBranch, setSelectedBranch] = useState<any | null>(null);
+  const liveBranches = branches.filter((b) => !b.is_archived && b.status !== "archived");
+
+  const handleDeleteCompliance = async (branch: any, comp: any) => {
+    if (!window.confirm(`Remove the compliance record (FSSAI ${comp.fssai_number}) for ${branch.name}? This cannot be undone.`)) return;
+    try {
+      const res: any = await apiClient.deleteBranchCompliance(comp.id);
+      if (res?.success === false) throw new Error(res.error || "Failed to delete compliance record");
+      onReload();
+    } catch (err: any) {
+      window.alert(err.message || "Failed to delete compliance record");
+    }
+  };
 
   const getBranchComplianceRecord = (branchId: string) => {
     return complianceList.find((c) => c.branch_id === branchId);
@@ -62,14 +75,14 @@ export function BranchComplianceTab({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {branches.length === 0 ? (
+              {liveBranches.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-5 py-8 text-center text-slate-400">
                     No active fulfillment branches found.
                   </td>
                 </tr>
               ) : (
-                branches.map((b) => {
+                liveBranches.map((b) => {
                   const comp = getBranchComplianceRecord(b.id);
                   const gst = getBranchGstRegistration(comp, b);
 
@@ -144,14 +157,26 @@ export function BranchComplianceTab({
                         )}
                       </td>
                       <td className="px-5 py-4 text-right">
-                        <Button
-                          variant="secondary"
-                          size="small"
-                          onClick={() => setSelectedBranch(b)}
-                          className="text-xs"
-                        >
-                          <Edit2 className="w-3.5 h-3.5 mr-1" /> Edit Compliance
-                        </Button>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="secondary"
+                            size="small"
+                            onClick={() => setSelectedBranch(b)}
+                            className="text-xs"
+                          >
+                            <Edit2 className="w-3.5 h-3.5 mr-1" /> Edit Compliance
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="small"
+                            disabled={!comp}
+                            title={comp ? "Delete this branch's compliance record" : "No compliance record to delete"}
+                            onClick={() => comp && handleDeleteCompliance(b, comp)}
+                            className="text-xs text-rose-600 hover:text-rose-700"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );

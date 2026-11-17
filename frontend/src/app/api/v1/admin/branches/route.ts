@@ -66,6 +66,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    await ApiEngine.ensureHydrated();
     const data = await req.json();
 
     if (data.type === "archive" || data.type === "archive_branch") {
@@ -161,23 +162,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ capacity: updated, success: true });
     }
 
+    // Manager changes live on the branch record; persist it so managers survive restarts/redeploys
+    // and can log in (login resolves BRANCH_MANAGER from branch.manager_account).
+    const persistBranches = async (...ids: string[]) => {
+      for (const id of ids) {
+        const b = id && ApiEngine.getBranchById(id);
+        if (b) await BranchRepository.save(b);
+      }
+    };
+
     if (data.type === "assign_manager") {
       const manager = ApiEngine.assignBranchManager(data.branchId, data.manager);
+      if (!manager) return NextResponse.json({ error: "Branch not found", success: false }, { status: 404 });
+      await persistBranches(data.branchId);
       return NextResponse.json({ manager, success: true });
     }
 
     if (data.type === "suspend_manager") {
       const manager = ApiEngine.suspendBranchManager(data.branchId, data.suspend !== false);
+      await persistBranches(data.branchId);
       return NextResponse.json({ manager, success: true });
     }
 
     if (data.type === "force_logout") {
       const loggedOut = ApiEngine.forceLogoutBranchManager(data.branchId);
+      await persistBranches(data.branchId);
       return NextResponse.json({ success: loggedOut });
     }
 
     if (data.type === "transfer_manager") {
       const manager = ApiEngine.transferBranchManager(data.fromBranchId, data.toBranchId);
+      await persistBranches(data.fromBranchId, data.toBranchId);
       return NextResponse.json({ manager, success: true });
     }
 

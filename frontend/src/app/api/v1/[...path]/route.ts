@@ -13476,7 +13476,39 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
 
     if (path.startsWith("admin/delivery/partners/")) {
       const partnerId = path.replace("admin/delivery/partners/", "");
+      if (body?.permanent === true) {
+        try {
+          return jsonWithDataSource(ApiEngine.deleteAdminDeliveryPartner(partnerId), "postgres");
+        } catch (err: any) {
+          return jsonWithDataSource({ success: false, error: err.message || "Failed to delete delivery partner" }, "postgres", 409);
+        }
+      }
       return jsonWithDataSource(ApiEngine.deactivateDeliveryPartner(partnerId, body.reason), "postgres");
+    }
+
+    // ── Statutory compliance deletions ──
+    if (path.startsWith("admin/compliance/gst-registrations/")) {
+      const userCtx = resolveUserContext(req);
+      if (!userCtx.userId || userCtx.role !== "SUPER_ADMIN") {
+        return jsonWithDataSource({ success: false, error: "Only Super Admin can delete GST registrations." }, "error", 403);
+      }
+      const id = path.replace("admin/compliance/gst-registrations/", "");
+      try {
+        const deleted = await GstRegistrationRepository.delete(id);
+        if (!deleted) return jsonWithDataSource({ success: false, error: "GST registration not found." }, "postgres", 404);
+        return jsonWithDataSource({ success: true, id }, "postgres");
+      } catch (err: any) {
+        if (err?.code === "23503") {
+          return jsonWithDataSource({ success: false, error: "This GSTIN is referenced by invoices or other records. Deactivate it instead of deleting." }, "postgres", 409);
+        }
+        return jsonWithDataSource({ success: false, error: err.message || "Failed to delete GST registration" }, "postgres", 400);
+      }
+    }
+    if (path.startsWith("admin/compliance/fssai/")) {
+      const id = path.replace("admin/compliance/fssai/", "");
+      const ok = ApiEngine.deleteBranchCompliance(id);
+      if (!ok) return jsonWithDataSource({ success: false, error: "FSSAI compliance record not found." }, "postgres", 404);
+      return jsonWithDataSource({ success: true, id }, "postgres");
     }
 
     if (path.startsWith("admin/orders/")) {

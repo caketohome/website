@@ -181,4 +181,13 @@ export class GstRegistrationRepository {
       : await dbQuery<GstRegistrationRow>(sql, values);
     return res.rows[0] || null;
   }
+
+  /**
+   * Hard-delete a GST registration. Throws pg error 23503 if referenced by FK.
+   */
+  static async delete(id: string, client?: PoolClient): Promise<boolean> {
+    const sql = `DELETE FROM public.gst_registration WHERE id = $1;`;
+    const res = client ? await client.query(sql, [id]) : await dbQuery(sql, [id]);
+    return (res.rowCount || 0) > 0;
+  }
 }

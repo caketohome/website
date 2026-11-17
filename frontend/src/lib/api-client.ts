@@ -804,6 +804,9 @@ class CakeToHomeApiClient {
   async deactivateAdminDeliveryPartner(id: string, reason?: string) {
     return this.request(`/admin/delivery/partners/${id}`, { method: "DELETE", body: JSON.stringify({ reason }) });
   }
+  async deleteAdminDeliveryPartner(id: string) {
+    return this.request(`/admin/delivery/partners/${id}`, { method: "DELETE", body: JSON.stringify({ permanent: true }) });
+  }
   async updatePartnerAvailability(id: string, availabilityStatus: string, reason?: string) {
     return this.request(`/admin/delivery/partners/${id}/availability`, { method: "PUT", body: JSON.stringify({ availability_status: availabilityStatus, reason }) });
   }
@@ -1622,6 +1625,14 @@ class CakeToHomeApiClient {
 
   async updateGstRegistration(id: string, data: any) {
     return this.request(`/admin/compliance/gst-registrations/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  }
+
+  async deleteGstRegistration(id: string) {
+    return this.request(`/admin/compliance/gst-registrations/${id}`, { method: "DELETE" });
+  }
+
+  async deleteBranchCompliance(id: string) {
+    return this.request(`/admin/compliance/fssai/${id}`, { method: "DELETE" });
   }
 
   async verifyGstRegistration(id: string) {
