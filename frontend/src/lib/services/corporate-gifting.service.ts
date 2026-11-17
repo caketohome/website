@@ -1028,7 +1028,7 @@ export class CorporateGiftingService {
       let validCreatedBy: string | null = null;
       if (actorContext?.userId) {
         const userCheck = await client.query(
-          `SELECT id FROM public."user" WHERE id = $1 LIMIT 1;`,
+          `SELECT id::text AS id FROM public.profiles WHERE id::text = $1 LIMIT 1;`,
           [actorContext.userId]
         );
         if (userCheck.rows.length > 0) {

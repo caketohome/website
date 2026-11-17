@@ -573,10 +573,14 @@ export class BillsReceivableService {
       }
 
       // Decision Q1: If customer is linked to a corporate_account, require corporate_account.status = 'APPROVED' and caller has SUPER_ADMIN
-      const corpAcctRes = await client.query(
-        `SELECT id, status FROM public.corporate_account WHERE customer_id = $1 AND deleted_at IS NULL LIMIT 1`,
-        [customerId]
-      );
+      // corporate_account is not provisioned on every database; no table means no linked corporate account.
+      const corpTableRes = await client.query(`SELECT to_regclass('public.corporate_account') AS t`);
+      const corpAcctRes = corpTableRes.rows[0]?.t
+        ? await client.query(
+            `SELECT id, status FROM public.corporate_account WHERE customer_id = $1 AND deleted_at IS NULL LIMIT 1`,
+            [customerId]
+          )
+        : { rows: [] as any[] };
       if (corpAcctRes.rows.length > 0) {
         const corpAcct = corpAcctRes.rows[0];
         if (corpAcct.status !== "APPROVED") {

@@ -939,8 +939,8 @@ export class CorporateAccountService {
         throw new CorporateAccountError("ACCOUNT_NOT_FOUND", `Corporate account '${accountId}' not found.`);
       }
 
-      // Verify user exists in public.user
-      const userRes = await client.query(`SELECT id FROM public."user" WHERE id = $1`, [params.userId]);
+      // Verify user exists (users live in public.profiles on this database)
+      const userRes = await client.query(`SELECT id FROM public.profiles WHERE id::text = $1`, [params.userId]);
       if (userRes.rows.length === 0) {
         throw new CorporateAccountError("USER_NOT_FOUND", `User '${params.userId}' not found.`);
       }

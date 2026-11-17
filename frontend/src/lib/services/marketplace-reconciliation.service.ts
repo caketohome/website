@@ -79,7 +79,7 @@ export class MarketplaceReconciliationService {
 
     // 2. Query delivered orders for partner in date range
     const ordersRes = await dbQuery(`
-      SELECT o.id, o.created_at::text, o.total, o.metadata,
+      SELECT o.id, o.created_at::text, o.grand_total AS total, o.metadata,
              mos.commission_rate, mos.fixed_fee, mos.commission_amount, mos.partner_net_receivable
       FROM "order" o
       LEFT JOIN "marketplace_order_snapshot" mos ON mos.order_id = o.id

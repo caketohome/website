@@ -1296,7 +1296,6 @@ export async function persistCustomerToDb(customer: any): Promise<void> {
       "phone" = EXCLUDED.phone,
       "metadata" = EXCLUDED.metadata,
       "updated_at" = NOW()
-    WHERE customer_address.customer_id = EXCLUDED.customer_id
   `,
     [
       id,

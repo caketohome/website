@@ -251,7 +251,7 @@ export class CostCentreService {
     // 7. Verify created_by user existence for FK safety
     let validCreatedBy: string | null = null;
     if (actor.userId) {
-      const userCheckSql = `SELECT 1 FROM public.user WHERE id = $1 LIMIT 1;`;
+      const userCheckSql = `SELECT 1 FROM public.profiles WHERE id::text = $1 LIMIT 1;`;
       const uRes = client
         ? await client.query(userCheckSql, [actor.userId])
         : await dbQuery(userCheckSql, [actor.userId]);
