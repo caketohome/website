@@ -197,7 +197,7 @@ export const SPLIT_HERO_SCHEMA: SectionSchema = {
     badge_text: "Freshly Baked",
     content_position: "left",
     ratio: "50_50",
-    desktop_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1200",
+    desktop_image: "",
     primary_cta: { text: "Explore All Cakes", url: "/products", variant: "primary", new_tab: false },
     secondary_cta: { text: "Express Delivery", url: "/delivery", variant: "secondary", new_tab: false },
     mobile_stack_order: "image_first",

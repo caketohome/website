@@ -338,8 +338,9 @@ function BeforeAfterSlider({
   afterLabel?: string;
 }) {
   const [sliderPos, setSliderPos] = useState(50);
-  const bUrl = beforeUrl || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&q=80";
-  const aUrl = afterUrl || "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=800&q=80";
+  const bUrl = beforeUrl || "";
+  const aUrl = afterUrl || "";
+  if (!bUrl || !aUrl) return null;
 
   return (
     <div className="relative w-full max-w-4xl mx-auto h-72 sm:h-96 rounded-3xl overflow-hidden shadow-2xl select-none border border-ui-border-base group">
@@ -1090,7 +1091,7 @@ export function PageRenderer({
                     isLuxuryTheme ? "shadow-[0_20px_50px_rgba(20,32,64,0.35)] border border-white/10" : "shadow-xl border border-ui-border-base"
                   }`}>
                     {/* Responsive background image */}
-                    <picture className="absolute inset-0 w-full h-full">
+                    {bgImage && <picture className="absolute inset-0 w-full h-full">
                       {mobileImage && <source media="(max-width: 639px)" srcSet={mobileImage} />}
                       {tabletImage && <source media="(min-width: 640px) and (max-width: 1023px)" srcSet={tabletImage} />}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1100,7 +1101,7 @@ export function PageRenderer({
                         className={`w-full h-full object-${objectFit} object-${imagePosition}`}
                         loading="eager"
                       />
-                    </picture>
+                    </picture>}
 
                     {/* Dark overlay */}
                     <div
@@ -1205,8 +1206,8 @@ export function PageRenderer({
               const headline = config.headline || "Handcrafted Luxury Cakes For Every Celebration";
               const subheadline = config.subheadline || "Experience gourmet artisanal cakes baked fresh with pure butter and rich chocolate";
               const badgeText = config.badge_text || config.badge || "Pure Artisanal Baking • 2-Hour Express Delivery";
-              const videoUrl = config.video_url || "https://assets.mixkit.co/videos/preview/mixkit-decorating-a-chocolate-cake-with-strawberries-42981-large.mp4";
-              const posterUrl = config.desktop_image || config.poster_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=1600&q=80";
+              const videoUrl = config.video_url || "";
+              const posterUrl = config.desktop_image || config.poster_url || undefined;
               const primaryCtaText = config.cta_primary_text || config.cta_text || "Order Now";
               const primaryCtaUrl = config.cta_primary_url || config.cta_url || "/products";
               const secondaryCtaText = config.cta_secondary_text || "View Flavours";
@@ -1223,7 +1224,7 @@ export function PageRenderer({
                     poster={posterUrl}
                     className="absolute inset-0 w-full h-full object-cover"
                   >
-                    <source src={videoUrl} type="video/mp4" />
+                    {videoUrl && <source src={videoUrl} type="video/mp4" />}
                   </video>
                   <div className="absolute inset-0 bg-black" style={{ opacity: overlayOpacity }} />
                   <div className="relative z-10 p-6 sm:p-12 max-w-3xl flex flex-col items-center text-center gap-4">
@@ -1270,7 +1271,7 @@ export function PageRenderer({
               const mobileStackOrder = config.mobile_stack_order || "image_first";
 
               // Responsive Media URLs
-              const desktopImage = config.desktop_image || config.image_url || "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=1000&q=80";
+              const desktopImage = config.desktop_image || config.image_url || "";
               const tabletImage = config.tablet_image || desktopImage;
               const mobileImage = config.mobile_image || desktopImage;
               const videoUrl = config.video_url || "";
@@ -1452,7 +1453,7 @@ export function PageRenderer({
                             playsInline
                             className="w-full h-full object-cover"
                           />
-                        ) : (
+                        ) : desktopImage ? (
                           <picture>
                             <source media="(max-width: 640px)" srcSet={mobileImage} />
                             <source media="(max-width: 1024px)" srcSet={tabletImage} />
@@ -1465,7 +1466,7 @@ export function PageRenderer({
                               fetchPriority="high"
                             />
                           </picture>
-                        )}
+                        ) : null}
                         {showFloatingBadge && (
                           <div className={`absolute bottom-4 left-4 right-4 p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold ${
                             isLuxuryTheme
@@ -1490,14 +1491,14 @@ export function PageRenderer({
             case "full_width_image": {
               const headline = config.headline || "";
               const subheadline = config.subheadline || "";
-              const imageUrl = config.desktop_image || config.image_url || "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?w=1600&q=80";
+              const imageUrl = config.desktop_image || config.image_url || "";
               const ctaText = config.cta_text || "";
               const ctaUrl = config.cta_url || "/products";
 
               return (
-                <section key={sectionKey} className="w-full relative rounded-3xl overflow-hidden shadow-xl border border-ui-border-base min-h-[320px] sm:min-h-[420px] flex items-center justify-center text-white text-center p-6">
+                <section key={sectionKey} className="w-full relative rounded-3xl overflow-hidden shadow-xl border border-ui-border-base min-h-[320px] sm:min-h-[420px] flex items-center justify-center text-white text-center p-6 bg-brand-navy">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imageUrl} alt={headline || "Cake banner"} className="absolute inset-0 w-full h-full object-cover" />
+                  {imageUrl && <img src={imageUrl} alt={headline || "Cake banner"} className="absolute inset-0 w-full h-full object-cover" />}
                   <div className="absolute inset-0 bg-black/40" />
                   {(headline || ctaText) && (
                     <div className="relative z-10 max-w-2xl flex flex-col items-center gap-3">
@@ -1520,7 +1521,7 @@ export function PageRenderer({
             case "video_text": {
               const headline = config.headline || "Behind The Sweet Magic";
               const subheadline = config.subheadline || "Watch how our pastry chefs hand-whip Belgian ganache and layer fresh sponge cakes daily.";
-              const videoUrl = config.video_url || "https://assets.mixkit.co/videos/preview/mixkit-decorating-a-chocolate-cake-with-strawberries-42981-large.mp4";
+              const videoUrl = config.video_url || "";
               const primaryCtaText = config.cta_primary_text || "Meet Our Bakers";
               const primaryCtaUrl = config.cta_primary_url || "/about";
 
@@ -1529,7 +1530,7 @@ export function PageRenderer({
                   <div className="flex flex-col lg:flex-row items-center gap-8 rounded-3xl bg-ui-bg-subtle p-6 sm:p-10 border border-ui-border-base">
                     <div className="flex-1 w-full rounded-2xl overflow-hidden shadow-lg aspect-video bg-black relative">
                       <video autoPlay muted loop playsInline className="w-full h-full object-cover">
-                        <source src={videoUrl} type="video/mp4" />
+                        {videoUrl && <source src={videoUrl} type="video/mp4" />}
                       </video>
                     </div>
                     <div className="flex-1 flex flex-col items-start gap-3">
@@ -2629,7 +2630,7 @@ export function PageRenderer({
 
               const heading = config.heading || defaultHeading;
               const body = config.body || "At CakeToHome, our master bakers use only premium Belgian dark chocolate, Madagascar bourbon vanilla beans, and farm-fresh seasonal fruits.";
-              const desktopImageUrl = config.image_url || config.desktop_image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800";
+              const desktopImageUrl = config.image_url || config.desktop_image_url || "";
               const tabletImageUrl = config.tablet_image_url || desktopImageUrl;
               const mobileImageUrl = config.mobile_image_url || desktopImageUrl;
               const imageAlt = config.image_alt || heading;
@@ -2652,7 +2653,7 @@ export function PageRenderer({
                   <div className={`relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl ${
                     isLuxuryTheme ? "border border-white/10 shadow-[0_20px_50px_rgba(20,32,64,0.4)]" : "border border-ui-border-base"
                   } ${imagePosition === "right" ? "lg:col-start-2" : ""}`}>
-                    <picture>
+                    {desktopImageUrl && <picture>
                       {mobileImageUrl && <source media="(max-width: 640px)" srcSet={mobileImageUrl} />}
                       {tabletImageUrl && <source media="(max-width: 1024px)" srcSet={tabletImageUrl} />}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -2663,7 +2664,7 @@ export function PageRenderer({
                         style={{ objectFit, objectPosition }}
                         loading="lazy"
                       />
-                    </picture>
+                    </picture>}
                   </div>
                   <div className="flex flex-col gap-4">
                     {badgeText && (

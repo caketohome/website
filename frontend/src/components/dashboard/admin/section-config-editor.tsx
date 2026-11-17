@@ -331,16 +331,22 @@ export function SectionConfigEditor({
                 <div className="p-3 bg-ui-bg-subtle rounded-xl border border-ui-border-base flex flex-col gap-2.5">
                   <Text className="text-xs font-bold text-brand-gold uppercase">Before & After Slider Settings</Text>
                   <div className="grid grid-cols-2 gap-2">
-                    <Field label="Before Image URL">
-                      <Input value={config.before_image_url || ""} onChange={(e) => updateSectionConfig(section.id, "before_image_url", e.target.value)} placeholder="https://..." />
+                    <Field label="Before Image">
+                      <div className="flex gap-1">
+                        <Input value={config.before_image_url || ""} onChange={(e) => updateSectionConfig(section.id, "before_image_url", e.target.value)} placeholder="Upload or paste URL" />
+                        <Button variant="secondary" size="small" onClick={() => openImagePicker("Before Image", config.before_image_url, (sel) => updateSectionConfig(section.id, "before_image_url", sel.url))}><ImageIcon className="w-3.5 h-3.5" /></Button>
+                      </div>
                     </Field>
                     <Field label="Before Label">
                       <Input value={config.before_label || "Baking Process"} onChange={(e) => updateSectionConfig(section.id, "before_label", e.target.value)} />
                     </Field>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <Field label="After Image URL">
-                      <Input value={config.after_image_url || ""} onChange={(e) => updateSectionConfig(section.id, "after_image_url", e.target.value)} placeholder="https://..." />
+                    <Field label="After Image">
+                      <div className="flex gap-1">
+                        <Input value={config.after_image_url || ""} onChange={(e) => updateSectionConfig(section.id, "after_image_url", e.target.value)} placeholder="Upload or paste URL" />
+                        <Button variant="secondary" size="small" onClick={() => openImagePicker("After Image", config.after_image_url, (sel) => updateSectionConfig(section.id, "after_image_url", sel.url))}><ImageIcon className="w-3.5 h-3.5" /></Button>
+                      </div>
                     </Field>
                     <Field label="After Label">
                       <Input value={config.after_label || "Finished Creation"} onChange={(e) => updateSectionConfig(section.id, "after_label", e.target.value)} />
@@ -733,11 +739,21 @@ export function SectionConfigEditor({
                 <Text className="text-xs font-bold">Gallery Images ({(config.images || []).length})</Text>
                 {(config.images || []).map((img: any, ii: number) => (
                   <div key={ii} className="p-2.5 bg-ui-bg-subtle rounded-xl grid grid-cols-2 gap-2 border border-ui-border-base text-xs">
-                    <Input value={typeof img === "string" ? img : img.url || ""} onChange={(e) => {
-                      const list = [...(config.images || [])];
-                      list[ii] = typeof img === "string" ? e.target.value : { ...img, url: e.target.value };
-                      updateSectionConfig(section.id, "images", list);
-                    }} placeholder="Image URL (https://...)" />
+                    <div className="flex gap-1">
+                      <Input value={typeof img === "string" ? img : img.url || ""} onChange={(e) => {
+                        const list = [...(config.images || [])];
+                        list[ii] = typeof img === "string" ? e.target.value : { ...img, url: e.target.value };
+                        updateSectionConfig(section.id, "images", list);
+                      }} placeholder="Upload or paste URL" />
+                      <Button variant="secondary" size="small" onClick={() => openImagePicker("Gallery Image", typeof img === "string" ? img : img.url, (sel) => {
+                        const list = [...(config.images || [])];
+                        list[ii] = typeof img === "string" ? { url: sel.url, caption: "" } : { ...img, url: sel.url };
+                        updateSectionConfig(section.id, "images", list);
+                      })}><ImageIcon className="w-3.5 h-3.5" /></Button>
+                      <Button variant="secondary" size="small" onClick={() => {
+                        updateSectionConfig(section.id, "images", (config.images || []).filter((_: any, j: number) => j !== ii));
+                      }}><Trash2 className="w-3.5 h-3.5" /></Button>
+                    </div>
                     <Input value={typeof img === "object" ? img.caption || "" : ""} onChange={(e) => {
                       const list = [...(config.images || [])];
                       list[ii] = { url: typeof img === "string" ? img : img.url, caption: e.target.value };
@@ -745,10 +761,9 @@ export function SectionConfigEditor({
                     }} placeholder="Caption" />
                   </div>
                 ))}
-                <Button variant="secondary" size="small" onClick={() => {
-                  const list = [...(config.images || []), { url: "", caption: "" }];
-                  updateSectionConfig(section.id, "images", list);
-                }}><Plus className="w-3.5 h-3.5 mr-1" /> Add Image</Button>
+                <Button variant="secondary" size="small" onClick={() => openImagePicker("Add Gallery Image", "", (sel) => {
+                  updateSectionConfig(section.id, "images", [...(config.images || []), { url: sel.url, caption: "" }]);
+                })}><Plus className="w-3.5 h-3.5 mr-1" /> Upload Image</Button>
               </div>
             </>
           )}

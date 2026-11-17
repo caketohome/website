@@ -11567,11 +11567,20 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           const base64Data = body.dataUrl.split(";base64,").pop();
           if (base64Data) {
             const buf = Buffer.from(base64Data, "base64");
-            processedResult = await MediaProcessor.processBuffer(buf, body.filename || safeUniqueName, {
-              folder: body.folder || "uploads",
-              alt: body.alt_text || body.alt || body.name || "",
-            });
-            mediaUrl = processedResult.url;
+            if (String(body.folder || "").startsWith("kitchen_story_")) {
+              // Scroll-animation frames arrive already compressed to WebP in the browser.
+              // Skip the 6-pass Sharp pipeline (AVIF etc.), which exhausted instance memory.
+              const { putMediaObject } = await import("@frontend/lib/media/media-storage");
+              const { createHash } = await import("crypto");
+              const hash = createHash("sha256").update(buf).digest("hex").slice(0, 32);
+              mediaUrl = await putMediaObject(body.folder, `${hash}.webp`, buf, "image/webp");
+            } else {
+              processedResult = await MediaProcessor.processBuffer(buf, body.filename || safeUniqueName, {
+                folder: body.folder || "uploads",
+                alt: body.alt_text || body.alt || body.name || "",
+              });
+              mediaUrl = processedResult.url;
+            }
           }
         } catch (procErr: any) {
           // Don't silently store multi-MB base64 in the DB when processing/S3 upload fails.

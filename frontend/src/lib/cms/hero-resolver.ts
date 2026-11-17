@@ -64,7 +64,7 @@ const DEFAULT_PRIMARY_CTA_TEXT = "Explore Cakes";
 const DEFAULT_PRIMARY_CTA_URL = "/products";
 const DEFAULT_SECONDARY_CTA_TEXT = "Birthday Specials";
 const DEFAULT_SECONDARY_CTA_URL = "/products?occasion=birthday";
-const DEFAULT_HERO_IMAGE = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1400";
+const DEFAULT_HERO_IMAGE = ""; // no stock image: hero shows only what is uploaded in the CMS
 
 /**
  * Strip accidental editor device prefixes like "Desktop: ", "Tablet: ", "Mobile: "

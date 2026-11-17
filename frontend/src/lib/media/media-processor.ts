@@ -10,6 +10,10 @@ import crypto from "crypto";
 import path from "path";
 import { putMediaObject } from "./media-storage";
 
+// Small Render instance: keep libvips memory low (no op cache, single thread).
+sharp.cache(false);
+sharp.concurrency(1);
+
 export interface ProcessedImageResult {
   filename: string;
   width: number;
