@@ -13,6 +13,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import type { BankAccountOption } from "./types";
+import { TdsFields } from "../TdsFields";
 
 interface TargetInvoice {
   invoice_id: string;
@@ -47,6 +48,8 @@ export function ReceiveReceiptModal({
   );
   const [reference, setReference] = useState<string>("");
   const [narration, setNarration] = useState<string>("");
+  const [tdsSection, setTdsSection] = useState<string>("");
+  const [tdsAmount, setTdsAmount] = useState<string>("");
 
   // Allocation state: invoiceId -> string amount
   const [allocations, setAllocations] = useState<Record<string, string>>({});
@@ -100,6 +103,8 @@ export function ReceiveReceiptModal({
     return sum + (isNaN(num) ? 0 : num);
   }, 0);
 
+  const parsedTds = tdsSection ? Math.max(0, parseFloat(tdsAmount) || 0) : 0;
+
   const isElectronic = ["BANK_TRANSFER", "NEFT", "RTGS", "IMPS"].includes(paymentMethod);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -137,6 +142,8 @@ export function ReceiveReceiptModal({
           reference: reference.trim() || null,
           narration: narration.trim() || null,
           allocations: allocList,
+          tds_section: parsedTds > 0 ? tdsSection : undefined,
+          tds_amount: parsedTds > 0 ? parsedTds : undefined,
         }),
       });
 
@@ -337,6 +344,16 @@ export function ReceiveReceiptModal({
             </div>
           </div>
 
+          {/* TDS deducted by the corporate customer (rare: 194Q large buyers, 194C catering) */}
+          <TdsFields
+            section={tdsSection}
+            amount={tdsAmount}
+            onSectionChange={setTdsSection}
+            onAmountChange={setTdsAmount}
+            grossAmount={totalAllocation}
+            netLabel="Received in bank"
+          />
+
           {/* Action Buttons */}
           <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-200 dark:border-slate-800">
             <button
@@ -356,7 +373,7 @@ export function ReceiveReceiptModal({
                 <span>Posting Receipt...</span>
               ) : (
                 <>
-                  <span>Commit Receipt (₹{totalAllocation.toFixed(2)})</span>
+                  <span>Commit Receipt (₹{Math.max(0, totalAllocation - parsedTds).toFixed(2)})</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

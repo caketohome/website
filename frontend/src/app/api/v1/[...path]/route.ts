@@ -4175,6 +4175,39 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         }
 
 
+        // TDS Register: GET admin/accounting/tds-register?from=YYYY-MM-DD&to=YYYY-MM-DD
+        // 2130 = TDS we deducted when paying (owed to govt); 1125 = TDS customers deducted (claimable).
+        if (acctSubPath === "tds-register") {
+          const from = url.searchParams.get("from") || "1900-01-01";
+          const to = url.searchParams.get("to") || "2999-12-31";
+          const tdsQ = await dbQuery(
+            `SELECT av.voucher_no, av.voucher_date::text AS voucher_date, av.voucher_type,
+                    CASE a.code WHEN '2130' THEN 'DEDUCTED_BY_US' ELSE 'DEDUCTED_FROM_US' END AS direction,
+                    jl.metadata->>'tds_section' AS section,
+                    NULLIF(jl.metadata->>'tds_base_amount', '')::numeric AS base_amount,
+                    (jl.credit_amount - jl.debit_amount) * CASE a.code WHEN '2130' THEN 1 ELSE -1 END AS tds_amount,
+                    COALESCE(s.name, c.name, NULLIF(TRIM(CONCAT(c.first_name, ' ', c.last_name)), '')) AS party_name,
+                    s.gstin AS supplier_gstin,
+                    jl.narration
+             FROM public.accounting_journal_line jl
+             JOIN public.accounting_account a ON a.id = jl.account_id AND a.code IN ('2130', '1125')
+             JOIN public.accounting_journal_entry je ON je.id = jl.journal_entry_id
+             JOIN public.accounting_voucher av ON av.id = je.voucher_id AND av.status = 'POSTED'
+             LEFT JOIN public.supplier s ON s.id = jl.supplier_id
+             LEFT JOIN public.customer c ON c.id = jl.customer_id
+             WHERE av.voucher_date BETWEEN $1::date AND $2::date
+             ORDER BY av.voucher_date ASC, av.voucher_no ASC`,
+            [from, to]
+          );
+          const rows = tdsQ.rows.map((r: any) => ({ ...r, tds_amount: Number(r.tds_amount), base_amount: r.base_amount == null ? null : Number(r.base_amount) }));
+          const sum = (dir: string) => rows.filter((r: any) => r.direction === dir).reduce((s: number, r: any) => s + r.tds_amount, 0);
+          return jsonWithDataSource({
+            success: true,
+            rows,
+            totals: { deducted_by_us: sum("DEDUCTED_BY_US"), deducted_from_us: sum("DEDUCTED_FROM_US") },
+          }, "postgres");
+        }
+
         // 5. Fiscal Periods: GET admin/accounting/fiscal-periods
         if (acctSubPath === "fiscal-periods") {
           const fiscal_year = url.searchParams.get("fiscal_year") || undefined;
@@ -8876,6 +8909,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           actorRole: userCtx.role,
           actorSession: { user: { id: userCtx.userId, role: userCtx.role } },
           allocations: body.allocations,
+          tdsAmount: body.tds_amount,
+          tdsSection: body.tds_section,
         });
         return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
       } catch (err: any) {
@@ -8922,6 +8957,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           actorRole: userCtx.role,
           actorSession: { user: { id: userCtx.userId, role: userCtx.role } },
           allocations: body.allocations,
+          tdsAmount: body.tds_amount,
+          tdsSection: body.tds_section,
         });
         return jsonWithDataSource({ success: true, data: result }, "postgres", 200);
       } catch (err: any) {

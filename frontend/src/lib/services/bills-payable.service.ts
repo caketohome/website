@@ -49,6 +49,7 @@ import type {
 } from "../types/purchase.types";
 import { TellerMovementService } from "./teller-movement.service";
 import type { TellerMovementRow } from "../types/teller.types";
+import { resolveTds, TDS_PAYABLE_ACCOUNT } from "../accounting/tds";
 
 // ─── Error Model ───────────────────────────────────────────────────────────────
 
@@ -190,6 +191,10 @@ export interface SettleBillsParams {
   actorSession?: any;
   voucherPreparerId?: string;
   allocations: BillAllocationInput[];
+  /** TDS deducted from this payment (bills still settle for the full allocated amount). */
+  tdsAmount?: number;
+  /** TDS section, e.g. 194C / 194J / 194I — required when tdsAmount > 0. */
+  tdsSection?: string;
   client?: PoolClient;
 }
 
@@ -627,6 +632,15 @@ export class BillsPayableService {
     }
     totalAllocationAmount = Math.round(totalAllocationAmount * 100) / 100;
 
+    // TDS deducted at payment time: supplier receives the net, TDS is owed to the government.
+    let tds: ReturnType<typeof resolveTds>;
+    try {
+      tds = resolveTds(params.tdsAmount, params.tdsSection, totalAllocationAmount);
+    } catch (e: any) {
+      throw new BillsPayableError("INVALID_PAYMENT_AMOUNT", e.message);
+    }
+    const netPaidAmount = tds.net;
+
     // Check permissions
     const actorContext = {
       userId: paidBy,
@@ -872,15 +886,27 @@ export class BillsPayableService {
         );
       }
 
+      let tdsPayableAccount: AccountingAccountRow | null = null;
+      if (tds.amount > 0) {
+        tdsPayableAccount = await AccountingAccountRepository.findByCode(TDS_PAYABLE_ACCOUNT, client);
+        if (!tdsPayableAccount || !tdsPayableAccount.is_active || tdsPayableAccount.is_group) {
+          throw new BillsPayableError(
+            "PAYMENT_ACCOUNT_UNRESOLVED",
+            `TDS Payable account ${TDS_PAYABLE_ACCOUNT} is not configured, inactive, or is a summary group.`
+          );
+        }
+      }
+
       // 5. INSERT PURCHASE_PAYMENT RECORD (with teller_session_id)
+      // amount = gross settled against the bills; metadata.net_paid = what actually left the bank/drawer.
       const paymentId = generatePurchasePaymentId();
       const primaryPurchaseId = allocations[0].purchaseId;
 
       const insertPaymentSql = `
         INSERT INTO public.purchase_payment
           (id, purchase_id, amount, method, payment_date, reference, created_by,
-           bank_account_id, teller_session_id, branch_id, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+           bank_account_id, teller_session_id, branch_id, metadata, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
         RETURNING *
       `;
       const payRes = await client.query<PurchasePaymentRow>(insertPaymentSql, [
@@ -894,6 +920,7 @@ export class BillsPayableService {
         bankAccountId ?? null,
         resolvedTellerSessionId,
         branchId,
+        JSON.stringify(tds.amount > 0 ? { tds_amount: tds.amount, tds_section: tds.section, net_paid: netPaidAmount } : {}),
       ]);
       const createdPayment = payRes.rows[0];
 
@@ -928,7 +955,7 @@ export class BillsPayableService {
             teller_session_id: resolvedTellerSessionId,
             direction: "OUT",
             movement_type: "EXPENSE_PAYMENT",
-            amount: totalAllocationAmount,
+            amount: netPaidAmount,
             source_type: "PURCHASE_PAYMENT",
             source_id: paymentId,
             narration: `Cash drawer payout for supplier bill(s): ${billRefNos}`,
@@ -954,15 +981,27 @@ export class BillsPayableService {
           branch_id: branchId,
           narration: `AP Settlement: ${billRefNos}`,
         },
-        // Credit: Bank / Cash
+        // Credit: Bank / Cash (net of TDS)
         {
           account_id: creditAccount.id,
           debit_amount: 0,
-          credit_amount: totalAllocationAmount,
+          credit_amount: netPaidAmount,
           branch_id: branchId,
           narration: `Disbursement via ${paymentMethod}${reference ? ` Ref: ${reference}` : ""}`,
         },
       ];
+      // Credit: TDS Payable — deducted on payment, owed to the government
+      if (tdsPayableAccount && tds.amount > 0) {
+        journalLines.push({
+          account_id: tdsPayableAccount.id,
+          debit_amount: 0,
+          credit_amount: tds.amount,
+          supplier_id: supplierId,
+          branch_id: branchId,
+          narration: `TDS u/s ${tds.section} deducted on payment for: ${billRefNos}`,
+          metadata: { tds_section: tds.section, tds_base_amount: totalAllocationAmount },
+        });
+      }
 
       // 8. CREATE, SUBMIT, APPROVE, AND POST VOUCHER VIA PostingService
       const preparerId =

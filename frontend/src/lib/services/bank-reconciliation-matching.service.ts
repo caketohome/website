@@ -1117,11 +1117,12 @@ export class BankReconciliationMatchingEngine {
         );
       }
 
-      // Amount verification (integer paise)
-      if (toPaise(statementLine.debit_amount) !== toPaise(payment.amount)) {
+      // Amount verification (integer paise) — against what actually left the bank (net of any TDS deducted)
+      const bankOutflow = Number(payment.metadata?.net_paid ?? payment.amount);
+      if (toPaise(statementLine.debit_amount) !== toPaise(bankOutflow)) {
         throw new BankReconciliationServiceError(
           "AMOUNT_MISMATCH",
-          `Amount mismatch: Statement debit (${statementLine.debit_amount}) does not equal supplier payment amount (${payment.amount}).`
+          `Amount mismatch: Statement debit (${statementLine.debit_amount}) does not equal supplier payment amount (${bankOutflow}).`
         );
       }
 
@@ -1164,7 +1165,7 @@ export class BankReconciliationMatchingEngine {
             matchSourceType: "PURCHASE_PAYMENT",
             matchSourceId: payment.id,
             matchType: "EXACT",
-            matchedAmount: Number(payment.amount),
+            matchedAmount: bankOutflow,
             matchStatus: "CONFIRMED",
             matchedBy: payment.created_by,
             confirmedBy: params.confirmerId,

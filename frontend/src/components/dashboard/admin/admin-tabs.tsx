@@ -38,6 +38,7 @@ const TABS = [
   { id: "profit_loss", label: "Profit & Loss", icon: TrendingUp },
   { id: "balance_sheet", label: "Balance Sheet", icon: Scale },
   { id: "cash_flow", label: "Cash Flow", icon: Waves },
+  { id: "tds_register", label: "TDS Register", icon: Waves },
   { id: "accounting_setup", label: "Accounting Setup", icon: Settings2 },
   { id: "fleet", label: "Fleet & Fuel", icon: Truck },
   { id: "tax_master", label: "Tax Master", icon: Percent },

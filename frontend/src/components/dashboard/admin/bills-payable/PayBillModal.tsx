@@ -14,6 +14,7 @@ import {
   Receipt,
 } from "lucide-react";
 import type { BankAccountOption } from "./types";
+import { TdsFields } from "../TdsFields";
 
 interface BillToPay {
   purchase_id: string;
@@ -48,6 +49,8 @@ export function PayBillModal({ bills, onClose, onSuccess }: PayBillModalProps) {
   const [reference, setReference] = useState<string>("");
   const [paymentDate, setPaymentDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
   const [narration, setNarration] = useState<string>("");
+  const [tdsSection, setTdsSection] = useState<string>("");
+  const [tdsAmount, setTdsAmount] = useState<string>("");
 
   // Master bank accounts
   const [bankAccounts, setBankAccounts] = useState<BankAccountOption[]>([]);
@@ -108,6 +111,8 @@ export function PayBillModal({ bills, onClose, onSuccess }: PayBillModalProps) {
   }, [paymentMethod, branchId]);
 
   const parsedAmount = parseFloat(paymentAmount) || 0;
+  const parsedTds = tdsSection ? Math.max(0, parseFloat(tdsAmount) || 0) : 0;
+  const netDisbursed = Math.max(0, Math.round((parsedAmount - parsedTds) * 100) / 100);
   const isOverpayment = parsedAmount > totalOutstanding + 0.01;
   const isZeroOrNegative = parsedAmount <= 0;
 
@@ -165,6 +170,8 @@ export function PayBillModal({ bills, onClose, onSuccess }: PayBillModalProps) {
         teller_session_id: paymentMethod === "CASH" && activeTellerSessionId ? activeTellerSessionId : undefined,
         narration: narration.trim() || undefined,
         allocations: computedAllocations,
+        tds_section: parsedTds > 0 ? tdsSection : undefined,
+        tds_amount: parsedTds > 0 ? parsedTds : undefined,
       };
 
       const res = await fetch("/api/v1/admin/bills-payable/pay", {
@@ -400,6 +407,16 @@ export function PayBillModal({ bills, onClose, onSuccess }: PayBillModalProps) {
             />
           </div>
 
+          {/* TDS deducted on this payment (optional) */}
+          <TdsFields
+            section={tdsSection}
+            amount={tdsAmount}
+            onSectionChange={setTdsSection}
+            onAmountChange={setTdsAmount}
+            grossAmount={parsedAmount}
+            netLabel="Paid to supplier"
+          />
+
           {/* Segregation of Duties Notice */}
           <div className="flex items-start gap-2 p-3 rounded-xl bg-brand-gold-light/60 border border-brand-gold/40 dark:bg-brand-gold-dark/20 dark:border-brand-gold-dark/40 text-[11px] text-brand-gold-dark dark:text-brand-gold/40">
             <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
@@ -425,7 +442,7 @@ export function PayBillModal({ bills, onClose, onSuccess }: PayBillModalProps) {
               disabled={submitting || isOverpayment || isZeroOrNegative}
               className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-sm transition"
             >
-              {submitting ? "Processing Settlement..." : `Disburse ₹${parsedAmount.toFixed(2)}`}
+              {submitting ? "Processing Settlement..." : `Disburse ₹${netDisbursed.toFixed(2)}`}
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

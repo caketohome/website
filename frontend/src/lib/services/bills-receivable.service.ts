@@ -66,6 +66,7 @@ import type {
   AccountingAccountRow,
   JournalLineInput,
 } from "../types/accounting.types";
+import { resolveTds, TDS_RECEIVABLE_ACCOUNT } from "../accounting/tds";
 
 // ─── Error Model ───────────────────────────────────────────────────────────────
 
@@ -247,6 +248,10 @@ export interface SettleCustomerReceiptParams {
   actorRole?: string;
   actorSession?: any;
   allocations: SettleReceiptAllocationInput[];
+  /** TDS the corporate customer deducted (e.g. 194Q / 194C); invoices still settle for the full amount. */
+  tdsAmount?: number;
+  /** TDS section — required when tdsAmount > 0. */
+  tdsSection?: string;
   client?: PoolClient;
 }
 
@@ -1698,6 +1703,14 @@ export class BillsReceivableService {
     }
     totalAllocationAmount = Math.round(totalAllocationAmount * 100) / 100;
 
+    // TDS deducted by the customer: bank receives the net, the TDS is claimable (TDS Receivable).
+    let tds: ReturnType<typeof resolveTds>;
+    try {
+      tds = resolveTds(params.tdsAmount, params.tdsSection, totalAllocationAmount);
+    } catch (e: any) {
+      throw new BillsReceivableError("INVALID_RECEIPT_AMOUNT", e.message);
+    }
+
     // Electronic settlement requires UTR reference
     const electronicMethods = ["BANK_TRANSFER", "NEFT", "RTGS", "IMPS"];
     if (electronicMethods.includes(paymentMethod) && (!reference || !reference.trim())) {
@@ -1872,15 +1885,37 @@ export class BillsReceivableService {
         customNarration ||
         `Corporate receipt from ${customerId} for Invoice(s): ${invRefNos} via ${paymentMethod}${reference ? ` (Ref: ${reference})` : ""}`;
 
+      let tdsReceivableAccount: AccountingAccountRow | null = null;
+      if (tds.amount > 0) {
+        tdsReceivableAccount = await AccountingAccountRepository.findByCode(TDS_RECEIVABLE_ACCOUNT, client);
+        if (!tdsReceivableAccount || !tdsReceivableAccount.is_active || tdsReceivableAccount.is_group) {
+          throw new BillsReceivableError(
+            "PAYMENT_ACCOUNT_UNRESOLVED",
+            `TDS Receivable account ${TDS_RECEIVABLE_ACCOUNT} is not configured, inactive, or is a summary group.`
+          );
+        }
+      }
+
       const journalLines: JournalLineInput[] = [
-        // Debit: Selected Bank GL account
+        // Debit: Selected Bank GL account (net of TDS deducted by the customer)
         {
           account_id: bankGlAccount.id,
-          debit_amount: totalAllocationAmount,
+          debit_amount: tds.net,
           credit_amount: 0,
           branch_id: branchId,
           narration: `Bank Receipt via ${paymentMethod}${reference ? ` Ref: ${reference}` : ""}`,
         },
+        ...(tdsReceivableAccount && tds.amount > 0
+          ? [{
+              account_id: tdsReceivableAccount.id,
+              debit_amount: tds.amount,
+              credit_amount: 0,
+              customer_id: customerId,
+              branch_id: branchId,
+              narration: `TDS u/s ${tds.section} deducted by customer on: ${invRefNos}`,
+              metadata: { tds_section: tds.section, tds_base_amount: totalAllocationAmount },
+            } as JournalLineInput]
+          : []),
         // Credit: 1121 Trade AR (carrying customer_id and branch_id)
         {
           account_id: arAccount.id,
@@ -1959,6 +1994,7 @@ export class BillsReceivableService {
           bank_name: bankName,
           account_name: accountName,
           receipt_date: receiptDate,
+          ...(tds.amount > 0 ? { tds_amount: tds.amount, tds_section: tds.section, receipt_net: tds.net } : {}),
         };
 
         await client.query(

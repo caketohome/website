@@ -543,7 +543,7 @@ export class BankReconciliationRepository {
     const sql = `
       SELECT pp.*
       FROM public.purchase_payment pp
-      WHERE ROUND(pp.amount * 100)::bigint = $1::bigint
+      WHERE ROUND(COALESCE((pp.metadata->>'net_paid')::numeric, pp.amount) * 100)::bigint = $1::bigint
         AND pp.deleted_at IS NULL
         AND pp.payment_date <= $2::date
         AND $2::date <= (pp.payment_date + 5)
