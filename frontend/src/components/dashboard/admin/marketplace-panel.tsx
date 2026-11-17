@@ -18,10 +18,11 @@ import {
   ChevronRight,
   Calculator,
 } from "lucide-react";
+import { partnerKycIssues } from "@frontend/lib/marketplace/partner-kyc";
 
 interface Partner {
   id: string;
-  name: string;
+  code: string;
   legal_name: string;
   trade_name?: string;
   email: string;
@@ -29,9 +30,29 @@ interface Partner {
   gstin?: string;
   pan?: string;
   status: string;
-  kyc_status: string;
+  bank_details?: any;
+  metadata?: any;
   created_at: string;
 }
+
+const EMPTY_PARTNER = {
+  code: "",
+  trade_name: "",
+  legal_name: "",
+  contact_name: "",
+  email: "",
+  phone: "",
+  gstin: "",
+  pan: "",
+  fssai_number: "",
+  address_line: "",
+  city: "",
+  pincode: "",
+  bank_account_name: "",
+  bank_account_number: "",
+  bank_ifsc: "",
+  commission_percentage: 15,
+};
 
 interface ReconciliationSummary {
   statementId: string;
@@ -75,16 +96,32 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
 
   // Onboard partner modal state
   const [showOnboardModal, setShowOnboardModal] = useState(false);
-  const [newPartner, setNewPartner] = useState({
-    name: "",
-    legal_name: "",
-    trade_name: "",
-    email: "",
-    phone: "",
-    gstin: "",
-    pan: "",
-    commission_percentage: 15,
-  });
+  const [newPartner, setNewPartner] = useState({ ...EMPTY_PARTNER });
+
+  const changePartnerStatus = async (partnerId: string, action: "approve" | "suspend" | "reactivate") => {
+    let reason: string | undefined;
+    if (action === "suspend") {
+      reason = window.prompt("Reason for suspending this partner?") || undefined;
+      if (!reason) return;
+    }
+    try {
+      setLoading(true);
+      setErrorMsg(null);
+      const res = await fetch(`/api/v1/admin/marketplace/partners/${encodeURIComponent(partnerId)}/${action}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || `Failed to ${action} partner.`);
+      setSuccessMsg(`Partner ${action === "approve" ? "approved" : action === "suspend" ? "suspended" : "reactivated"}.`);
+      fetchPartners();
+    } catch (err: any) {
+      setErrorMsg(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchPartners = async () => {
     try {
@@ -126,27 +163,49 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
     try {
       setLoading(true);
       setErrorMsg(null);
+      const p = newPartner;
       const res = await fetch("/api/v1/admin/marketplace/partners", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newPartner),
+        body: JSON.stringify({
+          code: p.code,
+          trade_name: p.trade_name,
+          legal_name: p.legal_name,
+          contact_name: p.contact_name || p.legal_name,
+          email: p.email,
+          phone: p.phone,
+          gstin: p.gstin,
+          pan: p.pan,
+          fssai_number: p.fssai_number,
+          address: { line1: p.address_line, city: p.city, pincode: p.pincode },
+          bank_details: { account_name: p.bank_account_name, account_number: p.bank_account_number, ifsc: p.bank_ifsc },
+        }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
         throw new Error(data.error || "Failed to onboard partner");
       }
-      setSuccessMsg(`Successfully onboarded commercial partner: ${data.partner.name}`);
-      setShowOnboardModal(false);
-      setNewPartner({
-        name: "",
-        legal_name: "",
-        trade_name: "",
-        email: "",
-        phone: "",
-        gstin: "",
-        pan: "",
-        commission_percentage: 15,
+      // Commission terms become the partner's active commercial agreement (required for approval).
+      const agrRes = await fetch("/api/v1/admin/marketplace/agreements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          partner_id: data.partner.id,
+          agreement_type: "COMMISSION_PERCENTAGE",
+          commission_rate: p.commission_percentage,
+          effective_from: new Date().toISOString().slice(0, 10),
+          status: "ACTIVE",
+        }),
       });
+      const agr = await agrRes.json().catch(() => ({}));
+      const pending: string[] = data.kyc_issues || [];
+      setSuccessMsg(
+        `Partner ${data.partner.trade_name} saved as Pending approval.` +
+          (agr?.success ? ` Commission ${p.commission_percentage}% agreement active.` : " Commission agreement could not be saved — add it before approval.") +
+          (pending.length ? ` Still needed before approval: ${pending.join(" ")}` : " KYC complete — ready to approve.")
+      );
+      setShowOnboardModal(false);
+      setNewPartner({ ...EMPTY_PARTNER });
       fetchPartners();
     } catch (err: any) {
       setErrorMsg(err.message);
@@ -412,8 +471,8 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
                   partners.map((partner) => (
                     <tr key={partner.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
                       <td className="py-3 px-4">
-                        <div className="font-semibold text-slate-900 dark:text-white">{partner.name}</div>
-                        <div className="text-[11px] text-slate-500">{partner.legal_name}</div>
+                        <div className="font-semibold text-slate-900 dark:text-white">{partner.trade_name || partner.legal_name}</div>
+                        <div className="text-[11px] text-slate-500">{partner.legal_name} · {partner.code}</div>
                       </td>
                       <td className="py-3 px-4">
                         <div>{partner.email}</div>
@@ -426,26 +485,61 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
                       <td className="py-3 px-4">
                         <span
                           className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            partner.status === "ACTIVE"
+                            partner.status === "APPROVED" || partner.status === "ACTIVE"
                               ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                              : partner.status === "SUSPENDED"
+                              ? "bg-rose-500/10 text-rose-500 border border-rose-500/20"
                               : "bg-brand-gold/10 text-brand-gold border border-brand-gold/20"
                           }`}
                         >
-                          {partner.status}
+                          {partner.status.replace(/_/g, " ")}
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <span
-                          className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            partner.kyc_status === "VERIFIED"
-                              ? "bg-blue-500/10 text-blue-500 border border-blue-500/20"
-                              : "bg-slate-500/10 text-slate-500 border border-slate-500/20"
-                          }`}
-                        >
-                          {partner.kyc_status}
-                        </span>
+                        {(() => {
+                          const issues = partnerKycIssues(partner);
+                          return issues.length === 0 ? (
+                            <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20">
+                              Complete
+                            </span>
+                          ) : (
+                            <span
+                              title={issues.join("\n")}
+                              className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/10 text-slate-500 border border-slate-500/20 cursor-help"
+                            >
+                              {issues.length} missing
+                            </span>
+                          );
+                        })()}
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
+                        {partner.status === "PENDING_APPROVAL" && (
+                          <button
+                            onClick={() => changePartnerStatus(partner.id, "approve")}
+                            disabled={loading}
+                            className="px-2.5 py-1 text-[11px] font-semibold bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg disabled:opacity-50"
+                          >
+                            Approve
+                          </button>
+                        )}
+                        {(partner.status === "APPROVED" || partner.status === "ACTIVE") && (
+                          <button
+                            onClick={() => changePartnerStatus(partner.id, "suspend")}
+                            disabled={loading}
+                            className="px-2.5 py-1 text-[11px] font-semibold text-rose-600 border border-rose-300 hover:bg-rose-50 rounded-lg disabled:opacity-50"
+                          >
+                            Suspend
+                          </button>
+                        )}
+                        {partner.status === "SUSPENDED" && (
+                          <button
+                            onClick={() => changePartnerStatus(partner.id, "reactivate")}
+                            disabled={loading}
+                            className="px-2.5 py-1 text-[11px] font-semibold text-emerald-700 border border-emerald-300 hover:bg-emerald-50 rounded-lg disabled:opacity-50"
+                          >
+                            Reactivate
+                          </button>
+                        )}
                         <button
                           onClick={() => {
                             setSelectedPartnerId(partner.id);
@@ -487,7 +581,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
                     <option value="">-- Choose Partner --</option>
                     {partners.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name} ({p.id.slice(0, 8)})
+                        {p.trade_name || p.legal_name} ({p.code})
                       </option>
                     ))}
                   </select>
@@ -813,17 +907,30 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
               </button>
             </div>
 
-            <form onSubmit={handleOnboardPartner} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-slate-600 dark:text-slate-400 mb-1 font-semibold">Store / Brand Name *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Royal Bakers & Confectionery"
-                  value={newPartner.name}
-                  onChange={(e) => setNewPartner({ ...newPartner, name: e.target.value })}
-                  className="w-full p-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white"
-                />
+            <form onSubmit={handleOnboardPartner} className="space-y-3 text-xs max-h-[70vh] overflow-y-auto pr-1">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="col-span-2">
+                  <label className="block text-slate-600 dark:text-slate-400 mb-1 font-semibold">Store / Brand Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Royal Bakers & Confectionery"
+                    value={newPartner.trade_name}
+                    onChange={(e) => setNewPartner({ ...newPartner, trade_name: e.target.value })}
+                    className="w-full p-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-600 dark:text-slate-400 mb-1 font-semibold">Partner Code *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="ROYAL"
+                    value={newPartner.code}
+                    onChange={(e) => setNewPartner({ ...newPartner, code: e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "") })}
+                    className="w-full p-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white"
+                  />
+                </div>
               </div>
 
               <div>
@@ -886,9 +993,43 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
                 </div>
               </div>
 
+              {(() => {
+                const field = (key: keyof typeof EMPTY_PARTNER, label: string, placeholder: string, upper = false) => (
+                  <div>
+                    <label className="block text-slate-600 dark:text-slate-400 mb-1 font-semibold">{label}</label>
+                    <input
+                      type="text"
+                      placeholder={placeholder}
+                      value={String(newPartner[key] ?? "")}
+                      onChange={(e) => setNewPartner({ ...newPartner, [key]: upper ? e.target.value.toUpperCase() : e.target.value })}
+                      className="w-full p-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white"
+                    />
+                  </div>
+                );
+                return (
+                  <>
+                    {field("fssai_number", "FSSAI Licence No. (14 digits)", "12345678901234")}
+                    {field("address_line", "Business Address", "Building, street, area")}
+                    <div className="grid grid-cols-2 gap-2">
+                      {field("city", "City", "Kollam")}
+                      {field("pincode", "Pincode", "691303")}
+                    </div>
+                    <div className="pt-1 font-semibold text-slate-700 dark:text-slate-300">Payout bank account</div>
+                    {field("bank_account_name", "Account Holder Name", "Royal Foods LLP")}
+                    <div className="grid grid-cols-2 gap-2">
+                      {field("bank_account_number", "Account Number", "000123456789")}
+                      {field("bank_ifsc", "IFSC", "SBIN0001234", true)}
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      The partner is saved as Pending approval. GSTIN, PAN, FSSAI and bank details are required before you can approve it.
+                    </p>
+                  </>
+                );
+              })()}
+
               <div>
                 <label className="block text-slate-600 dark:text-slate-400 mb-1 font-semibold">
-                  Default Marketplace Commission (%)
+                  Marketplace Commission (%) — excl. 18% GST
                 </label>
                 <input
                   type="number"
@@ -914,7 +1055,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
                   className="bg-brand-primary hover:bg-brand-primary text-white"
                   disabled={loading}
                 >
-                  Onboard & Save to PostgreSQL
+                  Save partner (Pending approval)
                 </Button>
               </div>
             </form>

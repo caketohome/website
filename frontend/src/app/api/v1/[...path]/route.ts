@@ -10470,6 +10470,15 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           }
         }
 
+        // ── Marketplace partner orders only for approved partners ──
+        if (body.partner_id) {
+          const { MarketplacePartnerRepository } = await import("@frontend/lib/repositories/marketplace-partner.repository");
+          const partner = await MarketplacePartnerRepository.findPartnerById(String(body.partner_id));
+          if (!MarketplacePartnerService.isPartnerOrderable(partner)) {
+            return jsonWithDataSource({ success: false, error: "This seller is not currently accepting orders.", code: "PARTNER_NOT_APPROVED" }, "postgres", 400);
+          }
+        }
+
         // ── Operational Closure Check (Storefront / Checkout Gate) ──
         const deliveryDateStr = body.delivery_date || new Date().toISOString().split("T")[0];
         const closureCheck = await OperationalClosureService.validateFulfillmentAvailability(
@@ -11521,6 +11530,17 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const userCtx = resolveUserContext(req);
       const res = await MarketplacePartnerService.onboardPartner(body, toAuthenticatedActor(userCtx));
       return jsonWithDataSource(res, "postgres", res.success ? 201 : 400);
+    }
+    // POST admin/marketplace/partners/:id/{approve|suspend|reactivate}
+    {
+      const m = path.match(/^admin\/marketplace\/partners\/([^/]+)\/(approve|suspend|reactivate)$/);
+      if (m) {
+        const actor = toAuthenticatedActor(resolveUserContext(req));
+        const res = m[2] === "approve"
+          ? await MarketplacePartnerService.approvePartner(m[1], actor)
+          : await MarketplacePartnerService.setPartnerStatus(m[1], m[2] === "suspend" ? "SUSPENDED" : "APPROVED", body.reason, actor);
+        return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
+      }
     }
     if (path === "admin/marketplace/stores") {
       const userCtx = resolveUserContext(req);

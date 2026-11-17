@@ -169,13 +169,45 @@ export class MarketplacePartnerRepository {
       partner.phone,
       JSON.stringify(partner.address),
       partner.city_id || null,
-      partner.state_code || "29",
+      partner.state_code || (partner.gstin ? partner.gstin.slice(0, 2) : ""),
       partner.bank_details ? JSON.stringify(partner.bank_details) : null,
       partner.agreement_id || null,
       partner.metadata ? JSON.stringify(partner.metadata) : null,
     ]);
 
     return res.rows[0];
+  }
+
+  /**
+   * Create (once) the supplier record that represents this partner in Bills Payable / supplier ledger / TDS.
+   * Returns the supplier id; idempotent via partner.metadata.supplier_id and supplier.metadata.marketplace_partner_id.
+   */
+  static async ensureLinkedSupplier(partner: MarketplacePartnerRow, createdBy: string): Promise<string> {
+    if (partner.metadata?.supplier_id) return partner.metadata.supplier_id;
+    const existing = await dbQuery(
+      `SELECT id FROM "supplier" WHERE metadata->>'marketplace_partner_id' = $1 AND deleted_at IS NULL LIMIT 1`,
+      [partner.id]
+    );
+    if (existing.rows.length > 0) return existing.rows[0].id;
+    const supplierId = `sup_mkt_${partner.code.toLowerCase().replace(/[^a-z0-9]/g, "")}_${Date.now().toString(36)}`;
+    const addr = partner.address || {};
+    await dbQuery(
+      `INSERT INTO "supplier" (id, name, gstin, phone, email, address, city, state, is_active, created_by, metadata, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, $9, $10, NOW(), NOW())`,
+      [
+        supplierId,
+        partner.legal_name,
+        partner.gstin,
+        partner.phone,
+        partner.email,
+        typeof addr === "string" ? addr : [addr.line1, addr.line2, addr.city, addr.pincode].filter(Boolean).join(", "),
+        typeof addr === "object" ? addr.city || null : null,
+        partner.state_code || null,
+        createdBy || "system",
+        JSON.stringify({ marketplace_partner_id: partner.id, pan: partner.pan, kind: "MARKETPLACE_PARTNER" }),
+      ]
+    );
+    return supplierId;
   }
 
   /**

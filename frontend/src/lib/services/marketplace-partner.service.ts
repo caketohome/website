@@ -12,25 +12,33 @@ export interface OnboardPartnerInput {
   trade_name: string;
   gstin?: string;
   pan?: string;
+  fssai_number?: string;
   contact_name: string;
   email: string;
   phone: string;
   address: any;
   city_id?: string;
   state_code?: string;
-  bank_details?: any;
+  bank_details?: { account_name?: string; account_number?: string; ifsc?: string; bank_name?: string } | null;
 }
+
+import { GSTIN_RE, partnerKycIssues } from "../marketplace/partner-kyc";
+export { partnerKycIssues };
 
 export class MarketplacePartnerService {
   /**
-   * Onboard new commercial marketplace partner
+   * Onboard a new marketplace partner. Partners start PENDING_APPROVAL and cannot receive orders
+   * until approvePartner() verifies KYC and an active commercial agreement.
    */
   static async onboardPartner(
     input: OnboardPartnerInput,
     actor: AuthenticatedActor
-  ): Promise<{ success: boolean; partner?: MarketplacePartnerRow; error?: string }> {
+  ): Promise<{ success: boolean; partner?: MarketplacePartnerRow; kyc_issues?: string[]; error?: string }> {
     if (actor.role !== "SUPER_ADMIN" && actor.role !== "ADMIN") {
       return { success: false, error: "UNAUTHORIZED: Only administrators can onboard marketplace partners." };
+    }
+    if (!input.code?.trim() || !input.legal_name?.trim() || !input.trade_name?.trim() || !input.email?.trim() || !input.phone?.trim()) {
+      return { success: false, error: "Code, legal name, trade name, email and phone are required." };
     }
 
     const existingEmail = await MarketplacePartnerRepository.findPartnerById(input.email);
@@ -43,25 +51,99 @@ export class MarketplacePartnerService {
       return { success: false, error: `Partner code '${input.code}' is already registered.` };
     }
 
+    const gstin = input.gstin?.toUpperCase().trim() || null;
+    if (gstin && !GSTIN_RE.test(gstin)) {
+      return { success: false, error: `GSTIN '${gstin}' is not a valid 15-character GSTIN.` };
+    }
+    const bank = input.bank_details
+      ? { ...input.bank_details, ifsc: input.bank_details.ifsc?.toUpperCase().trim() }
+      : null;
+
     const partnerId = `mkt_part_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     const saved = await MarketplacePartnerRepository.savePartner({
       id: partnerId,
       code: input.code.toUpperCase().trim(),
       legal_name: input.legal_name.trim(),
       trade_name: input.trade_name.trim(),
-      gstin: input.gstin?.toUpperCase().trim() || null,
+      gstin,
       pan: input.pan?.toUpperCase().trim() || null,
-      status: "APPROVED",
-      contact_name: input.contact_name.trim(),
+      status: "PENDING_APPROVAL",
+      contact_name: (input.contact_name || input.legal_name).trim(),
       email: input.email.toLowerCase().trim(),
       phone: input.phone.trim(),
       address: input.address,
       city_id: input.city_id || null,
-      state_code: input.state_code || "29",
-      bank_details: input.bank_details || null,
+      // State comes from the GSTIN (first 2 digits), never a hardcoded default.
+      state_code: gstin ? gstin.slice(0, 2) : (input.state_code || ""),
+      bank_details: bank,
+      metadata: { fssai_number: input.fssai_number?.trim() || null },
     });
 
+    return { success: true, partner: saved, kyc_issues: partnerKycIssues(saved) };
+  }
+
+  /**
+   * Approve a partner after KYC and agreement checks. Creates (once) a linked supplier record so partner
+   * payouts flow through Bills Payable, the supplier ledger and the TDS register.
+   */
+  static async approvePartner(
+    partnerId: string,
+    actor: AuthenticatedActor
+  ): Promise<{ success: boolean; partner?: MarketplacePartnerRow; error?: string; kyc_issues?: string[] }> {
+    if (actor.role !== "SUPER_ADMIN" && actor.role !== "ADMIN") {
+      return { success: false, error: "UNAUTHORIZED: Only administrators can approve marketplace partners." };
+    }
+    const partner = await MarketplacePartnerRepository.findPartnerById(partnerId);
+    if (!partner) return { success: false, error: "Partner not found." };
+
+    const issues = partnerKycIssues(partner);
+    const agreement = await MarketplacePartnerRepository.getActiveAgreement(partner.id);
+    if (!agreement) issues.push("An ACTIVE commercial agreement (commission terms) is required before approval.");
+    if (issues.length > 0) {
+      return { success: false, error: `Cannot approve: ${issues.join(" ")}`, kyc_issues: issues };
+    }
+
+    const supplierId = await MarketplacePartnerRepository.ensureLinkedSupplier(partner, actor.userId);
+    const saved = await MarketplacePartnerRepository.savePartner({
+      ...partner,
+      status: "APPROVED",
+      agreement_id: agreement!.id,
+      metadata: {
+        ...(partner.metadata || {}),
+        supplier_id: supplierId,
+        approved_by: actor.userId,
+        approved_at: new Date().toISOString(),
+      },
+    });
     return { success: true, partner: saved };
+  }
+
+  /** Suspend or reactivate a partner. Suspended partners receive no new orders. */
+  static async setPartnerStatus(
+    partnerId: string,
+    status: "SUSPENDED" | "APPROVED",
+    reason: string | undefined,
+    actor: AuthenticatedActor
+  ): Promise<{ success: boolean; partner?: MarketplacePartnerRow; error?: string }> {
+    if (actor.role !== "SUPER_ADMIN" && actor.role !== "ADMIN") {
+      return { success: false, error: "UNAUTHORIZED: Only administrators can change partner status." };
+    }
+    const partner = await MarketplacePartnerRepository.findPartnerById(partnerId);
+    if (!partner) return { success: false, error: "Partner not found." };
+    if (status === "APPROVED" && partner.status !== "SUSPENDED") {
+      return { success: false, error: "Only a suspended partner can be reactivated; use approve for new partners." };
+    }
+    const saved = await MarketplacePartnerRepository.savePartner({
+      ...partner,
+      status,
+      metadata: { ...(partner.metadata || {}), status_reason: reason || null, status_changed_by: actor.userId, status_changed_at: new Date().toISOString() },
+    });
+    return { success: true, partner: saved };
+  }
+
+  /** Orders may only be routed to approved partners. */
+  static isPartnerOrderable(partner: MarketplacePartnerRow | null): boolean {
+    return Boolean(partner && (partner.status === "APPROVED" || partner.status === "ACTIVE"));
   }
 
   /**
