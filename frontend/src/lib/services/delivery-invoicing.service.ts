@@ -276,6 +276,27 @@ export class DeliveryInvoicingService {
     let sellerGstinRaw = snap.seller_gstin || order.seller_gstin || order.metadata?.seller_gstin || null;
     let sellerLegalNameRaw = snap.seller_legal_name || order.seller_legal_name || order.metadata?.seller_legal_name || null;
 
+    // Commission marketplace: the partner is the seller of record — its GSTIN, legal name and its own
+    // approved invoice series go on the customer invoice (we are the e-commerce operator, not the seller).
+    let marketplacePartner: any = null;
+    {
+      const mpId = order.partner_id || order.metadata?.partner_id || null;
+      if (mpId) {
+        const { dbQuery: q } = await import("../db");
+        const pRes = await q(`SELECT id, code, legal_name, gstin, status FROM public.marketplace_partner WHERE id = $1 AND deleted_at IS NULL`, [mpId]);
+        marketplacePartner = pRes.rows[0] || null;
+        if (!marketplacePartner?.gstin) {
+          return {
+            success: false,
+            error: `Cannot generate statutory invoice: marketplace partner '${mpId}' has no GSTIN on record.`,
+            code: "MISSING_SELLER_GSTIN",
+          };
+        }
+        sellerGstinRaw = marketplacePartner.gstin;
+        sellerLegalNameRaw = marketplacePartner.legal_name;
+      }
+    }
+
     if ((!sellerGstinRaw || !sellerLegalNameRaw) && order.exemption_test !== true && order.metadata?.exemption_test !== true) {
       try {
         const { dbQuery } = await import("../db");
@@ -340,7 +361,8 @@ export class DeliveryInvoicingService {
 
     // 5. Ambiguous seller identity (State Code Mismatch)
     const rawStateCode = snap.seller_state_code || order.seller_state_code || order.metadata?.seller_state_code || null;
-    if (rawStateCode) {
+    // Branch state is ours; a marketplace partner's state comes from its own GSTIN, so skip this check for it.
+    if (rawStateCode && !marketplacePartner) {
       const cleanStateCode = String(rawStateCode).replace(/\D/g, "").padStart(2, "0");
       const gstinStatePrefix = sellerGstin.slice(0, 2);
       if (cleanStateCode.length === 2 && gstinStatePrefix !== cleanStateCode) {
@@ -397,10 +419,24 @@ export class DeliveryInvoicingService {
     ).trim();
 
     if (isPartner && !requestedPrefix) {
-      requestedPrefix = `PRT-${String(partnerId).slice(-4).toUpperCase()}`;
+      requestedPrefix = marketplacePartner?.code
+        ? `P-${String(marketplacePartner.code).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 14)}`
+        : `PRT-${String(partnerId).slice(-4).toUpperCase()}`;
     }
 
     const { dbQuery } = await import("../db");
+
+    // An approved marketplace partner is authorised to invoice under its own GSTIN: open its series for this FY.
+    if (marketplacePartner && (marketplacePartner.status === "APPROVED" || marketplacePartner.status === "ACTIVE")) {
+      await dbQuery(
+        `INSERT INTO public.invoice_sequence (entity_id, gstin, fiscal_year, prefix, last_seq, document_type, is_active, approval_status, authorized_by, authorized_at)
+         SELECT $1, $2, $3, $4, 0, 'TAX_INVOICE', true, 'APPROVED', 'system:marketplace_partner_approval', NOW()
+         WHERE NOT EXISTS (
+           SELECT 1 FROM public.invoice_sequence WHERE entity_id = $1 AND gstin = $2 AND fiscal_year = $3 AND prefix = $4
+         )`,
+        [String(partnerId), sellerGstin, dynamicFy, requestedPrefix]
+      );
+    }
 
     // If prefix is not explicitly specified, resolve approved active series for this seller and FY from DB
     let prefix = requestedPrefix;

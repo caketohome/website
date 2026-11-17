@@ -15,6 +15,7 @@ export const TDS_SECTIONS: Record<string, string> = {
   "194H": "Commission / brokerage",
   "194Q": "Purchase of goods",
   "194A": "Interest (other than securities)",
+  "194O": "E-commerce operator — marketplace partner sales",
 };
 
 export class TdsValidationError extends Error {

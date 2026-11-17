@@ -47,6 +47,7 @@ import type { PoolClient } from "pg";
 import { AccountingVoucherRepository } from "../repositories/accounting-voucher.repository";
 import { PostingService, PostingServiceError } from "./posting.service";
 import { hasEffectivePermission } from "../staff-access-control";
+import { computeMarketplaceSplit, MARKETPLACE_ACCOUNTS } from "../marketplace/marketplace-split";
 import { CustomerReceiptService } from "./customer-receipt.service";
 import type {
   AccountingVoucherRow,
@@ -240,6 +241,8 @@ export interface InspectSalesJournalLinesResult {
   arAccount: AccountingAccountRow;
   order: any;
   branch: any;
+  /** true for commission-marketplace orders: goods belong to the partner, so no own-stock COGS. */
+  isMarketplace: boolean;
 }
 
 // ─── SalesPostingService ───────────────────────────────────────────────────────
@@ -608,6 +611,10 @@ export class SalesPostingService {
       "2127", // Output CGST 6.0%
       "2128", // Output SGST 6.0%
       "2129", // Output IGST 12.0%
+      MARKETPLACE_ACCOUNTS.PARTNER_PAYABLE, // 2112 Marketplace Partner Payable
+      MARKETPLACE_ACCOUNTS.COMMISSION_INCOME, // 4150 Marketplace Commission Income
+      MARKETPLACE_ACCOUNTS.GST_TCS_PAYABLE, // 2131 GST TCS Payable (Sec 52)
+      MARKETPLACE_ACCOUNTS.TDS_PAYABLE, // 2130 TDS Payable (194-O)
     ];
 
     const coaRes = await client.query<AccountingAccountRow>(
@@ -640,6 +647,17 @@ export class SalesPostingService {
       }
       return acc;
     };
+
+    // 10b. Commission-marketplace order? The partner is the seller of the goods: item revenue and item GST
+    // belong to the partner (credited to Partner Payable); we keep commission (+18% GST), TCS and 194-O TDS.
+    const mktRes = await client.query(
+      `SELECT s.*, p.gstin AS partner_gstin, p.metadata AS partner_metadata, p.trade_name AS partner_trade_name
+       FROM public.marketplace_order_snapshot s
+       JOIN public.marketplace_partner p ON p.id = s.partner_id
+       WHERE s.order_id = $1 LIMIT 1`,
+      [order.id]
+    );
+    const marketplace = mktRes.rows[0] || null;
 
     // 11. Construct Double-Entry Journal Lines
     const journalLines: JournalLineInput[] = [];
@@ -675,7 +693,7 @@ export class SalesPostingService {
     cakeTaxableTotal = Math.round(cakeTaxableTotal * 100) / 100;
     accTaxableTotal = Math.round(accTaxableTotal * 100) / 100;
 
-    if (cakeTaxableTotal > 0) {
+    if (cakeTaxableTotal > 0 && !marketplace) {
       journalLines.push({
         account_id: accCakeRevenue.id,
         debit_amount: 0,
@@ -686,7 +704,7 @@ export class SalesPostingService {
       });
     }
 
-    if (accTaxableTotal > 0) {
+    if (accTaxableTotal > 0 && !marketplace) {
       journalLines.push({
         account_id: accAccRevenue.id,
         debit_amount: 0,
@@ -726,8 +744,13 @@ export class SalesPostingService {
 
     const isIntra = taxCalc.jurisdiction.jurisdiction === "INTRA_STATE";
 
-    // Item line taxes
+    // Item line taxes (our own sales only — on marketplace orders the goods' GST is the partner's)
+    let mktItemsGst = 0;
     for (const calcLine of taxCalc.lines) {
+      if (marketplace) {
+        mktItemsGst += isIntra ? calcLine.cgstAmount + calcLine.sgstAmount : calcLine.igstAmount;
+        continue;
+      }
       if (isIntra) {
         if (calcLine.cgstAmount > 0 && calcLine.accountingMetadata.cgstAccountCode) {
           recordGstCredit(calcLine.accountingMetadata.cgstAccountCode, calcLine.cgstAmount, `CGST ${calcLine.cgstRate}%`);
@@ -772,6 +795,59 @@ export class SalesPostingService {
       }
     }
 
+    // 11b. Commission-marketplace split lines
+    if (marketplace) {
+      const ourGstRes = await client.query<{ state_code: string }>(
+        `SELECT state_code FROM public.gst_registration WHERE is_active = true ORDER BY created_at ASC LIMIT 1`
+      );
+      const ourState = ourGstRes.rows[0]?.state_code || "";
+      const partnerState = String(marketplace.partner_gstin || "").slice(0, 2);
+      let split;
+      try {
+        split = computeMarketplaceSplit({
+          itemsTaxable: cakeTaxableTotal + accTaxableTotal,
+          itemsGst: mktItemsGst,
+          agreementType: marketplace.agreement_type,
+          commissionRate: Number(marketplace.commission_rate),
+          fixedFee: Number(marketplace.fixed_fee),
+          intraState: Boolean(ourState) && ourState === partnerState,
+        });
+      } catch (e: any) {
+        throw new SalesPostingError("VOUCHER_UNBALANCED", e.message);
+      }
+      const acct = (code: string) => {
+        const a = coaMap.get(code);
+        if (!a) throw new SalesPostingError("ACCOUNT_RESOLUTION_FAILED", `Marketplace account ${code} not found in CoA.`);
+        return a;
+      };
+      const ref = `Order ${order.display_id || order.id} (${marketplace.partner_trade_name || marketplace.partner_id})`;
+      const supplierId = marketplace.partner_metadata?.supplier_id || null;
+      const mk = (code: string, amount: number, narration: string, metadata: Record<string, unknown>, extra: Partial<JournalLineInput> = {}) => {
+        if (amount > 0) {
+          journalLines.push({
+            account_id: acct(code).id,
+            debit_amount: 0,
+            credit_amount: amount,
+            branch_id: orderBranchId,
+            narration,
+            metadata: { order_id: order.id, marketplace_partner_id: marketplace.partner_id, ...metadata },
+            ...extra,
+          });
+        }
+      };
+      mk(MARKETPLACE_ACCOUNTS.PARTNER_PAYABLE, split.partnerNet, `Owed to marketplace partner: ${ref}`,
+        { partner_sale_gross: split.partnerSaleGross }, { supplier_id: supplierId });
+      mk(MARKETPLACE_ACCOUNTS.COMMISSION_INCOME, split.commission, `Marketplace commission: ${ref}`,
+        { commission_rate: Number(marketplace.commission_rate), agreement_id: marketplace.agreement_id });
+      mk(MARKETPLACE_ACCOUNTS.CGST_9, split.commissionCgst, `CGST 9% on commission: ${ref}`, { gst_on: "COMMISSION" });
+      mk(MARKETPLACE_ACCOUNTS.SGST_9, split.commissionSgst, `SGST 9% on commission: ${ref}`, { gst_on: "COMMISSION" });
+      mk(MARKETPLACE_ACCOUNTS.IGST_18, split.commissionIgst, `IGST 18% on commission: ${ref}`, { gst_on: "COMMISSION" });
+      mk(MARKETPLACE_ACCOUNTS.GST_TCS_PAYABLE, split.tcs, `GST TCS u/s 52 @0.5%: ${ref}`,
+        { tcs_base_amount: split.itemsTaxable, partner_gstin: marketplace.partner_gstin });
+      mk(MARKETPLACE_ACCOUNTS.TDS_PAYABLE, split.tds194o, `TDS u/s 194-O @0.1%: ${ref}`,
+        { tds_section: "194O", tds_base_amount: split.itemsTaxable }, { supplier_id: supplierId });
+    }
+
     // 12. Mathematical & CoA Invariant Validation
     try {
       PostingService.validateJournalLines(journalLines);
@@ -792,6 +868,7 @@ export class SalesPostingService {
       arAccount,
       order,
       branch,
+      isMarketplace: Boolean(marketplace),
     };
   }
 
@@ -1565,6 +1642,7 @@ export class SalesPostingService {
         const {
           journalLines: commercialLines,
           invoiceTotal,
+          isMarketplace,
         } = await SalesPostingService.inspectAndBuildJournalLines(order.id, client, {
           branchId: voucher.branch_id,
         });
@@ -1594,7 +1672,8 @@ export class SalesPostingService {
         }
         const fulfillmentItems: FulfillmentItem[] = [];
 
-        for (const rawItem of rawItems) {
+        // Marketplace orders: the partner's own stock fulfils the order — no own inventory movement or COGS.
+        for (const rawItem of isMarketplace ? [] : rawItems) {
           const prodId = rawItem.product_id;
           if (!prodId) continue;
 

@@ -297,8 +297,12 @@ export class GstReportingService {
     const orderRegister = await ReportRepository.getOrderRegister(filters);
     const gstInfo = await this.resolveFilingIdentity(filters);
     const rows: GstInvoiceRegisterRow[] = [];
+    // Marketplace partner sales are the partner's supplies under its own GSTIN — not part of our GSTR-1.
+    const mktRes = await dbQuery<{ order_id: string }>(`SELECT order_id FROM public.marketplace_order_snapshot`);
+    const marketplaceOrderIds = new Set(mktRes.rows.map((r) => r.order_id));
 
     for (const order of orderRegister) {
+      if (marketplaceOrderIds.has(order.orderId)) continue;
       if (GST_EXCLUDED_STATUSES.includes(order.orderStatus.toLowerCase())) continue;
       if (order.classification === "TEST" || order.classification === "PROTOTYPE") continue;
 
@@ -366,6 +370,8 @@ export class GstReportingService {
       FROM public."order" o
       LEFT JOIN public.invoice i ON i.order_id = o.id
       WHERE o.deleted_at IS NULL
+        -- Marketplace partner sales are the partner's supplies (its GSTIN), not ours; we report them as TCS (GSTR-8).
+        AND NOT EXISTS (SELECT 1 FROM public.marketplace_order_snapshot mos WHERE mos.order_id = o.id)
         AND o.created_at >= $1::timestamptz
         AND o.created_at <= $2::timestamptz
       ORDER BY o.created_at DESC
