@@ -351,29 +351,11 @@ class CakeToHomeApiClient {
   }
 
   // ── Admin: Orders Command Center ──
-  async getAdminOrders(params?: {
-    q?: string;
-    status?: string;
-    branch_id?: string;
-    city?: string;
-    payment_status?: string;
-    date_preset?: string;
-    from_date?: string;
-    to_date?: string;
-    limit?: number;
-    offset?: number;
-  }) {
+  async getAdminOrders(params?: Record<string, string | number | undefined>) {
     const query = new URLSearchParams();
-    if (params?.q) query.set("q", params.q);
-    if (params?.status) query.set("status", params.status);
-    if (params?.branch_id) query.set("branch_id", params.branch_id);
-    if (params?.city) query.set("city", params.city);
-    if (params?.payment_status) query.set("payment_status", params.payment_status);
-    if (params?.date_preset) query.set("date_preset", params.date_preset);
-    if (params?.from_date) query.set("from_date", params.from_date);
-    if (params?.to_date) query.set("to_date", params.to_date);
-    if (params?.limit) query.set("limit", String(params.limit));
-    if (params?.offset) query.set("offset", String(params.offset));
+    for (const [k, v] of Object.entries(params || {})) {
+      if (v !== undefined && v !== null && v !== "" && v !== 0) query.set(k, String(v));
+    }
     const qs = query.toString() ? `?${query.toString()}` : "";
     return this.request(`/admin/orders${qs}`);
   }
@@ -447,17 +429,13 @@ class CakeToHomeApiClient {
       body: JSON.stringify({ note }),
     });
   }
-  async exportAdminOrders(params?: { q?: string; status?: string; branch_id?: string; city?: string; payment_status?: string; from_date?: string; to_date?: string }) {
+  async exportAdminOrders(params?: Record<string, string | undefined>) {
     const query = new URLSearchParams();
-    if (params?.q) query.set("q", params.q);
-    if (params?.status) query.set("status", params.status);
-    if (params?.branch_id) query.set("branch_id", params.branch_id);
-    if (params?.city) query.set("city", params.city);
-    if (params?.payment_status) query.set("payment_status", params.payment_status);
-    if (params?.from_date) query.set("from_date", params.from_date);
-    if (params?.to_date) query.set("to_date", params.to_date);
+    for (const [k, v] of Object.entries(params || {})) {
+      if (v && v !== "all") query.set(k, v);
+    }
     const qs = query.toString() ? `?${query.toString()}` : "";
-    return this.request(`/admin/orders/export${qs}`).catch(() => ({ export_data: [] }));
+    return this.request(`/admin/orders/export${qs}`);
   }
 
   // ── Admin: Catalog ──

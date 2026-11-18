@@ -4927,8 +4927,9 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       if (authErr) return authErr;
 
       const reportFilters = {
-        startDate: url.searchParams.get("startDate") || url.searchParams.get("start_date") || new Date(Date.now() - 30 * 86400000).toISOString().split("T")[0],
-        endDate: url.searchParams.get("endDate") || url.searchParams.get("end_date") || new Date().toISOString().split("T")[0],
+        // Defaults are IST calendar days (last 30 days incl. today)
+        startDate: url.searchParams.get("startDate") || url.searchParams.get("start_date") || new Date(Date.now() + 5.5 * 3600 * 1000 - 29 * 86400000).toISOString().split("T")[0],
+        endDate: url.searchParams.get("endDate") || url.searchParams.get("end_date") || new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().split("T")[0],
         branchIds: url.searchParams.get("branchIds") ? url.searchParams.get("branchIds")!.split(",") : undefined,
         city: url.searchParams.get("city") || undefined,
         status: url.searchParams.get("status") ? url.searchParams.get("status")!.split(",") : undefined,
@@ -5455,7 +5456,18 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/orders/export" || path === "admin/order-lifecycle/export") {
       const permErr = verifyApiPermission(req, "ORDERS", "EXPORT");
       if (permErr) return permErr;
-      return jsonWithDataSource(ApiEngine.exportAdminOrders(Object.fromEntries(url.searchParams)), "postgres");
+      // Same filters and branch scoping as the order list, read from Postgres, so the file matches the screen.
+      const callerCtx = resolveUserContext(req);
+      const isBranchScopedRole =
+        !callerCtx.isSuperAdmin &&
+        Boolean(callerCtx.branchId) &&
+        ["BRANCH_MANAGER", "STORE_MANAGER", "SHOP_MANAGER", "STORE_STAFF"].includes(callerCtx.role);
+      const qp = Object.fromEntries(url.searchParams) as Record<string, string>;
+      const exportRows = await OrderRepository.exportOrders({
+        ...qp,
+        branch_id: isBranchScopedRole ? (callerCtx.branchId as string) : qp.branch_id,
+      });
+      return jsonWithDataSource({ success: true, total: exportRows.length, export_data: exportRows }, "postgres");
     }
     if (path.startsWith("admin/delivery/partners/") && path.endsWith("/effective-coverage")) {
       const partnerId = path.replace("admin/delivery/partners/", "").replace("/effective-coverage", "");
@@ -5916,8 +5928,15 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         q: qParams.q as string,
         city: qParams.city as string,
         payment_status: qParams.payment_status as string,
+        payment_method: qParams.payment_method as string,
+        delivery_type: qParams.delivery_type as string,
+        sold_by: qParams.sold_by as string,
+        gst_invoice: qParams.gst_invoice as string,
+        invoiced: qParams.invoiced as string,
         from_date: qParams.from_date as string,
         to_date: qParams.to_date as string,
+        delivery_from: qParams.delivery_from as string,
+        delivery_to: qParams.delivery_to as string,
       });
 
       return jsonWithDataSource({
@@ -6735,7 +6754,23 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
 
     if (path === "admin/audit-logs") return jsonWithDataSource({ logs: ApiEngine.getAdminAuditLogs() }, "postgres");
-    if (path === "admin/analytics/dashboard") return jsonWithDataSource({ metrics: ApiEngine.getAdminAnalytics() }, "postgres");
+    if (path === "admin/analytics/dashboard") {
+      // Real figures from Postgres (was hardcoded demo numbers).
+      const permErr = verifyApiPermission(req, "REPORTS", "VIEW");
+      if (permErr) return permErr;
+      const { ReportRepository } = await import("@frontend/lib/repositories/report.repository");
+      const today = new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().split("T")[0];
+      const tx = await ReportRepository.getTransactionalMetrics({ startDate: today, endDate: today });
+      return jsonWithDataSource({
+        metrics: {
+          daily_revenue: tx.grossRevenue,
+          total_orders_today: tx.totalOrders,
+          avg_order_value: tx.aov,
+          cancelled_today: tx.cancelledOrders,
+          delivered_today: tx.deliveredOrders,
+        },
+      }, "postgres");
+    }
     if (path === "admin/security") return jsonWithDataSource({ config: ApiEngine.getAdminSecurityConfig() }, "postgres");
     if (path === "admin/reports") return jsonWithDataSource({ reports: ApiEngine.getAdminReports() }, "postgres");
 
@@ -7186,8 +7221,9 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       // Parse common GST report filters from query params
       const q = Object.fromEntries(url.searchParams);
       const gstFilters: GstReportFilters = {
-        startDate: q.startDate || q.start_date || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0],
-        endDate: q.endDate || q.end_date || new Date().toISOString().split("T")[0],
+        // Defaults: current IST month to date
+        startDate: q.startDate || q.start_date || `${new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 7)}-01`,
+        endDate: q.endDate || q.end_date || new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().split("T")[0],
         branchIds: q.branchIds ? q.branchIds.split(",") : (q.branch_id && q.branch_id !== "all" ? [q.branch_id] : undefined),
         city: q.city || undefined,
         filingGstin: q.filingGstin || q.gstin || undefined,

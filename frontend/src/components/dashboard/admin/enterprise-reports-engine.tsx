@@ -156,7 +156,9 @@ export function EnterpriseReportsEngine() {
   // ── Date Resolution: Convert UI timeRange to ISO start/end dates ──
   const resolvedDates = useMemo(() => {
     const now = new Date();
-    const today = now.toISOString().split("T")[0];
+    // Local calendar day: toISOString() is UTC and shifts IST dates (e.g. 1st of month -> last day of previous month)
+    const ymd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const today = ymd(now);
     let start = today;
     let end = today;
 
@@ -166,31 +168,31 @@ export function EnterpriseReportsEngine() {
         break;
       case "yesterday": {
         const y = new Date(now); y.setDate(y.getDate() - 1);
-        start = end = y.toISOString().split("T")[0];
+        start = end = ymd(y);
         break;
       }
       case "last_7_days": {
         const d = new Date(now); d.setDate(d.getDate() - 7);
-        start = d.toISOString().split("T")[0];
+        start = ymd(d);
         end = today;
         break;
       }
       case "last_30_days": {
         const d = new Date(now); d.setDate(d.getDate() - 30);
-        start = d.toISOString().split("T")[0];
+        start = ymd(d);
         end = today;
         break;
       }
       case "last_90_days": {
         const d = new Date(now); d.setDate(d.getDate() - 90);
-        start = d.toISOString().split("T")[0];
+        start = ymd(d);
         end = today;
         break;
       }
       case "this_week": {
         const dow = now.getDay();
         const d = new Date(now); d.setDate(d.getDate() - dow);
-        start = d.toISOString().split("T")[0];
+        start = ymd(d);
         end = today;
         break;
       }
@@ -198,8 +200,8 @@ export function EnterpriseReportsEngine() {
         const dow = now.getDay();
         const endD = new Date(now); endD.setDate(endD.getDate() - dow - 1);
         const startD = new Date(endD); startD.setDate(startD.getDate() - 6);
-        start = startD.toISOString().split("T")[0];
-        end = endD.toISOString().split("T")[0];
+        start = ymd(startD);
+        end = ymd(endD);
         break;
       }
       case "this_month": {
@@ -210,8 +212,8 @@ export function EnterpriseReportsEngine() {
       case "last_month": {
         const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const lme = new Date(now.getFullYear(), now.getMonth(), 0);
-        start = lm.toISOString().split("T")[0];
-        end = lme.toISOString().split("T")[0];
+        start = ymd(lm);
+        end = ymd(lme);
         break;
       }
       case "this_quarter": {
@@ -226,8 +228,8 @@ export function EnterpriseReportsEngine() {
         const qn = q < 0 ? 3 : q;
         const qs = new Date(y, qn * 3, 1);
         const qe = new Date(y, qn * 3 + 3, 0);
-        start = qs.toISOString().split("T")[0];
-        end = qe.toISOString().split("T")[0];
+        start = ymd(qs);
+        end = ymd(qe);
         break;
       }
       case "this_year":
@@ -424,6 +426,14 @@ export function EnterpriseReportsEngine() {
   }, [products, topProductsMetric]);
 
   const [isExporting, setIsExporting] = useState<boolean>(false);
+  // Statutory GST files come from the GST reporting service (invoice-based, excludes partner sales) — same
+  // numbers as the GST returns, unlike the analytics HSN view above which is computed from order lines.
+  const [statutoryType, setStatutoryType] = useState<string>("GSTR1");
+  const statutoryUrl = (fmt: "xlsx" | "csv") => {
+    const p = new URLSearchParams({ startDate: resolvedDates.startDate, endDate: resolvedDates.endDate, type: statutoryType });
+    if (branchIds.length > 0) p.set("branchIds", branchIds.join(","));
+    return `/api/v1/admin/reports/gst/export/${fmt}?${p.toString()}`;
+  };
   const activeReportDef = useMemo(() => getReportDefinition(activeSection), [activeSection]);
 
   const handleExportActiveReport = async () => {
@@ -499,23 +509,33 @@ export function EnterpriseReportsEngine() {
   const handleExportCompleteWorkbook = async () => {
     setIsExporting(true);
     try {
+      // Screen state only holds the open section's data; fetch every section for the same filters.
+      const q = apiQueryParams;
+      const get = (p: string, fallback: any) => apiClient.get<any>(`/admin/reports/${p}?${q}`).then((r) => r?.data ?? fallback).catch(() => fallback);
+      const [kpiRes, daily, weekly, monthly, prods, branches, cities, areas, payments, delivery, customers, gst, orderReg, crossSell, exc] = await Promise.all([
+        apiClient.get<any>(`/admin/reports/kpis?${q}`).catch(() => ({ kpis: [] })),
+        get("daily", dailyData), get("weekly", weeklyData), get("monthly", monthlyData),
+        get("products", []), get("branches", []), get("cities", []), get("service-areas", []),
+        get("payments", { breakdown: [] }), get("delivery", {}), get("customers", {}),
+        get("gst", { items: [], totals: {} }), get("orders", []), get("cross-sell", []), get("exceptions", []),
+      ]);
       await ExcelExportService.exportCompleteWorkbook({
-        kpis,
-        daily: dailyData,
-        weekly: weeklyData,
-        monthly: monthlyData,
-        products,
-        branches: branchPerformance,
-        cities: cityPerformance,
-        areaPincodes: serviceAreaPerformance,
-        payments: paymentData,
-        delivery: deliveryData,
-        customers: customerData,
-        gstSummary,
-        gstDetailedRegister,
-        orderRegister: orders,
-        crossSell: crossSellData,
-        exceptions: exceptions,
+        kpis: kpiRes?.kpis || [],
+        daily,
+        weekly,
+        monthly,
+        products: prods,
+        branches,
+        cities,
+        areaPincodes: areas,
+        payments,
+        delivery,
+        customers,
+        gstSummary: gst,
+        gstDetailedRegister: gst?.items || [],
+        orderRegister: orderReg,
+        crossSell,
+        exceptions: (exc || []).filter((e: any) => !resolvedExceptionIds.includes(e.id)),
         filters,
       });
     } finally {
@@ -1224,6 +1244,29 @@ export function EnterpriseReportsEngine() {
               >
                 <Download className="w-3.5 h-3.5 text-slate-600" /> Export Detailed Register
               </Button>
+              <select
+                value={statutoryType}
+                onChange={(e) => setStatutoryType(e.target.value)}
+                className="p-1.5 border rounded-lg text-xs font-semibold bg-white dark:bg-slate-800"
+                aria-label="Statutory GST report"
+              >
+                <option value="GSTR1">GSTR-1</option>
+                <option value="GSTR3B">GSTR-3B</option>
+                <option value="B2B">B2B invoices</option>
+                <option value="B2C">B2C sales</option>
+                <option value="HSN_SUMMARY">HSN summary</option>
+                <option value="INVOICE_REGISTER">Invoice register</option>
+                <option value="SALES_REGISTER">Sales register</option>
+                <option value="CREDIT_NOTES">Credit notes</option>
+                <option value="VALIDATION">Validation audit</option>
+                <option value="COMPLETE_WORKBOOK">All GST sheets</option>
+              </select>
+              <a href={statutoryUrl("xlsx")} className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5">
+                <Download className="w-3.5 h-3.5" /> Statutory XLSX
+              </a>
+              <a href={statutoryUrl("csv")} className="px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5">
+                CSV
+              </a>
             </div>
           </div>
 

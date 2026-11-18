@@ -13,6 +13,8 @@ import { WidgetErrorBoundary } from "./error-boundary";
 import { OrderDetailsDrawer } from "./order-details-drawer";
 import { CreateOrderDrawer } from "./create-order-drawer";
 
+const EXTRA_FILTER_KEYS = ["payment_method", "delivery_type", "sold_by", "gst_invoice", "invoiced", "delivery_from", "delivery_to"];
+
 export const OrdersPanel = memo(function OrdersPanel() {
   const searchParams = useSearchParams();
 
@@ -30,6 +32,15 @@ export const OrdersPanel = memo(function OrdersPanel() {
   const [fromDate, setFromDate] = useState(searchParams?.get("from_date") || "");
   const [toDate, setToDate] = useState(searchParams?.get("to_date") || "");
   const [datePreset, setDatePreset] = useState(searchParams?.get("date_preset") || searchParams?.get("datePreset") || "all");
+  // More filters: payment method, fulfilment, sold by, GST invoice type, invoiced, delivery date range
+  const [extra, setExtra] = useState<Record<string, string>>(() =>
+    Object.fromEntries(EXTRA_FILTER_KEYS.map((k) => [k, searchParams?.get(k) || (k.startsWith("delivery_") && k !== "delivery_type" ? "" : "all")]))
+  );
+  const setExtraFilter = (key: string, val: string) => {
+    setExtra((prev) => ({ ...prev, [key]: val }));
+    setPage(1);
+    syncUrl({ [key]: val, page: 1 });
+  };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateOrderOpen, setIsCreateOrderOpen] = useState(false);
@@ -70,7 +81,8 @@ export const OrdersPanel = memo(function OrdersPanel() {
     setDatePreset(preset);
     setPage(1);
     const now = new Date();
-    const formatDate = (d: Date) => d.toISOString().slice(0, 10);
+    // Local calendar day (toISOString() is UTC and shifts IST dates back by one day)
+    const formatDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
     let nextFrom = "";
     let nextTo = "";
@@ -135,8 +147,10 @@ export const OrdersPanel = memo(function OrdersPanel() {
     setDatePreset("all");
     setFromDate("");
     setToDate("");
+    setExtra(Object.fromEntries(EXTRA_FILTER_KEYS.map((k) => [k, k.startsWith("delivery_") && k !== "delivery_type" ? "" : "all"])));
     setPage(1);
     syncUrl({
+      ...Object.fromEntries(EXTRA_FILTER_KEYS.map((k) => [k, ""])),
       q: "",
       status: "all",
       branch_id: "all",
@@ -157,7 +171,8 @@ export const OrdersPanel = memo(function OrdersPanel() {
     paymentFilter !== "all" ||
     datePreset !== "all" ||
     fromDate !== "" ||
-    toDate !== "";
+    toDate !== "" ||
+    Object.values(extra).some((v) => v && v !== "all");
 
   // Selected Order Drawer State
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -195,6 +210,7 @@ export const OrdersPanel = memo(function OrdersPanel() {
         date_preset: datePreset,
         from_date: fromDate,
         to_date: toDate,
+        ...extra,
         limit,
         offset,
       })
@@ -212,7 +228,7 @@ export const OrdersPanel = memo(function OrdersPanel() {
         setOrders([]);
       })
       .finally(() => setLoading(false));
-  }, [page, search, statusFilter, branchFilter, cityFilter, paymentFilter, datePreset, fromDate, toDate]);
+  }, [page, search, statusFilter, branchFilter, cityFilter, paymentFilter, datePreset, fromDate, toDate, extra]);
 
   useEffect(() => {
     fetchOrders();
@@ -261,8 +277,9 @@ export const OrdersPanel = memo(function OrdersPanel() {
         payment_status: paymentFilter,
         from_date: fromDate,
         to_date: toDate,
+        ...extra,
       });
-      const rows = res?.export_data || orders;
+      const rows = res?.export_data || [];
       if (!rows || rows.length === 0) {
         alert("No order data to export.");
         return;
@@ -271,7 +288,7 @@ export const OrdersPanel = memo(function OrdersPanel() {
       const headers = Object.keys(rows[0]).join(",");
       const csvContent = [
         headers,
-        ...rows.map((r: any) => Object.values(r).map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")),
+        ...rows.map((r: any) => Object.values(r).map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")),
       ].join("\n");
 
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -511,6 +528,41 @@ export const OrdersPanel = memo(function OrdersPanel() {
                 </button>
               </div>
             )}
+
+            {/* More filters */}
+            <select value={extra.payment_method} onChange={(e) => setExtraFilter("payment_method", e.target.value)} className="p-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold text-xs" data-testid="payment-method-filter">
+              <option value="all">All Payment Methods</option>
+              <option value="cod">Cash on Delivery</option>
+              <option value="online">Online (prepaid)</option>
+            </select>
+            <select value={extra.delivery_type} onChange={(e) => setExtraFilter("delivery_type", e.target.value)} className="p-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold text-xs" data-testid="delivery-type-filter">
+              <option value="all">Delivery &amp; Pickup</option>
+              <option value="delivery">Home Delivery</option>
+              <option value="pickup">Store Pickup</option>
+              <option value="express">Express</option>
+              <option value="midnight">Midnight</option>
+            </select>
+            <select value={extra.sold_by} onChange={(e) => setExtraFilter("sold_by", e.target.value)} className="p-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold text-xs" data-testid="sold-by-filter">
+              <option value="all">Own &amp; Partner</option>
+              <option value="own">Our Kitchens</option>
+              <option value="partner">Marketplace Partners</option>
+            </select>
+            <select value={extra.gst_invoice} onChange={(e) => setExtraFilter("gst_invoice", e.target.value)} className="p-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold text-xs" data-testid="gst-invoice-filter">
+              <option value="all">B2B &amp; B2C</option>
+              <option value="b2b">B2B (buyer GSTIN)</option>
+              <option value="b2c">B2C</option>
+            </select>
+            <select value={extra.invoiced} onChange={(e) => setExtraFilter("invoiced", e.target.value)} className="p-2 border rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold text-xs" data-testid="invoiced-filter">
+              <option value="all">Invoiced or Not</option>
+              <option value="yes">Invoice Issued</option>
+              <option value="no">No Invoice Yet</option>
+            </select>
+            <div className="flex items-center gap-1.5 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+              <span className="text-[10px] font-bold text-slate-500">Delivery:</span>
+              <Input type="date" value={extra.delivery_from} onChange={(e) => setExtraFilter("delivery_from", e.target.value)} className="h-7 text-xs w-32" data-testid="delivery-from-input" />
+              <span className="text-[10px] font-bold text-slate-500">to</span>
+              <Input type="date" value={extra.delivery_to} onChange={(e) => setExtraFilter("delivery_to", e.target.value)} className="h-7 text-xs w-32" data-testid="delivery-to-input" />
+            </div>
 
             {/* Clear All Filters Button */}
             {hasActiveFilters && (

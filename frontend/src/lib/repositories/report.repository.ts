@@ -134,10 +134,38 @@ async function loadProductGstRates() {
   productRatesLoadedAt = Date.now();
 }
 
+// Same exclusions as the GST export (gst-reporting.service GST_EXCLUDED_STATUSES) so totals reconcile.
+const NON_SALE_STATUSES = new Set(["draft", "abandoned"]);
+
 async function queryReportableOrders(sql: string, params: any[]) {
   await loadProductGstRates();
   const result = await dbQuery(sql, params);
-  return { ...result, rows: result.rows.filter(isReportableOrder) };
+  const rows = result.rows.filter(isReportableOrder);
+  // Payment/refund updates write the order's real columns (payment_status, branch_id, payment_method), not
+  // always metadata. Overlay them so reports agree with the order list and the GST export.
+  const ids = rows.map((r: any) => r.id).filter(Boolean);
+  if (ids.length > 0) {
+    const cols = await dbQuery(
+      `SELECT id, status::text AS status, payment_status, payment_method, branch_id FROM public."order" WHERE id = ANY($1::text[])`,
+      [ids]
+    );
+    const byId = new Map(cols.rows.map((c: any) => [c.id, c]));
+    for (const r of rows) {
+      const c: any = byId.get(r.id);
+      if (!c) continue;
+      const meta = { ...(r.metadata || {}) };
+      // The column defaults to 'paid' on insert paths that don't set it, so trust it only for
+      // states the payment flows write explicitly (or when metadata has nothing).
+      const colPs = String(c.payment_status || "").toLowerCase();
+      if (colPs && (!meta.payment_status || ["refunded", "failed", "payment_exception"].includes(colPs))) meta.payment_status = c.payment_status;
+      if (c.payment_method && !meta.payment_method) meta.payment_method = c.payment_method;
+      if (c.branch_id && !meta.branch_id) meta.branch_id = c.branch_id;
+      r.metadata = meta;
+      // A refunded payment is a refund even if the fulfilment status still says delivered.
+      if (String(c.payment_status || "").toLowerCase() === "refunded") r.status = "refunded";
+    }
+  }
+  return { ...result, rows: rows.filter((r: any) => !NON_SALE_STATUSES.has(String(r.status || "").toLowerCase())) };
 }
 
 const CITY_ALIASES: Record<string, string> = { bangalore: "Bengaluru", bengaluru: "Bengaluru", bombay: "Mumbai", madras: "Chennai", calcutta: "Kolkata", cochin: "Kochi", trivandrum: "Thiruvananthapuram" };
@@ -179,7 +207,7 @@ function buildOrderFilters(filters: ReportFilters, startParamIndex: number = 1):
 
   // Branch filter
   if (filters.branchIds && filters.branchIds.length > 0) {
-    clauses.push(`o.metadata->>'branch_id' = ANY($${idx}::text[])`);
+    clauses.push(`COALESCE(o.branch_id, o.metadata->>'branch_id') = ANY($${idx}::text[])`);
     params.push(filters.branchIds);
     idx++;
   }
@@ -189,6 +217,11 @@ function buildOrderFilters(filters: ReportFilters, startParamIndex: number = 1):
     clauses.push(`(o.metadata->'delivery_address'->>'city' ILIKE $${idx} OR o.metadata->>'delivery_city' ILIKE $${idx})`);
     params.push(`%${filters.city}%`);
     idx++;
+  }
+
+  // Marketplace partner orders are the partner's supplies: excluded from our GST figures (as in GSTR-1).
+  if ((filters as any).excludeMarketplace) {
+    clauses.push(`NOT EXISTS (SELECT 1 FROM public.marketplace_order_snapshot mos WHERE mos.order_id = o.id)`);
   }
 
   // Status filter
@@ -885,7 +918,7 @@ export class ReportRepository {
   // ── 7. GST HSN Summary ──────────────────────────────────────────────────
 
   static async getGstHsnSummary(filters: ReportFilters): Promise<GstHsnSummary> {
-    const products = await this.getProductPerformance(filters);
+    const products = await this.getProductPerformance({ ...filters, excludeMarketplace: true } as ReportFilters);
     const gstInfo = await this.getSellerGstInfo();
 
     const hsnGrouped = new Map<string, GstHsnRow>();
@@ -1117,7 +1150,7 @@ export class ReportRepository {
     const { whereClauses, params } = buildOrderFilters(filters);
     const whereStr = whereClauses.join(" AND ");
 
-    const sql = `SELECT o.metadata FROM public."order" o WHERE ${whereStr}`;
+    const sql = `SELECT o.id, o.customer_id, o.status::text as status, o.metadata FROM public."order" o WHERE ${whereStr}`;
     const result = await queryReportableOrders(sql, params);
 
     const pairMap = new Map<string, { primary: string; co: string; count: number; revenue: number }>();
@@ -1158,7 +1191,7 @@ export class ReportRepository {
     const { whereClauses, params } = buildOrderFilters(filters);
     const whereStr = whereClauses.join(" AND ");
 
-    const sql = `SELECT o.status::text as status, o.metadata FROM public."order" o WHERE ${whereStr}`;
+    const sql = `SELECT o.id, o.customer_id, o.status::text as status, o.metadata FROM public."order" o WHERE ${whereStr}`;
     const result = await queryReportableOrders(sql, params);
 
     let totalDeliveries = result.rows.length;
@@ -1374,12 +1407,13 @@ export class ReportRepository {
     const tx = await this.getTransactionalMetrics(filters);
     const branchPerf = await this.getBranchPerformance(filters);
 
-    const todayStr = new Date().toISOString().split("T")[0];
+    const todayStr = new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().split("T")[0]; // IST day
     const todayTx = await this.getTransactionalMetrics({ ...filters, startDate: todayStr, endDate: todayStr });
 
     const totalOrders = tx.totalOrders;
-    const deliveredOrders = tx.validOrders;
-    const pendingOrders = Math.max(0, totalOrders - deliveredOrders);
+    const deliveredOrders = tx.deliveredOrders;
+    const cancelledOrders = tx.cancelledOrders;
+    const pendingOrders = Math.max(0, tx.validOrders - deliveredOrders);
 
     return {
       gross_revenue: tx.grossRevenue,
@@ -1396,7 +1430,7 @@ export class ReportRepository {
       kitchen_ready: 0,
       out_for_delivery: 0,
       delivered_orders: deliveredOrders,
-      cancelled_orders: pendingOrders,
+      cancelled_orders: cancelledOrders,
       refunds_amount: tx.totalRefunds,
       tax_collected: tx.totalTax,
       discounts_given: tx.totalDiscounts,
@@ -1405,7 +1439,8 @@ export class ReportRepository {
       hourly_trend: [],
       status_distribution: [
         { status: "delivered", count: deliveredOrders },
-        { status: "cancelled", count: pendingOrders },
+        { status: "pending", count: pendingOrders },
+        { status: "cancelled", count: cancelledOrders },
       ],
     };
   }
@@ -1418,8 +1453,8 @@ export class ReportRepository {
       branchIds: query.branch_id && query.branch_id !== "all" ? [query.branch_id] : undefined,
     };
     const products = await this.getProductPerformance(filters);
-    const todayStr = new Date().toISOString().split("T")[0];
-    const yestStr = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+    const todayStr = new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().split("T")[0]; // IST day
+    const yestStr = new Date(Date.now() + 5.5 * 3600 * 1000 - 86400000).toISOString().split("T")[0];
     const [todayTx, yestTx] = await Promise.all([
       this.getTransactionalMetrics({ ...filters, startDate: todayStr, endDate: todayStr }),
       this.getTransactionalMetrics({ ...filters, startDate: yestStr, endDate: yestStr }),

@@ -3,6 +3,24 @@ import { OrderDomain, OrderItemDomain } from "../types/domain";
 import { InventoryService } from "../services/inventory.service";
 import { notifyDeliveryAssigned, notifyOrderStatus } from "../services/push-notification.service";
 
+export interface OrderListFilters {
+  status?: string;
+  branch_id?: string;
+  customer_id?: string;
+  q?: string;
+  city?: string;
+  payment_status?: string;
+  payment_method?: string;   // all | cod | online | <method>
+  delivery_type?: string;    // all | delivery | pickup | <type>
+  sold_by?: string;          // all | own | partner
+  gst_invoice?: string;      // all | b2b | b2c
+  invoiced?: string;         // all | yes | no
+  from_date?: string;
+  to_date?: string;
+  delivery_from?: string;
+  delivery_to?: string;
+}
+
 export class OrderRepository {
   private static readonly VALID_TRANSITIONS: Record<string, string[]> = {
     pending: ["confirmed", "preparing", "packed", "out_for_delivery", "delivered", "cancelled"],
@@ -459,9 +477,131 @@ export class OrderRepository {
   }
 
   /**
+   * WHERE clause shared by the order list and the order export, so an export always matches the screen.
+   * Dates are IST calendar days (orders between 00:00 and 05:30 IST belong to that IST day).
+   */
+  static buildListWhere(params: OrderListFilters): { whereClause: string; values: any[] } {
+    const conditions: string[] = ["o.deleted_at IS NULL"];
+    const values: any[] = [];
+    const add = (v: any) => { values.push(v); return `$${values.length}`; };
+
+    if (params.status && params.status !== "all") {
+      conditions.push(`LOWER(COALESCE(o.metadata->>'bakery_status', o.status::text)) = ${add(params.status.toLowerCase())}`);
+    }
+    if (params.branch_id && params.branch_id !== "all") {
+      const p = add(params.branch_id);
+      conditions.push(`(o.branch_id = ${p} OR o.metadata->>'branch_id' = ${p} OR o.metadata->>'branch' = ${p})`);
+    }
+    if (params.customer_id) {
+      const p = add(params.customer_id);
+      conditions.push(`(o.customer_id = ${p} OR o.metadata->>'customer_uid' = ${p})`);
+    }
+    if (params.q && params.q.trim()) {
+      const p = add(`%${params.q.trim().toLowerCase()}%`);
+      conditions.push(`(
+        LOWER(COALESCE(o.id, '')) LIKE ${p}
+        OR LOWER(COALESCE(o.order_number, '')) LIKE ${p}
+        OR LOWER(COALESCE(o.display_id::text, '')) LIKE ${p}
+        OR LOWER(COALESCE(o.customer_name, o.metadata->>'customer_name', '')) LIKE ${p}
+        OR LOWER(COALESCE(o.customer_phone, o.metadata->>'customer_phone', '')) LIKE ${p}
+        OR LOWER(COALESCE(o.metadata->>'order_number', '')) LIKE ${p}
+      )`);
+    }
+    if (params.city && params.city !== "all") {
+      const p = add(`%${params.city.trim().toLowerCase()}%`);
+      conditions.push(`(
+        LOWER(COALESCE(o.metadata->>'delivery_city', '')) LIKE ${p}
+        OR LOWER(COALESCE(o.metadata->>'city', '')) LIKE ${p}
+        OR LOWER(COALESCE(o.metadata->'delivery_address'->>'city', '')) LIKE ${p}
+      )`);
+    }
+    if (params.payment_status && params.payment_status !== "all") {
+      const ps = params.payment_status.trim().toLowerCase();
+      if (ps === "paid" || ps === "captured") {
+        conditions.push(`LOWER(COALESCE(o.payment_status, o.metadata->>'payment_status', '')) IN ('paid', 'captured')`);
+      } else {
+        conditions.push(`LOWER(COALESCE(o.payment_status, o.metadata->>'payment_status', '')) = ${add(ps)}`);
+      }
+    }
+    if (params.payment_method && params.payment_method !== "all") {
+      const pmExpr = `LOWER(COALESCE(o.payment_method, o.metadata->>'payment_method', ''))`;
+      if (params.payment_method === "cod") conditions.push(`${pmExpr} IN ('cod', 'cash', 'cash_on_delivery')`);
+      else if (params.payment_method === "online") conditions.push(`${pmExpr} NOT IN ('cod', 'cash', 'cash_on_delivery', '')`);
+      else conditions.push(`${pmExpr} = ${add(params.payment_method.toLowerCase())}`);
+    }
+    if (params.delivery_type && params.delivery_type !== "all") {
+      const dtExpr = `LOWER(COALESCE(o.metadata->'delivery'->>'type', o.metadata->>'delivery_type', 'standard'))`;
+      if (params.delivery_type === "pickup") conditions.push(`${dtExpr} = 'pickup'`);
+      else if (params.delivery_type === "delivery") conditions.push(`${dtExpr} <> 'pickup'`);
+      else conditions.push(`${dtExpr} = ${add(params.delivery_type.toLowerCase())}`);
+    }
+    if (params.sold_by === "own" || params.sold_by === "partner") {
+      conditions.push(`${params.sold_by === "partner" ? "" : "NOT "}EXISTS (SELECT 1 FROM public.marketplace_order_snapshot mos WHERE mos.order_id = o.id)`);
+    }
+    const gstinRe = `'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$'`;
+    if (params.gst_invoice === "b2b") {
+      conditions.push(`COALESCE(o.metadata->>'customer_gstin', '') ~ ${gstinRe}`);
+    } else if (params.gst_invoice === "b2c") {
+      conditions.push(`COALESCE(o.metadata->>'customer_gstin', '') !~ ${gstinRe}`);
+    }
+    if (params.invoiced === "yes" || params.invoiced === "no") {
+      conditions.push(`${params.invoiced === "yes" ? "" : "NOT "}EXISTS (SELECT 1 FROM public.invoice iv WHERE iv.order_id = o.id AND iv.deleted_at IS NULL)`);
+    }
+    if (params.from_date && params.from_date.trim()) {
+      conditions.push(`o.created_at >= (${add(params.from_date.trim())}::date::timestamp AT TIME ZONE 'Asia/Kolkata')`);
+    }
+    if (params.to_date && params.to_date.trim()) {
+      conditions.push(`o.created_at < ((${add(params.to_date.trim())}::date + 1)::timestamp AT TIME ZONE 'Asia/Kolkata')`);
+    }
+    const deliveryDateExpr = `NULLIF(LEFT(COALESCE(o.metadata->'delivery'->>'date', o.metadata->>'delivery_date', ''), 10), '')`;
+    if (params.delivery_from && params.delivery_from.trim()) {
+      conditions.push(`${deliveryDateExpr} >= ${add(params.delivery_from.trim().slice(0, 10))}`);
+    }
+    if (params.delivery_to && params.delivery_to.trim()) {
+      conditions.push(`${deliveryDateExpr} <= ${add(params.delivery_to.trim().slice(0, 10))}`);
+    }
+    return { whereClause: conditions.join(" AND "), values };
+  }
+
+  /** Flat rows for CSV export — same filters as listOrders (capped at 20,000 rows). */
+  static async exportOrders(params: OrderListFilters): Promise<Record<string, any>[]> {
+    const { whereClause, values } = this.buildListWhere(params);
+    const res = await dbQuery(
+      `SELECT COALESCE(o.order_number, o.metadata->>'order_number', o.display_id::text, o.id) AS "Order Number",
+              to_char(o.created_at AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM-DD HH24:MI') AS "Placed At (IST)",
+              LEFT(COALESCE(o.metadata->'delivery'->>'date', o.metadata->>'delivery_date', ''), 10) AS "Delivery Date",
+              COALESCE(o.metadata->'delivery'->>'slot', o.metadata->>'delivery_slot_time', '') AS "Slot",
+              CASE WHEN LOWER(COALESCE(o.metadata->'delivery'->>'type', o.metadata->>'delivery_type', '')) = 'pickup' THEN 'Pickup' ELSE 'Delivery' END AS "Fulfilment",
+              COALESCE(o.customer_name, o.metadata->>'customer_name', '') AS "Customer",
+              COALESCE(o.customer_phone, o.metadata->>'customer_phone', '') AS "Phone",
+              COALESCE(o.metadata->>'customer_gstin', '') AS "Buyer GSTIN",
+              COALESCE(b.name, o.metadata->>'branch_name', '') AS "Branch",
+              COALESCE(o.metadata->>'delivery_city', o.metadata->'delivery_address'->>'city', o.metadata->>'city', '') AS "City",
+              CASE WHEN EXISTS (SELECT 1 FROM public.marketplace_order_snapshot mos WHERE mos.order_id = o.id) THEN 'Partner' ELSE 'Own' END AS "Sold By",
+              COALESCE(o.metadata->>'bakery_status', o.status::text, '') AS "Status",
+              COALESCE(o.payment_method, o.metadata->>'payment_method', '') AS "Payment Method",
+              COALESCE(o.payment_status, o.metadata->>'payment_status', '') AS "Payment Status",
+              COALESCE(o.subtotal, NULLIF(o.metadata->>'subtotal', '')::numeric, 0) AS "Subtotal",
+              COALESCE(NULLIF(o.metadata->>'discount_amount', '')::numeric, 0) AS "Discount",
+              COALESCE(o.tax_total, NULLIF(o.metadata->>'tax_amount', '')::numeric, 0) AS "GST",
+              COALESCE(NULLIF(o.metadata->'delivery'->>'fee', '')::numeric, NULLIF(o.metadata->>'delivery_fee', '')::numeric, 0) AS "Delivery Fee",
+              COALESCE(o.grand_total, NULLIF(o.metadata->>'total', '')::numeric, 0) AS "Grand Total",
+              COALESCE(inv.invoice_number, '') AS "Invoice Number"
+       FROM "order" o
+       LEFT JOIN public.branch b ON b.id = o.branch_id
+       LEFT JOIN public.invoice inv ON inv.order_id = o.id AND inv.deleted_at IS NULL
+       WHERE ${whereClause}
+       ORDER BY o.created_at DESC, o.id DESC
+       LIMIT 20000`,
+      values
+    );
+    return res.rows;
+  }
+
+  /**
    * Paginated list of orders with filters and stable ordering
    */
-  static async listOrders(params: {
+  static async listOrders(params: OrderListFilters & {
     page?: number;
     pageSize?: number;
     limit?: number;
@@ -487,65 +627,7 @@ export class OrderRepository {
     const offset = params.offset !== undefined ? Math.max(0, params.offset) : (Math.max(1, params.page || 1) - 1) * pageSize;
     const page = params.offset !== undefined ? Math.floor(offset / pageSize) + 1 : Math.max(1, params.page || 1);
 
-    const conditions: string[] = ["o.deleted_at IS NULL"];
-    const values: any[] = [];
-
-    if (params.status && params.status !== "all") {
-      values.push(params.status.toLowerCase());
-      conditions.push(`LOWER(COALESCE(o.metadata->>'bakery_status', o.status::text)) = $${values.length}`);
-    }
-
-    if (params.branch_id && params.branch_id !== "all") {
-      values.push(params.branch_id);
-      conditions.push(`(o.branch_id = $${values.length} OR o.metadata->>'branch_id' = $${values.length} OR o.metadata->>'branch' = $${values.length})`);
-    }
-
-    if (params.customer_id) {
-      values.push(params.customer_id);
-      conditions.push(`(o.customer_id = $${values.length} OR o.metadata->>'customer_uid' = $${values.length})`);
-    }
-
-    if (params.q && params.q.trim()) {
-      values.push(`%${params.q.trim().toLowerCase()}%`);
-      conditions.push(`(
-        LOWER(COALESCE(o.id, '')) LIKE $${values.length}
-        OR LOWER(COALESCE(o.order_number, '')) LIKE $${values.length}
-        OR LOWER(COALESCE(o.display_id::text, '')) LIKE $${values.length}
-        OR LOWER(COALESCE(o.customer_name, o.metadata->>'customer_name', '')) LIKE $${values.length}
-        OR LOWER(COALESCE(o.customer_phone, o.metadata->>'customer_phone', '')) LIKE $${values.length}
-        OR LOWER(COALESCE(o.metadata->>'order_number', '')) LIKE $${values.length}
-      )`);
-    }
-
-    if (params.city && params.city !== "all") {
-      values.push(`%${params.city.trim().toLowerCase()}%`);
-      conditions.push(`(
-        LOWER(COALESCE(o.metadata->>'delivery_city', '')) LIKE $${values.length}
-        OR LOWER(COALESCE(o.metadata->>'city', '')) LIKE $${values.length}
-      )`);
-    }
-
-    if (params.payment_status && params.payment_status !== "all") {
-      const ps = params.payment_status.trim().toLowerCase();
-      if (ps === "paid" || ps === "captured") {
-        conditions.push(`LOWER(COALESCE(o.payment_status, o.metadata->>'payment_status', '')) IN ('paid', 'captured')`);
-      } else {
-        values.push(ps);
-        conditions.push(`LOWER(COALESCE(o.payment_status, o.metadata->>'payment_status', '')) = $${values.length}`);
-      }
-    }
-
-    if (params.from_date && params.from_date.trim()) {
-      values.push(params.from_date.trim());
-      conditions.push(`o.created_at >= ($${values.length}::date)`);
-    }
-
-    if (params.to_date && params.to_date.trim()) {
-      values.push(params.to_date.trim());
-      conditions.push(`o.created_at < ($${values.length}::date + INTERVAL '1 day')`);
-    }
-
-    const whereClause = conditions.join(" AND ");
+    const { whereClause, values } = this.buildListWhere(params);
 
     const countRes = await dbQuery(
       `SELECT COUNT(*)::int as count FROM "order" o WHERE ${whereClause}`,
