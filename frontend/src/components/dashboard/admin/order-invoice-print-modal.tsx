@@ -119,8 +119,8 @@ export function OrderInvoicePrintModal({ order, invoice, onClose }: OrderInvoice
           <div className="grid grid-cols-2 gap-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border">
             <div>
               <span className="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">Billed To (Customer):</span>
-              <p className="font-extrabold text-sm text-slate-900 dark:text-white">{customer?.name || order?.customer_name || "—"}</p>
-              <p className="text-xs text-slate-600 dark:text-slate-300">GSTIN: <span className="font-mono font-bold">{customer?.gstin || order?.metadata?.customer_gstin || "URP (Unregistered Person)"}</span></p>
+              <p className="font-extrabold text-sm text-slate-900 dark:text-white">{compliance.customer_legal_name || inv.customer_legal_name || order?.metadata?.customer_legal_name || customer?.name || order?.customer_name || "—"}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-300">GSTIN: <span className="font-mono font-bold">{inv.customer_gstin || compliance.customer_gstin || order?.metadata?.customer_gstin || customer?.gstin || "URP (Unregistered Person)"}</span></p>
               <p className="text-xs text-slate-600 dark:text-slate-300">Ph: {customer?.phone || order?.customer_phone || "—"}</p>
               <p className="text-xs text-slate-600 dark:text-slate-300">Email: {customer?.email || order?.customer_email || "—"}</p>
             </div>

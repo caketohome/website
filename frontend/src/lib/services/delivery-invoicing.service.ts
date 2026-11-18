@@ -67,6 +67,9 @@ export interface InvoiceRecord {
   customer_name: string;
   customer_phone: string;
   customer_uid: string;
+  /** Buyer GSTIN for business (B2B) invoices — enables the buyer's input tax credit. */
+  customer_gstin?: string | null;
+  customer_legal_name?: string | null;
   seller_gstin: string;
   seller_fssai_number: string;
   seller_legal_name: string;
@@ -703,6 +706,11 @@ export class DeliveryInvoicingService {
           customer_name,
           customer_phone,
           customer_uid,
+          // Only a well-formed GSTIN makes this a B2B invoice ("URP"/blank/typos stay B2C).
+          customer_gstin: [order.metadata?.customer_gstin, snap.customer_gstin]
+            .map((g: any) => String(g || "").toUpperCase().trim())
+            .find((g: string) => /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(g)) || null,
+          customer_legal_name: order.metadata?.customer_legal_name || null,
           seller_gstin: sellerGstin,
           seller_fssai_number: snap.seller_fssai_number || order.seller_fssai_number || order.metadata?.seller_fssai_number || "",
           seller_legal_name: sellerLegalName,
@@ -1120,6 +1128,9 @@ export class DeliveryInvoicingService {
       customer_state: invoice.customer_state,
       supply_type: invoice.supply_type,
       is_intra_state: invoice.is_intra_state,
+      customer_gstin: invoice.customer_gstin || null,
+      customer_legal_name: invoice.customer_legal_name || null,
+      invoice_category: invoice.customer_gstin ? "B2B" : "B2C",
       items: invoice.items,
       is_ledger_eligible: true,
       cgst: invoice.is_intra_state ? Math.round((invoice.items || []).reduce((acc: number, it: any) => acc + (Number(it.cgst) || 0), 0) * 100) / 100 : 0,
@@ -1137,7 +1148,8 @@ export class DeliveryInvoicingService {
         currency_code, payment_method, payment_status,
         status, delivered_at, delivered_by,
         metadata, created_at, updated_at, deleted_at,
-        voucher_id, due_date, paid_amount, outstanding_amount, is_corporate
+        voucher_id, due_date, paid_amount, outstanding_amount, is_corporate,
+        customer_gstin, customer_legal_name
       ) VALUES (
         $1, $2, $3,
         $4, $5, $6, $7,
@@ -1145,7 +1157,8 @@ export class DeliveryInvoicingService {
         $13, $14, $15,
         $16, $17, $18,
         $19, $20, $21, $22,
-        $23, $24, $25, $26, $27
+        $23, $24, $25, $26, $27,
+        $28, $29
       ) ON CONFLICT (order_id) DO UPDATE SET
         voucher_id = COALESCE(EXCLUDED.voucher_id, public.invoice.voucher_id),
         paid_amount = EXCLUDED.paid_amount,
@@ -1187,6 +1200,8 @@ export class DeliveryInvoicingService {
         invoice.paid_amount ?? 0,
         invoice.outstanding_amount ?? invoice.grand_total,
         invoice.is_corporate ?? false,
+        invoice.customer_gstin || null,
+        invoice.customer_legal_name || null,
       ]
     );
 

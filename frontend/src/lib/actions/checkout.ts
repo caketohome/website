@@ -114,6 +114,8 @@ export async function confirmCheckoutAction(payload: {
   gift_message?: string;
   special_instructions?: string;
   location_source?: string;
+  customer_gstin?: string;
+  customer_business_name?: string;
 }) {
   const cookieStore = cookies();
   const cartId = payload.cart_id || cookieStore.get("_cth_cart_id")?.value || cookieStore.get("_medusa_cart_id")?.value || "cart_guest";
@@ -194,6 +196,16 @@ export async function placeOrder(prevState: any, data: FormData) {
     return { message: "Please select a bakery hub for store pickup." };
   }
 
+  // Optional business purchase: buyer GSTIN goes on the tax invoice for input tax credit.
+  const customerGstin = (data.get("customer-gstin")?.toString() || "").toUpperCase().replace(/\s/g, "");
+  const customerBusinessName = (data.get("customer-business-name")?.toString() || "").trim();
+  if (customerGstin && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(customerGstin)) {
+    return { message: "Please enter a valid 15-character GSTIN, or untick the GST invoice option." };
+  }
+  if (customerGstin && !customerBusinessName) {
+    return { message: "Please enter the registered business name for the GST invoice." };
+  }
+
   const result = await confirmCheckoutAction({
     cart_id: cartId,
     customer_id: customerId,
@@ -226,6 +238,8 @@ export async function placeOrder(prevState: any, data: FormData) {
     recipient_phone: recipientPhone,
     gift_message: giftMessage,
     special_instructions: specialInstructions,
+    customer_gstin: customerGstin || undefined,
+    customer_business_name: customerGstin ? customerBusinessName : undefined,
   });
 
   if (!result.success) {

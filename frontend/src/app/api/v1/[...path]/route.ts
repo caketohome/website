@@ -4226,6 +4226,20 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         }
 
 
+        // GST B2B register: GET admin/accounting/gst-b2b?from=&to=&seller=all|own|partner
+        // Tax invoices issued to GST-registered buyers, rate-wise (GSTR-1 B2B). Includes cakes sold by marketplace
+        // partners (seller = partner GSTIN) so corporates can match input credit and partners can file GSTR-1.
+        if (acctSubPath === "gst-b2b") {
+          const { getB2bRegister } = await import("@frontend/lib/services/gst-b2b-register");
+          const seller = (url.searchParams.get("seller") || "all") as "all" | "own" | "partner";
+          const result = await getB2bRegister({
+            from: url.searchParams.get("from") || "1900-01-01",
+            to: url.searchParams.get("to") || "2999-12-31",
+            seller,
+          });
+          return jsonWithDataSource({ success: true, ...result }, "postgres");
+        }
+
         // GSTR-8 (GST TCS by e-commerce operator): GET admin/accounting/gstr8?from=YYYY-MM-DD&to=YYYY-MM-DD
         // Per month × partner GSTIN: net taxable supplies made through us and TCS collected (2131, 0.5%).
         if (acctSubPath === "gstr8") {
@@ -7037,6 +7051,19 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       } catch (e: any) {
         return jsonWithDataSource({ success: false, error: e.message }, "postgres", 404);
       }
+    }
+    // Partner portal: GET partner/portal/gst-b2b?from=&to= — the partner's own B2B tax invoices (its GSTR-1 B2B).
+    if (path === "partner/portal/gst-b2b") {
+      const ps = requirePartnerSession(req);
+      if (ps instanceof NextResponse) return ps;
+      const { getB2bRegister } = await import("@frontend/lib/services/gst-b2b-register");
+      const result = await getB2bRegister({
+        from: url.searchParams.get("from") || "1900-01-01",
+        to: url.searchParams.get("to") || "2999-12-31",
+        seller: "partner",
+        partnerId: ps.partnerId,
+      });
+      return jsonWithDataSource({ success: true, ...result }, "postgres");
     }
     // Marketplace payouts (commission model)
     if (path === "admin/marketplace/payouts" || path === "admin/marketplace/payouts/preview") {
@@ -10660,6 +10687,21 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         }
 
         const ord = orderRes.order;
+
+        // Business purchase: record the buyer GSTIN so the tax invoice carries it (input tax credit).
+        {
+          const gstin = String(body.customer_gstin || "").toUpperCase().replace(/\s/g, "");
+          const bizName = String(body.customer_business_name || "").trim().slice(0, 200);
+          if (gstin && /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(gstin) && bizName) {
+            await dbQuery(
+              `UPDATE public."order"
+               SET metadata = COALESCE(metadata, '{}'::jsonb) || jsonb_build_object('customer_gstin', $2::text, 'customer_legal_name', $3::text),
+                   updated_at = NOW()
+               WHERE id = $1`,
+              [ord.id, gstin, bizName]
+            );
+          }
+        }
 
         // M3: Shared inventory reservation hook removed
 

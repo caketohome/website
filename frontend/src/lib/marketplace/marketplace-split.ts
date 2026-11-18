@@ -27,6 +27,21 @@ export const TDS_194O_RATE = 0.1; // % — from 1 Oct 2024
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
+/** 194-O small-seller exemption limit: resident individual/HUF with PAN, gross sales via the operator per FY. */
+export const TDS_194O_EXEMPTION_LIMIT = 500000;
+
+/**
+ * Section 194-O(4): no TDS for a resident individual/HUF participant (PAN 4th char P/H, PAN furnished) while
+ * gross sales through the operator in the financial year do not exceed ₹5 lakh. Per CBDT Circular 17/2020,
+ * once the limit is crossed TDS applies to the full amount of every credit from that order onward
+ * (earlier sales count toward the limit but are not deducted retrospectively).
+ */
+export function is194oExempt(params: { pan: string | null | undefined; fyGrossBefore: number; thisOrderGross: number }): boolean {
+  const pan = String(params.pan || "").toUpperCase();
+  if (!/^[A-Z]{3}[PH][A-Z][0-9]{4}[A-Z]$/.test(pan)) return false;
+  return r2(Number(params.fyGrossBefore || 0) + Number(params.thisOrderGross || 0)) <= TDS_194O_EXEMPTION_LIMIT;
+}
+
 export interface MarketplaceSplit {
   partnerSaleGross: number;
   itemsTaxable: number;
@@ -49,6 +64,8 @@ export function computeMarketplaceSplit(input: {
   fixedFee: number; // per order, excl. GST
   /** true when partner and operator GST registrations are in the same state */
   intraState: boolean;
+  /** false when the 194-O small-seller exemption applies (see is194oExempt); defaults to true */
+  tds194oApplies?: boolean;
 }): MarketplaceSplit {
   const itemsTaxable = r2(Math.max(0, input.itemsTaxable));
   const itemsGst = r2(Math.max(0, input.itemsGst));
@@ -81,7 +98,7 @@ export function computeMarketplaceSplit(input: {
   }
   const commissionGst = r2(commissionCgst + commissionSgst + commissionIgst);
   const tcs = r2((itemsTaxable * GST_TCS_RATE) / 100);
-  const tds194o = r2((itemsTaxable * TDS_194O_RATE) / 100);
+  const tds194o = input.tds194oApplies === false ? 0 : r2((itemsTaxable * TDS_194O_RATE) / 100);
   const partnerNet = r2(partnerSaleGross - commission - commissionGst - tcs - tds194o);
 
   if (partnerNet < 0) {

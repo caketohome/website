@@ -47,7 +47,7 @@ import type { PoolClient } from "pg";
 import { AccountingVoucherRepository } from "../repositories/accounting-voucher.repository";
 import { PostingService, PostingServiceError } from "./posting.service";
 import { hasEffectivePermission } from "../staff-access-control";
-import { computeMarketplaceSplit, MARKETPLACE_ACCOUNTS } from "../marketplace/marketplace-split";
+import { computeMarketplaceSplit, is194oExempt, MARKETPLACE_ACCOUNTS } from "../marketplace/marketplace-split";
 import { CustomerReceiptService } from "./customer-receipt.service";
 import type {
   AccountingVoucherRow,
@@ -651,7 +651,7 @@ export class SalesPostingService {
     // 10b. Commission-marketplace order? The partner is the seller of the goods: item revenue and item GST
     // belong to the partner (credited to Partner Payable); we keep commission (+18% GST), TCS and 194-O TDS.
     const mktRes = await client.query(
-      `SELECT s.*, p.gstin AS partner_gstin, p.metadata AS partner_metadata, p.trade_name AS partner_trade_name
+      `SELECT s.*, p.gstin AS partner_gstin, p.pan AS partner_pan, p.metadata AS partner_metadata, p.trade_name AS partner_trade_name
        FROM public.marketplace_order_snapshot s
        JOIN public.marketplace_partner p ON p.id = s.partner_id
        WHERE s.order_id = $1 LIMIT 1`,
@@ -802,6 +802,28 @@ export class SalesPostingService {
       );
       const ourState = ourGstRes.rows[0]?.state_code || "";
       const partnerState = String(marketplace.partner_gstin || "").slice(0, 2);
+
+      // 194-O small-seller exemption: partner's posted gross sales via us earlier in this Indian FY.
+      const thisOrderGross = Math.round((cakeTaxableTotal + accTaxableTotal + mktItemsGst) * 100) / 100;
+      // Serialise per partner so two concurrent postings can't both slip under the limit.
+      await client.query(`SELECT pg_advisory_xact_lock(hashtext('mkt_194o::' || $1))`, [marketplace.partner_id]);
+      const fyRes = await client.query<{ fy_gross: string }>(
+        `SELECT COALESCE(SUM(NULLIF(jl.metadata->>'partner_sale_gross', '')::numeric), 0) AS fy_gross
+         FROM public.accounting_journal_line jl
+         JOIN public.accounting_account a ON a.id = jl.account_id AND a.code = $2
+         JOIN public.accounting_journal_entry je ON je.id = jl.journal_entry_id
+         JOIN public.accounting_voucher av ON av.id = je.voucher_id AND av.status = 'POSTED' AND av.deleted_at IS NULL
+         WHERE jl.metadata->>'marketplace_partner_id' = $1
+           AND av.reference_id <> $3
+           AND av.voucher_date >= make_date(
+                 CASE WHEN EXTRACT(MONTH FROM (NOW() AT TIME ZONE 'Asia/Kolkata')) >= 4
+                      THEN EXTRACT(YEAR FROM (NOW() AT TIME ZONE 'Asia/Kolkata'))::int
+                      ELSE EXTRACT(YEAR FROM (NOW() AT TIME ZONE 'Asia/Kolkata'))::int - 1 END, 4, 1)`,
+        [marketplace.partner_id, MARKETPLACE_ACCOUNTS.PARTNER_PAYABLE, order.id]
+      );
+      const fyGrossBefore = Number(fyRes.rows[0]?.fy_gross || 0);
+      const tdsExempt = is194oExempt({ pan: marketplace.partner_pan, fyGrossBefore, thisOrderGross });
+
       let split;
       try {
         split = computeMarketplaceSplit({
@@ -811,6 +833,7 @@ export class SalesPostingService {
           commissionRate: Number(marketplace.commission_rate),
           fixedFee: Number(marketplace.fixed_fee),
           intraState: Boolean(ourState) && ourState === partnerState,
+          tds194oApplies: !tdsExempt,
         });
       } catch (e: any) {
         throw new SalesPostingError("VOUCHER_UNBALANCED", e.message);
@@ -836,7 +859,12 @@ export class SalesPostingService {
         }
       };
       mk(MARKETPLACE_ACCOUNTS.PARTNER_PAYABLE, split.partnerNet, `Owed to marketplace partner: ${ref}`,
-        { partner_sale_gross: split.partnerSaleGross }, { supplier_id: supplierId });
+        {
+          partner_sale_gross: split.partnerSaleGross,
+          tds_194o_exempt: tdsExempt,
+          fy_partner_gross_before: fyGrossBefore,
+          ...(tdsExempt ? { tds_194o_exemption: "Sec 194-O(4): individual/HUF, FY sales via operator ≤ ₹5 lakh" } : {}),
+        }, { supplier_id: supplierId });
       mk(MARKETPLACE_ACCOUNTS.COMMISSION_INCOME, split.commission, `Marketplace commission: ${ref}`,
         { commission_rate: Number(marketplace.commission_rate), agreement_id: marketplace.agreement_id });
       mk(MARKETPLACE_ACCOUNTS.CGST_9, split.commissionCgst, `CGST 9% on commission: ${ref}`, { gst_on: "COMMISSION" });

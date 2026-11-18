@@ -156,6 +156,9 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
      : ""
  );
  const [paymentMethod, setPaymentMethod] = useState<"cod" | "razorpay" | "cashfree" | "test_mode">("razorpay");
+ const [wantsGstInvoice, setWantsGstInvoice] = useState(false);
+ const [customerGstin, setCustomerGstin] = useState("");
+ const [customerBusinessName, setCustomerBusinessName] = useState("");
  // A hidden payment option must never stay selected.
  useEffect(() => {
  if ((paymentMethod === "cod" && !codEnabled) || (paymentMethod === "test_mode" && !testPaymentsEnabled)) {
@@ -1647,6 +1650,43 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  </p>
  </div>
  </div>
+ </div>
+
+ {/* Business purchase: buyer GSTIN on the tax invoice (input tax credit) */}
+ <div className="border border-slate-200 rounded-3xl p-6 bg-white flex flex-col gap-3 shadow-sm">
+ <label className="flex items-center gap-2 text-sm font-semibold text-slate-900 cursor-pointer">
+ <input type="checkbox" checked={wantsGstInvoice} onChange={(e) => setWantsGstInvoice(e.target.checked)} />
+ I need a GST invoice for my business
+ </label>
+ {wantsGstInvoice && (
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div>
+ <Label className="text-xs font-semibold text-slate-700">Business GSTIN</Label>
+ <Input
+ name="customer-gstin"
+ value={customerGstin}
+ onChange={(e) => setCustomerGstin(e.target.value.toUpperCase().replace(/\s/g, ""))}
+ placeholder="32ABCDE1234F1Z5"
+ maxLength={15}
+ />
+ {customerGstin && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(customerGstin) && (
+ <p className="text-[11px] text-rose-600 mt-1">Enter a valid 15-character GSTIN.</p>
+ )}
+ </div>
+ <div>
+ <Label className="text-xs font-semibold text-slate-700">Registered business name</Label>
+ <Input
+ name="customer-business-name"
+ value={customerBusinessName}
+ onChange={(e) => setCustomerBusinessName(e.target.value)}
+ placeholder="As on GST certificate"
+ />
+ </div>
+ <p className="sm:col-span-2 text-[11px] text-slate-500">
+ Your GSTIN and business name will be printed on the tax invoice so you can claim input tax credit.
+ </p>
+ </div>
+ )}
  </div>
 
  {/* Payment Method Selector */}

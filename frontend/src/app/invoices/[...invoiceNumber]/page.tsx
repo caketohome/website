@@ -22,27 +22,25 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
   const invoiceDigits = digitsMatch ? digitsMatch[0] : "000216";
 
   console.log('[StatutoryInvoicePage] Received:', { parts, rawParam, slashParam, standardStatutory, invoiceDigits });
-  console.log('[StatutoryInvoicePage] DATABASE_URL env:', process.env.DATABASE_URL);
 
   let invoiceRes;
   try {
     invoiceRes = await dbQuery(
       `SELECT i.*, 
               o.order_number, o.created_at as order_created_at, o.customer_name as ord_customer_name, o.customer_phone as ord_customer_phone,
-              b.name as branch_name, b.address as branch_address
+              b.name as branch_name, b.address as branch_address,
+              EXISTS (SELECT 1 FROM public.marketplace_order_snapshot mos WHERE mos.order_id = i.order_id) AS is_partner_sale
        FROM public.invoice i
        LEFT JOIN public.order o ON i.order_id = o.id
        LEFT JOIN public.branch b ON i.branch_id = b.id
        WHERE i.invoice_number = $1 
           OR i.invoice_number = $2 
           OR i.invoice_number = $3 
-          OR i.invoice_number LIKE '%' || $4 || '%'
-          OR i.invoice_number LIKE '%' || $5 || '%'
           OR i.id = $1 
           OR i.order_id = $1
        ORDER BY i.created_at DESC
        LIMIT 1`,
-      [rawParam, standardStatutory, slashParam, rawParam.replace(/^CH-/, '').replace(/^CH\//, ''), invoiceDigits]
+      [rawParam, standardStatutory, slashParam]
     );
     console.log('[StatutoryInvoicePage] Query success. Rows count:', invoiceRes.rows.length);
   } catch (dbErr: any) {
@@ -77,7 +75,7 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
     }
   };
 
-  const invoice = invoiceRes.rows[0] || (process.env.NODE_ENV !== "production" || rawParam.includes("demo") || rawParam.includes("preview") || rawParam.includes("000216") ? sampleFallbackInvoice : null);
+  const invoice = invoiceRes.rows[0] || (process.env.NODE_ENV !== "production" && rawParam.includes("demo") ? sampleFallbackInvoice : null);
   if (!invoice) {
     console.log('[StatutoryInvoicePage] Invoice not found for rawParam:', rawParam);
     notFound();
@@ -93,7 +91,10 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
 
   const sellerLegalName = invoice.seller_legal_name || "Baked Cakes & Pastries (CakeToHome)";
   const sellerGstin = invoice.seller_gstin || "32PENDINGREG001";
-  const customerName = invoice.customer_name || invoice.ord_customer_name || "Valued Customer";
+  const customerGstin: string | null = invoice.customer_gstin || metadata.customer_gstin || null;
+  const customerName = (customerGstin && (invoice.customer_legal_name || metadata.customer_legal_name)) || invoice.customer_name || invoice.ord_customer_name || "Valued Customer";
+  const isPartnerSale = Boolean(invoice.is_partner_sale);
+  const placeOfSupply = metadata.customer_state || (invoice.seller_state_code === '29' ? 'Karnataka (State Code 29)' : 'Kerala (State Code 32)');
   const customerPhone = invoice.customer_phone || invoice.ord_customer_phone || "";
   const deliveryAddress = invoice.delivery_address || invoice.ord_delivery_address || metadata.delivery_address || "";
 
@@ -149,16 +150,22 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
                 <span className="text-xs uppercase tracking-widest text-slate-400 font-mono self-end pb-1">India</span>
               </div>
               <h1 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{sellerLegalName}</h1>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-md">
-                Registered Office: 16/956, Thannimukku, Mayyanad, Kollam, Kerala - 691303
-              </p>
+              {isPartnerSale ? (
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-md">
+                  Sold by a CakeToHome marketplace partner. Supplied through CakeToHome (e-commerce operator; GST TCS u/s 52).
+                </p>
+              ) : (
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-md">
+                  Registered Office: 16/956, Thannimukku, Mayyanad, Kollam, Kerala - 691303
+                </p>
+              )}
               <div className="mt-2 text-xs font-mono text-slate-700 dark:text-slate-300 space-y-0.5">
                 <p>
-                  <strong>GSTIN:</strong> {sellerGstin} | <strong>Jurisdiction / State:</strong> Kerala (Code 32)
+                  <strong>GSTIN:</strong> {sellerGstin} | <strong>State Code:</strong> {String(sellerGstin).slice(0, 2)}
                 </p>
-                <p>
+                {!isPartnerSale && <p>
                   <strong>FSSAI Premises:</strong> Kowdiar, Thiruvananthapuram, Kerala - 695003 | <strong>Email:</strong> caketohomeoffice@gmail.com
-                </p>
+                </p>}
               </div>
             </div>
 
@@ -190,11 +197,14 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
                 Billed &amp; Delivered To (Recipient):
               </h2>
               <p className="font-bold text-sm text-slate-900 dark:text-white">{customerName}</p>
+              <p className="text-slate-600 dark:text-slate-400">
+                GSTIN: <span className="font-mono font-bold">{customerGstin || "URP (Unregistered Person)"}</span>
+              </p>
               <p className="text-slate-600 dark:text-slate-400">{deliveryAddress}</p>
               <p className="text-slate-600 dark:text-slate-400">
                 Phone: <span className="font-mono">{customerPhone}</span>
               </p>
-              <p className="text-slate-500">Place of Supply: {invoice.seller_state_code === '29' ? 'Karnataka (State Code 29)' : 'Kerala (State Code 32)'}</p>
+              <p className="text-slate-500">Place of Supply: {placeOfSupply}</p>
             </div>
 
             <div className="space-y-1 sm:text-right">

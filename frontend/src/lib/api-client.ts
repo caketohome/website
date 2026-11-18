@@ -1450,6 +1450,8 @@ class CakeToHomeApiClient {
     coupon_code?: string;
     payment_method: "cod" | "razorpay" | "cashfree" | "test_mode" | "wallet";
     payment_details?: any;
+    customer_gstin?: string;
+    customer_business_name?: string;
     occasion?: string;
     ordered_for_self?: boolean;
     recipient_name?: string;

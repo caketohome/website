@@ -181,6 +181,10 @@ const CashFlowPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/cash-flow-panel").then((mod) => ({ default: mod.CashFlowPanel })),
   "CashFlowPanel"
 );
+const GstB2bRegisterPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/gst-b2b-register-panel").then((mod) => ({ default: mod.GstB2bRegisterPanel })),
+  "GstB2bRegisterPanel"
+);
 const TdsRegisterPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/tds-register-panel").then((mod) => ({ default: mod.TdsRegisterPanel })),
   "TdsRegisterPanel"
@@ -244,7 +248,7 @@ const OperationalClosuresPanel = createDynamicPanel(
 
 type AdminTabId =
   | "orders" | "catalog" | "search_engine" | "branches" | "delivery" | "delivery_coverage"
-  | "fulfillment" | "suppliers" | "purchases" | "bills_payable" | "bills_receivable" | "expenses" | "accounting_work_queue" | "teller_custody" | "manual_journals" | "cost_allocations" | "corporate_accounts" | "corporate_gifting" | "corporate_routing_review" | "gateway_settlements" | "bank_management" | "bank_accounts" | "bank_reconciliation" | "general_ledger" | "profit_loss" | "balance_sheet" | "cash_flow" | "tds_register" | "accounting_setup" | "fleet" | "tax_master" | "abandoned_carts" | "telemarketing"
+  | "fulfillment" | "suppliers" | "purchases" | "bills_payable" | "bills_receivable" | "expenses" | "accounting_work_queue" | "teller_custody" | "manual_journals" | "cost_allocations" | "corporate_accounts" | "corporate_gifting" | "corporate_routing_review" | "gateway_settlements" | "bank_management" | "bank_accounts" | "bank_reconciliation" | "general_ledger" | "profit_loss" | "balance_sheet" | "cash_flow" | "tds_register" | "gst_b2b_register" | "accounting_setup" | "fleet" | "tax_master" | "abandoned_carts" | "telemarketing"
   | "crm" | "login_activity" | "marketing" | "popups" | "seo"
   | "automation" | "webhooks" | "cms" | "media" | "analytics" | "ai_concierge"
   | "staff_profiles" | "notifications" | "settings"
@@ -279,6 +283,7 @@ const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   balance_sheet: BalanceSheetPanel,
   cash_flow: CashFlowPanel,
   tds_register: TdsRegisterPanel,
+  gst_b2b_register: GstB2bRegisterPanel,
   accounting_setup: AccountingSetupPanel,
   fleet: FleetPanel,
   tax_master: TaxMasterPanel,

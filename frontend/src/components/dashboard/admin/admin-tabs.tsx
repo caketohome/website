@@ -39,6 +39,7 @@ const TABS = [
   { id: "balance_sheet", label: "Balance Sheet", icon: Scale },
   { id: "cash_flow", label: "Cash Flow", icon: Waves },
   { id: "tds_register", label: "TDS Register", icon: Waves },
+  { id: "gst_b2b_register", label: "GST B2B Sales", icon: Waves },
   { id: "accounting_setup", label: "Accounting Setup", icon: Settings2 },
   { id: "fleet", label: "Fleet & Fuel", icon: Truck },
   { id: "tax_master", label: "Tax Master", icon: Percent },

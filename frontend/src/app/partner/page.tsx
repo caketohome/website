@@ -73,7 +73,7 @@ export default function PartnerPortalPage() {
           <div className="text-lg font-bold text-slate-900">
             {agreement ? `${agreement.commission_rate}%${agreement.fixed_fee_per_order ? ` + ${inr(agreement.fixed_fee_per_order)}/order` : ""}` : "—"}
           </div>
-          <div className="text-[11px] text-slate-500">+18% GST on commission · 0.5% GST TCS · 0.1% TDS (194-O)</div>
+          <div className="text-[11px] text-slate-500">+18% GST on commission · 0.5% GST TCS · 0.1% TDS (194-O; nil for individual/HUF with PAN up to ₹5 lakh a year)</div>
         </div>
         <div className={card}>
           <div className="text-xs text-slate-500">Payout account</div>
@@ -114,6 +114,8 @@ export default function PartnerPortalPage() {
         </div>
       </section>
 
+      <B2bInvoices card={card} />
+
       <section className={card}>
         <h2 className="mb-2 text-sm font-bold text-slate-900">Recent orders</h2>
         <div className="overflow-x-auto">
@@ -143,5 +145,76 @@ export default function PartnerPortalPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+/** Tax invoices issued in the partner's name to GST-registered buyers — the B2B section of its GSTR-1. */
+function B2bInvoices({ card }: { card: string }) {
+  const [month, setMonth] = useState(() => new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 7));
+  const [rows, setRows] = useState<any[]>([]);
+
+  useEffect(() => {
+    const [y, m] = month.split("-").map(Number);
+    const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    fetch(`/api/v1/partner/portal/gst-b2b?from=${month}-01&to=${month}-${String(last).padStart(2, "0")}`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((j) => setRows(j?.success ? j.rows || [] : []))
+      .catch(() => setRows([]));
+  }, [month]);
+
+  const exportCsv = () => {
+    const cell = (v: any) => {
+      const t = v == null ? "" : String(v);
+      return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
+    };
+    const head = ["Buyer GSTIN", "Buyer", "Invoice No", "Invoice Date", "Invoice Value", "Place of Supply", "Rate %", "Taxable Value", "CGST", "SGST", "IGST"];
+    const lines = rows.map((r) => [r.buyer_gstin, r.buyer_name, r.invoice_number, r.invoice_date, r.invoice_value, r.place_of_supply, r.gst_rate, r.taxable_value, r.cgst, r.sgst, r.igst].map(cell).join(","));
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([[head.join(","), ...lines].join("\n")], { type: "text/csv" }));
+    a.download = `gstr1-b2b-${month}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  return (
+    <section className={card}>
+      <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <h2 className="text-sm font-bold text-slate-900">B2B invoices (for your GSTR-1)</h2>
+          <p className="text-[11px] text-slate-500">Invoices issued in your name to GST-registered buyers, rate-wise. Report these in GSTR-1 B2B.</p>
+        </div>
+        <div className="flex items-end gap-2">
+          <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="rounded-xl border border-slate-300 px-2 py-1 text-xs" />
+          <button onClick={exportCsv} disabled={rows.length === 0} className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-semibold disabled:opacity-40">Export CSV</button>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead className="text-slate-500">
+            <tr>
+              <th className="p-2 text-left">Invoice</th><th className="p-2 text-left">Date</th><th className="p-2 text-left">Buyer GSTIN</th>
+              <th className="p-2 text-left">Buyer</th><th className="p-2 text-right">Rate</th><th className="p-2 text-right">Taxable</th>
+              <th className="p-2 text-right">CGST + SGST</th><th className="p-2 text-right">IGST</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {rows.length === 0 ? (
+              <tr><td colSpan={8} className="p-3 text-center text-slate-500">No B2B invoices this month.</td></tr>
+            ) : rows.map((r) => (
+              <tr key={`${r.invoice_number}-${r.gst_rate}`}>
+                <td className="p-2 font-mono">{r.invoice_number}</td>
+                <td className="p-2">{r.invoice_date}</td>
+                <td className="p-2 font-mono">{r.buyer_gstin}</td>
+                <td className="p-2">{r.buyer_name || "—"}</td>
+                <td className="p-2 text-right">{r.gst_rate}%</td>
+                <td className="p-2 text-right">{inr(r.taxable_value)}</td>
+                <td className="p-2 text-right">{inr(r.cgst + r.sgst)}</td>
+                <td className="p-2 text-right">{inr(r.igst)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }

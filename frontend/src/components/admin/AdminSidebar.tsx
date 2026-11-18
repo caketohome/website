@@ -105,6 +105,7 @@ const NAV_GROUPS: NavGroup[] = [
       { id: "balance_sheet", label: "Balance Sheet", icon: Scale, tabId: "balance_sheet" },
       { id: "cash_flow", label: "Cash Flow", icon: Waves, tabId: "cash_flow" },
       { id: "tds_register", label: "TDS Register", icon: Receipt, tabId: "tds_register" },
+      { id: "gst_b2b_register", label: "GST B2B Sales", icon: Receipt, tabId: "gst_b2b_register" },
     ],
   },
   {
