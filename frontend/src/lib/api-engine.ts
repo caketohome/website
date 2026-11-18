@@ -753,322 +753,8 @@ const DEFAULT_BUSINESS_PROFILE: BusinessProfile = {
   updated_at: "2026-01-01T00:00:00Z",
 };
 
-const DEFAULT_GST_REGISTRATIONS: GstRegistrationItem[] = [
-  {
-    id: "gst_ka",
-    gstin: "29AABCC1234F1Z5",
-    legal_name: "CakeToHome India Private Limited",
-    trade_name: "CakeToHome Karnataka",
-    registration_type: "REGULAR",
-    state: "Karnataka",
-    state_code: "29",
-    effective_from: "2024-04-01",
-    effective_to: null,
-    status: "active",
-    address: {
-      line1: "100 Feet Rd, 12th Main, Indiranagar",
-      city: "Bengaluru",
-      state: "Karnataka",
-      state_code: "29",
-      pincode: "560038",
-    },
-    verification_status: "VERIFIED",
-    verification_source: "Manual",
-    last_verified_at: "2026-01-15T10:00:00Z",
-    verification_response: {
-      reference_id: "REF-GST-KA-2026",
-      provider: "GSTN-Portal",
-      status: "Active",
-      message: "Verified on GST Portal",
-    },
-    created_at: "2024-04-01T00:00:00Z",
-  },
-  {
-    id: "gst_kl",
-    gstin: "32AAAAA0000A1Z2",
-    legal_name: "CakeToHome India Private Limited",
-    trade_name: "CakeToHome Kerala",
-    registration_type: "REGULAR",
-    state: "Kerala",
-    state_code: "32",
-    effective_from: "2025-01-01",
-    effective_to: null,
-    status: "active",
-    address: {
-      line1: "MG Road, Marine Drive",
-      city: "Kochi",
-      state: "Kerala",
-      state_code: "32",
-      pincode: "682016",
-    },
-    verification_status: "VERIFIED",
-    verification_source: "Manual",
-    last_verified_at: "2026-01-15T10:00:00Z",
-    verification_response: {
-      reference_id: "REF-GST-KL-2026",
-      provider: "GSTN-Portal",
-      status: "Active",
-      message: "Verified on GST Portal",
-    },
-    created_at: "2025-01-01T00:00:00Z",
-  },
-  {
-    id: "gst_tn",
-    gstin: "33AAAAA0000A1Z1",
-    legal_name: "CakeToHome India Private Limited",
-    trade_name: "CakeToHome Tamil Nadu",
-    registration_type: "REGULAR",
-    state: "Tamil Nadu",
-    state_code: "33",
-    effective_from: "2025-06-01",
-    effective_to: null,
-    status: "active",
-    address: {
-      line1: "2nd Avenue, Anna Nagar",
-      city: "Chennai",
-      state: "Tamil Nadu",
-      state_code: "33",
-      pincode: "600040",
-    },
-    verification_status: "VERIFIED",
-    verification_source: "Manual",
-    last_verified_at: "2026-01-15T10:00:00Z",
-    verification_response: {
-      reference_id: "REF-GST-TN-2026",
-      provider: "GSTN-Portal",
-      status: "Active",
-      message: "Verified on GST Portal",
-    },
-    created_at: "2025-06-01T00:00:00Z",
-  },
-  {
-    id: "gst_mh",
-    gstin: "27AAAAA0000A1Z9",
-    legal_name: "CakeToHome India Private Limited",
-    trade_name: "CakeToHome Maharashtra",
-    registration_type: "REGULAR",
-    state: "Maharashtra",
-    state_code: "27",
-    effective_from: "2025-08-01",
-    effective_to: null,
-    status: "active",
-    address: {
-      line1: "Hill Road, Bandra West",
-      city: "Mumbai",
-      state: "Maharashtra",
-      state_code: "27",
-      pincode: "400050",
-    },
-    verification_status: "VERIFIED",
-    verification_source: "Manual",
-    last_verified_at: "2026-01-15T10:00:00Z",
-    verification_response: {
-      reference_id: "REF-GST-MH-2026",
-      provider: "GSTN-Portal",
-      status: "Active",
-      message: "Verified on GST Portal",
-    },
-    created_at: "2025-08-01T00:00:00Z",
-  },
-];
 
-const DEFAULT_BRANCH_COMPLIANCE: BranchComplianceItem[] = [
-  {
-    id: "comp_indiranagar",
-    branch_id: "br_indiranagar",
-    branch_name: "Indiranagar Flagship Bakery",
-    branch_code: "HUB-BLR-01",
-    city_id: "city_bbr",
-    city_name: "Bengaluru",
-    state: "Karnataka",
-    state_code: "29",
-    gst_registration_id: "gst_ka",
-    fssai_number: "11223344556677",
-    fssai_license_type: "STATE_LICENSE",
-    fbo_name: "CakeToHome India Pvt Ltd",
-    business_activity: "Bakery / Food Preparation & Delivery",
-    premise_name: "Indiranagar Flagship Kitchen",
-    premise_address: "100 Feet Rd, 12th Main, Indiranagar, Bengaluru - 560038",
-    issue_date: "2024-05-10",
-    expiry_date: "2028-05-09",
-    status: "ACTIVE",
-    verification_status: "VERIFIED",
-    certificate_number: "FSSAI-KA-00142",
-    issuing_authority: "Food Safety Authority of Karnataka",
-    responsible_person: "Rajesh Kumar",
-    contact_number: "+91 98765 00001",
-    last_verified_at: "2026-01-10T00:00:00Z",
-    created_at: "2024-05-10T00:00:00Z",
-  },
-  {
-    id: "comp_koramangala",
-    branch_id: "br_koramangala",
-    branch_name: "Koramangala Central Hub",
-    branch_code: "HUB-BLR-02",
-    city_id: "city_bbr",
-    city_name: "Bengaluru",
-    state: "Karnataka",
-    state_code: "29",
-    gst_registration_id: "gst_ka",
-    fssai_number: "11223344556688",
-    fssai_license_type: "STATE_LICENSE",
-    fbo_name: "CakeToHome India Pvt Ltd",
-    business_activity: "Bakery / Food Preparation & Delivery",
-    premise_name: "Koramangala Central Kitchen",
-    premise_address: "80 Feet Rd, 4th Block, Koramangala, Bengaluru - 560034",
-    issue_date: "2024-06-15",
-    expiry_date: "2028-06-14",
-    status: "ACTIVE",
-    verification_status: "VERIFIED",
-    certificate_number: "FSSAI-KA-00188",
-    issuing_authority: "Food Safety Authority of Karnataka",
-    responsible_person: "Anita Sharma",
-    contact_number: "+91 98765 00002",
-    last_verified_at: "2026-01-10T00:00:00Z",
-    created_at: "2024-06-15T00:00:00Z",
-  },
-  {
-    id: "comp_hsr",
-    branch_id: "br_hsr",
-    branch_name: "HSR Layout Kitchen",
-    branch_code: "HUB-BLR-03",
-    city_id: "city_bbr",
-    city_name: "Bengaluru",
-    state: "Karnataka",
-    state_code: "29",
-    gst_registration_id: "gst_ka",
-    fssai_number: "11223344556699",
-    fssai_license_type: "STATE_LICENSE",
-    fbo_name: "CakeToHome India Pvt Ltd",
-    business_activity: "Bakery / Food Preparation & Delivery",
-    premise_name: "HSR Layout Kitchen",
-    premise_address: "27th Main Rd, Sector 1, HSR Layout, Bengaluru - 560102",
-    issue_date: "2023-09-10",
-    expiry_date: new Date(Date.now() + 27 * 24 * 3600 * 1000).toISOString().slice(0, 10),
-    status: "EXPIRING_30_DAYS",
-    verification_status: "VERIFIED",
-    certificate_number: "FSSAI-KA-00210",
-    issuing_authority: "Food Safety Authority of Karnataka",
-    responsible_person: "Suresh Menon",
-    contact_number: "+91 98765 00003",
-    last_verified_at: "2026-01-10T00:00:00Z",
-    created_at: "2023-09-10T00:00:00Z",
-  },
-  {
-    id: "comp_whitefield",
-    branch_id: "br_whitefield",
-    branch_name: "Whitefield Tech Hub",
-    branch_code: "HUB-BLR-04",
-    city_id: "city_bbr",
-    city_name: "Bengaluru",
-    state: "Karnataka",
-    state_code: "29",
-    gst_registration_id: "gst_ka",
-    fssai_number: "11223344556700",
-    fssai_license_type: "STATE_LICENSE",
-    fbo_name: "CakeToHome India Pvt Ltd",
-    business_activity: "Bakery / Food Preparation & Delivery",
-    premise_name: "Whitefield Bakery Hub",
-    premise_address: "ITPL Main Rd, Whitefield, Bengaluru - 560066",
-    issue_date: "2024-08-01",
-    expiry_date: "2028-07-31",
-    status: "ACTIVE",
-    verification_status: "VERIFIED",
-    certificate_number: "FSSAI-KA-00305",
-    issuing_authority: "Food Safety Authority of Karnataka",
-    responsible_person: "Deepak Verma",
-    contact_number: "+91 98765 00004",
-    last_verified_at: "2026-01-10T00:00:00Z",
-    created_at: "2024-08-01T00:00:00Z",
-  },
-  {
-    id: "comp_kochi",
-    branch_id: "br_kochi_ernakulam",
-    branch_name: "Kochi Ernakulam Gourmet Hub",
-    branch_code: "HUB-COK-01",
-    city_id: "city_cok",
-    city_name: "Kochi",
-    state: "Kerala",
-    state_code: "32",
-    gst_registration_id: "gst_kl",
-    fssai_number: "11223344556801",
-    fssai_license_type: "STATE_LICENSE",
-    fbo_name: "CakeToHome India Pvt Ltd",
-    business_activity: "Bakery / Food Preparation & Delivery",
-    premise_name: "Kochi Gourmet Kitchen",
-    premise_address: "MG Road, Marine Drive, Kochi - 682016",
-    issue_date: "2025-01-01",
-    expiry_date: "2029-12-31",
-    status: "ACTIVE",
-    verification_status: "VERIFIED",
-    certificate_number: "FSSAI-KL-00412",
-    issuing_authority: "Food Safety Authority of Kerala",
-    responsible_person: "Anjali Menon",
-    contact_number: "+91 98470 55443",
-    last_verified_at: "2026-01-10T00:00:00Z",
-    created_at: "2025-01-01T00:00:00Z",
-  },
-  {
-    id: "comp_chennai",
-    branch_id: "br_chennai_tnagar",
-    branch_name: "Chennai T. Nagar Flagship Hub",
-    branch_code: "HUB-MAA-01",
-    city_id: "city_maa",
-    city_name: "Chennai",
-    state: "Tamil Nadu",
-    state_code: "33",
-    gst_registration_id: "gst_tn",
-    fssai_number: "11223344556802",
-    fssai_license_type: "STATE_LICENSE",
-    fbo_name: "CakeToHome India Pvt Ltd",
-    business_activity: "Bakery / Food Preparation & Delivery",
-    premise_name: "Chennai T. Nagar Kitchen",
-    premise_address: "Usman Road, T. Nagar, Chennai - 600017",
-    issue_date: "2025-06-01",
-    expiry_date: "2029-12-31",
-    status: "ACTIVE",
-    verification_status: "VERIFIED",
-    certificate_number: "FSSAI-TN-00588",
-    issuing_authority: "Food Safety Authority of Tamil Nadu",
-    responsible_person: "Karthik Subramanian",
-    contact_number: "+91 98400 33221",
-    last_verified_at: "2026-01-10T00:00:00Z",
-    created_at: "2025-06-01T00:00:00Z",
-  },
-  {
-    id: "comp_mumbai",
-    branch_id: "br_mumbai_bandra",
-    branch_name: "Mumbai Bandra West Hub",
-    branch_code: "HUB-BOM-01",
-    city_id: "city_bom",
-    city_name: "Mumbai",
-    state: "Maharashtra",
-    state_code: "27",
-    gst_registration_id: "gst_mh",
-    fssai_number: "11223344556803",
-    fssai_license_type: "STATE_LICENSE",
-    fbo_name: "CakeToHome India Pvt Ltd",
-    business_activity: "Bakery / Food Preparation & Delivery",
-    premise_name: "Mumbai Bandra Kitchen",
-    premise_address: "Hill Road, Bandra West, Mumbai - 400050",
-    issue_date: "2025-08-01",
-    expiry_date: "2029-12-31",
-    status: "ACTIVE",
-    verification_status: "VERIFIED",
-    certificate_number: "FSSAI-MH-00624",
-    issuing_authority: "Food Safety Authority of Maharashtra",
-    responsible_person: "Pooja Deshmukh",
-    contact_number: "+91 98200 44332",
-    last_verified_at: "2026-01-10T00:00:00Z",
-    created_at: "2025-08-01T00:00:00Z",
-  },
-];
 
-const DEFAULT_COMPLIANCE_DOCUMENTS: ComplianceDocumentItem[] = [
-  { id: "doc_gst_ka", document_type: "GST_CERTIFICATE", entity_type: "gst_registration", entity_id: "gst_ka", file_url: "/docs/gst_karnataka_cert.pdf", file_name: "GST_Certificate_Karnataka_2024.pdf", file_size: 145000, mime_type: "application/pdf", uploaded_by: "Super Admin", uploaded_at: "2024-04-01T10:00:00Z", expiry_date: null, status: "valid" },
-  { id: "doc_fssai_ind", document_type: "FSSAI_CERTIFICATE", entity_type: "branch", entity_id: "br_indiranagar", file_url: "/docs/fssai_indiranagar.pdf", file_name: "FSSAI_License_Indiranagar_2024.pdf", file_size: 210000, mime_type: "application/pdf", uploaded_by: "Branch Manager", uploaded_at: "2024-05-10T10:00:00Z", expiry_date: "2028-05-09", status: "valid" },
-  { id: "doc_pan_co", document_type: "PAN", entity_type: "business", entity_id: "biz_global", file_url: "/docs/company_pan.pdf", file_name: "Company_PAN_Card.pdf", file_size: 98000, mime_type: "application/pdf", uploaded_by: "Super Admin", uploaded_at: "2024-01-15T10:00:00Z", expiry_date: null, status: "valid" },
-];
 
 const DEFAULT_INVOICE_SETTINGS: InvoiceBillingSettings = {
   invoice_prefix: "CTH",
@@ -2159,15 +1845,6 @@ export const DEFAULT_MEDIA = [
   },
 ];
 
-const DEFAULT_PIM_CATEGORIES = [
-  { id: "cat_chocolate", name: "Chocolate Cakes", slug: "chocolate-cakes", description: "Rich, decadent Belgian chocolate, fudge, and truffle cakes.", parent_id: null, image_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", display_order: 1, status: "active", is_active: true, visibility: "public", seo_title: "Chocolate Cakes Online - CakeToHome", seo_description: "Order handcrafted chocolate cakes online with same-day delivery.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-  { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", description: "Classic crimson velvet layers with rich cream cheese frosting.", parent_id: null, image_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", display_order: 2, status: "active", is_active: true, visibility: "public", seo_title: "Red Velvet Cakes - CakeToHome", seo_description: "Premium handcrafted red velvet cakes with cream cheese frosting.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-  { id: "cat_fruit_mousse", name: "Fruit & Mousse Cakes", slug: "fruit-mousse-cakes", description: "Fresh seasonal Alphonso mango, berries, and airy mousse layers.", parent_id: null, image_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=800", display_order: 3, status: "active", is_active: true, visibility: "public", seo_title: "Fruit & Mousse Cakes - CakeToHome", seo_description: "Exotic fresh fruit and mango mousse cakes delivered fresh in Bangalore.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-  { id: "cat_black_forest", name: "Black Forest Cakes", slug: "black-forest-cakes", description: "Traditional German gateau with cherries and chocolate shavings.", parent_id: null, image_url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=800", display_order: 4, status: "active", is_active: true, visibility: "public", seo_title: "Black Forest Cakes - CakeToHome", seo_description: "Authentic Black Forest gateaux with fresh cherries and whipped cream.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-  { id: "cat_butterscotch", name: "Butterscotch & Caramel Cakes", slug: "butterscotch-caramel-cakes", description: "Crunchy praline, butterscotch chips, and salted golden caramel.", parent_id: null, image_url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=800", display_order: 5, status: "active", is_active: true, visibility: "public", seo_title: "Butterscotch Cakes - CakeToHome", seo_description: "Rich butterscotch and crunchy praline caramel cakes.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-  { id: "cat_cheesecakes", name: "Cheesecakes & Artisanal", slug: "cheesecakes", description: "Baked New York cheesecakes and chef-crafted artisanal creations.", parent_id: null, image_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=800", display_order: 6, status: "active", is_active: true, visibility: "public", seo_title: "Cheesecakes - CakeToHome", seo_description: "Authentic New York baked cheesecakes with fruit coulis and artisanal toppings.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-  { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", description: "Bangalore's most-ordered gourmet celebratory cakes.", parent_id: null, image_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", banner_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800", display_order: 7, status: "active", is_active: true, visibility: "public", seo_title: "Best Seller Cakes - CakeToHome", seo_description: "Top rated bestselling celebration cakes in Bangalore.", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-];
 
 const DEFAULT_VARIANT_OPTIONS = [
   // Weights (Pure Size Master Definitions - Prices managed per product)
@@ -3185,15 +2862,6 @@ export interface CityArea {
   updated_at?: string;
 }
 
-const DEFAULT_CITY_AREAS: CityArea[] = [
-  { id: "area_01", city_name: "Bengaluru", zone_name: "East Zone", area_name: "Indiranagar", localities: ["100 Feet Road", "12th Main", "CMH Road", "Domlur", "HAL"], pincodes: ["560038", "560008", "560071"], status: "open", express_available: true, midnight_available: false, branch_ids: ["br_indiranagar"] },
-  { id: "area_02", city_name: "Bengaluru", zone_name: "South Zone", area_name: "Koramangala", localities: ["4th Block", "5th Block", "6th Block", "1st Block", "Sony Signal"], pincodes: ["560034", "560095", "560047"], status: "open", express_available: true, midnight_available: true, branch_ids: ["br_koramangala"] },
-  { id: "area_03", city_name: "Bengaluru", zone_name: "South Zone", area_name: "HSR Layout", localities: ["Sector 1", "Sector 2", "Sector 7", "27th Main"], pincodes: ["560102", "560068"], status: "open", express_available: true, midnight_available: true, branch_ids: ["br_koramangala", "br_hsr"] },
-  { id: "area_04", city_name: "Bengaluru", zone_name: "East Zone", area_name: "Whitefield", localities: ["ITPL Main Road", "Brookefield", "Marathahalli", "Varthur"], pincodes: ["560066", "560048", "560037"], status: "open", express_available: false, midnight_available: true, branch_ids: ["br_whitefield"] },
-  { id: "area_05", city_name: "Bengaluru", zone_name: "South Zone", area_name: "BTM Layout", localities: ["1st Stage", "2nd Stage", "Madiwala"], pincodes: ["560076", "560029"], status: "open", express_available: true, midnight_available: true, branch_ids: ["br_koramangala"] },
-  { id: "area_06", city_name: "Bengaluru", zone_name: "Central Zone", area_name: "MG Road & Brigade Road", localities: ["MG Road", "Brigade Road", "Commercial Street", "Shivajinagar"], pincodes: ["560001", "560051"], status: "open", express_available: false, midnight_available: true, branch_ids: ["br_indiranagar"] },
-  { id: "area_07", city_name: "Bengaluru", zone_name: "East Zone", area_name: "Bellandur", localities: ["Outer Ring Road", "Bellandur Gate", "Green Glen Layout"], pincodes: ["560103", "560037"], status: "open", express_available: false, midnight_available: true, branch_ids: ["br_koramangala", "br_whitefield"] },
-];
 
 export function normalizeBranchOperations(b: any): BranchItem {
   const defaultWeekly: Record<string, BranchDaySchedule> = {
@@ -6629,7 +6297,7 @@ export class ApiEngine {
 
   // ── Categories & Taxonomy System ──────────────────────────────
   static getCategories(includeInactive: boolean = false) {
-    const rawCategories = (memoryStore.categories || memoryStore.pim_categories || DEFAULT_PIM_CATEGORIES) as any[];
+    const rawCategories = (memoryStore.categories || memoryStore.pim_categories || []) as any[];
     const products = memoryStore.products || [];
 
     const activeList = includeInactive
@@ -12457,15 +12125,9 @@ export class ApiEngine {
 
   // ── Multi-State GST Registrations ──────────────────────────────
   static listGstRegistrations(includeInactive = true): GstRegistrationItem[] {
-    if (!Array.isArray(memoryStore.gst_registrations) || memoryStore.gst_registrations.length === 0) {
-      memoryStore.gst_registrations = [...DEFAULT_GST_REGISTRATIONS];
-    } else if (Array.isArray(memoryStore.gst_registrations)) {
-      const currentList = memoryStore.gst_registrations;
-      DEFAULT_GST_REGISTRATIONS.forEach((def) => {
-        if (!currentList.some((g: any) => g && (g.id === def.id || g.gstin === def.gstin))) {
-          currentList.push(def);
-        }
-      });
+    // Real registrations only (hydrated from public.gst_registration) — no demo GSTINs.
+    if (!Array.isArray(memoryStore.gst_registrations)) {
+      memoryStore.gst_registrations = [];
     }
     const cleanList = (memoryStore.gst_registrations || []).filter(Boolean);
     if (!includeInactive) {
@@ -12568,7 +12230,7 @@ export class ApiEngine {
   static listBranchCompliance(branchId?: string): BranchComplianceItem[] {
     // Seed defaults only on a brand-new store; an empty list means records were deleted.
     if (!Array.isArray(memoryStore.branch_compliance)) {
-      memoryStore.branch_compliance = [...DEFAULT_BRANCH_COMPLIANCE];
+      memoryStore.branch_compliance = []; // no demo compliance records
     }
     const cleanList = (memoryStore.branch_compliance || []).filter(Boolean);
     if (branchId) {
@@ -12778,7 +12440,7 @@ export class ApiEngine {
   // ── Statutory Compliance Documents ──────────────────────────────
   static listComplianceDocuments(entityType?: string, entityId?: string): ComplianceDocumentItem[] {
     if (!Array.isArray(memoryStore.compliance_documents)) {
-      memoryStore.compliance_documents = [...DEFAULT_COMPLIANCE_DOCUMENTS];
+      memoryStore.compliance_documents = []; // no demo documents
     }
     let list = memoryStore.compliance_documents;
     if (entityType) list = list.filter((d: any) => d.entity_type === entityType);
@@ -12788,7 +12450,7 @@ export class ApiEngine {
 
   static createComplianceDocument(data: Partial<ComplianceDocumentItem>): ComplianceDocumentItem {
     if (!Array.isArray(memoryStore.compliance_documents)) {
-      memoryStore.compliance_documents = [...DEFAULT_COMPLIANCE_DOCUMENTS];
+      memoryStore.compliance_documents = []; // no demo documents
     }
     const id = data.id || `doc_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     const newDoc: ComplianceDocumentItem = {
@@ -12945,7 +12607,7 @@ export class ApiEngine {
     const gstReg = (compliance?.gst_registration_id ? ApiEngine.getGstRegistrationById(compliance.gst_registration_id) : null)
       || ApiEngine.listGstRegistrations().find((g: any) => g.state?.toLowerCase() === branchState.toLowerCase())
       || ApiEngine.listGstRegistrations()[0]
-      || DEFAULT_GST_REGISTRATIONS[0];
+      || null;
     const bizProfile = ApiEngine.getBusinessProfile();
 
     const sellerResolved = ApiEngine.resolveStateCode(branch?.state || gstReg?.state || branch?.state_code || gstReg?.state_code);
@@ -13834,10 +13496,11 @@ export class ApiEngine {
   // ── PIM Categories ──────────────────────────────
   static listPimCategories() {
     if (!memoryStore || !Array.isArray(memoryStore.pim_categories)) {
-      if (memoryStore) memoryStore.pim_categories = [...DEFAULT_PIM_CATEGORIES];
-      return DEFAULT_PIM_CATEGORIES;
+      // Real categories only (saved in Catalog → Categories) — no demo categories
+      if (memoryStore) memoryStore.pim_categories = [];
+      return [];
     }
-    return memoryStore.pim_categories.length > 0 ? memoryStore.pim_categories : DEFAULT_PIM_CATEGORIES;
+    return memoryStore.pim_categories;
   }
 
   static async createPimCategory(data: any) {
@@ -15571,10 +15234,8 @@ export class ApiEngine {
   }
 
   static listCityAreas(): CityArea[] {
-    if (memoryStore && Array.isArray(memoryStore.city_areas) && memoryStore.city_areas.length > 0) {
-      return memoryStore.city_areas;
-    }
-    return DEFAULT_CITY_AREAS;
+    // Real areas only — no demo Bengaluru areas
+    return memoryStore && Array.isArray(memoryStore.city_areas) ? memoryStore.city_areas : [];
   }
 
   static getCityAreaByPincode(pincode: string): CityArea | null {
@@ -17916,7 +17577,7 @@ export class ApiEngine {
     }
 
     if (!memoryStore.recovery_campaigns || !Array.isArray(memoryStore.recovery_campaigns)) {
-      memoryStore.recovery_campaigns = [...DEFAULT_RECOVERY_CAMPAIGNS];
+      memoryStore.recovery_campaigns = []; // no demo campaign stats
     }
 
     if (!memoryStore.recovery_events || !Array.isArray(memoryStore.recovery_events)) {

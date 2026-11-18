@@ -473,7 +473,7 @@ export class BankAccountRepository {
     filter: { companyId?: string; branchId?: string } = {},
     client?: PoolClient
   ): Promise<CashAccountRow[]> {
-    const conditions: string[] = [];
+    const conditions: string[] = ["ca.deleted_at IS NULL"];
     const values: unknown[] = [];
     let idx = 1;
 

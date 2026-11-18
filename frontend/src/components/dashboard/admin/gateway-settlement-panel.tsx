@@ -675,7 +675,6 @@ export default function GatewaySettlementPanel() {
             <option value="">All Providers</option>
             <option value="razorpay">Razorpay</option>
             <option value="payu">PayU</option>
-            <option value="cashfree">Cashfree</option>
             <option value="stripe">Stripe</option>
           </select>
 
@@ -1376,7 +1375,6 @@ export default function GatewaySettlementPanel() {
                   >
                     <option value="razorpay">Razorpay</option>
                     <option value="payu">PayU</option>
-                    <option value="cashfree">Cashfree</option>
                     <option value="stripe">Stripe</option>
                   </select>
                 </div>

@@ -436,7 +436,7 @@ export function BankManagementDashboard() {
                 </Badge>
               </h1>
               <p className="text-xs lg:text-sm text-slate-500 dark:text-slate-400">
-                Company Bank Accounts • Cash In Hand • Chart of Accounts Integration • Cashfree Settlement Clearing
+                Company Bank Accounts • Cash In Hand • Chart of Accounts Integration • Payment Gateway Settlement Clearing
               </p>
             </div>
           </div>
@@ -743,7 +743,7 @@ export function BankManagementDashboard() {
                 <Clock className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Cashfree Clearing</h4>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Payment Gateway Clearing</h4>
                 <p className="text-xs text-slate-500 mt-0.5">Transit clearing vs actual settled bank payouts</p>
               </div>
             </div>
@@ -1293,7 +1293,7 @@ export function BankManagementDashboard() {
           <div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Clock className="w-4 h-4 text-brand-gold" />
-              Cashfree Settlement Clearing Ledger (1010_CASHFREE_CLEARING / 1113)
+              Payment Gateway Settlement Clearing Ledger (GL 1113)
             </h3>
             <p className="text-xs text-slate-500">
               Clear segregation: Customer collections transit through Gateway Clearing before net settlement deposit into company bank account
@@ -1318,7 +1318,7 @@ export function BankManagementDashboard() {
                 {settlements.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="py-8 text-center text-slate-400">
-                      No Cashfree settlements recorded yet. Automated payout webhooks populate this clearing ledger.
+                      No gateway settlements recorded yet. Razorpay settlement webhooks populate this clearing ledger.
                     </td>
                   </tr>
                 ) : (

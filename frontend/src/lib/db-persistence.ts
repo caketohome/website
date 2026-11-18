@@ -140,6 +140,34 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
       dbQuery(`SELECT * FROM "branch_inventory" WHERE deleted_at IS NULL ORDER BY created_at ASC`).catch(() => ({ rows: [] })),
     ]);
 
+    // Real GST registrations (no built-in demo GSTINs)
+    try {
+      const gstRes = await dbQuery(`SELECT * FROM public.gst_registration ORDER BY created_at ASC`);
+      const STATE_BY_CODE: Record<string, string> = { "29": "Karnataka", "32": "Kerala", "33": "Tamil Nadu", "27": "Maharashtra", "36": "Telangana", "07": "Delhi" };
+      (targetStore as any).gst_registrations = gstRes.rows.map((g: any) => {
+        const meta = g.metadata || {};
+        const stateCode = String(g.state_code || String(g.gstin || "").slice(0, 2));
+        const state = meta.state || STATE_BY_CODE[stateCode] || "";
+        return {
+          id: g.id,
+          gstin: g.gstin,
+          legal_name: g.legal_name || "",
+          trade_name: meta.trade_name || g.legal_name || "",
+          registration_type: g.registration_type || "REGULAR",
+          state,
+          state_code: stateCode,
+          effective_from: g.effective_from || undefined,
+          effective_to: g.effective_to || null,
+          status: g.is_active === false ? "inactive" : "active",
+          address: meta.address || { line1: "", city: "", state, state_code: stateCode, pincode: "" },
+          verification_status: meta.verification_status || "PENDING",
+          verification_source: meta.verification_source || "Manual",
+          last_verified_at: meta.last_verified_at || null,
+          created_at: g.created_at,
+        };
+      });
+    } catch {}
+
     // 1. Zones Map by Branch
     const zonesByBranch = new Map<string, any[]>();
     for (const z of zonesRes.rows) {
@@ -728,7 +756,7 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
       if (categoriesSetting && categoriesSetting.value) {
         try {
           const val = typeof categoriesSetting.value === "string" ? JSON.parse(categoriesSetting.value) : categoriesSetting.value;
-          if (Array.isArray(val) && val.length > 0) {
+          if (Array.isArray(val)) {
             targetStore.pim_categories = val;
           }
         } catch {}
