@@ -19,6 +19,7 @@ import {
   Calculator,
 } from "lucide-react";
 import { partnerKycIssues } from "@frontend/lib/marketplace/partner-kyc";
+import { MarketplacePayoutsTab } from "./marketplace-payouts-tab";
 
 interface Partner {
   id: string;
@@ -432,7 +433,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
           }`}
         >
           <Receipt className="w-4 h-4" />
-          Partner Invoices & Bills Payable ({invoices.length})
+          Partner Payouts
         </button>
       </div>
 
@@ -792,103 +793,7 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
       )}
 
       {/* ── SubTab 3: Partner Invoices & Bills Payable ── */}
-      {activeSubTab === "invoices" && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-            <Text className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-              Partner Invoice Receipts & Bills Payable Linkages
-            </Text>
-            <span className="text-xs text-slate-500">
-              Double-entry posting requires administrative approval to Bills Payable
-            </span>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-medium">
-                  <th className="py-3 px-4">Partner Invoice #</th>
-                  <th className="py-3 px-4">Partner</th>
-                  <th className="py-3 px-4">Period</th>
-                  <th className="py-3 px-4">Invoiced vs Reconciled</th>
-                  <th className="py-3 px-4">Discrepancy</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Accounting Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                {invoices.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="py-8 text-center text-slate-400">
-                      No partner invoices recorded yet. Record an invoice receipt in the Reconciliation tab.
-                    </td>
-                  </tr>
-                ) : (
-                  invoices.map((inv) => (
-                    <tr key={inv.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
-                      <td className="py-3 px-4">
-                        <div className="font-semibold text-slate-900 dark:text-white">
-                          {inv.partner_invoice_number}
-                        </div>
-                        <div className="text-[11px] text-slate-500">Date: {inv.invoice_date}</div>
-                      </td>
-                      <td className="py-3 px-4 font-medium">{inv.partner_name || inv.partner_id.slice(0, 8)}</td>
-                      <td className="py-3 px-4 text-slate-500">
-                        {inv.period_start} to {inv.period_end}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div>Inv: ₹{Number(inv.invoice_amount).toFixed(2)}</div>
-                        <div className="text-[11px] text-slate-500">
-                          Calc: ₹{Number(inv.reconciled_amount).toFixed(2)}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        {Number(inv.discrepancy_amount) !== 0 ? (
-                          <span className="text-rose-500 font-semibold">
-                            ₹{Number(inv.discrepancy_amount).toFixed(2)}
-                          </span>
-                        ) : (
-                          <span className="text-emerald-500 font-medium">₹0.00 (Matched)</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            inv.status === "APPROVED" || inv.status === "POSTED_TO_AP"
-                              ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                              : inv.status === "DISCREPANCY_DETECTED"
-                              ? "bg-rose-500/10 text-rose-500 border border-rose-500/20"
-                              : "bg-blue-500/10 text-blue-500 border border-blue-500/20"
-                          }`}
-                        >
-                          {inv.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        {inv.status !== "APPROVED" && inv.status !== "POSTED_TO_AP" ? (
-                          <Button
-                            size="small"
-                            variant="primary"
-                            onClick={() => handleApproveInvoice(inv.id)}
-                            className="bg-brand-primary hover:bg-brand-primary text-white text-xs px-2.5 py-1"
-                          >
-                            Approve to Bills Payable
-                          </Button>
-                        ) : (
-                          <span className="text-slate-400 text-xs flex items-center justify-end gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                            Approved
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      {activeSubTab === "invoices" && <MarketplacePayoutsTab partners={partners} />}
 
       {/* Onboard Partner Modal */}
       {showOnboardModal && (

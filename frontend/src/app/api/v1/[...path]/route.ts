@@ -6930,6 +6930,22 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const invoices = await MarketplaceInvoiceRepository.listInvoices(Object.fromEntries(url.searchParams));
       return jsonWithDataSource({ invoices, success: true }, "postgres");
     }
+    // Marketplace payouts (commission model)
+    if (path === "admin/marketplace/payouts" || path === "admin/marketplace/payouts/preview") {
+      const { MarketplacePayoutService } = await import("@frontend/lib/services/marketplace-payout.service");
+      if (path.endsWith("/preview")) {
+        const partnerId = url.searchParams.get("partner_id");
+        const from = url.searchParams.get("from");
+        const to = url.searchParams.get("to");
+        if (!partnerId || !from || !to) {
+          return jsonWithDataSource({ success: false, error: "partner_id, from and to are required." }, "postgres", 400);
+        }
+        const statement = await MarketplacePayoutService.buildStatement(partnerId, from, to);
+        return jsonWithDataSource({ success: true, statement }, "postgres");
+      }
+      const payouts = await MarketplacePayoutService.listPayouts(url.searchParams.get("partner_id") || undefined);
+      return jsonWithDataSource({ success: true, payouts }, "postgres");
+    }
     if (path === "admin/marketplace/reconciliation/export") {
       const partnerId = url.searchParams.get("partner_id") || "";
       const startDate = url.searchParams.get("start_date") || "2020-01-01";
@@ -11560,6 +11576,31 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const userCtx = resolveUserContext(req);
       const res = await MarketplaceReconciliationService.receivePartnerInvoice(body, toAuthenticatedActor(userCtx));
       return jsonWithDataSource(res, "postgres", res.success ? 201 : 400);
+    }
+    // POST admin/marketplace/payouts (create) | payouts/:id/pay | payouts/:id/cancel
+    if (path === "admin/marketplace/payouts" || /^admin\/marketplace\/payouts\/[^/]+\/(pay|cancel)$/.test(path)) {
+      const { MarketplacePayoutService } = await import("@frontend/lib/services/marketplace-payout.service");
+      const actor = toAuthenticatedActor(resolveUserContext(req));
+      if (path === "admin/marketplace/payouts") {
+        const res = await MarketplacePayoutService.createPayout(
+          { partnerId: body.partner_id, periodStart: body.period_start, periodEnd: body.period_end }, actor);
+        return jsonWithDataSource(res, "postgres", res.success ? 201 : 400);
+      }
+      const [, , , id, action] = path.split("/");
+      const res = action === "pay"
+        ? await MarketplacePayoutService.payPayout({
+            payoutId: id, paymentDate: body.payment_date, paymentMethod: body.payment_method || "BANK_TRANSFER",
+            reference: body.reference, bankAccountId: body.bank_account_id || null }, actor)
+        : await MarketplacePayoutService.cancelPayout(id, body.reason, actor);
+      return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
+    }
+    // Retired: partner-invoice approve / post-gl / settle modelled partners as suppliers (wrong for the
+    // commission marketplace, and settle posted no payment). Partner payouts replace them.
+    if (/^admin\/marketplace\/invoices\/[^/]+\/(approve|post-gl|settle)$/.test(path)) {
+      return jsonWithDataSource({
+        success: false,
+        error: "RETIRED: Partner invoices are no longer approved or settled here. Use Marketplace → Payouts to pay partners.",
+      }, "postgres", 410);
     }
     if (path.startsWith("admin/marketplace/invoices/") && path.endsWith("/approve")) {
       const id = path.replace("admin/marketplace/invoices/", "").replace("/approve", "");
