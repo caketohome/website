@@ -16,7 +16,7 @@ const TABS = [
   { id: "search_engine", label: "🔍 Search & Mapping", icon: Search },
   { id: "branches", label: "Branches", icon: Building2 },
   { id: "operational_closures", label: "📅 Holiday Scheduling", icon: Clock },
-  { id: "marketplace", label: "🏪 Partner Marketplace", icon: Building },
+  { id: "marketplace", label: "🤝 Partner Management", icon: Building },
   { id: "delivery", label: "Delivery", icon: Truck },
   { id: "delivery_coverage", label: "🗺️ Coverage & Routing", icon: MapPin },
   { id: "fulfillment", label: "🕒 Operations & Cutoff", icon: Clock },

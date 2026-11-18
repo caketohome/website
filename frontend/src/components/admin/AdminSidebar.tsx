@@ -77,7 +77,7 @@ const NAV_GROUPS: NavGroup[] = [
   },
   {
     id: "marketplace_group",
-    label: "Partner Marketplace",
+    label: "Partner Management",
     icon: Building2,
     items: [
       { id: "marketplace", label: "🏪 Partners & Invoices", icon: Building2, tabId: "marketplace" },

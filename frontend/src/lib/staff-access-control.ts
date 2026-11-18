@@ -274,9 +274,13 @@ export const PERMISSION_CATALOG: PermissionDefinition[] = [
   { id: "CORPORATE_ROUTING.VIEW",             module: "CORPORATE_ROUTING",   action: "VIEW",            label: "View Corporate Routing",        description: "Read corporate delivery assignments, matching diagnostics, and audit events", category: "Corporate & Institutional" },
   { id: "CORPORATE_ROUTING.MANAGE",           module: "CORPORATE_ROUTING",   action: "MANAGE",          label: "Manage Corporate Routing",      description: "Execute single and batch corporate geographic matching and persist assignments", category: "Corporate & Institutional" },
 
-  // MARKETPLACE PARTNERS
-  { id: "MARKETPLACE.VIEW", module: "MARKETPLACE", action: "VIEW", label: "View Marketplace Partners", description: "View partners, statements and payouts", category: "Marketplace Partners" },
-  { id: "MARKETPLACE.MANAGE", module: "MARKETPLACE", action: "MANAGE", label: "Manage Marketplace Partners", description: "Onboard, approve, suspend partners; create and pay payouts", category: "Marketplace Partners" },
+  // PARTNER MANAGEMENT (marketplace partners & partner stores)
+  { id: "MARKETPLACE.VIEW", module: "MARKETPLACE", action: "VIEW", label: "View Partners", description: "View partners, partner stores, partner orders, statements and payouts", category: "Partner Management" },
+  { id: "MARKETPLACE.ONBOARD", module: "MARKETPLACE", action: "ONBOARD", label: "Onboard & Manage Partners", description: "Create, approve, suspend and reactivate partners and partner stores; give partner portal access", category: "Partner Management" },
+  { id: "MARKETPLACE.AGREEMENTS", module: "MARKETPLACE", action: "AGREEMENTS", label: "Partner Agreements & Catalog", description: "Set commission, delivery-fee terms and which of our products each partner sells", category: "Partner Management" },
+  { id: "MARKETPLACE.ORDERS", module: "MARKETPLACE", action: "ORDERS", label: "Handle Partner Orders", description: "Dispatch / deliver partner orders and respond to partner complaints", category: "Partner Management" },
+  { id: "MARKETPLACE.PAYOUTS", module: "MARKETPLACE", action: "PAYOUTS", label: "Partner Invoices & Payouts", description: "Reconcile, approve partner invoices and create / pay payouts", category: "Partner Management" },
+  { id: "MARKETPLACE.MANAGE", module: "MARKETPLACE", action: "MANAGE", label: "Full Partner Management", description: "Everything above", category: "Partner Management" },
 
   // ADMINISTRATION
   { id: "SETTINGS.MANAGE", module: "SETTINGS", action: "MANAGE", label: "Manage System Settings", description: "Change feature flags and system configuration", category: "System Administration" },
@@ -484,6 +488,14 @@ export const SYSTEM_ACCESS_PROFILES: AccessProfile[] = [
  * Every admin dashboard section → the permission needed to see it. Sections not listed here are hidden from
  * everyone except SUPER_ADMIN. Super admins grant these through Access Profiles (Staff Profiles panel).
  */
+/** Which Partner Management permission a change to an admin/marketplace/* path needs. */
+export function marketplaceWritePermission(path: string): string {
+  if (/\/(payouts|invoices|reconciliation)/.test(path)) return "MARKETPLACE.PAYOUTS";
+  if (/\/(agreements|catalog|products)/.test(path)) return "MARKETPLACE.AGREEMENTS";
+  if (/\/(orders|complaints)/.test(path)) return "MARKETPLACE.ORDERS";
+  return "MARKETPLACE.ONBOARD";
+}
+
 export const ADMIN_TAB_PERMISSIONS: Record<string, { module: string; action: string }> = {
   orders: { module: "ORDERS", action: "VIEW" },
   abandoned_carts: { module: "ORDERS", action: "VIEW" },

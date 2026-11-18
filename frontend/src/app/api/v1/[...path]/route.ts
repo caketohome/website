@@ -4,7 +4,7 @@ import { ApiEngine } from "@frontend/lib/api-engine";
 import { WebhookEngine } from "@frontend/lib/webhook-engine";
 import { TelemarketingEngine } from "@frontend/lib/telemarketing-engine";
 import { TelemarketingExportService } from "@frontend/lib/telemarketing-export-service";
-import { StaffAccessControl, PERMISSION_CATALOG } from "@frontend/lib/staff-access-control";
+import { StaffAccessControl, PERMISSION_CATALOG, marketplaceWritePermission } from "@frontend/lib/staff-access-control";
 import { normalizePhone, SYSTEM_SEGMENTS } from "@frontend/lib/crm/crm-engine";
 import { FulfillmentEngine, DeliverySlotGenerator, DEFAULT_SLOT_CONFIG } from "@frontend/lib/fulfillment";
 import { createApiEngineProvider, ensureFulfillmentStore, generateOtp, verifyOtp, getActiveOtp } from "@frontend/lib/fulfillment/api-engine-provider";
@@ -158,6 +158,13 @@ function enforceAdminModuleAccess(req: NextRequest, path: string, method: string
   if (entry[1] === "STAFF_MANAGEMENT" && isWrite) return deny("FORBIDDEN: Only a super admin can change staff access.");
   const subject = { role, userId: session.userId, id: session.userId, phone: (session as any).phone };
   const perms = StaffAccessControl.getEffectivePermissions(subject).filter((p) => p.startsWith(`${entry[1]}.`));
+  if (entry[1] === "MARKETPLACE" && isWrite) {
+    // Partner management: each kind of change needs its own permission (MANAGE covers all)
+    const need = marketplaceWritePermission(path);
+    return perms.includes("MARKETPLACE.MANAGE") || perms.includes(need)
+      ? null
+      : deny(`FORBIDDEN: Your access profile does not include ${need}.`);
+  }
   const ok = isWrite ? perms.some((p) => !p.split(".")[1].startsWith("VIEW")) : perms.length > 0;
   return ok ? null : deny(`FORBIDDEN: Your access profile does not include ${entry[1]}${isWrite ? " changes" : ""}.`);
 }
