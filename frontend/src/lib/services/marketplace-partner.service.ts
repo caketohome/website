@@ -84,7 +84,8 @@ export class MarketplacePartnerService {
 
   /**
    * Approve a partner after KYC and agreement checks. Creates (once) a linked supplier record so partner
-   * payouts flow through Bills Payable, the supplier ledger and the TDS register.
+   * payouts flow through Bills Payable, the supplier ledger and the TDS register, and the partner's own
+   * payable ledger (2112-NN) in the chart of accounts.
    */
   static async approvePartner(
     partnerId: string,
@@ -104,6 +105,7 @@ export class MarketplacePartnerService {
     }
 
     const supplierId = await MarketplacePartnerRepository.ensureLinkedSupplier(partner, actor.userId);
+    const ledger = await MarketplacePartnerRepository.ensurePartnerLedger(partner, actor.userId);
     const saved = await MarketplacePartnerRepository.savePartner({
       ...partner,
       status: "APPROVED",
@@ -111,6 +113,8 @@ export class MarketplacePartnerService {
       metadata: {
         ...(partner.metadata || {}),
         supplier_id: supplierId,
+        ledger_account_id: ledger.id,
+        ledger_code: ledger.code,
         approved_by: actor.userId,
         approved_at: new Date().toISOString(),
       },

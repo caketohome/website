@@ -135,10 +135,9 @@ export function BankManagementDashboard() {
 
   // Reconciliation Form state
   const [reconBankId, setReconBankId] = useState("");
-  const [reconStatementBalance, setReconStatementBalance] = useState("250000");
-  const [reconCsvInput, setReconCsvInput] = useState(
-    "Date,Description,Reference,Debit,Credit,Balance\n2026-04-01,Opening Balance,OB-001,0,250000,250000\n2026-04-02,Cashfree Settlement,CF-SETTLE-8812,0,45000,295000\n2026-04-03,Vendor Supplier Payout,NEFT-09881,15000,0,280000"
-  );
+  // Empty until the user pastes their real statement (was a hardcoded sample statement and balance).
+  const [reconStatementBalance, setReconStatementBalance] = useState("");
+  const [reconCsvInput, setReconCsvInput] = useState("");
   const [reconImportResult, setReconImportResult] = useState<any>(null);
 
   // ── Load All Data ───────────────────────────────────────────────────────────
@@ -1223,6 +1222,7 @@ export function BankManagementDashboard() {
                 rows={7}
                 value={reconCsvInput}
                 onChange={(e) => setReconCsvInput(e.target.value)}
+                placeholder={"Date,Description,Reference,Debit,Credit,Balance\n2026-04-01,Opening balance,REF-1,0,10000,10000"}
                 className="w-full font-mono text-xs p-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-navy"
               />
               <div className="flex items-center gap-2">

@@ -77,7 +77,9 @@ export class MarketplacePayoutService {
         partner_sale_gross: 0, commission: 0, commission_gst: 0, tcs: 0, tds_194o: 0, net_payable: 0,
       };
       const amt = Number(row.credit_amount || 0);
-      switch (row.code) {
+      // A partner's own ledger (2112-NN) is its payable account.
+      const code = String(row.code || "").startsWith(`${MARKETPLACE_ACCOUNTS.PARTNER_PAYABLE}-`) ? MARKETPLACE_ACCOUNTS.PARTNER_PAYABLE : row.code;
+      switch (code) {
         case MARKETPLACE_ACCOUNTS.PARTNER_PAYABLE:
           line.net_payable = r2(line.net_payable + amt);
           line.partner_sale_gross = r2(Number(row.metadata?.partner_sale_gross || 0));
@@ -179,7 +181,13 @@ export class MarketplacePayoutService {
         const partner = partnerRes.rows[0];
         const supplierId = partner?.metadata?.supplier_id || null;
 
-        const payable = await AccountingAccountRepository.findByCode(MARKETPLACE_ACCOUNTS.PARTNER_PAYABLE, client);
+        // Debit the partner's own ledger (2112-NN) when it has one, else the 2112 control account.
+        let payable: any = null;
+        if (partner?.metadata?.ledger_account_id) {
+          const own = await AccountingAccountRepository.findById(partner.metadata.ledger_account_id, client);
+          if (own && own.is_active && !own.is_group) payable = own;
+        }
+        if (!payable) payable = await AccountingAccountRepository.findByCode(MARKETPLACE_ACCOUNTS.PARTNER_PAYABLE, client);
         if (!payable || !payable.is_active) throw new Error("Marketplace Partner Payable account 2112 is not configured.");
         let bankGl = null as any;
         if (params.bankAccountId) {

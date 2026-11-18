@@ -3,7 +3,7 @@
  * Database-backed persistence for commercial partners, stores, agreements, and complaints.
  */
 
-import { dbQuery } from "../db";
+import { dbQuery, dbTransaction } from "../db";
 
 export interface MarketplacePartnerRow {
   id: string;
@@ -208,6 +208,52 @@ export class MarketplacePartnerRepository {
       ]
     );
     return supplierId;
+  }
+
+  /**
+   * Create (once) the partner's own payable ledger in the chart of accounts: "2112-NN Partner Payable - <name>",
+   * a sibling of 2112 under the same group (the bank-account pattern 1112-NN). Sales credit what we owe the
+   * partner here and payouts debit it, so each partner has a running ledger balance.
+   */
+  static async ensurePartnerLedger(partner: MarketplacePartnerRow, createdBy: string): Promise<{ id: string; code: string }> {
+    const known = partner.metadata?.ledger_account_id;
+    if (known) {
+      const k = await dbQuery(`SELECT id, code FROM public.accounting_account WHERE id = $1 AND deleted_at IS NULL`, [known]);
+      if (k.rows[0]) return k.rows[0];
+    }
+    const existing = await dbQuery(
+      `SELECT id, code FROM public.accounting_account WHERE metadata->>'marketplace_partner_id' = $1 AND deleted_at IS NULL LIMIT 1`,
+      [partner.id]
+    );
+    if (existing.rows[0]) return existing.rows[0];
+
+    const base = await dbQuery(`SELECT * FROM public.accounting_account WHERE code = '2112' AND deleted_at IS NULL LIMIT 1`);
+    const b = base.rows[0];
+    if (!b) throw new Error("Chart of accounts has no 2112 Marketplace Partner Payable account.");
+    // Serialise numbering (transaction lock); the code index is unique across deleted rows too, so count them.
+    return dbTransaction(async (client) => {
+      await client.query(`SELECT pg_advisory_xact_lock(hashtext('partner_ledger_code'))`);
+      const again = await client.query(
+        `SELECT id, code FROM public.accounting_account WHERE metadata->>'marketplace_partner_id' = $1 AND deleted_at IS NULL LIMIT 1`,
+        [partner.id]
+      );
+      if (again.rows[0]) return again.rows[0];
+      const max = await client.query(
+        `SELECT COALESCE(MAX(NULLIF(substring(COALESCE(metadata->>'original_code', code) from '^2112-([0-9]+)$'), '')::int), 0) AS n
+         FROM public.accounting_account WHERE code ~ '2112-[0-9]+' OR metadata->>'original_code' ~ '^2112-[0-9]+$'`
+      );
+      const code = `2112-${String(Number(max.rows[0].n) + 1).padStart(2, "0")}`;
+      const id = `acc_mkt_${partner.id.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 40)}`;
+      const name = `Partner Payable - ${partner.trade_name || partner.legal_name}`.substring(0, 100);
+      await client.query(
+        `INSERT INTO public.accounting_account (id, code, name, type, subtype, parent_id, level, is_group, is_system, is_active,
+           description, metadata, created_by, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, false, false, true, $8, $9, $10, NOW(), NOW())`,
+        [id, code, name, b.type, b.subtype, b.parent_id, b.level, `Amount owed to marketplace partner ${partner.code} (${partner.gstin || "no GSTIN"})`,
+         JSON.stringify({ marketplace_partner_id: partner.id, kind: "MARKETPLACE_PARTNER_PAYABLE" }), createdBy || "system"]
+      );
+      return { id, code };
+    });
   }
 
   /**

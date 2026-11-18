@@ -810,7 +810,7 @@ export class SalesPostingService {
       const fyRes = await client.query<{ fy_gross: string }>(
         `SELECT COALESCE(SUM(NULLIF(jl.metadata->>'partner_sale_gross', '')::numeric), 0) AS fy_gross
          FROM public.accounting_journal_line jl
-         JOIN public.accounting_account a ON a.id = jl.account_id AND a.code = $2
+         JOIN public.accounting_account a ON a.id = jl.account_id AND (a.code = $2 OR a.code LIKE $2 || '-%')
          JOIN public.accounting_journal_entry je ON je.id = jl.journal_entry_id
          JOIN public.accounting_voucher av ON av.id = je.voucher_id AND av.status = 'POSTED' AND av.deleted_at IS NULL
          WHERE jl.metadata->>'marketplace_partner_id' = $1
@@ -845,6 +845,16 @@ export class SalesPostingService {
       };
       const ref = `Order ${order.display_id || order.id} (${marketplace.partner_trade_name || marketplace.partner_id})`;
       const supplierId = marketplace.partner_metadata?.supplier_id || null;
+      // The partner's own payable ledger (2112-NN, created at approval); falls back to the 2112 control account.
+      let partnerLedgerId: string = acct(MARKETPLACE_ACCOUNTS.PARTNER_PAYABLE).id;
+      const ledgerId = marketplace.partner_metadata?.ledger_account_id;
+      if (ledgerId) {
+        const lr = await client.query(
+          `SELECT id FROM public.accounting_account WHERE id = $1 AND is_active = true AND is_group = false AND deleted_at IS NULL`,
+          [ledgerId]
+        );
+        if (lr.rows[0]) partnerLedgerId = lr.rows[0].id;
+      }
       const mk = (code: string, amount: number, narration: string, metadata: Record<string, unknown>, extra: Partial<JournalLineInput> = {}) => {
         if (amount > 0) {
           journalLines.push({
@@ -864,7 +874,7 @@ export class SalesPostingService {
           tds_194o_exempt: tdsExempt,
           fy_partner_gross_before: fyGrossBefore,
           ...(tdsExempt ? { tds_194o_exemption: "Sec 194-O(4): individual/HUF, FY sales via operator ≤ ₹5 lakh" } : {}),
-        }, { supplier_id: supplierId });
+        }, { supplier_id: supplierId, account_id: partnerLedgerId });
       mk(MARKETPLACE_ACCOUNTS.COMMISSION_INCOME, split.commission, `Marketplace commission: ${ref}`,
         { commission_rate: Number(marketplace.commission_rate), agreement_id: marketplace.agreement_id });
       mk(MARKETPLACE_ACCOUNTS.CGST_9, split.commissionCgst, `CGST 9% on commission: ${ref}`, { gst_on: "COMMISSION" });
