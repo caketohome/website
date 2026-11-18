@@ -12,6 +12,7 @@ import {
 const TABS = [
   { id: "orders", label: "Orders", icon: ShoppingCart },
   { id: "catalog", label: "Catalog", icon: Package },
+  { id: "gift_services", label: "Surprise Services", icon: Package },
   { id: "search_engine", label: "🔍 Search & Mapping", icon: Search },
   { id: "branches", label: "Branches", icon: Building2 },
   { id: "operational_closures", label: "📅 Holiday Scheduling", icon: Clock },

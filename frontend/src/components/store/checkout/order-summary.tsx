@@ -14,6 +14,7 @@ export interface OrderSummaryPricing {
 export function OrderSummary({
   cart,
   pricing,
+  extras = [],
   deliveryType = "delivery",
   servicingBranch,
   selectedSlot,
@@ -21,6 +22,8 @@ export function OrderSummary({
 }: {
   cart: any;
   pricing?: OrderSummaryPricing;
+  /** Surprise services chosen at checkout (charged as order lines; GST added on top). */
+  extras?: Array<{ name: string; price: number; gst_rate: number }>;
   deliveryType?: "delivery" | "pickup";
   servicingBranch?: any;
   selectedSlot?: any;
@@ -40,10 +43,12 @@ export function OrderSummary({
 
   const netItems = Math.max(0, subtotal - discount);
   const totalTax = pricing?.tax ?? Math.round((netItems - (netItems / 1.05)) * 100) / 100;
+  const extrasSubtotal = Math.round(extras.reduce((t, e) => t + Number(e.price || 0), 0) * 100) / 100;
+  const extrasTax = Math.round(extras.reduce((t, e) => t + Number(e.price || 0) * Number(e.gst_rate || 0) / 100, 0) * 100) / 100;
   const cgst = Math.round((totalTax / 2) * 100) / 100;
   const sgst = Math.round((totalTax / 2) * 100) / 100;
 
-  const grandTotal = pricing?.grand_total ?? Math.round(netItems + deliveryFee + slotSurcharge);
+  const grandTotal = Math.round(((pricing?.grand_total ?? Math.round(netItems + deliveryFee + slotSurcharge)) + extrasSubtotal + extrasTax) * 100) / 100;
 
   return (
     <Container className="flex flex-col gap-5 p-6 rounded-3xl bg-white border border-slate-200 shadow-lg sticky top-24">
@@ -180,6 +185,17 @@ export function OrderSummary({
             <span className="font-semibold text-brand-text">
               ₹{slotSurcharge}
             </span>
+          </div>
+        )}
+
+        {extras.length > 0 && (
+          <div className="flex flex-col gap-1 text-xs">
+            {extras.map((e, i) => (
+              <div key={i} className="flex justify-between text-slate-700">
+                <span>🎁 {e.name}</span>
+                <span>{e.price > 0 ? `₹${e.price.toLocaleString("en-IN")}${e.gst_rate ? ` + ₹${(Math.round(e.price * e.gst_rate) / 100).toFixed(2)} GST` : ""}` : "Free"}</span>
+              </div>
+            ))}
           </div>
         )}
 

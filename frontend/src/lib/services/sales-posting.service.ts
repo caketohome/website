@@ -410,6 +410,12 @@ export class SalesPostingService {
     for (const p of pRes.rows) {
       productMap.set(p.id, p);
     }
+    // Surprise / gift services (card, video shoot) are order lines priced from gift_service, not products.
+    // They post as non-cake sales at their own snapshotted GST rate.
+    const gsRes = await client.query(`SELECT id, name FROM public.gift_service WHERE id = ANY($1)`, [productIds]).catch(() => ({ rows: [] as any[] }));
+    for (const g of gsRes.rows) {
+      if (!productMap.has(g.id)) productMap.set(g.id, { id: g.id, title: g.name, merchandise_type: "ACCESSORY", is_gift_service: true });
+    }
 
     const lineInputs: SalesLineItemInput[] = [];
 
@@ -1714,6 +1720,8 @@ export class SalesPostingService {
         for (const rawItem of isMarketplace ? [] : rawItems) {
           const prodId = rawItem.product_id;
           if (!prodId) continue;
+          // Gift services (card, video shoot) have no stock or cost lots
+          if (String(rawItem.merchandise_type || "").toUpperCase() === "SERVICE") continue;
 
           const pRes = await client.query(
             `SELECT id, title, merchandise_type FROM public.product WHERE id = $1 AND deleted_at IS NULL`,

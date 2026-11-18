@@ -6692,6 +6692,19 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
 
     // ── Abandoned Cart Management & Recovery (GET) ──
+    // Surprise / gift services: GET store/gift-services (active, public) | GET admin/gift-services (all)
+    if (path === "store/gift-services" || path === "gift-services") {
+      const { listGiftServices } = await import("@frontend/lib/services/gift-service.service");
+      const services = await listGiftServices({ activeOnly: true }).catch(() => []);
+      return jsonWithDataSource({ success: true, services }, "postgres");
+    }
+    if (path === "admin/gift-services") {
+      const permErr = verifyApiPermission(req, "PRODUCTS", "VIEW");
+      if (permErr) return permErr;
+      const { listGiftServices } = await import("@frontend/lib/services/gift-service.service");
+      return jsonWithDataSource({ success: true, services: await listGiftServices() }, "postgres");
+    }
+
     // Viewed but didn't buy (browse abandonment): GET admin/abandoned-carts/browse?days=7
     if (path === "admin/abandoned-carts/browse") {
       const userCtx = resolveUserContext(req);
@@ -7389,6 +7402,18 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     const isMultipart = contentType.includes("multipart/form-data");
     const body = isMultipart ? {} : await safeParseJsonBody(req);
     console.log(`[API POST] path="${path}"`);
+
+    // Surprise / gift services: POST admin/gift-services (create or update)
+    if (path === "admin/gift-services") {
+      const permErr = verifyApiPermission(req, "PRODUCTS", "EDIT");
+      if (permErr) return permErr;
+      try {
+        const { saveGiftService } = await import("@frontend/lib/services/gift-service.service");
+        return jsonWithDataSource({ success: true, service: await saveGiftService(body || {}) }, "postgres");
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 400);
+      }
+    }
 
     // ── Phase C7.6 Step 4D: Cost Allocation Subsystem POST Endpoints ─────────
     if (path.startsWith("admin/accounting/cost-allocations") || path.startsWith("admin/cost-allocations")) {
@@ -10724,6 +10749,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           delivery_latitude: body.latitude,
           delivery_longitude: body.longitude,
           payment_method: body.payment_method || "card",
+          gift_services: Array.isArray(body.gift_services) ? body.gift_services : undefined,
+          gift_message: typeof body.gift_message === "string" ? body.gift_message : undefined,
           // Never trust a client-supplied payment_status: online payments are confirmed only by gateway verification.
           payment_status: body.payment_method === "test_mode" ? "captured" : (body.payment_method === "cod" ? "pending" : undefined),
         });
@@ -13600,6 +13627,18 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     const path = getPath(req, context);
     { const denied = enforceAdminModuleAccess(req, path, "DELETE"); if (denied) return denied; }
     const body = await safeParseJsonBody(req);
+
+    // Surprise / gift services: DELETE admin/gift-services/:id
+    {
+      const m = path.match(/^admin\/gift-services\/([^/]+)$/);
+      if (m) {
+        const permErr = verifyApiPermission(req, "PRODUCTS", "EDIT");
+        if (permErr) return permErr;
+        const { deleteGiftService } = await import("@frontend/lib/services/gift-service.service");
+        const ok = await deleteGiftService(decodeURIComponent(m[1]));
+        return jsonWithDataSource({ success: ok }, "postgres", ok ? 200 : 404);
+      }
+    }
 
     // 1. Primary Route: PostgreSQL Backend Proxy (Port 9000)
     const backendRes = await forwardToPostgresBackend("DELETE", path, undefined, undefined, req.headers);

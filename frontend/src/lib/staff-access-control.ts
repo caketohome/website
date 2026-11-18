@@ -488,6 +488,7 @@ export const ADMIN_TAB_PERMISSIONS: Record<string, { module: string; action: str
   orders: { module: "ORDERS", action: "VIEW" },
   abandoned_carts: { module: "ORDERS", action: "VIEW" },
   catalog: { module: "PRODUCTS", action: "VIEW" },
+  gift_services: { module: "PRODUCTS", action: "VIEW" },
   search_engine: { module: "PRODUCTS", action: "VIEW" },
   tax_master: { module: "TAX_MASTER", action: "VIEW" },
   telemarketing: { module: "TELEMARKETING", action: "VIEW" },

@@ -12,6 +12,9 @@ import { TaxResolverService, ResolvedTaxRate } from "./tax-resolver.service";
 
 
 export interface CreateOrderParams {
+  /** Surprise / gift services chosen at checkout (priced from gift_service, never from the client). */
+  gift_services?: Array<string | { id: string; note?: string }>;
+  gift_message?: string;
   idempotency_key?: string;
   customer_id?: string;
   customer_uid?: string;
@@ -310,6 +313,59 @@ export class OrderService {
       });
     }
 
+    // 5.b Surprise / gift services (card, video shoot, …): authoritative price + GST from gift_service.
+    const requestedServices = (Array.isArray(params.gift_services) ? params.gift_services : [])
+      .map((g: any) => (typeof g === "string" ? { id: g, note: "" } : { id: String(g?.id || ""), note: String(g?.note || "") }))
+      .filter((g) => g.id);
+    const serviceNotes: string[] = [];
+    if (requestedServices.length > 0) {
+      const { getActiveGiftServicesByIds } = await import("./gift-service.service");
+      const found = await getActiveGiftServicesByIds([...new Set(requestedServices.map((g) => g.id))]);
+      const byId = new Map(found.map((g) => [g.id, g]));
+      for (const req of requestedServices) {
+        const svc = byId.get(req.id);
+        if (!svc) {
+          return { success: false, error: `GIFT_SERVICE_UNAVAILABLE: The selected surprise service is no longer available. Please refresh checkout.` };
+        }
+        if (snapshottedItems.some((i: any) => i.product_id === svc.id)) continue; // once per order
+        const note = req.note.trim().slice(0, 300);
+        if (svc.needs_note && !note) {
+          return { success: false, error: `GIFT_SERVICE_NOTE_REQUIRED: Please fill in "${svc.note_label || svc.name}".` };
+        }
+        if (note) serviceNotes.push(`${svc.name}: ${note}`);
+        const lineTotal = Math.round(svc.price * 100) / 100;
+        const half = Math.round((svc.gst_rate / 2) * 100) / 100;
+        const lineCgst = Math.round(lineTotal * (half / 100) * 100) / 100;
+        const lineSgst = Math.round(lineTotal * (half / 100) * 100) / 100;
+        const lineTax = Math.round((lineCgst + lineSgst) * 100) / 100;
+        subtotal = Math.round((subtotal + lineTotal) * 100) / 100;
+        totalTax = Math.round((totalTax + lineTax) * 100) / 100;
+        snapshottedItems.push({
+          id: `item_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          product_id: svc.id,
+          merchandise_type: "SERVICE" as any,
+          sku: svc.id,
+          hsn_code: svc.hsn_sac || undefined,
+          product_name: svc.name,
+          title: svc.name,
+          thumbnail: "",
+          variant_name: svc.price > 0 ? "Service" : "Free service",
+          quantity: 1,
+          unit_price: lineTotal,
+          price: lineTotal,
+          selling_price: lineTotal,
+          mrp: lineTotal,
+          discount: 0,
+          tax_rate: svc.gst_rate,
+          tax_amount: lineTax,
+          cgst: lineCgst,
+          sgst: lineSgst,
+          customization: note ? ({ note } as any) : ({} as any),
+          total_line_amount: lineTotal,
+        } as any);
+      }
+    }
+
     // 6. Authoritative Coupon / Discount Validation (Strict Single Source of Truth)
     let discountAmount = 0;
     if (coupon_code) {
@@ -387,6 +443,8 @@ export class OrderService {
       bakery_status: initialOrderStatus,
       payment_status: initialPaymentStatus,
       payment_method: payment_method || "card",
+      // Gift message + notes for chosen surprise services (card text, video brief) for kitchen/delivery
+      gift_message: [String(params.gift_message || "").trim().slice(0, 500), ...serviceNotes].filter(Boolean).join(" | ") || undefined,
       is_ledger_eligible: true,
       subtotal,
       total_amount: finalTotal,
@@ -494,6 +552,7 @@ export class OrderService {
 
         // Step A: Authoritative Inventory & Kitchen Availability Validation
         for (const item of snapshottedItems) {
+          if (String((item as any).merchandise_type || "").toUpperCase() === "SERVICE") continue; // gift services carry no stock
           const product = productMap.get(item.product_id) || (await ProductRepository.findById(item.product_id));
           if (!product) {
             throw new Error(`Product ${item.product_id} not found in catalog.`);

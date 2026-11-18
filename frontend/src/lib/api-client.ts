@@ -1430,6 +1430,7 @@ class CakeToHomeApiClient {
     payment_details?: any;
     customer_gstin?: string;
     customer_business_name?: string;
+    gift_services?: Array<{ id: string; note?: string }>;
     occasion?: string;
     ordered_for_self?: boolean;
     recipient_name?: string;

@@ -141,6 +141,23 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  const [deliveryInstructions, setDeliveryInstructions] = useState<string>("");
  const [giftWrap, setGiftWrap] = useState<boolean>(false);
  const [giftMessage, setGiftMessage] = useState<string>("");
+ // Surprise services created in the dashboard (card, video shoot…): id -> note
+ const [giftServices, setGiftServices] = useState<Array<{ id: string; name: string; description: string; price: number; gst_rate: number; needs_note: boolean; note_label: string }>>([]);
+ const [selectedServices, setSelectedServices] = useState<Record<string, string>>({});
+ useEffect(() => {
+ fetch("/api/v1/store/gift-services", { cache: "no-store" })
+ .then((r) => r.json())
+ .then((j) => setGiftServices(Array.isArray(j?.services) ? j.services : []))
+ .catch(() => setGiftServices([]));
+ }, []);
+ const chosenServices = orderedForSelf ? [] : giftServices.filter((g) => selectedServices[g.id] !== undefined);
+ const toggleService = (id: string) =>
+ setSelectedServices((prev) => {
+ const next = { ...prev };
+ if (next[id] !== undefined) delete next[id];
+ else next[id] = "";
+ return next;
+ });
  const [anonymousDelivery, setAnonymousDelivery] = useState<boolean>(false);
  const [hideInvoice, setHideInvoice] = useState<boolean>(true);
  const [occasion, setOccasion] = useState<string>("birthday");
@@ -912,17 +929,39 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  />
  </div>
  </div>
- <div>
- <Label className="font-semibold text-xs">Custom Gift Card Message</Label>
+ {/* Surprise services (only those created & activated in the dashboard) */}
+ {giftServices.length > 0 && (
+ <div className="flex flex-col gap-2">
+ <Label className="font-semibold text-xs">Add a surprise</Label>
+ {giftServices.map((g) => {
+ const on = selectedServices[g.id] !== undefined;
+ return (
+ <div key={g.id} className={`rounded-xl border p-3 bg-white ${on ? "border-[#1D2F5D] ring-1 ring-[#1D2F5D]/20" : "border-slate-200"}`}>
+ <label className="flex items-start gap-3 cursor-pointer">
+ <input type="checkbox" checked={on} onChange={() => toggleService(g.id)} className="mt-0.5 rounded" />
+ <span className="flex-1">
+ <span className="flex items-center justify-between gap-2">
+ <span className="text-sm font-semibold text-slate-900">{g.name}</span>
+ <span className="text-xs font-bold text-[#1D2F5D]">{g.price > 0 ? `₹${g.price}${g.gst_rate ? ` + ${g.gst_rate}% GST` : ""}` : "Free"}</span>
+ </span>
+ {g.description && <span className="block text-[11px] text-slate-500 mt-0.5">{g.description}</span>}
+ </span>
+ </label>
+ {on && g.needs_note && (
  <Textarea
- name="gift_message"
- placeholder="Happy Birthday! Wishing you joy, sweet moments, and all the happiness in the world. With love, Ananya."
- value={giftMessage}
- onChange={(e) => setGiftMessage(e.target.value)}
- className="mt-1 text-xs bg-white "
+ placeholder={g.note_label || "Details"}
+ value={selectedServices[g.id] || ""}
+ onChange={(e) => setSelectedServices((prev) => ({ ...prev, [g.id]: e.target.value }))}
+ className="mt-2 text-xs bg-white"
  rows={2}
+ required
  />
+ )}
  </div>
+ );
+ })}
+ </div>
+ )}
  <div className="flex flex-wrap gap-4 pt-1 text-xs">
  <label className="flex items-center gap-2 cursor-pointer">
  <input
@@ -1827,6 +1866,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <input type="hidden" name="recipient-name" value={recipientName} />
  <input type="hidden" name="recipient-phone" value={recipientPhone} />
  <input type="hidden" name="gift-message" value={giftMessage} />
+ <input type="hidden" name="gift-services" value={JSON.stringify(chosenServices.map((g) => ({ id: g.id, note: selectedServices[g.id] || "" })))} />
 
  <div className="flex justify-between items-center border-t border-slate-200 pt-4">
  <Button type="button" variant="secondary" onClick={() => setStep(2)} className="rounded-2xl">
@@ -1858,6 +1898,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <OrderSummary
  cart={cart}
  pricing={availability?.pricing}
+ extras={chosenServices.map((g) => ({ name: g.name, price: g.price, gst_rate: g.gst_rate }))}
  deliveryType={deliveryType}
  servicingBranch={servicingBranchObj}
  selectedSlot={currentSlotObj}

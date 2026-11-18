@@ -116,6 +116,7 @@ export async function confirmCheckoutAction(payload: {
   location_source?: string;
   customer_gstin?: string;
   customer_business_name?: string;
+  gift_services?: Array<{ id: string; note?: string }>;
 }) {
   const cookieStore = cookies();
   const cartId = payload.cart_id || cookieStore.get("_cth_cart_id")?.value || cookieStore.get("_medusa_cart_id")?.value || "cart_guest";
@@ -206,6 +207,12 @@ export async function placeOrder(prevState: any, data: FormData) {
     return { message: "Please enter the registered business name for the GST invoice." };
   }
 
+  let giftServices: Array<{ id: string; note?: string }> = [];
+  try {
+    const raw = JSON.parse(data.get("gift-services")?.toString() || "[]");
+    if (Array.isArray(raw)) giftServices = raw.filter((g: any) => g && typeof g.id === "string").slice(0, 10);
+  } catch {}
+
   const result = await confirmCheckoutAction({
     cart_id: cartId,
     customer_id: customerId,
@@ -240,6 +247,7 @@ export async function placeOrder(prevState: any, data: FormData) {
     special_instructions: specialInstructions,
     customer_gstin: customerGstin || undefined,
     customer_business_name: customerGstin ? customerBusinessName : undefined,
+    gift_services: giftServices.length > 0 ? giftServices : undefined,
   });
 
   if (!result.success) {

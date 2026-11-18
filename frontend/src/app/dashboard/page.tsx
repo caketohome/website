@@ -41,6 +41,10 @@ const OrdersPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/orders-panel"),
   "OrdersPanel"
 );
+const GiftServicesPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/gift-services-panel").then((mod) => ({ default: mod.GiftServicesPanel })),
+  "GiftServicesPanel"
+);
 const CatalogPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/catalog-panel"),
   "CatalogPanel"
@@ -247,7 +251,7 @@ const OperationalClosuresPanel = createDynamicPanel(
  * ────────────────────────────────────────────────────────────────────────── */
 
 type AdminTabId =
-  | "orders" | "catalog" | "search_engine" | "branches" | "delivery" | "delivery_coverage"
+  | "orders" | "catalog" | "gift_services" | "search_engine" | "branches" | "delivery" | "delivery_coverage"
   | "fulfillment" | "suppliers" | "purchases" | "bills_payable" | "bills_receivable" | "expenses" | "accounting_work_queue" | "teller_custody" | "manual_journals" | "cost_allocations" | "corporate_accounts" | "corporate_gifting" | "corporate_routing_review" | "gateway_settlements" | "bank_management" | "bank_accounts" | "bank_reconciliation" | "general_ledger" | "profit_loss" | "balance_sheet" | "cash_flow" | "tds_register" | "gst_b2b_register" | "accounting_setup" | "fleet" | "tax_master" | "abandoned_carts" | "telemarketing"
   | "crm" | "login_activity" | "marketing" | "popups" | "seo"
   | "automation" | "webhooks" | "cms" | "media" | "analytics" | "ai_concierge"
@@ -257,6 +261,7 @@ type AdminTabId =
 const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   orders: OrdersPanel,
   catalog: CatalogPanel,
+  gift_services: GiftServicesPanel,
   search_engine: SearchConfigPanel,
   branches: BranchesPanel,
   delivery: DeliveryPanel,

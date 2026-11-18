@@ -53,6 +53,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: "orders", label: "Orders", icon: ShoppingCart, tabId: "orders" },
       { id: "catalog", label: "Catalog", icon: Package, tabId: "catalog" },
+      { id: "gift_services", label: "Surprise Services", icon: Package, tabId: "gift_services" },
       { id: "search_mapping", label: "Search & Mapping", icon: Search, tabId: "search_engine" },
       { id: "tax_master", label: "Tax Master", icon: Percent, tabId: "tax_master" },
       { id: "cart_recovery", label: "Cart Recovery", icon: ShoppingBag, tabId: "abandoned_carts" },
