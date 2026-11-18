@@ -60,7 +60,7 @@ export default async function CheckoutPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full pt-8 mt-4 border-t border-stone-200/60 text-xs text-slate-500 font-sans">
             <div className="flex items-center gap-2 justify-center">
               <span>🚚</span>
-              <span>Free Delivery Above ₹599</span>
+              <span>Delivery charged by distance</span>
             </div>
             <div className="flex items-center gap-2 justify-center">
               <span>⚡</span>

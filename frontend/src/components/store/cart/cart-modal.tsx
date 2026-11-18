@@ -11,10 +11,8 @@ import {
   Minus,
   Trash2,
   ArrowRight,
-  Sparkles,
   AlertCircle,
   Loader2,
-  CheckCircle2,
   MapPin,
   MessageSquare,
 } from "lucide-react";
@@ -209,7 +207,7 @@ export default function CartModal({
     resolvedDeliveryFee = activeCart.delivery_fee;
   } else if (deliveryFeeCookie) {
     const rawFee = decodeURIComponent(deliveryFeeCookie).trim().toLowerCase();
-    if (rawFee === "free" || rawFee === "0") {
+    if (rawFee === "0") {
       resolvedDeliveryFee = 0;
     } else {
       const parsed = parseFloat(rawFee.replace(/[^0-9.]/g, ""));
@@ -217,19 +215,10 @@ export default function CartModal({
     }
   }
 
-  // Delivery rules threshold (from backend fulfillment rules or default 999)
-  const freeDeliveryThreshold = activeCart?.fulfillment_rules?.free_delivery_threshold || 999;
-  const hasThreshold = Boolean(deliveryPincode || deliveryLocation || activeCart?.fulfillment_rules);
-  const amountNeededForFreeDelivery = Math.max(0, freeDeliveryThreshold - subtotal);
-  const deliveryProgressPercent = Math.min(100, Math.round((subtotal / freeDeliveryThreshold) * 100));
-
   // Determine delivery label and display styling
   let deliveryLabel = "Calculated at checkout";
   let deliveryClass = "text-slate-500 font-sans";
-  if (resolvedDeliveryFee === 0) {
-    deliveryLabel = "FREE";
-    deliveryClass = "text-emerald-600 font-bold font-sans";
-  } else if (typeof resolvedDeliveryFee === "number") {
+  if (typeof resolvedDeliveryFee === "number") {
     deliveryLabel = `₹${resolvedDeliveryFee.toLocaleString("en-IN")}`;
     deliveryClass = "font-medium text-slate-900 font-sans";
   } else if (!deliveryPincode && !deliveryLocation) {
@@ -315,37 +304,9 @@ export default function CartModal({
           </button>
         </div>
 
-        {/* Truthful Delivery Status Banner */}
+        {/* Delivery fee depends on distance — prompt for location until it is known */}
         {items.length > 0 && (
-          resolvedDeliveryFee === 0 ? (
-            <div className="bg-brand-navy text-white px-5 sm:px-6 py-2.5 shrink-0 shadow-inner flex items-center justify-between text-xs font-medium">
-              <span className="flex items-center gap-1.5 text-[#16834A] font-bold">
-                <CheckCircle2 className="w-4 h-4 text-[#16834A] shrink-0" />
-                Free Delivery confirmed {deliveryLocation ? `for ${deliveryLocation.split("—")[0].trim()}` : "for your order"}
-              </span>
-            </div>
-          ) : hasThreshold && amountNeededForFreeDelivery > 0 ? (
-            <div className="bg-brand-navy text-white px-5 sm:px-6 py-2.5 shrink-0 shadow-inner">
-              <div className="flex items-center justify-between text-xs font-medium mb-1.5">
-                <span className="flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-blue-300" />
-                  <span>
-                    Add <strong className="text-blue-200">₹{amountNeededForFreeDelivery}</strong> more for{" "}
-                    <strong>FREE Delivery</strong>
-                  </span>
-                </span>
-                <span className="text-[11px] text-blue-200 font-mono">
-                  {deliveryProgressPercent}%
-                </span>
-              </div>
-              <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-blue-400 to-brand-primary/30 transition-all duration-500 ease-out rounded-full"
-                  style={{ width: `${deliveryProgressPercent}%` }}
-                />
-              </div>
-            </div>
-          ) : !deliveryLocation && !deliveryPincode ? (
+          !deliveryLocation && !deliveryPincode ? (
             <div className="bg-slate-100 border-b border-slate-200 text-slate-700 px-5 sm:px-6 py-2 shrink-0 flex items-center gap-1.5 text-xs">
               <MapPin className="w-3.5 h-3.5 text-brand-primary shrink-0" />
               <span>Select delivery location at header or checkout to calculate delivery fee</span>

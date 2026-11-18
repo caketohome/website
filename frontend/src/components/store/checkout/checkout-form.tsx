@@ -1247,7 +1247,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Delivery Available
  </span>
  <span className="text-xs font-extrabold text-emerald-900 bg-emerald-100 px-2.5 py-0.5 rounded-xl">
- {availability.pricing?.delivery_fee === 0 ? "FREE DELIVERY" : `₹${availability.pricing?.delivery_fee || 0}`}
+ {`₹${availability.pricing?.delivery_fee || 0}`}
  </span>
  </div>
  <div className="text-xs text-emerald-900 font-medium">
@@ -1258,7 +1258,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <span>Distance: {availability.distance_km ?? availability.pricing?.distance_km} km</span>
  )}
  {availability.pricing?.delivery_fee !== undefined && (
- <span>Delivery: {availability.pricing.delivery_fee === 0 ? "Free" : `₹${availability.pricing.delivery_fee}`}</span>
+ <span>Delivery: {`₹${availability.pricing.delivery_fee}`}</span>
  )}
  {availability.eta_minutes && (
  <span>ETA: ~{typeof availability.eta_minutes === "object" ? `${availability.eta_minutes.min}-${availability.eta_minutes.max}` : availability.eta_minutes} mins</span>

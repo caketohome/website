@@ -774,11 +774,12 @@ const DEFAULT_INVOICE_SETTINGS: InvoiceBillingSettings = {
   updated_at: "2026-01-01T00:00:00Z",
 };
 
+// Real values live in Supabase (setting delivery.defaults); these zeros only apply if that row is missing.
 const DEFAULT_DELIVERY_DEFAULTS: DeliveryDefaultsSettings = {
-  free_delivery_threshold: 599,
-  default_delivery_fee: 49,
-  express_delivery_fee: 99,
-  midnight_delivery_fee: 149,
+  free_delivery_threshold: 0,
+  default_delivery_fee: 0,
+  express_delivery_fee: 0,
+  midnight_delivery_fee: 0,
   default_prep_time_mins: 30,
   default_slot_duration_mins: 60,
   updated_at: "2026-01-01T00:00:00Z",
@@ -1128,7 +1129,7 @@ const DEFAULT_CMS_PAGES = [
       { id: "sec_home_promo", type: "promotional_banner", name: "Festive Celebration Banner", enabled: true, order: 4, config: { headline: "🎉 Special Celebration Offer — Flat 50% OFF", subheadline: "Use Code: CAKE50. Valid on eligible cakes above ₹299", cta_text: "Claim Offer", cta_url: "/products?promo=CAKE50", bg_color: "#fef3c7", text_color: "#92400e" } },
       { id: "sec_home_new", type: "product_grid", name: "New Arrivals", enabled: true, order: 5, config: { heading: "✨ New Arrivals", subheading: "Freshly added to the menu", mode: "new_arrivals", layout: "carousel", columns: 4, product_ids: [] } },
       { id: "sec_home_locations", type: "location_coverage", name: "Delivery Locations", enabled: true, order: 6, config: { heading: "📍 Fresh Bakery Hubs & Service Areas", subheading: "Scheduled delivery and store pickup available across serviceable locations", show_map: false, show_pincodes: true } },
-      { id: "sec_home_faq", type: "faq", name: "FAQ Section", enabled: true, order: 7, config: { heading: "❓ Frequently Asked Questions", faqs: [ { q: "Do you offer scheduled delivery?", a: "Yes! We offer convenient scheduled delivery slots based on kitchen readiness and branch operating hours." }, { q: "Can I customize the cake?", a: "Absolutely! Choose size (0.5–5 kg), flavor, and add a custom message or photo." }, { q: "What is the minimum order value?", a: "The minimum order value is ₹299. Free delivery on orders above ₹599." } ] } },
+      { id: "sec_home_faq", type: "faq", name: "FAQ Section", enabled: true, order: 7, config: { heading: "❓ Frequently Asked Questions", faqs: [ { q: "Do you offer scheduled delivery?", a: "Yes! We offer convenient scheduled delivery slots based on kitchen readiness and branch operating hours." }, { q: "Can I customize the cake?", a: "Absolutely! Choose size (0.5–5 kg), flavor, and add a custom message or photo." }, { q: "What is the minimum order value?", a: "The minimum order value is ₹299. Delivery is charged by distance from our nearest kitchen." } ] } },
     ],
     draft_config: { sections: [], banners: [], products_mode: "best_sellers", product_ids: [], category_ids: [] },
     published_config: {
@@ -1179,7 +1180,7 @@ const DEFAULT_CMS_PAGES = [
         { id: "sec_home_promo", type: "promotional_banner", name: "Festive Celebration Banner", enabled: true, order: 4, config: { headline: "🎉 Special Celebration Offer — Flat 50% OFF", subheadline: "Use Code: CAKE50. Valid on eligible cakes above ₹299", cta_text: "Claim Offer", cta_url: "/products?promo=CAKE50", bg_color: "#fef3c7", text_color: "#92400e" } },
         { id: "sec_home_new", type: "product_grid", name: "New Arrivals", enabled: true, order: 5, config: { heading: "✨ New Arrivals", subheading: "Freshly added to the menu", mode: "new_arrivals", layout: "carousel", columns: 4, product_ids: [] } },
         { id: "sec_home_locations", type: "location_coverage", name: "Delivery Locations", enabled: true, order: 6, config: { heading: "📍 Fresh Bakery Hubs & Service Areas", subheading: "Scheduled delivery and store pickup available across serviceable locations", show_map: false, show_pincodes: true } },
-        { id: "sec_home_faq", type: "faq", name: "FAQ Section", enabled: true, order: 7, config: { heading: "❓ Frequently Asked Questions", faqs: [ { q: "Do you offer scheduled delivery?", a: "Yes! We offer convenient scheduled delivery slots based on kitchen readiness and branch operating hours." }, { q: "Can I customize the cake?", a: "Absolutely! Choose size (0.5–5 kg), flavor, and add a custom message or photo." }, { q: "What is the minimum order value?", a: "The minimum order value is ₹299. Free delivery on orders above ₹599." } ] } },
+        { id: "sec_home_faq", type: "faq", name: "FAQ Section", enabled: true, order: 7, config: { heading: "❓ Frequently Asked Questions", faqs: [ { q: "Do you offer scheduled delivery?", a: "Yes! We offer convenient scheduled delivery slots based on kitchen readiness and branch operating hours." }, { q: "Can I customize the cake?", a: "Absolutely! Choose size (0.5–5 kg), flavor, and add a custom message or photo." }, { q: "What is the minimum order value?", a: "The minimum order value is ₹299. Delivery is charged by distance from our nearest kitchen." } ] } },
       ],
       banners: [],
       announcement_bar: { enabled: true, text: "⚡ Festive Celebration Offer — Up to 50% OFF with Code CAKE50", cta_text: "Shop Now", cta_url: "/products", bg_color: "#245A96" },
@@ -1386,7 +1387,7 @@ const DEFAULT_CMS_PAGES = [
     url_path: "/birthday-cakes-bangalore",
     breadcrumb_title: "Birthday Cakes",
     meta_title: "Best Birthday Cakes in Bangalore — Same Day Delivery | CakeToHome",
-    meta_description: "Order the best birthday cakes in Bangalore with same-day & express delivery. Customizable, artisan, and photo cakes from ₹399. Free delivery above ₹599.",
+    meta_description: "Order the best birthday cakes in Bangalore with same-day & express delivery. Customizable, artisan, and photo cakes from ₹399.",
     robots_tag: "index, follow",
     canonical_url: "https://caketohome.com/birthday-cakes-bangalore",
     keywords: "birthday cakes bangalore, birthday cake delivery, custom birthday cake, express birthday cake delivery",
@@ -11289,7 +11290,7 @@ export class ApiEngine {
       case "meta_title":
         return { suggestions: [
           `${name} — Order Online | CakeToHome`,
-          `Buy ${name} Online | Free Delivery | CakeToHome`,
+          `Buy ${name} Online | Same-Day Delivery | CakeToHome`,
           `${name} | Premium ${category} | CakeToHome ${city}`,
         ]};
       case "meta_description":
@@ -14908,8 +14909,20 @@ export class ApiEngine {
       assignedZone = [...zones].sort((a, b) => a.min_km - b.min_km)[0];
     }
 
+    // All amounts come from Supabase: the branch's saved zones, else the delivery defaults setting.
+    const defaults = ApiEngine.getDeliveryDefaults();
     if (!assignedZone) {
-      return { total_fee: 49, breakdown: { base: 49, note_no_zone_found: 0 }, zone_name: "Standard Area", pricing_mode: "fallback" };
+      const base = Number(defaults.default_delivery_fee) || 0;
+      const out: Record<string, number> = { base };
+      let total = base;
+      const exp = context.is_express ? Number(defaults.express_delivery_fee) || 0 : 0;
+      const mid = context.is_midnight ? Number(defaults.midnight_delivery_fee) || 0 : 0;
+      if (exp) { total += exp; out.express_surcharge = exp; }
+      if (mid) { total += mid; out.midnight_surcharge = mid; }
+      if (context.area_fee_override && context.area_fee_override > 0) { total += context.area_fee_override; out.area_extra = context.area_fee_override; }
+      const thr = Number(defaults.free_delivery_threshold) || 0;
+      if ((thr > 0 && (context.order_total || 0) >= thr) || context.coupon_free_delivery) { out.free_delivery_discount = -total; total = 0; }
+      return { total_fee: Math.max(0, total), breakdown: out, zone_name: "Standard delivery", pricing_mode: "default" };
     }
 
     // Enforce effective maximum delivery radius
@@ -14956,19 +14969,19 @@ export class ApiEngine {
       }
     } else {
       // Flat-rate pricing (original behavior)
-      fee = Number(assignedZone.delivery_charge ?? 0);
+      fee = Number(assignedZone.delivery_charge ?? (assignedZone as any).delivery_fee ?? defaults.default_delivery_fee ?? 0) || 0;
       breakdown.base = fee;
       pricingMode = "flat";
     }
 
     // ── Additive Surcharges (applied on top of base fee) ─────────────────
     if (context.is_express) {
-      const expressSurcharge = Number(assignedZone.express_charge ?? 49);
+      const expressSurcharge = Number(assignedZone.express_charge ?? defaults.express_delivery_fee ?? 0) || 0;
       fee += expressSurcharge;
       breakdown.express_surcharge = expressSurcharge;
     }
     if (context.is_midnight) {
-      const midnightSurcharge = Number(assignedZone.midnight_charge ?? 79);
+      const midnightSurcharge = Number(assignedZone.midnight_charge ?? defaults.midnight_delivery_fee ?? 0) || 0;
       fee += midnightSurcharge;
       breakdown.midnight_surcharge = midnightSurcharge;
     }
@@ -14981,7 +14994,7 @@ export class ApiEngine {
     }
 
     if (context.is_peak_hour) {
-      const peakFee = Number(assignedZone.peak_hour_charge ?? 20);
+      const peakFee = Number(assignedZone.peak_hour_charge ?? 0);
       if (peakFee > 0) {
         fee += peakFee;
         breakdown.peak_hour = peakFee;
@@ -14989,7 +15002,7 @@ export class ApiEngine {
     }
 
     if (context.is_raining) {
-      const rainFee = Number(assignedZone.rain_charge ?? 30);
+      const rainFee = Number(assignedZone.rain_charge ?? 0);
       if (rainFee > 0) {
         fee += rainFee;
         breakdown.rain_surge = rainFee;
@@ -15002,8 +15015,9 @@ export class ApiEngine {
     }
 
     // Free delivery threshold check
-    const freeThreshold = assignedZone.free_delivery_threshold ?? 999;
-    if ((context.order_total && context.order_total >= freeThreshold) || context.coupon_free_delivery) {
+    // Only when an admin has set a threshold (0 / unset = no free delivery)
+    const freeThreshold = Number(assignedZone.free_delivery_threshold ?? defaults.free_delivery_threshold ?? 0) || 0;
+    if ((freeThreshold > 0 && (context.order_total || 0) >= freeThreshold) || context.coupon_free_delivery) {
       breakdown.free_delivery_discount = -fee;
       fee = 0;
     }
@@ -15106,7 +15120,7 @@ export class ApiEngine {
     });
 
     if (operational.length === 0 || areaStatusBlocker) {
-      const fb = branches[0] || null;
+      const fb = (query.branchId ? branches.find((b: any) => b.id === query.branchId) : null) || branches[0] || null;
       if (!fb) {
         return {
           branch: null,
@@ -15338,10 +15352,11 @@ export class ApiEngine {
 
       if (fallbackBranch) {
         const zone = (fallbackBranch.delivery_zones || []).find((z: any) => z.enabled) || fallbackBranch.delivery_zones?.[0];
+        // No customer location → distance unknown; zone flat fee / Supabase default applies (no invented distance)
         const feeRes = ApiEngine.calculateDeliveryFee(fallbackBranch, {
-          distance_km: 3.5,
           is_express: query.isExpress,
           is_midnight: query.isMidnight,
+          order_total: query.orderTotal,
           zone_id: zone?.id,
         });
         return {
@@ -15354,7 +15369,6 @@ export class ApiEngine {
           candidatesEvaluated: 1,
           zoneName: feeRes.zone_name || zone?.name || "Standard Area",
           zone,
-          distanceKm: 3.5,
           pricingMode: feeRes.pricing_mode,
           bracketLabel: feeRes.bracket_label,
         };

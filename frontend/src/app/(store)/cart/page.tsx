@@ -62,7 +62,7 @@ export default async function CartPage() {
     resolvedDeliveryFee = cart.delivery_fee;
   } else if (deliveryFeeCookie) {
     const rawFee = decodeURIComponent(deliveryFeeCookie).trim().toLowerCase();
-    if (rawFee === "free" || rawFee === "0") {
+    if (rawFee === "0") {
       resolvedDeliveryFee = 0;
     } else {
       const parsed = parseFloat(rawFee.replace(/[^0-9.]/g, ""));
@@ -72,10 +72,7 @@ export default async function CartPage() {
 
   let deliveryLabel = "Calculated at checkout";
   let deliveryClass = "text-zinc-500";
-  if (resolvedDeliveryFee === 0) {
-    deliveryLabel = "FREE";
-    deliveryClass = "text-emerald-600 font-bold";
-  } else if (typeof resolvedDeliveryFee === "number") {
+  if (typeof resolvedDeliveryFee === "number") {
     deliveryLabel = `₹${resolvedDeliveryFee.toLocaleString("en-IN")}`;
     deliveryClass = "font-medium text-zinc-900 dark:text-zinc-100";
   }

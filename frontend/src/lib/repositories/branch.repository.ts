@@ -21,13 +21,16 @@ export interface PaginatedBranches {
   totalPages: number;
 }
 
+const toCoord = (v: any): number | null => (v === null || v === undefined || v === "" || !Number.isFinite(Number(v)) ? null : Number(v));
+
 export class BranchRepository {
   /**
    * Helper to map a raw PostgreSQL row to BranchDomain
    */
   private static mapRowToDomain(b: any, zonesByBranch: Map<string, DeliveryZoneDomain[]>): BranchDomain {
     const meta = b.metadata || {};
-    const branchZones = zonesByBranch.get(b.id) || meta.delivery_zones || [];
+    // Full zone config (distance brackets, charges) is kept in metadata; the delivery_zone table is the legacy copy
+    const branchZones = Array.isArray(meta.delivery_zones) ? meta.delivery_zones : (zonesByBranch.get(b.id) || []);
     const rawCityName = meta.city || b.city_name || (b.city_id === "city_klm" ? "Kollam" : "Bengaluru");
     const rawStateName = meta.state || b.city_state || (b.city_id === "city_klm" ? "Kerala" : "Karnataka");
     const matchedState = resolveStateInfo(rawStateName);
@@ -41,9 +44,9 @@ export class BranchRepository {
       id: b.id,
       name: b.name,
       code: b.code || b.id,
-      phone: b.phone || "+91 98765 43210",
-      email: b.email || "store@caketohome.com",
-      address: b.address || "Bakery Hub",
+      phone: b.phone || "",
+      email: b.email || "",
+      address: b.address || "",
       city_id: rawCityId,
       city: rawCityName,
       state: rawStateName,
@@ -51,8 +54,8 @@ export class BranchRepository {
       state_code: stateCode,
       pincode: pincode,
       formatted_address: meta.formatted_address || b.address || "",
-      latitude: typeof b.latitude === "number" ? b.latitude : 8.8932,
-      longitude: typeof b.longitude === "number" ? b.longitude : 76.6141,
+      latitude: toCoord(b.latitude) as any,
+      longitude: toCoord(b.longitude) as any,
       is_open: b.is_open !== false,
       is_archived: isArchived,
       status: isArchived ? "archived" : "active",
@@ -323,8 +326,8 @@ export class BranchRepository {
    */
   static async save(branch: Partial<BranchDomain>): Promise<void> {
     const id = branch.id || `br_${Date.now()}`;
-    const lat = typeof branch.latitude === "number" ? branch.latitude : 8.8932;
-    const lng = typeof branch.longitude === "number" ? branch.longitude : 76.6141;
+    const lat = toCoord(branch.latitude);
+    const lng = toCoord(branch.longitude);
 
     const rawCityName = (branch.city || "Bengaluru").trim();
     const rawStateName = (branch.state || "Karnataka").trim();
@@ -363,6 +366,7 @@ export class BranchRepository {
       deliverable_areas: branch.deliverable_areas || [rawCityName],
       capacity_settings: branch.capacity_settings || {},
       product_availability: branch.product_availability || {},
+      delivery_zones: Array.isArray(branch.delivery_zones) ? branch.delivery_zones : [],
     };
 
     const shopId = (branch as any).shop_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT";
@@ -398,7 +402,7 @@ export class BranchRepository {
           branch.code || id,
           branch.phone || null,
           branch.email || null,
-          branch.address || "Bakery Hub",
+          branch.address || null,
           cityId,
           lat,
           lng,
@@ -416,7 +420,7 @@ export class BranchRepository {
 
         branch.delivery_zones.forEach((zone, index) => {
           const zoneAny = zone as any;
-          const zonePincode = zone.pincode || (zoneAny.pincodes && zoneAny.pincodes[0]) || pincode || "560038";
+          const zonePincode = zone.pincode || (zoneAny.pincodes && zoneAny.pincodes[0]) || pincode || null;
           const zId = zone.id || `zone_${id}_${zonePincode}_${index}`;
           const offset = index * 11;
           valuePlaceholders.push(
@@ -426,7 +430,7 @@ export class BranchRepository {
             zId,
             zonePincode,
             id,
-            Number(zone.delivery_fee || zone.base_fee || 0),
+            Number(zone.delivery_fee || zone.base_fee || zoneAny.delivery_charge || 0),
             zone.enabled !== false,
             JSON.stringify(zone.polygon_coordinates || []),
             Number(zone.radius_km || 10),

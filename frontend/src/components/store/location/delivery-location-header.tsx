@@ -134,7 +134,7 @@ export function DeliveryLocationHeader({
           ? `${resolvedCity}${resolvedState ? `, ${resolvedState}` : ""}${newPin ? ` — ${newPin}` : ""}`
           : (newPin ? `Pincode ${newPin}` : "Bangalore");
         const newEta = `${data.etaMinutes || 40} min`;
-        const newFee = data.deliveryFee === 0 ? "FREE" : `₹${data.deliveryFee ?? 49}`;
+        const newFee = typeof data.deliveryFee === "number" ? `₹${data.deliveryFee}` : "";
 
         setPincode(newPin);
         setCityName(resolvedCity);
@@ -212,7 +212,7 @@ export function DeliveryLocationHeader({
               const isServ = delData && delData.serviceable === true;
               const newLoc = `${city.name}, ${city.state}`;
               const newEta = isServ && delData.etaMinutes ? `${delData.etaMinutes} min` : "";
-              const newFee = isServ && typeof delData.deliveryFee === "number" ? (delData.deliveryFee === 0 ? "FREE" : `₹${delData.deliveryFee}`) : "";
+              const newFee = isServ && typeof delData.deliveryFee === "number" ? `₹${delData.deliveryFee}` : "";
               setLocationName(newLoc);
               setEta(newEta);
               setFee(newFee);

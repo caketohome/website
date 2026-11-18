@@ -404,7 +404,7 @@ export default async function YourOrderPage({
             <div className="flex justify-between text-slate-500">
               <span>Delivery Fee</span>
               <span className="font-semibold text-slate-900" data-testid="order-delivery-fee">
-                {pricing.delivery_fee === 0 ? "FREE" : `₹${formatInr(pricing.delivery_fee)}`}
+                {`₹${formatInr(pricing.delivery_fee)}`}
               </span>
             </div>
 

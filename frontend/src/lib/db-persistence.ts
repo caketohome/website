@@ -212,19 +212,20 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
     // 2. Branches — UNCONDITIONAL HYDRATION FROM POSTGRESQL
     targetStore.branches = (branchesRes.rows || []).map((b) => {
       const meta = b.metadata || {};
-      const branchZones = zonesByBranch.get(b.id) || meta.delivery_zones || [];
+      // Full zone config (distance brackets, charges) lives in metadata; table rows are the legacy copy
+      const branchZones = Array.isArray(meta.delivery_zones) ? meta.delivery_zones : (zonesByBranch.get(b.id) || []);
       return {
         id: b.id,
         name: b.name,
         code: b.code || b.id,
-        phone: b.phone || "+91 98765 43210",
-        email: b.email || "store@caketohome.com",
-        address: b.address || "Bakery Hub",
+        phone: b.phone || "",
+        email: b.email || "",
+        address: b.address || "",
         city_id: b.city_id || "city_bbr",
         city: meta.city || "Bengaluru",
         state: meta.state || "Karnataka",
-        latitude: typeof b.latitude === "number" ? b.latitude : 8.8932,
-        longitude: typeof b.longitude === "number" ? b.longitude : 76.6141,
+        latitude: toCoord(b.latitude),
+        longitude: toCoord(b.longitude),
         is_open: b.is_open !== false,
         is_archived: b.is_active === false,
         status: b.is_active === false ? "archived" : "active",
@@ -1011,13 +1012,15 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
 /**
  * Persists a Branch and its Delivery Zones to PostgreSQL
  */
+const toCoord = (v: any): number | null => (v === null || v === undefined || v === "" || !Number.isFinite(Number(v)) ? null : Number(v));
+
 export async function persistBranchToDb(branch: any): Promise<void> {
   if (!process.env.DATABASE_URL || process.env.SKIP_DB_PERSISTENCE === "true") {
     return;
   }
   const id = branch.id;
-  const lat = typeof branch.latitude === "number" ? branch.latitude : 8.8932;
-  const lng = typeof branch.longitude === "number" ? branch.longitude : 76.6141;
+  const lat = toCoord(branch.latitude);
+  const lng = toCoord(branch.longitude);
 
   const metadata = {
     weekly_schedule: branch.weekly_schedule || {},
@@ -1071,9 +1074,9 @@ export async function persistBranchToDb(branch: any): Promise<void> {
         branch.name,
         branch.code || id,
         branch.is_open !== false,
-        branch.phone || "+91 98765 43210",
-        branch.email || "store@caketohome.com",
-        branch.address || "Main Bakery Studio",
+        branch.phone || null,
+        branch.email || null,
+        branch.address || null,
         lat,
         lng,
         DEFAULT_SHOP_ID,
@@ -1090,7 +1093,7 @@ export async function persistBranchToDb(branch: any): Promise<void> {
 
       zones.forEach((z: any, index: number) => {
         const zoneId = z.id || `zone_${id}_${z.pincode || Math.random().toString(36).slice(2, 7)}_${index}`;
-        const fee = Number(z.delivery_fee || z.base_fee || 0);
+        const fee = Number(z.delivery_fee || z.base_fee || z.delivery_charge || 0);
         const radius = Number(z.radius_km || 10);
         const polygonCoords = Array.isArray(z.polygon_coordinates) ? z.polygon_coordinates : [];
         const offset = index * 11;
@@ -1100,7 +1103,7 @@ export async function persistBranchToDb(branch: any): Promise<void> {
         );
         values.push(
           zoneId,
-          z.pincode || (z.pincodes && z.pincodes[0]) || "560038",
+          z.pincode || (z.pincodes && z.pincodes[0]) || null,
           id,
           fee,
           z.enabled !== false,

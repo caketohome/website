@@ -13,7 +13,7 @@ export function DeliveryDefaultsTab({
   onUpdated: (updated: any) => void;
 }) {
   const [formData, setFormData] = useState({
-    free_delivery_threshold: deliveryDefaults?.free_delivery_threshold ?? 599,
+    free_delivery_threshold: deliveryDefaults?.free_delivery_threshold ?? 0,
     default_delivery_fee: deliveryDefaults?.default_delivery_fee ?? 49,
     express_delivery_fee: deliveryDefaults?.express_delivery_fee ?? 99,
     midnight_delivery_fee: 0,
@@ -82,7 +82,7 @@ export function DeliveryDefaultsTab({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="free_thresh" className="text-xs font-semibold">Free Delivery Order Threshold (₹)</Label>
+              <Label htmlFor="free_thresh" className="text-xs font-semibold">Free Delivery Order Threshold (₹, 0 = off)</Label>
               <Input
                 id="free_thresh"
                 type="number"

@@ -38,7 +38,9 @@ export function OrderSummary({
   // If authoritative pricing prop is passed, use it; otherwise fallback to safe calculation
   const subtotal = pricing?.subtotal ?? grossSubtotal;
   const discount = pricing?.discount ?? Number(cart?.pricing?.discount || cart?.discount_total || 0);
-  const deliveryFee = pricing?.delivery_fee ?? (deliveryType === "pickup" ? 0 : (subtotal >= 999 ? 0 : 79));
+  // Delivery fee comes only from the server quote (distance from the hub to the customer's location).
+  const feeKnown = deliveryType === "pickup" || typeof pricing?.delivery_fee === "number";
+  const deliveryFee = deliveryType === "pickup" ? (pricing?.delivery_fee ?? 0) : Number(pricing?.delivery_fee ?? 0);
   const slotSurcharge = pricing?.slot_surcharge ?? (selectedSlot?.extra_charge || 0);
 
   const netItems = Math.max(0, subtotal - discount);
@@ -164,18 +166,14 @@ export function OrderSummary({
               <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                 STORE PICKUP (FREE)
               </span>
-            ) : deliveryFee === 0 ? (
-              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                FREE DELIVERY (Orders &gt; ₹999)
-              </span>
-            ) : pincode ? (
+            ) : (
               <span className="text-[10px] font-medium text-slate-500">
-                (Zone {pincode})
+                (based on your location)
               </span>
-            ) : null}
+            )}
           </div>
           <span className="font-semibold text-brand-text">
-            {deliveryFee === 0 ? "₹0" : `₹${deliveryFee}`}
+            {feeKnown ? `₹${deliveryFee}` : "Select location"}
           </span>
         </div>
 

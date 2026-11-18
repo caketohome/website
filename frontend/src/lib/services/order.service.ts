@@ -108,17 +108,26 @@ export class OrderService {
       }
     }
 
-    // 3. Validate Delivery Radius (if coordinates provided)
+    // 3. Delivery eligibility + fee (zones, radius and distance brackets are checked inside the quote)
     let deliveryFee = 0;
-    if (delivery_type !== "pickup" && typeof delivery_latitude === "number" && typeof delivery_longitude === "number") {
-      const eligibility = await DeliveryService.validateDeliveryEligibility(
-        { latitude: delivery_latitude, longitude: delivery_longitude },
-        branch.id
-      );
-      if (!eligibility.eligible) {
-        return { success: false, error: eligibility.message || "Delivery location exceeds maximum service radius." };
+    if (delivery_type !== "pickup" && branch.fulfillment_rules?.allow_delivery === false) {
+      return { success: false, error: "Home delivery is currently disabled for this branch." };
+    }
+    if (delivery_type !== "pickup") {
+      // Same calculation the customer saw at checkout: branch zones / distance brackets / Supabase delivery defaults.
+      const { ApiEngine } = await import("../api-engine");
+      await ApiEngine.ensureHydrated();
+      const hasCoords = typeof delivery_latitude === "number" && typeof delivery_longitude === "number";
+      const quote = ApiEngine.resolveSmartBranch({
+        ...(hasCoords ? { lat: delivery_latitude, lng: delivery_longitude } : {}),
+        branchId: branch.id,
+        isExpress: delivery_type === "express",
+        isMidnight: delivery_type === "midnight",
+      });
+      if (quote.blockedReason || !quote.branch) {
+        return { success: false, error: quote.blockedReason || "We currently don't deliver to this location." };
       }
-      deliveryFee = eligibility.delivery_fee;
+      deliveryFee = Math.max(0, Number(quote.deliveryFee) || 0);
     }
 
     // 4. Validate Delivery Cutoff Time
@@ -399,7 +408,7 @@ export class OrderService {
           discountAmount = offer.max_discount_value;
         }
       } else if (isFreeDelivery) {
-        discountAmount = deliveryFee || 49;
+        discountAmount = deliveryFee;
       } else {
         discountAmount = Math.min(discountVal, subtotal);
         if (offer.max_discount_value && discountAmount > offer.max_discount_value) {

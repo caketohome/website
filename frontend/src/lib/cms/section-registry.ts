@@ -584,7 +584,7 @@ export const SECTION_REGISTRY: SectionTypeDefinition[] = [
     category: "conversion",
     description: "Free delivery promotion banner",
     editorType: "cta",
-    defaultConfig: { heading: "🚚 Free Delivery", subheading: "On orders above ₹999", cta_text: "Order Now", cta_url: "/products", style: "delivery" },
+    defaultConfig: { heading: "🚚 Delivery", subheading: "Charged by distance from our nearest kitchen", cta_text: "Order Now", cta_url: "/products", style: "delivery" },
   },
   {
     value: "same_day_delivery_cta",

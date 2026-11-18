@@ -92,7 +92,7 @@ const EMPTY_ZONE: Omit<DeliveryZone, "id"> = {
   max_cake_quantity: 5,
   min_order_value: 299,
   max_order_value: 50000,
-  free_delivery_threshold: 999,
+  free_delivery_threshold: 0,
   same_day_allowed: true,
   express_allowed: true,
   instant_allowed: false,
@@ -1377,7 +1377,7 @@ export function BranchZoneManager() {
                     <Input type="number" min={0} value={zoneForm.holiday_charge ?? 0} onChange={(e) => zf("holiday_charge", parseFloat(e.target.value) || 0)} />
                   </div>
                   <div>
-                    <Label className="text-xs">Free Delivery Threshold (₹)</Label>
+                    <Label className="text-xs">Free Delivery Threshold (₹, 0 = off)</Label>
                     <Input type="number" min={0} value={zoneForm.free_delivery_threshold} onChange={(e) => zf("free_delivery_threshold", parseFloat(e.target.value) || 0)} />
                   </div>
                   <div>
