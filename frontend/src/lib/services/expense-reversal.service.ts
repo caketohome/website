@@ -154,6 +154,18 @@ export class ExpenseReversalService {
         );
       }
 
+      // 2b. A branch-paid expense that was already reimbursed must have that payment undone first
+      const reimb = await c.query(
+        `SELECT status FROM public.branch_reimbursement WHERE source_type = 'EXPENSE' AND source_id = $1 FOR UPDATE`,
+        [expense.id]
+      );
+      if (reimb.rows[0]?.status === "PAID") {
+        throw new ExpenseReversalError(
+          "EXPENSE_REVERSAL_FAILED",
+          "This expense was already reimbursed to the branch. Undo the reimbursement payment first, then reverse."
+        );
+      }
+
       // 3. Fetch original voucher
       if (!expense.voucher_id) {
         throw new ExpenseReversalError("ORIGINAL_VOUCHER_NOT_FOUND", "Original voucher reference is missing from expense.");
@@ -365,6 +377,14 @@ export class ExpenseReversalService {
          WHERE id = $4
          RETURNING *`,
         [reversalVoucher.id, reversedBy, reversalReason.trim(), expense.id]
+      );
+
+      // Branch-paid expense: the amount is no longer owed to the branch
+      await c.query(
+        `UPDATE public.branch_reimbursement
+            SET status = 'REVERSED', reversed_at = NOW(), reversed_by = $2, reversal_reason = $3, updated_at = NOW()
+          WHERE source_type = 'EXPENSE' AND source_id = $1 AND status = 'OPEN'`,
+        [expense.id, reversedBy, reversalReason.trim()]
       );
 
       return {

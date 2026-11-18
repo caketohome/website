@@ -1805,7 +1805,9 @@ export class SalesPostingService {
 
           // Availability Check 1: Cost Lots (FAIL CLOSED - ZERO COST FABRICATION)
           const totalLotQty = lots.reduce((sum, l) => sum + Number(l.remaining_quantity), 0);
-          if (totalLotQty < item.quantity) {
+          // Made-to-order cakes are not stocked: they consume cost lots only when they exist (e.g. bought
+          // from the parent company); otherwise production cost is already in kitchen expenses.
+          if (totalLotQty < item.quantity && item.merchandiseType !== "CAKE") {
             throw new SalesPostingError(
               "INSUFFICIENT_COST_LOT_QUANTITY",
               `Insufficient cost lots for product '${item.title}' (${item.productId}) at branch '${voucher.branch_id}': required ${item.quantity}, available ${totalLotQty}. Inventory cost cannot be synthesized or fabricated.`

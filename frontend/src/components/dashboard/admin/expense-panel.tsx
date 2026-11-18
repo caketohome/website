@@ -491,7 +491,7 @@ export default function ExpensePanel() {
                           {e.payment_method || "—"}
                         </span>
                         <span className="block text-[10px] text-slate-400 font-mono">
-                          {e.settlement_type === "CREDIT_ACCRUAL" ? "CREDIT/AP" : "DIRECT"}
+                          {e.settlement_type === "CREDIT_ACCRUAL" ? "CREDIT/AP" : e.settlement_type === "BRANCH_PAID" ? "BRANCH PAID" : "DIRECT"}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-right font-mono text-slate-700 dark:text-slate-300">
@@ -841,6 +841,7 @@ export default function ExpensePanel() {
                 >
                   <option value="DIRECT_PAYMENT">Direct Payment (Immediate)</option>
                   <option value="CREDIT_ACCRUAL">Credit / Accrual (AP 2111)</option>
+                  <option value="BRANCH_PAID">Paid by branch (reimburse later)</option>
                 </select>
               </div>
 

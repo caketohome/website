@@ -768,7 +768,15 @@ export class DeliveryInvoicingService {
             )
           : { rows: [] };
 
-        if (existingSalesJe.rows.length === 0 && grand_total > 0) {
+        // The sales voucher is posted by SalesPostingService (auto-post below): it picks the right debit
+        // (COD 1122 / prepaid 2141 / credit 1121), rate-wise output GST, marketplace split and COGS.
+        // This legacy hand-built entry (fixed 2141/1210, 2.5% GST ledgers, no COGS) is kept only behind an
+        // explicit opt-in; otherwise an order without an engine draft waits in the accounting work queue.
+        const allowLegacyRawPosting = process.env.LEGACY_DELIVERY_RAW_POSTING === "true";
+        if (!accountingVoucherId && !allowLegacyRawPosting) {
+          console.warn(`[DeliveryInvoicingService] No sales voucher draft for order ${order.id}; left for the accounting work queue.`);
+        }
+        if (allowLegacyRawPosting && !accountingVoucherId && existingSalesJe.rows.length === 0 && grand_total > 0) {
           const vchId = finalVoucherId || `vch_sal_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
           const vchNo = `SV-${allocatedNum.replace(/[^A-Z0-9]/gi, "-")}`;
           const jeId = `je_sal_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
@@ -1088,6 +1096,19 @@ export class DeliveryInvoicingService {
       `INVOICE_GENERATED: Statutory invoice ${invoiceNumber} (${invoiceId}) generated for Order ${order.order_number || order.id} upon delivery confirmation.${accountingVoucherId ? ` Accounting Voucher Draft: ${accountingVoucherId}.` : ""}`
     );
 
+    // ── Parent company purchase (optional, Accounting → Parent Company & Branch Dues) ──
+    // Our stores buy what they sell from the parent company (e.g. Baked): post that purchase bill first,
+    // so the sale below consumes its cost as COGS. Partner orders are skipped inside.
+    try {
+      const { createParentPurchaseForOrder } = await import("./intercompany.service");
+      const pp = await createParentPurchaseForOrder(order.id);
+      if (!pp.created && !["disabled", "periodic billing", "already created", "marketplace partner order", "no parent-supplied items"].includes(pp.reason)) {
+        console.warn(`[DeliveryInvoicingService] Parent purchase for order ${order.id} not created: ${pp.reason}`);
+      }
+    } catch (ppErr: any) {
+      console.warn("[DeliveryInvoicingService] Parent purchase failed:", ppErr?.message);
+    }
+
     // ── Auto-post the sales voucher to the General Ledger (non-blocking) ──
     // On failure the voucher stays in the accounting work queue for manual review.
     if (accountingVoucherId) {
@@ -1101,6 +1122,12 @@ export class DeliveryInvoicingService {
         console.warn("[DeliveryInvoicingService] Auto-post deferred to work queue:", postErr?.message);
       }
     }
+
+    // Periodic parent-company billing: bill any closed period still pending (background; the current
+    // period is billed from Accounting → Parent Co. & Branch Dues or the nightly job).
+    import("./intercompany.service")
+      .then(({ raisePendingParentBills }) => raisePendingParentBills())
+      .catch((e: any) => console.warn("[DeliveryInvoicingService] Daily parent billing catch-up failed:", e?.message));
 
     return {
       success: true,

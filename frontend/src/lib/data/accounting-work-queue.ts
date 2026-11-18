@@ -83,7 +83,7 @@ export interface ExpenseQueueItem {
   description: string;
   expense_date: string;
   payment_method: string;
-  settlement_type?: "DIRECT_PAYMENT" | "CREDIT_ACCRUAL";
+  settlement_type?: "DIRECT_PAYMENT" | "CREDIT_ACCRUAL" | "BRANCH_PAID";
   bank_account_id?: string | null;
   teller_session_id?: string | null;
   voucher_id?: string | null;

@@ -512,6 +512,7 @@ export const ADMIN_TAB_PERMISSIONS: Record<string, { module: string; action: str
   balance_sheet: { module: "ACCOUNTING", action: "VIEW" },
   cash_flow: { module: "ACCOUNTING", action: "VIEW" },
   tds_register: { module: "ACCOUNTING", action: "VIEW" },
+  intercompany: { module: "ACCOUNTING", action: "VIEW" },
   gst_b2b_register: { module: "ACCOUNTING", action: "VIEW" },
   cost_allocations: { module: "COST_ALLOCATION", action: "VIEW" },
   bank_management: { module: "BANK", action: "VIEW" },

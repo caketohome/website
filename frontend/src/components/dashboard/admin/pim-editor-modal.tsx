@@ -109,7 +109,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
 
   // Pricing & Tax Master
   const [sellingPrice, setSellingPrice] = useState(String(product?.price || product?.selling_price || 649));
-  const [costPrice, setCostPrice] = useState(String(product?.cost_price || 350));
+  const [costPrice, setCostPrice] = useState(product?.cost_price ? String(product.cost_price) : "");
   const [mrp, setMrp] = useState(String(product?.mrp || 799));
   const [taxConfigurationId, setTaxConfigurationId] = useState(
     product?.tax_rate_id || product?.tax_configuration_id || ""
@@ -267,8 +267,8 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
       weight_unit: parsed.weight_unit,
       normalized_grams: parsed.normalized_grams,
       selling_price: priceNum,
-      mrp: Math.round(priceNum * 1.25),
-      cost_price: Math.round(priceNum * 0.45),
+      mrp: priceNum, // no invented strike-through price
+      cost_price: 0, // enter the real cost (used for parent-company billing and margins)
       prep_time_minutes: parsed.normalized_grams > 1000 ? 120 : 60,
       is_enabled: true,
       sort_order: weightPrices.length + 1,
@@ -498,8 +498,8 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
       secondary_category_ids: secondaryCategoryIds,
       price: startingPrice,
       selling_price: startingPrice,
-      cost_price: parseFloat(costPrice) || enabledWeights[0].cost_price || 350,
-      mrp: enabledWeights[0].mrp || 799,
+      cost_price: parseFloat(costPrice) || enabledWeights[0].cost_price || 0,
+      mrp: enabledWeights[0].mrp || startingPrice,
       gst_rate: gstRate !== "" ? parseFloat(gstRate) : undefined,
       tax_class: taxClass || undefined,
       tax_rate_id: taxConfigurationId || undefined,

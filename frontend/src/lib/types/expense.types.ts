@@ -39,7 +39,7 @@ export const EXPENSE_TRANSITIONS: Record<ExpenseStatus, ExpenseStatus[]> = {
 
 export type ExpensePaymentMethod = "CASH" | "UPI" | "BANK_TRANSFER" | "CHEQUE" | "CARD" | "OTHER";
 
-export type ExpenseSettlementType = "DIRECT_PAYMENT" | "CREDIT_ACCRUAL";
+export type ExpenseSettlementType = "DIRECT_PAYMENT" | "CREDIT_ACCRUAL" | "BRANCH_PAID";
 
 export type ExpenseItcEligibility = "ITC_ELIGIBLE" | "ITC_INELIGIBLE";
 

@@ -793,6 +793,22 @@ export class ExpensePostingService {
             });
           }
         }
+      } else if ((expense.settlement_type as string) === "BRANCH_PAID") {
+        // Branch paid from its own funds (e.g. no COD cash in the drawer): the company owes the branch.
+        // Credit 2154 Due to Branches; a branch_reimbursement row tracks it until Pay / Reverse.
+        if (!expense.branch_id) {
+          throw new ExpensePostingError("EXPENSE_POSTING_FAILED", "A branch-paid expense must belong to a branch.");
+        }
+        const dueAcc = await AccountingAccountRepository.findByCode("2154", c);
+        if (!dueAcc) throw new ExpensePostingError("GL_ACCOUNT_NOT_FOUND", "Due to Branches account 2154 not found.");
+        journalLines.push({
+          account_id: dueAcc.id,
+          debit_amount: 0,
+          credit_amount: vendorSettlementAmount,
+          branch_id: expense.branch_id,
+          narration: `Paid by branch, to reimburse: expense ${expense.reference_no || expense.id}`,
+          metadata: { expense_id: expense.id, branch_paid: true },
+        });
       } else {
         // CREDIT_ACCRUAL
         if (expense.supplier_id) {
@@ -854,6 +870,26 @@ export class ExpensePostingService {
          RETURNING *`,
         [expense.id]
       );
+
+      // Branch-paid: open a reimbursement owed to the branch (shown as a negative branch balance)
+      if ((expense.settlement_type as string) === "BRANCH_PAID") {
+        await c.query(
+          `INSERT INTO public.branch_reimbursement (id, branch_id, source_type, source_id, source_voucher_id, description, amount, status, created_by)
+           VALUES ($1, $2, 'EXPENSE', $3, $4, $5, $6, 'OPEN', $7)
+           ON CONFLICT (source_type, source_id) DO UPDATE
+             SET status = 'OPEN', amount = EXCLUDED.amount, source_voucher_id = EXCLUDED.source_voucher_id,
+                 reversed_at = NULL, reversed_by = NULL, reversal_reason = NULL, updated_at = NOW()`,
+          [
+            `brmb_${expense.id}`,
+            expense.branch_id,
+            expense.id,
+            voucher.id,
+            String(expense.description || expense.reference_no || "Branch-paid expense").slice(0, 300),
+            vendorSettlementAmount,
+            postedBy,
+          ]
+        );
+      }
 
       return {
         expense: finalExpRes.rows[0],

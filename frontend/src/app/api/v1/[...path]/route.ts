@@ -4226,6 +4226,36 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         }
 
 
+        // Parent company (Baked) purchase settings: GET admin/accounting/parent-company
+        if (acctSubPath === "parent-company") {
+          const { getParentCompanyConfig } = await import("@frontend/lib/services/intercompany.service");
+          const config = await getParentCompanyConfig();
+          const suppliers = (await dbQuery(`SELECT id, name, gstin, state FROM public.supplier WHERE deleted_at IS NULL ORDER BY name`)).rows;
+          const purchases = (await dbQuery(
+            `SELECT p.id, p.invoice_no, p.invoice_date, p.total, p.status, p.metadata->>'source_order_number' AS order_number
+               FROM public.purchase p WHERE p.metadata->>'intercompany' = 'true' AND p.deleted_at IS NULL
+              ORDER BY p.created_at DESC LIMIT 50`
+          )).rows;
+          const cashAccounts = (await dbQuery(`SELECT id, account_name, branch_id FROM public.cash_account WHERE deleted_at IS NULL AND status = 'ACTIVE' ORDER BY account_name`)).rows;
+          const pendingToday = (await dbQuery(
+            `SELECT COUNT(*)::int n FROM public."order" o JOIN public.invoice i ON i.order_id = o.id AND i.deleted_at IS NULL
+              WHERE o.deleted_at IS NULL AND COALESCE(o.metadata->>'parent_purchase_id','') = ''
+                AND NOT EXISTS (SELECT 1 FROM public.marketplace_order_snapshot m WHERE m.order_id = o.id)
+                AND (i.created_at AT TIME ZONE 'Asia/Kolkata')::date >= (NOW() AT TIME ZONE 'Asia/Kolkata')::date - 7`
+          )).rows[0].n;
+          const branches = (await dbQuery(`SELECT id, name FROM public.branch WHERE deleted_at IS NULL ORDER BY created_at`)).rows;
+          return jsonWithDataSource({ success: true, config, suppliers, purchases, cashAccounts, branches, pendingOrders: pendingToday }, "postgres");
+        }
+        // Branch-paid expenses owed back to branches: GET admin/accounting/branch-reimbursements?status=OPEN
+        if (acctSubPath === "branch-reimbursements") {
+          const { listBranchReimbursements } = await import("@frontend/lib/services/branch-reimbursement.service");
+          const result = await listBranchReimbursements({
+            branchId: url.searchParams.get("branch_id") || undefined,
+            status: url.searchParams.get("status") || undefined,
+          });
+          return jsonWithDataSource({ success: true, ...result }, "postgres");
+        }
+
         // GST B2B register: GET admin/accounting/gst-b2b?from=&to=&seller=all|own|partner
         // Tax invoices issued to GST-registered buyers, rate-wise (GSTR-1 B2B). Includes cakes sold by marketplace
         // partners (seller = partner GSTIN) so corporates can match input credit and partners can file GSTR-1.
@@ -7835,6 +7865,60 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const acctSubPath = path.replace(/^admin\/accounting\//, "");
 
       try {
+        // Parent company (Baked) purchase settings: POST admin/accounting/parent-company
+        if (acctSubPath === "parent-company") {
+          try {
+            const { saveParentCompanyConfig } = await import("@frontend/lib/services/intercompany.service");
+            return jsonWithDataSource({ success: true, config: await saveParentCompanyConfig(body || {}) }, "postgres");
+          } catch (e: any) {
+            return jsonWithDataSource({ success: false, error: e.message }, "postgres", 400);
+          }
+        }
+        // Raise the daily parent-company bills now: POST admin/accounting/parent-company/raise-bills { date? }
+        if (acctSubPath === "parent-company/raise-bills") {
+          try {
+            const { raisePeriodParentBills } = await import("@frontend/lib/services/intercompany.service");
+            const results = await raisePeriodParentBills({ date: typeof body?.date === "string" ? body.date : undefined });
+            return jsonWithDataSource({ success: true, results }, "postgres");
+          } catch (e: any) {
+            return jsonWithDataSource({ success: false, error: e.message }, "postgres", 400);
+          }
+        }
+        // Branch reimbursements: POST admin/accounting/branch-reimbursements/:id/(pay|undo-payment|reverse)
+        {
+          const m = acctSubPath.match(/^branch-reimbursements\/([^/]+)\/(pay|undo-payment|reverse)$/);
+          if (m) {
+            const [, rid, action] = m;
+            try {
+              const svc = await import("@frontend/lib/services/branch-reimbursement.service");
+              if (action === "pay") {
+                const row = await svc.payBranchReimbursement({
+                  id: rid,
+                  method: body?.method === "CASH" ? "CASH" : "BANK",
+                  bankAccountId: body?.bank_account_id || null,
+                  cashAccountId: body?.cash_account_id || null,
+                  makerId: "system:reimbursement",
+                  checkerId: userCtx.userId,
+                });
+                return jsonWithDataSource({ success: true, reimbursement: row }, "postgres");
+              }
+              if (action === "undo-payment") {
+                const row = await svc.undoBranchReimbursementPayment({ id: rid, reason: String(body?.reason || ""), makerId: "system:reimbursement", checkerId: userCtx.userId });
+                return jsonWithDataSource({ success: true, reimbursement: row }, "postgres");
+              }
+              // reverse: cancel the branch-paid expense itself (posts the reversing entry)
+              const r = await dbQuery(`SELECT source_type, source_id, status FROM public.branch_reimbursement WHERE id = $1`, [rid]);
+              if (!r.rows[0]) return jsonWithDataSource({ success: false, error: "Reimbursement not found." }, "postgres", 404);
+              if (r.rows[0].status !== "OPEN") return jsonWithDataSource({ success: false, error: "Only an unpaid (open) reimbursement can be reversed. Undo the payment first." }, "postgres", 400);
+              const { ExpenseReversalService } = await import("@frontend/lib/services/expense-reversal.service");
+              await ExpenseReversalService.reverseExpense({ expenseId: r.rows[0].source_id, reversedBy: userCtx.userId, reversalReason: String(body?.reason || "Reversed from branch reimbursements") } as any);
+              return jsonWithDataSource({ success: true }, "postgres");
+            } catch (e: any) {
+              return jsonWithDataSource({ success: false, error: e.message, code: e.code }, "postgres", 400);
+            }
+          }
+        }
+
         // ── Phase A: GST Registration POST Route ──────────────────────────────
 
         // POST admin/accounting/gst-registrations — Create a GST registration
