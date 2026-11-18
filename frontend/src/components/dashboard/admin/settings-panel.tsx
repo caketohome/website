@@ -177,7 +177,7 @@ export const SettingsPanel = memo(function SettingsPanel() {
                     isActive
                       ? "bg-white/20 text-white"
                       : tab.badgeColor === "orange"
-                      ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40"
+                      ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold"
                       : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
                   }`}
                 >

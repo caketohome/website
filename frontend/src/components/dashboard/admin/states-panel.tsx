@@ -403,7 +403,7 @@ export const StatesPanel = memo(function StatesPanel() {
                           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wider ${
                             isActive
                               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
-                              : "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold/40 border border-brand-gold/40 dark:border-brand-gold-dark"
+                              : "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold border border-brand-gold/40 dark:border-brand-gold-dark"
                           }`}
                         >
                           <span
@@ -589,7 +589,7 @@ export const StatesPanel = memo(function StatesPanel() {
               ) : deps ? (
                 <div className="space-y-4">
                   {!deps.canDelete ? (
-                    <div className="p-4 rounded-xl bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 dark:border-brand-gold-dark text-brand-gold-dark dark:text-brand-gold/40 space-y-2">
+                    <div className="p-4 rounded-xl bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 dark:border-brand-gold-dark text-brand-gold-dark dark:text-brand-gold space-y-2">
                       <div className="flex items-center gap-2 font-bold">
                         <AlertTriangle className="w-4 h-4 text-brand-gold shrink-0" />
                         Deletion Blocked: Active Cities & Hubs Connected

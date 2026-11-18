@@ -222,7 +222,7 @@ export function MultiAccessProfileSelect({
             selectedProfiles.map((prof) => (
               <span
                 key={prof.id}
-                className="inline-flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-lg text-xs font-semibold bg-brand-light dark:bg-brand-navy/90 text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy/80 animate-in fade-in zoom-in-95 group shadow-2xs"
+                className="inline-flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-lg text-xs font-semibold bg-brand-light dark:bg-brand-navy/90 text-brand-navy dark:text-brand-primary border border-brand-primary/30 dark:border-brand-navy/80 animate-in fade-in zoom-in-95 group shadow-2xs"
               >
                 <span>{prof.name}</span>
                 <span className="text-[10px] opacity-75 font-mono">({prof.permissions.length})</span>
@@ -400,7 +400,7 @@ export function MultiAccessProfileSelect({
                           e.stopPropagation();
                           setInspectingProfile(inspectingProfile?.id === prof.id ? null : prof);
                         }}
-                        className="p-1 hover:bg-brand-light dark:hover:bg-brand-navy/60 rounded text-slate-400 hover:text-brand-primary dark:hover:text-brand-primary/30 transition-colors"
+                        className="p-1 hover:bg-brand-light dark:hover:bg-brand-navy/60 rounded text-slate-400 hover:text-brand-primary dark:hover:text-brand-primary transition-colors"
                         title="View profile permissions details"
                         aria-label={`Inspect ${prof.name} permissions`}
                       >
@@ -417,14 +417,14 @@ export function MultiAccessProfileSelect({
           {inspectingProfile && (
             <div className="p-3 bg-brand-navy/90 text-white border-t border-brand-navy/80 animate-in fade-in slide-in-from-bottom-2">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs font-bold text-brand-primary/30 flex items-center gap-1">
+                <span className="text-xs font-bold text-brand-primary flex items-center gap-1">
                   <Shield className="w-3 h-3 text-brand-primary" />
                   {inspectingProfile.name} ({inspectingProfile.permissions.length} Permissions)
                 </span>
                 <button
                   type="button"
                   onClick={() => setInspectingProfile(null)}
-                  className="p-0.5 text-brand-primary/30 hover:text-white"
+                  className="p-0.5 text-brand-primary hover:text-white"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -433,7 +433,7 @@ export function MultiAccessProfileSelect({
                 {inspectingProfile.permissions.map((perm) => (
                   <span
                     key={perm}
-                    className="text-[10px] px-1.5 py-0.5 rounded bg-brand-navy text-brand-primary/30 border border-brand-navy font-mono"
+                    className="text-[10px] px-1.5 py-0.5 rounded bg-brand-navy text-brand-primary border border-brand-navy font-mono"
                   >
                     {perm}
                   </span>

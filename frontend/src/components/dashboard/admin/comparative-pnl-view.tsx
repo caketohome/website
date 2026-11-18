@@ -279,7 +279,7 @@ export function ComparativePnLView({ branchId }: { branchId?: string }) {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-light dark:bg-brand-navy/40 text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy hidden sm:inline">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-light dark:bg-brand-navy/40 text-brand-navy dark:text-brand-primary border border-brand-primary/30 dark:border-brand-navy hidden sm:inline">
                   {data.current_fiscal_year} vs {data.compare_fiscal_year}
                 </span>
                 <button

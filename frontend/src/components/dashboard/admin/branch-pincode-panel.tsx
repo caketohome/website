@@ -331,10 +331,10 @@ export function BranchPincodePanel() {
         <div className="space-y-4">
           <div className="p-4 bg-brand-light/70 dark:bg-brand-navy/30 border border-brand-primary/30 rounded-xl flex items-center justify-between">
             <div>
-              <Heading level="h3" className="text-sm font-bold text-brand-navy dark:text-brand-primary/30 flex items-center gap-2">
+              <Heading level="h3" className="text-sm font-bold text-brand-navy dark:text-brand-primary flex items-center gap-2">
                 <Settings2 className="w-4 h-4 text-brand-primary" /> Operational Service Areas ({serviceAreas.length})
               </Heading>
-              <Text className="text-xs text-brand-navy dark:text-brand-primary/30">
+              <Text className="text-xs text-brand-navy dark:text-brand-primary">
                 Service Areas group multiple pincodes into operational regions for easy management and routing.
               </Text>
             </div>

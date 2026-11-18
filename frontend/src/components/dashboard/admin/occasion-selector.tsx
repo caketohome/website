@@ -307,7 +307,7 @@ export function OccasionSelector({
                       onClick={() => toggleSelect(occ.id)}
                       className={`p-2 rounded-lg flex items-center justify-between cursor-pointer transition ${
                         isSelected
-                          ? "bg-brand-light dark:bg-brand-navy/40 text-brand-navy dark:text-brand-primary/30"
+                          ? "bg-brand-light dark:bg-brand-navy/40 text-brand-navy dark:text-brand-primary"
                           : isFocused
                           ? "bg-ui-bg-subtle"
                           : "hover:bg-ui-bg-subtle/70"

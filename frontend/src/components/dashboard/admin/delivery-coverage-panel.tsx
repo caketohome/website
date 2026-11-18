@@ -503,7 +503,7 @@ export function DeliveryCoveragePanel() {
               <div>
                 <h1 className="text-xl md:text-2xl font-black tracking-tight flex items-center gap-2">
                   Delivery Coverage & Map-Fenced Routing
-                  <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-brand-primary/20 text-brand-primary/30 border border-brand-primary/30">
+                  <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-brand-primary/20 text-brand-primary border border-brand-primary/30">
                     Phase C7.10
                   </span>
                 </h1>
@@ -538,12 +538,12 @@ export function DeliveryCoveragePanel() {
           </div>
           <div className="p-3.5 rounded-xl bg-slate-800/40 border border-slate-700/40 backdrop-blur-sm">
             <span className="text-[11px] font-bold text-brand-primary uppercase tracking-wider block">Active Fleet</span>
-            <div className="text-2xl font-black text-brand-primary/30 mt-1">{activePartnerCount} / {partners.length}</div>
+            <div className="text-2xl font-black text-brand-primary mt-1">{activePartnerCount} / {partners.length}</div>
             <span className="text-[11px] text-slate-400">30 Preserved Partners</span>
           </div>
           <div className="p-3.5 rounded-xl bg-slate-800/40 border border-slate-700/40 backdrop-blur-sm">
             <span className="text-[11px] font-bold text-brand-gold uppercase tracking-wider block">Store Zones</span>
-            <div className="text-2xl font-black text-brand-gold/40 mt-1">{totalZonesCount}</div>
+            <div className="text-2xl font-black text-brand-gold mt-1">{totalZonesCount}</div>
             <span className="text-[11px] text-slate-400">Polygons & Exclusions</span>
           </div>
         </div>
@@ -712,7 +712,7 @@ export function DeliveryCoveragePanel() {
                             {store.zones_count} Zones
                           </span>
                           {store.polygon_zones_count > 0 && (
-                            <span className="px-1.5 py-0.5 rounded-md bg-brand-light dark:bg-brand-navy text-brand-navy dark:text-brand-primary/30 text-[10px] font-bold" title="Custom Polygon Boundaries">
+                            <span className="px-1.5 py-0.5 rounded-md bg-brand-light dark:bg-brand-navy text-brand-navy dark:text-brand-primary text-[10px] font-bold" title="Custom Polygon Boundaries">
                               Polygon
                             </span>
                           )}
@@ -838,7 +838,7 @@ export function DeliveryCoveragePanel() {
                       });
                     }}
                     id={`manage-partner-coverage-${partner.partner_id}`}
-                    className="flex-1 py-1.5 px-2.5 rounded-xl bg-brand-light dark:bg-brand-navy/40 hover:bg-brand-light dark:hover:bg-brand-navy/40 text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy/60 text-xs font-bold transition-all text-center"
+                    className="flex-1 py-1.5 px-2.5 rounded-xl bg-brand-light dark:bg-brand-navy/40 hover:bg-brand-light dark:hover:bg-brand-navy/40 text-brand-navy dark:text-brand-primary border border-brand-primary/30 dark:border-brand-navy/60 text-xs font-bold transition-all text-center"
                   >
                     Geofences
                   </button>
@@ -1126,7 +1126,7 @@ export function DeliveryCoveragePanel() {
                         {new Date(ev.created_at).toLocaleString()}
                       </td>
                       <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-light dark:bg-brand-navy text-brand-navy dark:text-brand-primary/30">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-light dark:bg-brand-navy text-brand-navy dark:text-brand-primary">
                           {ev.event_type}
                         </span>
                       </td>
@@ -1185,7 +1185,7 @@ export function DeliveryCoveragePanel() {
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-brand-gold-light dark:bg-brand-gold-dark/30 border border-brand-gold/40 dark:border-brand-gold-dark/40 text-xs text-brand-gold-dark dark:text-brand-gold/40">
+            <div className="p-3 rounded-xl bg-brand-gold-light dark:bg-brand-gold-dark/30 border border-brand-gold/40 dark:border-brand-gold-dark/40 text-xs text-brand-gold-dark dark:text-brand-gold">
               <span className="font-bold block mb-1">D2 Option A & Four-Eyes Governance Guard:</span>
               Enabling this store adds it to the corporate routing allow-list. Newly added stores must be explicitly verified and cannot be inferred from branch coordinates.
             </div>
@@ -1306,7 +1306,7 @@ export function DeliveryCoveragePanel() {
 
                     <div className="flex items-center gap-1.5 pt-1">
                       {zone.polygon_coordinates && (
-                        <span className="px-2 py-0.5 rounded-md bg-brand-light dark:bg-brand-navy text-brand-navy dark:text-brand-primary/30 text-[10px] font-bold">
+                        <span className="px-2 py-0.5 rounded-md bg-brand-light dark:bg-brand-navy text-brand-navy dark:text-brand-primary text-[10px] font-bold">
                           {zone.polygon_coordinates.length} Vertices Polygon
                         </span>
                       )}

@@ -491,7 +491,7 @@ export const WebhooksPanel = memo(function WebhooksPanel() {
                 </Badge>
               </div>
 
-              <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/30 border border-brand-gold/40 dark:border-brand-gold-dark/50 rounded-xl text-[11px] text-brand-gold-dark dark:text-brand-gold/40 leading-relaxed">
+              <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/30 border border-brand-gold/40 dark:border-brand-gold-dark/50 rounded-xl text-[11px] text-brand-gold-dark dark:text-brand-gold leading-relaxed">
                 <strong>Architectural Standard:</strong> All enabled CakeToHome events are dispatched through this ONE primary endpoint and routed by <code>event_type</code> inside n8n workflows.
               </div>
 

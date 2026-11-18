@@ -381,7 +381,7 @@ export function StaffProfilesPanel() {
           onClick={() => setActiveSubTab("staff")}
           className={`px-4 py-2 text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors ${
             activeSubTab === "staff"
-              ? "bg-brand-light dark:bg-brand-navy/80 text-brand-navy dark:text-brand-primary/30"
+              ? "bg-brand-light dark:bg-brand-navy/80 text-brand-navy dark:text-brand-primary"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
@@ -391,7 +391,7 @@ export function StaffProfilesPanel() {
           onClick={() => setActiveSubTab("profiles")}
           className={`px-4 py-2 text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors ${
             activeSubTab === "profiles"
-              ? "bg-brand-light dark:bg-brand-navy/80 text-brand-navy dark:text-brand-primary/30"
+              ? "bg-brand-light dark:bg-brand-navy/80 text-brand-navy dark:text-brand-primary"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
@@ -401,7 +401,7 @@ export function StaffProfilesPanel() {
           onClick={() => setActiveSubTab("matrix")}
           className={`px-4 py-2 text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors ${
             activeSubTab === "matrix"
-              ? "bg-brand-light dark:bg-brand-navy/80 text-brand-navy dark:text-brand-primary/30"
+              ? "bg-brand-light dark:bg-brand-navy/80 text-brand-navy dark:text-brand-primary"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
@@ -411,7 +411,7 @@ export function StaffProfilesPanel() {
           onClick={() => setActiveSubTab("audit")}
           className={`px-4 py-2 text-xs font-semibold rounded-lg flex items-center gap-2 transition-colors ${
             activeSubTab === "audit"
-              ? "bg-brand-light dark:bg-brand-navy/80 text-brand-navy dark:text-brand-primary/30"
+              ? "bg-brand-light dark:bg-brand-navy/80 text-brand-navy dark:text-brand-primary"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
@@ -472,7 +472,7 @@ export function StaffProfilesPanel() {
                       <tr key={staff.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
                         <td className="p-3.5 font-medium">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary/30 font-bold flex items-center justify-center text-xs">
+                            <div className="w-7 h-7 rounded-full bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary font-bold flex items-center justify-center text-xs">
                               {staff.name.charAt(0)}
                             </div>
                             <div>
@@ -508,13 +508,13 @@ export function StaffProfilesPanel() {
                               staff.profile_names.map((pName, idx) => (
                                 <span
                                   key={idx}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-brand-light dark:bg-brand-navy/80 text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy shadow-2xs"
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-brand-light dark:bg-brand-navy/80 text-brand-navy dark:text-brand-primary border border-brand-primary/30 dark:border-brand-navy shadow-2xs"
                                 >
                                   <Shield className="w-3 h-3 text-brand-primary" /> {pName}
                                 </span>
                               ))
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-brand-light dark:bg-brand-navy text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-brand-light dark:bg-brand-navy text-brand-navy dark:text-brand-primary border border-brand-primary/30 dark:border-brand-navy">
                                 <Shield className="w-3 h-3" /> {staff.profile_name || "Assigned Profile"}
                               </span>
                             )}
@@ -540,7 +540,7 @@ export function StaffProfilesPanel() {
                         </td>
                         <td className="p-3.5">
                           {overrideCount > 0 ? (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold">
                               {overrideCount} Active Override{overrideCount > 1 ? "s" : ""}
                             </span>
                           ) : (
@@ -673,7 +673,7 @@ export function StaffProfilesPanel() {
                   const p = profilesList.find((prof) => prof.id === e.target.value);
                   if (p) setSelectedProfile(p);
                 }}
-                className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-bold text-brand-navy dark:text-brand-primary/30"
+                className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-bold text-brand-navy dark:text-brand-primary"
               >
                 {profilesList.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -766,7 +766,7 @@ export function StaffProfilesPanel() {
                       {log.actor_name}
                     </td>
                     <td className="p-3.5">
-                      <span className="font-semibold text-brand-navy dark:text-brand-primary/30">
+                      <span className="font-semibold text-brand-navy dark:text-brand-primary">
                         {log.target_name}
                       </span>
                       <span className="text-[10px] text-slate-400 ml-1 font-mono">({log.target_type})</span>

@@ -764,7 +764,7 @@ export function MapFenceEditor({
                 <span className="text-xs font-extrabold text-slate-900 dark:text-white">
                   🏪 Store Physical Location:
                 </span>
-                <span className="font-mono text-xs font-bold text-brand-gold-dark dark:text-brand-gold/40 bg-brand-gold-light dark:bg-brand-gold-dark/80 px-2 py-0.5 rounded">
+                <span className="font-mono text-xs font-bold text-brand-gold-dark dark:text-brand-gold bg-brand-gold-light dark:bg-brand-gold-dark/80 px-2 py-0.5 rounded">
                   {storePosition[0].toFixed(6)}° N, {storePosition[1].toFixed(6)}° E
                 </span>
               </div>
@@ -902,7 +902,7 @@ export function MapFenceEditor({
           <div className="flex items-center gap-2.5 min-w-0">
             <MapPin className="w-4 h-4 text-brand-gold shrink-0" />
             <div className="min-w-0">
-              <span className="font-bold text-brand-gold-dark dark:text-brand-gold/40 truncate block">
+              <span className="font-bold text-brand-gold-dark dark:text-brand-gold truncate block">
                 {selectedSearchResult.displayName}
               </span>
               <span className="text-[10px] text-brand-gold-dark/80 dark:text-brand-gold/80">

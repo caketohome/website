@@ -119,7 +119,7 @@ export function PdpVariantSelector({
                   }`}
                 >
                   <span className="text-sm font-bold tracking-tight">{w.name}</span>
-                  <span className={`text-xs mt-1 font-semibold ${isSelected ? "text-brand-gold/40" : "text-brand-text"}`}>
+                  <span className={`text-xs mt-1 font-semibold ${isSelected ? "text-brand-gold" : "text-brand-text"}`}>
                     ₹{w.price}
                   </span>
                   {isSelected && (

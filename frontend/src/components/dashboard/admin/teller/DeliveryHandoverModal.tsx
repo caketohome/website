@@ -480,7 +480,7 @@ export function DeliveryHandoverModal({
                                   )}
                                 </td>
                                 <td className="px-4 py-3 text-center">
-                                  <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-semibold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold/40">
+                                  <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-semibold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold">
                                     Awaiting Manager Count
                                   </span>
                                 </td>

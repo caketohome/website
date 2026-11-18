@@ -89,7 +89,8 @@ const NAV_GROUPS: NavGroup[] = [
     icon: Receipt,
     items: [
       { id: "overview", label: "Overview", icon: BookOpen, tabId: "general_ledger" },
-      { id: "chart_of_accounts", label: "Chart of Accounts", icon: Settings2, tabId: "accounting_setup" },
+      { id: "chart_of_accounts", label: "Chart of Accounts", icon: Settings2, tabId: "chart_of_accounts" },
+      { id: "accounting_setup", label: "Accounting Setup", icon: Settings2, tabId: "accounting_setup" },
       { id: "bank_management", label: "Bank & Cash Management", icon: Landmark, tabId: "bank_management" },
       { id: "bank_accounts", label: "Bank Accounts", icon: Landmark, tabId: "bank_accounts" },
       { id: "cash_accounts", label: "Cash Accounts", icon: Wallet, tabId: "teller_custody" },

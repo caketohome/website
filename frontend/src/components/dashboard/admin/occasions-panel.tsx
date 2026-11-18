@@ -934,7 +934,7 @@ export function OccasionsPanel() {
                           key={p.id}
                           className={`flex items-center gap-2.5 p-2 rounded-lg cursor-pointer text-xs border transition ${
                             isSelected
-                              ? "bg-brand-light border-brand-primary/30 font-bold text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary/30"
+                              ? "bg-brand-light border-brand-primary/30 font-bold text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary"
                               : "bg-white dark:bg-slate-900 border-ui-border-base hover:bg-ui-bg-base"
                           }`}
                         >
@@ -1107,7 +1107,7 @@ export function OccasionsPanel() {
                       <Text className="font-extrabold text-sm leading-tight drop-shadow truncate">
                         {occ.name}
                       </Text>
-                      <Text className="text-[10px] text-brand-primary/30 font-mono">/occasions/{occ.slug}</Text>
+                      <Text className="text-[10px] text-brand-primary font-mono">/occasions/{occ.slug}</Text>
                     </div>
                   </div>
 

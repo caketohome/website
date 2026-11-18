@@ -188,8 +188,8 @@ export const DeliveryPanel = memo(function DeliveryPanel() {
 
         <div className="p-4 bg-brand-gold-light/60 dark:bg-brand-gold-dark/20 rounded-2xl border border-brand-gold/40 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-extrabold text-brand-gold-dark dark:text-brand-gold/40 uppercase tracking-wider block">On Active Delivery / Busy</span>
-            <span className="text-2xl font-extrabold text-brand-gold-dark dark:text-brand-gold/40">{busyCount}</span>
+            <span className="text-[10px] font-extrabold text-brand-gold-dark dark:text-brand-gold uppercase tracking-wider block">On Active Delivery / Busy</span>
+            <span className="text-2xl font-extrabold text-brand-gold-dark dark:text-brand-gold">{busyCount}</span>
           </div>
           <Clock className="w-8 h-8 text-brand-gold opacity-80" />
         </div>

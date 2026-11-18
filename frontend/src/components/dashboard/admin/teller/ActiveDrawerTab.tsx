@@ -261,9 +261,9 @@ export function ActiveDrawerTab({
 
               <button
                 onClick={() => setShowExpenseModal(true)}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-brand-gold/20 hover:bg-brand-gold/30 text-brand-gold/40 border border-brand-gold/30 transition-colors flex items-center gap-1.5 shadow-sm"
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-brand-gold/20 hover:bg-brand-gold/30 text-brand-gold border border-brand-gold/30 transition-colors flex items-center gap-1.5 shadow-sm"
               >
-                <Receipt className="w-3.5 h-3.5 text-brand-gold/40" />
+                <Receipt className="w-3.5 h-3.5 text-brand-gold" />
                 <span>Branch Cash Expenses</span>
               </button>
 
@@ -383,9 +383,9 @@ export function ActiveDrawerTab({
 
               <button
                 onClick={() => setShowExpenseModal(true)}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-brand-gold/20 hover:bg-brand-gold/30 text-brand-gold/40 border border-brand-gold/30 transition-colors flex items-center gap-1.5 shadow-sm"
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-brand-gold/20 hover:bg-brand-gold/30 text-brand-gold border border-brand-gold/30 transition-colors flex items-center gap-1.5 shadow-sm"
               >
-                <Receipt className="w-3.5 h-3.5 text-brand-gold/40" />
+                <Receipt className="w-3.5 h-3.5 text-brand-gold" />
                 <span>Branch Cash Expenses</span>
               </button>
 

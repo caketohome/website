@@ -313,7 +313,7 @@ export function PayBillModal({ bills, onClose, onSuccess }: PayBillModalProps) {
                   onClick={() => setPaymentMethod(m.id as any)}
                   className={`py-2 px-2 text-xs font-medium rounded-xl border text-center transition ${
                     paymentMethod === m.id
-                      ? "bg-brand-light border-brand-primary text-brand-navy dark:bg-brand-navy/60 dark:border-brand-primary dark:text-brand-primary/30 shadow-sm"
+                      ? "bg-brand-light border-brand-primary text-brand-navy dark:bg-brand-navy/60 dark:border-brand-primary dark:text-brand-primary shadow-sm"
                       : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
                   }`}
                 >
@@ -363,7 +363,7 @@ export function PayBillModal({ bills, onClose, onSuccess }: PayBillModalProps) {
                     Active Drawer Connected
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-brand-gold-light text-brand-gold-dark border border-brand-gold/40 dark:bg-brand-gold-dark/60 dark:text-brand-gold/40 dark:border-brand-gold-dark">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-brand-gold-light text-brand-gold-dark border border-brand-gold/40 dark:bg-brand-gold-dark/60 dark:text-brand-gold dark:border-brand-gold-dark">
                     Branch Safe / Petty Cash
                   </span>
                 )}
@@ -418,7 +418,7 @@ export function PayBillModal({ bills, onClose, onSuccess }: PayBillModalProps) {
           />
 
           {/* Segregation of Duties Notice */}
-          <div className="flex items-start gap-2 p-3 rounded-xl bg-brand-gold-light/60 border border-brand-gold/40 dark:bg-brand-gold-dark/20 dark:border-brand-gold-dark/40 text-[11px] text-brand-gold-dark dark:text-brand-gold/40">
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-brand-gold-light/60 border border-brand-gold/40 dark:bg-brand-gold-dark/20 dark:border-brand-gold-dark/40 text-[11px] text-brand-gold-dark dark:text-brand-gold">
             <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
             <div>
               <span className="font-semibold">Segregation of Duties:</span> Payment disbursement

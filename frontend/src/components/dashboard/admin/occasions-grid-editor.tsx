@@ -606,7 +606,7 @@ export function OccasionsGridEditor({ config, allOccasions = [], onChange }: Occ
         {dataSource === "manual" && (
           <div className="flex flex-col gap-3">
             {/* Info bar */}
-            <div className="p-2.5 rounded-xl bg-brand-light dark:bg-brand-navy/40 border border-brand-primary/30 dark:border-brand-navy text-[11px] text-brand-navy dark:text-brand-primary/30 flex items-center justify-between gap-2">
+            <div className="p-2.5 rounded-xl bg-brand-light dark:bg-brand-navy/40 border border-brand-primary/30 dark:border-brand-navy text-[11px] text-brand-navy dark:text-brand-primary flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 shrink-0 text-brand-primary" />
                 <span>Curate specific cards, custom titles, artwork, and links.</span>

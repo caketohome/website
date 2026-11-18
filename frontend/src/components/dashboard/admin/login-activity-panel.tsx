@@ -274,11 +274,11 @@ export const LoginActivityPanel = memo(function LoginActivityPanel() {
                           <span
                             className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold ${
                               isSuperAdmin
-                                ? "bg-brand-light dark:bg-brand-navy text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy"
+                                ? "bg-brand-light dark:bg-brand-navy text-brand-navy dark:text-brand-primary border border-brand-primary/30 dark:border-brand-navy"
                                 : evt.role === "BRANCH_MANAGER"
                                 ? "bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
                                 : evt.role === "DELIVERY_PARTNER"
-                                ? "bg-brand-gold-light dark:bg-brand-gold-dark text-brand-gold-dark dark:text-brand-gold/40 border border-brand-gold/40 dark:border-brand-gold-dark"
+                                ? "bg-brand-gold-light dark:bg-brand-gold-dark text-brand-gold-dark dark:text-brand-gold border border-brand-gold/40 dark:border-brand-gold-dark"
                                 : "bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300"
                             }`}
                           >

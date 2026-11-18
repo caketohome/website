@@ -165,7 +165,7 @@ export function IntegrationsTab({
           <div className="flex items-center justify-between pb-2 border-b border-slate-800">
             <div className="flex items-center gap-2">
               <Plug className="w-4 h-4 text-brand-primary" />
-              <Text className="text-xs font-bold uppercase tracking-wider text-brand-primary/30">
+              <Text className="text-xs font-bold uppercase tracking-wider text-brand-primary">
                 n8n Automation &amp; Transactional Webhook Outbox
               </Text>
             </div>

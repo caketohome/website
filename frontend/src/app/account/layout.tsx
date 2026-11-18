@@ -76,7 +76,7 @@ export default async function AccountLayout({
                     href={item.href}
                     className="flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-brand-text hover:text-brand-navy hover:bg-brand-surface-muted transition-all group border border-transparent hover:border-brand-border"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-brand-surface-muted text-brand-gold flex items-center justify-center group-hover:bg-brand-gold/20 group-hover:text-brand-gold/40 transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-brand-surface-muted text-brand-gold flex items-center justify-center group-hover:bg-brand-gold/20 group-hover:text-brand-gold transition-colors">
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -105,7 +105,7 @@ export default async function AccountLayout({
                 href="https://wa.me/919567789888?text=Hi%20CakeToHome%20Concierge,%20I%20need%20assistance%20with%20my%20order."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-gold hover:text-brand-gold/40 hover:underline pt-1"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-gold hover:text-brand-gold hover:underline pt-1"
               >
                 Chat on WhatsApp (+91 95677 89888) &rarr;
               </a>

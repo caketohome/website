@@ -311,7 +311,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-xs text-slate-900 dark:text-white">{b.name}</span>
-                    <span className="px-2 py-0.5 bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary/30 rounded text-[10px] font-mono font-bold">
+                    <span className="px-2 py-0.5 bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary rounded text-[10px] font-mono font-bold">
                       {b.code || "HUB"}
                     </span>
                   </div>

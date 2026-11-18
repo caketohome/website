@@ -44,7 +44,7 @@ export function ReorderButton({ orderId }: ReorderButtonProps) {
         onClick={handleReorder}
         disabled={loading}
         title="1-Click Reorder items into fresh cart"
-        className="px-3.5 py-1.5 rounded-xl bg-brand-gold/10 hover:bg-brand-gold/20 text-brand-gold/40 border border-brand-gold/30 text-xs font-bold flex items-center gap-1.5 transition-colors disabled:opacity-50"
+        className="px-3.5 py-1.5 rounded-xl bg-brand-gold/10 hover:bg-brand-gold/20 text-brand-gold border border-brand-gold/30 text-xs font-bold flex items-center gap-1.5 transition-colors disabled:opacity-50"
       >
         {loading ? (
           <>

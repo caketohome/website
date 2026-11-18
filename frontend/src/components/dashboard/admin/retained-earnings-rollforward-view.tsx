@@ -322,7 +322,7 @@ export function RetainedEarningsRollForwardView({ branchId }: { branchId?: strin
                           <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
                             y.is_closed
                               ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
-                              : "bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold/40 border border-brand-gold/40 dark:border-brand-gold-dark"
+                              : "bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold border border-brand-gold/40 dark:border-brand-gold-dark"
                           }`}>
                             {y.is_closed ? "CLOSED" : "UNCLOSED"}
                           </span>

@@ -94,7 +94,7 @@ export default async function OccasionsDirectoryPage() {
 
                   {/* Title overlay on image bottom */}
                   <div className="absolute bottom-3 left-3 right-3 text-white">
-                    <h2 className="text-lg font-bold font-serif leading-snug drop-shadow-sm group-hover:text-brand-gold/40 transition-colors">
+                    <h2 className="text-lg font-bold font-serif leading-snug drop-shadow-sm group-hover:text-brand-gold transition-colors">
                       {occasion.name}
                     </h2>
                   </div>

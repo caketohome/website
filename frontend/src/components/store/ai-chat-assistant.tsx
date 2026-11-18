@@ -292,7 +292,7 @@ export function AiChatAssistant() {
                           <button
                             key={i}
                             onClick={() => handleSend(`Apply coupon ${act.payload?.code || ""}`)}
-                            className="px-3 py-1.5 bg-brand-gold/10 hover:bg-brand-gold/20 border border-brand-gold/40 text-brand-gold/40 text-xs font-bold rounded-xl transition-colors flex items-center justify-between gap-2"
+                            className="px-3 py-1.5 bg-brand-gold/10 hover:bg-brand-gold/20 border border-brand-gold/40 text-brand-gold text-xs font-bold rounded-xl transition-colors flex items-center justify-between gap-2"
                           >
                             <span className="flex items-center gap-1.5">
                               <Tag className="w-3.5 h-3.5" />
@@ -336,7 +336,7 @@ export function AiChatAssistant() {
                         <div className="flex items-center gap-2">
                           <Tag className="w-3.5 h-3.5 text-brand-gold shrink-0" />
                           <div>
-                            <span className="font-mono font-bold text-xs text-brand-gold/40">
+                            <span className="font-mono font-bold text-xs text-brand-gold">
                               {off.code}
                             </span>
                             <p className="text-[10px] text-slate-300 line-clamp-1">{off.name}</p>
@@ -360,7 +360,7 @@ export function AiChatAssistant() {
                       <button
                         key={i}
                         onClick={() => handleSend(opt)}
-                        className="px-2.5 py-1 bg-slate-800 hover:bg-brand-gold/20 border border-slate-700 hover:border-brand-gold text-brand-gold/40 text-[11px] rounded-full transition-colors text-left"
+                        className="px-2.5 py-1 bg-slate-800 hover:bg-brand-gold/20 border border-slate-700 hover:border-brand-gold text-brand-gold text-[11px] rounded-full transition-colors text-left"
                       >
                         {opt}
                       </button>

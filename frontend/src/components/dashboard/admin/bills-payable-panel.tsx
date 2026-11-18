@@ -291,7 +291,7 @@ export const BillsPayablePanel = memo(function BillsPayablePanel() {
               <Clock className="w-4 h-4 text-brand-gold" />
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-brand-gold-dark dark:text-brand-gold/40">
+              <span className="text-2xl font-bold text-brand-gold-dark dark:text-brand-gold">
                 ₹{Number(summary.due_soon_amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </span>
             </div>
@@ -397,11 +397,11 @@ export const BillsPayablePanel = memo(function BillsPayablePanel() {
         {selectedBillIds.size > 0 && (
           <div className="flex items-center justify-between p-3.5 rounded-2xl border border-brand-primary/30 dark:border-brand-navy/60 bg-brand-light/60 dark:bg-brand-navy/40 text-xs animate-in slide-in-from-top-2 duration-150">
             <div className="flex items-center gap-3">
-              <span className="font-semibold text-brand-navy dark:text-brand-primary/30">
+              <span className="font-semibold text-brand-navy dark:text-brand-primary">
                 {selectedBillIds.size} bill(s) selected
               </span>
               <span className="text-zinc-400">•</span>
-              <span className="text-brand-navy dark:text-brand-primary/30">
+              <span className="text-brand-navy dark:text-brand-primary">
                 Combined Payable: <strong className="font-bold">₹{totalSelectedPayable.toFixed(2)}</strong>
               </span>
             </div>

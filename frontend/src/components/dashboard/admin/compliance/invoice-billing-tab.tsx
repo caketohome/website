@@ -195,7 +195,7 @@ export function InvoiceBillingTab({
         <Container className="p-5 border border-brand-gold/40 bg-brand-gold-light/50 dark:bg-brand-gold-dark/20 rounded-2xl flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <Scale className="w-4 h-4 text-brand-gold" />
-            <Text className="text-xs font-bold uppercase tracking-wider text-brand-gold-dark dark:text-brand-gold/40">
+            <Text className="text-xs font-bold uppercase tracking-wider text-brand-gold-dark dark:text-brand-gold">
               Propose Statutory Invoice Series (CGST Rule 46)
             </Text>
           </div>

@@ -45,10 +45,10 @@ type Tab = "list" | "create" | "categories";
 const STATUS_COLORS: Record<ExpenseStatus, string> = {
   DRAFT:            "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
   SUBMITTED:        "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300",
-  APPROVED:         "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold/40",
+  APPROVED:         "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold",
   REJECTED:         "bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300",
-  AWAITING_PAYMENT: "bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary/30",
-  PAID:             "bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary/30",
+  AWAITING_PAYMENT: "bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary",
+  PAID:             "bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary",
   POSTED:           "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300",
   REVERSED:         "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300",
   CANCELLED:        "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
@@ -639,7 +639,7 @@ export default function ExpensePanel() {
                 <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{fmtCurrency(selected.igst)}</span>
               </div>
               <div className="bg-brand-gold-light/80 dark:bg-brand-gold-dark/30 border border-brand-gold/40 dark:border-brand-gold-dark/60 p-3 rounded-2xl">
-                <span className="text-brand-gold-dark dark:text-brand-gold/40 block font-bold text-[11px]">Total Claim</span>
+                <span className="text-brand-gold-dark dark:text-brand-gold block font-bold text-[11px]">Total Claim</span>
                 <span className="font-mono font-black text-brand-gold dark:text-brand-gold text-sm">{fmtCurrency(selected.total)}</span>
               </div>
             </div>
@@ -1005,10 +1005,10 @@ export default function ExpensePanel() {
                 />
               </div>
               <div>
-                <label className="text-xs font-black text-brand-gold-dark dark:text-brand-gold/40 block mb-1">Total (₹)</label>
+                <label className="text-xs font-black text-brand-gold-dark dark:text-brand-gold block mb-1">Total (₹)</label>
                 <input
                   type="number" readOnly
-                  className="w-full border border-brand-gold/40 dark:border-brand-gold-dark rounded-xl px-3 py-1.5 text-xs bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold/40 font-black font-mono"
+                  className="w-full border border-brand-gold/40 dark:border-brand-gold-dark rounded-xl px-3 py-1.5 text-xs bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold font-black font-mono"
                   value={String(form.total ?? 0)}
                 />
               </div>

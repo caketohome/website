@@ -200,7 +200,7 @@ export function AccountDashboardView({ initialCustomer }: AccountDashboardViewPr
     <div className="space-y-8 font-sans max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* ── Success Toast Alert ───────────────────────────────────────────── */}
       {editSuccessMsg && (
-        <div className="fixed top-20 right-6 z-50 flex items-center gap-3 bg-white border border-brand-gold/40 text-brand-gold/40 px-5 py-3.5 rounded-2xl shadow-2xl backdrop-blur-xl animate-in slide-in-from-top-4">
+        <div className="fixed top-20 right-6 z-50 flex items-center gap-3 bg-white border border-brand-gold/40 text-brand-gold px-5 py-3.5 rounded-2xl shadow-2xl backdrop-blur-xl animate-in slide-in-from-top-4">
           <CheckCircle2 className="w-5 h-5 text-[#16834A] shrink-0" />
           <span className="text-sm font-semibold">{editSuccessMsg}</span>
         </div>
@@ -215,7 +215,7 @@ export function AccountDashboardView({ initialCustomer }: AccountDashboardViewPr
           <div className="flex items-center gap-5">
             <div className="relative">
               <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-brand-gold via-brand-gold to-brand-gold p-0.5 shadow-xl shadow-brand-gold/20">
-                <div className="w-full h-full rounded-[14px] bg-white flex items-center justify-center text-2xl sm:text-3xl font-extrabold text-brand-gold/40">
+                <div className="w-full h-full rounded-[14px] bg-white flex items-center justify-center text-2xl sm:text-3xl font-extrabold text-brand-gold">
                   {initials}
                 </div>
               </div>
@@ -349,7 +349,7 @@ export function AccountDashboardView({ initialCustomer }: AccountDashboardViewPr
               </h3>
               <button
                 onClick={handleOpenEditProfile}
-                className="text-xs text-brand-gold hover:text-brand-gold/40 font-bold flex items-center gap-1 cursor-pointer"
+                className="text-xs text-brand-gold hover:text-brand-gold font-bold flex items-center gap-1 cursor-pointer"
               >
                 <Edit3 className="w-3.5 h-3.5" /> Edit
               </button>

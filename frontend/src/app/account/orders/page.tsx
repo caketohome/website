@@ -223,7 +223,7 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
                         existingReview ? (
                           <Link
                             href={`/products/${firstItemProdId}#customer-reviews-section`}
-                            className="px-3.5 py-1.5 rounded-xl bg-brand-gold/10 hover:bg-brand-gold/20 text-brand-gold/40 border border-brand-gold/30 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                            className="px-3.5 py-1.5 rounded-xl bg-brand-gold/10 hover:bg-brand-gold/20 text-brand-gold border border-brand-gold/30 text-xs font-bold flex items-center gap-1.5 transition-colors"
                           >
                             <Star className="w-3.5 h-3.5 fill-brand-gold text-brand-gold" />
                             Reviewed ({existingReview.rating}★)

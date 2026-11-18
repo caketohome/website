@@ -132,7 +132,7 @@ const STATUS_CONFIG: Record<
   },
   APPROVED: {
     label: "Approved",
-    badge: "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold/40 border-brand-gold/40 dark:border-brand-gold-dark",
+    badge: "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold border-brand-gold/40 dark:border-brand-gold-dark",
     icon: CheckCircle2,
   },
   POSTED: {
@@ -835,7 +835,7 @@ export default function GatewaySettlementPanel() {
                             title={batch.approved_by ? `Approved by: ${batch.approved_by}` : "Pending Approval"}
                             className={`px-1.5 py-0.5 rounded font-mono ${
                               batch.approved_by
-                                ? "bg-brand-gold-light dark:bg-brand-gold-dark text-brand-gold-dark dark:text-brand-gold/40"
+                                ? "bg-brand-gold-light dark:bg-brand-gold-dark text-brand-gold-dark dark:text-brand-gold"
                                 : "bg-slate-100 dark:bg-slate-800 text-slate-400"
                             }`}
                           >
@@ -943,12 +943,12 @@ export default function GatewaySettlementPanel() {
                           <div className="text-sm font-bold mt-0.5">₹{selectedMath.gross.toFixed(2)}</div>
                         </div>
                         <div>
-                          <div className="text-[10px] text-brand-gold/40 uppercase">- Fee (₹)</div>
-                          <div className="text-sm font-bold text-brand-gold/40 mt-0.5">₹{selectedMath.fee.toFixed(2)}</div>
+                          <div className="text-[10px] text-brand-gold uppercase">- Fee (₹)</div>
+                          <div className="text-sm font-bold text-brand-gold mt-0.5">₹{selectedMath.fee.toFixed(2)}</div>
                         </div>
                         <div>
-                          <div className="text-[10px] text-brand-gold/40 uppercase">- Tax (₹)</div>
-                          <div className="text-sm font-bold text-brand-gold/40 mt-0.5">₹{selectedMath.tax.toFixed(2)}</div>
+                          <div className="text-[10px] text-brand-gold uppercase">- Tax (₹)</div>
+                          <div className="text-sm font-bold text-brand-gold mt-0.5">₹{selectedMath.tax.toFixed(2)}</div>
                         </div>
                         <div>
                           <div className="text-[10px] text-rose-300 uppercase">- Other (₹)</div>
@@ -1029,7 +1029,7 @@ export default function GatewaySettlementPanel() {
                         <div className="flex justify-between items-center">
                           <span className="text-slate-400">2. Approved By:</span>
                           {selectedBatch.approved_by ? (
-                            <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold/40 font-bold">
+                            <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold font-bold">
                               {selectedBatch.approved_by}
                             </span>
                           ) : (

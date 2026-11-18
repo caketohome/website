@@ -407,7 +407,7 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
                       </span>
                       <div className="flex flex-wrap gap-1.5 p-2.5 bg-white dark:bg-slate-800 rounded-lg border max-h-24 overflow-y-auto">
                         {aList.map((a) => (
-                          <span key={a} className="px-2 py-0.5 bg-brand-light dark:bg-brand-navy/40 text-brand-navy dark:text-brand-primary/30 rounded font-semibold text-[11px]">
+                          <span key={a} className="px-2 py-0.5 bg-brand-light dark:bg-brand-navy/40 text-brand-navy dark:text-brand-primary rounded font-semibold text-[11px]">
                             {a}
                           </span>
                         ))}

@@ -1378,7 +1378,7 @@ export function CorporateAccountsPanel() {
                       </div>
 
                       <div className="p-4 rounded-xl border border-brand-primary/30 dark:border-brand-navy bg-brand-light/50 dark:bg-brand-navy/20 space-y-2">
-                        <span className="text-xs font-semibold text-brand-navy dark:text-brand-primary/30">
+                        <span className="text-xs font-semibold text-brand-navy dark:text-brand-primary">
                           Super Admin Credit Activation
                         </span>
                         <div className="text-xs text-slate-600 dark:text-slate-400">

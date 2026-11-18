@@ -571,7 +571,7 @@ export function ScrollFrameEditor({ config, onChange }: ScrollFrameEditorProps) 
             </Text>
 
             {currentFrameCount > RECOMMENDED_FRAME_COUNT && (
-              <div className="p-2 bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 dark:border-brand-gold-dark rounded-lg flex items-center gap-2 text-[11px] text-brand-gold-dark dark:text-brand-gold/40">
+              <div className="p-2 bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 dark:border-brand-gold-dark rounded-lg flex items-center gap-2 text-[11px] text-brand-gold-dark dark:text-brand-gold">
                 <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                 <span>Animation payload is large. Consider 16 frames for optimal mobile speed.</span>
               </div>

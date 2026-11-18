@@ -85,7 +85,7 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
                 <span>100% Freshness Guarantee</span>
               </div>
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/15 shadow-sm">
-                <Award className="w-4 h-4 text-brand-gold/40" />
+                <Award className="w-4 h-4 text-brand-gold" />
                 <span>Master Patissier Quality</span>
               </div>
             </div>

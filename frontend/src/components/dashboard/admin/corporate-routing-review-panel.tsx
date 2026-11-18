@@ -331,7 +331,7 @@ export function CorporateRoutingReviewPanel() {
         </div>
         <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-brand-gold/40 dark:border-brand-gold-dark/50">
           <div className="text-xs font-semibold text-brand-gold dark:text-brand-gold">Missing Coords</div>
-          <div className="mt-1 text-2xl font-bold text-brand-gold-dark dark:text-brand-gold/40">
+          <div className="mt-1 text-2xl font-bold text-brand-gold-dark dark:text-brand-gold">
             {reasonCounts["COORDINATES_MISSING"] || 0}
           </div>
         </div>
@@ -343,7 +343,7 @@ export function CorporateRoutingReviewPanel() {
         </div>
         <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-brand-primary/30 dark:border-brand-navy/50">
           <div className="text-xs font-semibold text-brand-primary dark:text-brand-primary">In Exclusion</div>
-          <div className="mt-1 text-2xl font-bold text-brand-navy dark:text-brand-primary/30">
+          <div className="mt-1 text-2xl font-bold text-brand-navy dark:text-brand-primary">
             {reasonCounts["INSIDE_EXCLUSION"] || 0}
           </div>
         </div>
@@ -355,7 +355,7 @@ export function CorporateRoutingReviewPanel() {
         </div>
         <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-brand-gold/40 dark:border-brand-gold-dark/50">
           <div className="text-xs font-semibold text-brand-gold dark:text-brand-gold">Store / Partner</div>
-          <div className="mt-1 text-2xl font-bold text-brand-gold-dark dark:text-brand-gold/40">
+          <div className="mt-1 text-2xl font-bold text-brand-gold-dark dark:text-brand-gold">
             {(reasonCounts["STORE_NOT_ELIGIBLE"] || 0) + (reasonCounts["NO_ELIGIBLE_PARTNER"] || 0)}
           </div>
         </div>
@@ -616,7 +616,7 @@ export function CorporateRoutingReviewPanel() {
               <div className="p-4 rounded-xl border border-brand-gold/40 dark:border-brand-gold-dark/60 bg-brand-gold-light/50 dark:bg-brand-gold-dark/20">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-brand-gold dark:text-brand-gold" />
-                  <span className="text-xs font-bold text-brand-gold-dark dark:text-brand-gold/40">
+                  <span className="text-xs font-bold text-brand-gold-dark dark:text-brand-gold">
                     Routing Evaluation Outcome: {selectedItem.reason_code}
                   </span>
                 </div>

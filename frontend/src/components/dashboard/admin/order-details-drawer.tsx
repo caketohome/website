@@ -435,7 +435,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                             : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-brand-primary"
                         }`}
                       >
-                        <span className="w-5 h-5 rounded-full bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary/30 flex items-center justify-center text-[10px] font-extrabold">
+                        <span className="w-5 h-5 rounded-full bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary flex items-center justify-center text-[10px] font-extrabold">
                           {idx + 1}
                         </span>
                         <span className="line-clamp-1">{st.label}</span>
@@ -448,7 +448,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
 
             {/* SECTION 12 (PRIMARY ACTIONS BAR): QUICK OPERATIONAL CONTROLS */}
             <div className="p-4 border rounded-2xl bg-slate-900 text-white flex flex-wrap items-center justify-between gap-3 shadow-lg">
-              <span className="text-xs font-extrabold uppercase tracking-wider flex items-center gap-1 text-brand-primary/30">
+              <span className="text-xs font-extrabold uppercase tracking-wider flex items-center gap-1 text-brand-primary">
                 <ShieldCheck className="w-4 h-4 text-brand-primary" /> Operational Controls:
               </span>
               <div className="flex flex-wrap items-center gap-2">
@@ -478,7 +478,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
             {/* Inline Action Forms */}
             {showBranchAssign && (
               <div className="p-4 border rounded-xl bg-brand-light dark:bg-brand-navy/40 space-y-3 text-xs">
-                <Text className="font-bold text-brand-navy dark:text-brand-primary/30">Reassign Kitchen Branch Hub &amp; Baking Station:</Text>
+                <Text className="font-bold text-brand-navy dark:text-brand-primary">Reassign Kitchen Branch Hub &amp; Baking Station:</Text>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-h-56 overflow-y-auto">
                   {(branchesList.length > 0 ? branchesList : [
                     { id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", name: "Indiranagar Flagship", code: "HUB-BLR-01", queue: 4, capacity: "78% Load", bakers: 6, delay: "0 mins" },
@@ -593,14 +593,14 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
 
             {showReschedule && (
               <div className="p-4 border rounded-xl bg-brand-gold-light dark:bg-brand-gold-dark/40 space-y-3 text-xs">
-                <Text className="font-bold text-brand-gold-dark dark:text-brand-gold/40">Delivery Slot Capacity Scheduler:</Text>
+                <Text className="font-bold text-brand-gold-dark dark:text-brand-gold">Delivery Slot Capacity Scheduler:</Text>
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-brand-gold-dark dark:text-brand-gold/40 block">Select Target Date:</label>
+                    <label className="text-[10px] font-bold text-brand-gold-dark dark:text-brand-gold block">Select Target Date:</label>
                     <Input type="date" value={newDeliveryDate} onChange={(e) => setNewDeliveryDate(e.target.value)} className="w-44 text-xs bg-white dark:bg-slate-800" />
                   </div>
                   <div className="space-y-1 flex-1">
-                    <label className="text-[10px] font-bold text-brand-gold-dark dark:text-brand-gold/40 block">Select Available Time Slot:</label>
+                    <label className="text-[10px] font-bold text-brand-gold-dark dark:text-brand-gold block">Select Available Time Slot:</label>
                     <select value={newDeliverySlot} onChange={(e) => setNewDeliverySlot(e.target.value)} className="p-2 border rounded-lg bg-white dark:bg-slate-800 text-xs w-full font-bold">
                       <option value="09:00 AM - 12:00 PM (Morning Slot)">09:00 AM - 12:00 PM (Morning Slot) - 4/15 Orders</option>
                       <option value="02:00 PM - 05:00 PM (Afternoon Slot)">02:00 PM - 05:00 PM (Afternoon Slot) - 8/15 Orders</option>
@@ -696,7 +696,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                   )}
                 </div>
                 {(order.delivery_instructions || order.customer?.delivery_instructions) && (
-                  <div className="p-2 bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 rounded-lg text-xs text-brand-gold-dark dark:text-brand-gold/40">
+                  <div className="p-2 bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 rounded-lg text-xs text-brand-gold-dark dark:text-brand-gold">
                     <span className="font-bold block text-[10px]">Instructions:</span> {order.delivery_instructions || order.customer?.delivery_instructions}
                   </div>
                 )}
@@ -824,7 +824,7 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
                         </p>
 
                         {item.cake_message && (
-                          <div className="mt-1 p-1.5 bg-brand-gold-light dark:bg-brand-gold-dark/60 rounded border border-brand-gold/40 text-brand-gold-dark dark:text-brand-gold/40 text-xs font-semibold">
+                          <div className="mt-1 p-1.5 bg-brand-gold-light dark:bg-brand-gold-dark/60 rounded border border-brand-gold/40 text-brand-gold-dark dark:text-brand-gold text-xs font-semibold">
                             Piping Text: &ldquo;{item.cake_message}&rdquo;
                           </div>
                         )}

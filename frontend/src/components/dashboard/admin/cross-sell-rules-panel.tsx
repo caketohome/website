@@ -100,10 +100,10 @@ export function CrossSellRulesPanel() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-brand-light/60 dark:bg-brand-navy/30 p-4 rounded-xl border border-brand-primary/30 dark:border-brand-navy">
         <div>
-          <Heading level="h2" className="text-lg font-bold flex items-center gap-2 text-brand-navy dark:text-brand-primary/30">
+          <Heading level="h2" className="text-lg font-bold flex items-center gap-2 text-brand-navy dark:text-brand-primary">
             <Wand2 className="w-5 h-5 text-brand-primary" /> Smart Auto-Mapping Rule Engine ({rules.length})
           </Heading>
-          <Text className="text-xs text-brand-navy dark:text-brand-primary/30">
+          <Text className="text-xs text-brand-navy dark:text-brand-primary">
             Automatically maps accessories to cake products based on structured occasion taxonomy and category rules.
           </Text>
         </div>

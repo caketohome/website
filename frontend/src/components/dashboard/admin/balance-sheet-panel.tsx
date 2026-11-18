@@ -322,7 +322,7 @@ export function BalanceSheetPanel() {
             className={`border rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 ${
               data.reconciliation.is_balanced
                 ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/50 text-emerald-900 dark:text-emerald-200"
-                : "bg-brand-gold-light dark:bg-brand-gold-dark/20 border-brand-gold/40 dark:border-brand-gold-dark/50 text-brand-gold-dark dark:text-brand-gold/40"
+                : "bg-brand-gold-light dark:bg-brand-gold-dark/20 border-brand-gold/40 dark:border-brand-gold-dark/50 text-brand-gold-dark dark:text-brand-gold"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -899,7 +899,7 @@ export function BalanceSheetPanel() {
                         </span>
                         {data.sections.equity.opening_balance_offset.name}
                         {data.sections.equity.opening_balance_offset.amount !== 0 && (
-                          <span className="text-[9px] bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold/40 px-1.5 py-0.5 rounded font-semibold">
+                          <span className="text-[9px] bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold px-1.5 py-0.5 rounded font-semibold">
                             Offset Reserve
                           </span>
                         )}

@@ -608,7 +608,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
             </Text>
           </div>
           <div className="flex items-center gap-2">
-            <Button size="small" variant="transparent" onClick={handleAiGenerateAll} isLoading={aiPrompting} className="bg-brand-light dark:bg-brand-navy text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy font-semibold opacity-100">
+            <Button size="small" variant="transparent" onClick={handleAiGenerateAll} isLoading={aiPrompting} className="bg-brand-light dark:bg-brand-navy text-brand-navy dark:text-brand-primary border border-brand-primary/30 dark:border-brand-navy font-semibold opacity-100">
               <Wand2 className="w-3.5 h-3.5 mr-1" /> AI Auto-Fill PIM
             </Button>
             <Button size="small" variant="transparent" onClick={onClose} className="text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold">Close</Button>
@@ -807,7 +807,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
                     <Plus className="w-3.5 h-3.5 mr-1" /> Add Weight Option
                   </Button>
                 </div>
-                <Text className="text-[11px] text-brand-navy dark:text-brand-primary/30 font-semibold">Add unlimited dynamic product sizes & prices</Text>
+                <Text className="text-[11px] text-brand-navy dark:text-brand-primary font-semibold">Add unlimited dynamic product sizes & prices</Text>
               </div>
 
               {/* Weight Matrix Table */}
@@ -1423,7 +1423,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
               <div className="p-4 border-2 border-dashed border-brand-primary/30 dark:border-brand-navy rounded-xl bg-brand-light dark:bg-brand-navy text-center flex flex-col items-center justify-center gap-2 opacity-100">
                 <Upload className="w-8 h-8 text-brand-primary animate-bounce" />
                 <div>
-                  <Text className="font-bold text-sm text-brand-navy dark:text-brand-primary/30">
+                  <Text className="font-bold text-sm text-brand-navy dark:text-brand-primary">
                     High-Performance Canvas WebP Image Converter
                   </Text>
                   <Text className="text-xs text-slate-600 dark:text-slate-400 font-medium">
@@ -1512,12 +1512,12 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
 
                 {/* Delivery Profile Selection Banner */}
                 <div className="p-3 bg-white dark:bg-slate-900 border rounded-xl space-y-2">
-                  <Label htmlFor="pim_delivery_profile" className="font-bold text-xs text-brand-navy dark:text-brand-primary/30">Assigned Reusable Delivery Profile *</Label>
+                  <Label htmlFor="pim_delivery_profile" className="font-bold text-xs text-brand-navy dark:text-brand-primary">Assigned Reusable Delivery Profile *</Label>
                   <select
                     id="pim_delivery_profile"
                     value={deliveryProfileId}
                     onChange={(e) => setDeliveryProfileId(e.target.value)}
-                    className="w-full p-2 text-xs font-bold rounded-lg border bg-brand-light/50 dark:bg-brand-navy/30 text-brand-navy dark:text-brand-primary/30 cursor-pointer"
+                    className="w-full p-2 text-xs font-bold rounded-lg border bg-brand-light/50 dark:bg-brand-navy/30 text-brand-navy dark:text-brand-primary cursor-pointer"
                   >
                     <option value="prof_regular">Regular Cake Delivery Profile (1h Prep, Bike, 60m Slots)</option>
                     <option value="prof_designer">Designer Cake Delivery Profile (6h Prep, Car, 120m Slots)</option>
@@ -1724,10 +1724,10 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
               <div className="p-4 rounded-xl border border-brand-primary/30 dark:border-brand-navy bg-brand-light/50 dark:bg-brand-navy/20 space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="font-bold text-xs text-brand-navy dark:text-brand-primary/30 flex items-center gap-1.5">
+                    <span className="font-bold text-xs text-brand-navy dark:text-brand-primary flex items-center gap-1.5">
                       📦 Product Inventory & Branch Fulfillment Model *
                     </span>
-                    <span className="text-[11px] text-brand-navy dark:text-brand-primary/30 block mt-0.5">
+                    <span className="text-[11px] text-brand-navy dark:text-brand-primary block mt-0.5">
                       CakeToHome separates physically-stocked accessories from made-to-order baked goods.
                     </span>
                   </div>

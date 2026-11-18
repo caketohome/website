@@ -149,7 +149,7 @@ export default function KotModal({ orderId, isOpen, onClose }: KotModalProps) {
                   <img src={kotData.photo_cake.photo_url} alt="Photo Preview" className="w-14 h-14 rounded object-cover border border-brand-primary/30" />
                 )}
                 <div className="text-xs">
-                  <p className="font-bold text-brand-navy dark:text-brand-primary/30">PHOTO CAKE PRINT SHEET</p>
+                  <p className="font-bold text-brand-navy dark:text-brand-primary">PHOTO CAKE PRINT SHEET</p>
                   <p className="text-[10px] text-brand-text-muted">{kotData.photo_cake.instructions}</p>
                 </div>
               </div>

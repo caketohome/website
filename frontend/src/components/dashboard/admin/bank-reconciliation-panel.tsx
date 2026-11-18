@@ -847,7 +847,7 @@ export default function BankReconciliationPanel() {
                           {slip.notes || "Cash deposit in-transit"}
                         </td>
                         <td className="py-2.5 px-3">
-                          <span className="px-2 py-0.5 rounded-full text-2xs font-bold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold/40">
+                          <span className="px-2 py-0.5 rounded-full text-2xs font-bold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold">
                             {slip.status}
                           </span>
                         </td>

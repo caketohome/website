@@ -4181,6 +4181,11 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         }
 
         // 3. Chart of Accounts list: GET admin/accounting/accounts or accounting/chart-of-accounts
+        // Chart of Accounts with live balances: GET admin/accounting/chart
+        if (acctSubPath === "chart") {
+          const { listChartOfAccounts } = await import("@frontend/lib/services/chart-of-accounts.service");
+          return jsonWithDataSource({ success: true, accounts: await listChartOfAccounts() }, "postgres");
+        }
         if (acctSubPath === "accounts" || acctSubPath === "chart-of-accounts") {
           const search = url.searchParams.get("search") || undefined;
           const includeGroups = url.searchParams.get("include_groups") === "true";
@@ -7865,6 +7870,19 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const acctSubPath = path.replace(/^admin\/accounting\//, "");
 
       try {
+        // Chart of Accounts: POST admin/accounting/chart (create) | POST admin/accounting/chart/:id (rename / activate)
+        if (acctSubPath === "chart" || acctSubPath.startsWith("chart/")) {
+          try {
+            const coa = await import("@frontend/lib/services/chart-of-accounts.service");
+            if (acctSubPath === "chart") {
+              return jsonWithDataSource({ success: true, account: await coa.createLedger(body || {}, userCtx.userId) }, "postgres");
+            }
+            const id = decodeURIComponent(acctSubPath.slice("chart/".length));
+            return jsonWithDataSource({ success: true, account: await coa.updateLedger(id, body || {}) }, "postgres");
+          } catch (e: any) {
+            return jsonWithDataSource({ success: false, error: e.message }, "postgres", 400);
+          }
+        }
         // Parent company (Baked) purchase settings: POST admin/accounting/parent-company
         if (acctSubPath === "parent-company") {
           try {
@@ -11958,6 +11976,16 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const userCtx = resolveUserContext(req);
       const res = await MarketplaceReconciliationService.reverseInvoice(id, body.reason || "Invoice reversed by administrator", toAuthenticatedActor(userCtx));
       return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
+    }
+    // Security: partner order actions require a partner session (own orders only, enforced in the service)
+    // and the admin variants require ORDERS.EDIT. Previously any caller, even anonymous, passed through.
+    if (path.startsWith("partner/orders/") && /\/(accept|reject|dispatch|deliver)$/.test(path)) {
+      const ps = requirePartnerSession(req);
+      if (ps instanceof NextResponse) return ps;
+    }
+    if (path.startsWith("admin/marketplace/orders/") && /\/(dispatch|deliver)$/.test(path)) {
+      const permErr = verifyApiPermission(req, "ORDERS", "EDIT");
+      if (permErr) return permErr;
     }
     if (path.startsWith("partner/orders/") && path.endsWith("/accept")) {
       const id = path.replace("partner/orders/", "").replace("/accept", "");

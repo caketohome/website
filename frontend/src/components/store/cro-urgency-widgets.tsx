@@ -15,7 +15,7 @@ export function LiveVisitorsBadge() {
   }, []);
 
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 dark:border-brand-gold-dark/50 rounded-lg text-xs text-brand-gold-dark dark:text-brand-gold/40">
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 dark:border-brand-gold-dark/50 rounded-lg text-xs text-brand-gold-dark dark:text-brand-gold">
       <Flame className="w-4 h-4 text-brand-gold animate-bounce" />
       <span className="font-semibold">{count} people</span> are viewing this cake right now!
     </div>
@@ -82,7 +82,7 @@ export function RecentOrderToast() {
         🎂
       </div>
       <div className="flex flex-col gap-0.5 text-xs">
-        <span className="font-semibold text-brand-gold/40">{currentOrder.name} ({currentOrder.area})</span>
+        <span className="font-semibold text-brand-gold">{currentOrder.name} ({currentOrder.area})</span>
         <span className="text-slate-300 text-[11px]">Just ordered {currentOrder.item}</span>
         <span className="text-[9px] text-slate-400">{currentOrder.time}</span>
       </div>

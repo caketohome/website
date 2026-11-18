@@ -140,7 +140,7 @@ export function CampaignBuilderModal({ isOpen, onClose, onRefresh }: CampaignBui
           {editingCamp ? (
             <div className="bg-neutral-50 dark:bg-neutral-800/40 border border-brand-gold/80 dark:border-brand-gold-dark/60 p-4 rounded-xl space-y-4">
               <div className="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-700 pb-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-brand-gold-dark dark:text-brand-gold/40">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-brand-gold-dark dark:text-brand-gold">
                   {editingCamp.id ? "Edit Workflow Rule" : "Create New Recovery Rule"}
                 </h3>
                 <button

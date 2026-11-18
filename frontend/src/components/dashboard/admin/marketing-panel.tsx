@@ -544,7 +544,7 @@ export const MarketingPanel = memo(function MarketingPanel() {
                           </td>
 
                           <td className="p-3">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-primary/10 text-brand-primary/30 border border-brand-primary/20 uppercase">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 uppercase">
                               {o.type.replace(/_/g, " ")}
                             </span>
                           </td>

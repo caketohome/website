@@ -153,7 +153,7 @@ export function DuplicateMergeModal({ isOpen, onClose, onMergedSuccess }: Duplic
               {/* Side-by-Side Comparison */}
               {selectedCandidate && (
                 <div className="flex flex-col gap-4">
-                  <div className="p-4 rounded-xl bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 dark:border-brand-gold-dark/60 text-xs text-brand-gold-dark dark:text-brand-gold/40 flex items-center justify-between">
+                  <div className="p-4 rounded-xl bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 dark:border-brand-gold-dark/60 text-xs text-brand-gold-dark dark:text-brand-gold flex items-center justify-between">
                     <span>
                       Matching fields: <strong className="uppercase">{(selectedCandidate.matching_fields || []).join(", ")}</strong> • Confidence: <strong>{selectedCandidate.confidence_score}%</strong>
                     </span>

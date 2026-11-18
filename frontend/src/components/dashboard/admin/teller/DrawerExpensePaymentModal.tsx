@@ -263,7 +263,7 @@ export function DrawerExpensePaymentModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold/40 rounded-lg">
+            <div className="p-2 bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold rounded-lg">
               <Receipt className="h-5 w-5" />
             </div>
             <div>
@@ -407,7 +407,7 @@ export function DrawerExpensePaymentModal({
                               {formatCurrency(exp.total)}
                             </td>
                             <td className="px-4 py-3 text-center">
-                              <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-semibold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold/40">
+                              <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-semibold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold">
                                 Approved / Ready
                               </span>
                             </td>

@@ -2153,7 +2153,7 @@ export function PopupEditorDrawer({
                     className={`p-3 rounded-xl text-xs flex flex-col gap-2 transition-all shadow-xs ${
                       isSimEligible
                         ? "bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200"
-                        : "bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 dark:border-brand-gold-dark text-brand-gold-dark dark:text-brand-gold/40"
+                        : "bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 dark:border-brand-gold-dark text-brand-gold-dark dark:text-brand-gold"
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -2227,7 +2227,7 @@ export function PopupEditorDrawer({
                   {/* Subtle status indicator pill when in preview simulation */}
                   {!isSimEligible && (
                     <div className="absolute top-2.5 right-2.5 z-20">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-gold-light text-brand-gold-dark border border-brand-gold/40 dark:bg-brand-gold-dark/80 dark:text-brand-gold/40 shadow-xs flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-gold-light text-brand-gold-dark border border-brand-gold/40 dark:bg-brand-gold-dark/80 dark:text-brand-gold shadow-xs flex items-center gap-1">
                         <AlertCircle className="w-3 h-3 text-brand-gold dark:text-brand-gold" />
                         Design Preview
                       </span>
@@ -2291,7 +2291,7 @@ export function PopupEditorDrawer({
                             <Tag className="w-3.5 h-3.5 text-brand-gold dark:text-brand-gold" />
                             <span className="text-xs font-mono font-bold text-brand-navy dark:text-brand-gold">{couponCode}</span>
                           </div>
-                          <span className="text-[10px] font-bold text-brand-gold-dark dark:text-brand-gold/40 uppercase">
+                          <span className="text-[10px] font-bold text-brand-gold-dark dark:text-brand-gold uppercase">
                             Apply at checkout
                           </span>
                         </div>

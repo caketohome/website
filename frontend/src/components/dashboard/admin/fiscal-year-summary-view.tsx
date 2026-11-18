@@ -272,8 +272,8 @@ export function FiscalYearSummaryView({ branchId }: { branchId?: string }) {
                           item.status === "CLOSED"
                             ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
                             : item.status === "REOPENED"
-                            ? "bg-brand-light dark:bg-brand-navy/40 text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy"
-                            : "bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold/40 border border-brand-gold/40 dark:border-brand-gold-dark"
+                            ? "bg-brand-light dark:bg-brand-navy/40 text-brand-navy dark:text-brand-primary border border-brand-primary/30 dark:border-brand-navy"
+                            : "bg-brand-gold-light dark:bg-brand-gold-dark/40 text-brand-gold-dark dark:text-brand-gold border border-brand-gold/40 dark:border-brand-gold-dark"
                         }`}>
                           {item.status === "CLOSED" ? <Lock className="w-2.5 h-2.5" /> : item.status === "REOPENED" ? <RefreshCw className="w-2.5 h-2.5" /> : <Unlock className="w-2.5 h-2.5" />}
                           {item.status}

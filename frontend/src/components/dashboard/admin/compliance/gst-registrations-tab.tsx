@@ -281,7 +281,7 @@ export function GstRegistrationsTab({
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified
                           </div>
                         ) : (
-                          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40 border border-brand-gold/40 dark:border-brand-gold-dark">
+                          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold border border-brand-gold/40 dark:border-brand-gold-dark">
                             <AlertCircle className="w-3 h-3 text-brand-gold" /> {reg.verification_status || "UNVERIFIED"}
                           </div>
                         )}

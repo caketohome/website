@@ -315,7 +315,7 @@ export function RecoveryJourneyDrawer({ cart, isOpen, onClose, onRefresh }: Reco
           {/* Section 3: Direct Recovery Message Dispatcher */}
           <div className="bg-gradient-to-br from-brand-gold/5 to-primary-500/5 border border-brand-gold/60 dark:border-brand-gold-dark/40 p-4 rounded-xl space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-brand-gold-dark dark:text-brand-gold/40 flex items-center gap-1.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-brand-gold-dark dark:text-brand-gold flex items-center gap-1.5">
                 <Send className="w-3.5 h-3.5 text-brand-gold" /> Send Recovery Incentive
               </h3>
               <div className="flex items-center gap-1.5">

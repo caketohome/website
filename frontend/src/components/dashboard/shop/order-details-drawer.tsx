@@ -71,8 +71,8 @@ export default function OrderDetailsDrawer({
                 Order #{order.order_number || order.id}
               </h2>
               <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider ${
-                order.priority === "EXPRESS" ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40" :
-                order.priority === "MIDNIGHT" ? "bg-brand-light text-brand-navy dark:bg-brand-navy dark:text-brand-primary/30" :
+                order.priority === "EXPRESS" ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold" :
+                order.priority === "MIDNIGHT" ? "bg-brand-light text-brand-navy dark:bg-brand-navy dark:text-brand-primary" :
                 "bg-brand-surface-muted text-brand-text dark:bg-zinc-800 dark:text-zinc-300"
               }`}>
                 {order.priority || "NORMAL"}
@@ -166,7 +166,7 @@ export default function OrderDetailsDrawer({
                   return null;
                 })()}
                 {(order.delivery_instructions || order.customer?.delivery_instructions) && (
-                  <p className="text-xs text-brand-gold-dark dark:text-brand-gold/40 mt-1 italic">
+                  <p className="text-xs text-brand-gold-dark dark:text-brand-gold mt-1 italic">
                     💬 Note: &quot;{order.delivery_instructions || order.customer?.delivery_instructions}&quot;
                   </p>
                 )}
@@ -241,7 +241,7 @@ export default function OrderDetailsDrawer({
                 </div>
               </div>
               {order.special_instructions && (
-                <div className="p-2.5 bg-brand-gold-light dark:bg-brand-gold-dark/30 rounded-lg border border-brand-gold/40 dark:border-brand-gold-dark/50 text-xs text-brand-gold-dark dark:text-brand-gold/40">
+                <div className="p-2.5 bg-brand-gold-light dark:bg-brand-gold-dark/30 rounded-lg border border-brand-gold/40 dark:border-brand-gold-dark/50 text-xs text-brand-gold-dark dark:text-brand-gold">
                   <span className="font-bold">Special Notes: </span>
                   {order.special_instructions}
                 </div>
@@ -305,7 +305,7 @@ export default function OrderDetailsDrawer({
           {order.pickup_otp ? (
             <div className="p-4 bg-gradient-to-r from-brand-gold-light to-brand-gold-light dark:from-brand-gold-dark/40 dark:to-brand-gold-dark/40 rounded-xl border border-brand-gold/40 dark:border-brand-gold-dark/60 shadow-sm flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-brand-gold-dark dark:text-brand-gold/40 flex items-center gap-1.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-brand-gold-dark dark:text-brand-gold flex items-center gap-1.5">
                   🔑 Kitchen Pickup OTP (Store Dispatch Handover)
                 </span>
                 <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-black uppercase ${
@@ -422,7 +422,7 @@ export default function OrderDetailsDrawer({
 
             <button
               onClick={() => setShowDelayInput(true)}
-              className="px-3 py-2 text-xs font-semibold rounded-lg border border-brand-gold/40 text-brand-gold-dark dark:text-brand-gold/40 hover:bg-brand-gold-light dark:hover:bg-brand-gold-dark/50 transition"
+              className="px-3 py-2 text-xs font-semibold rounded-lg border border-brand-gold/40 text-brand-gold-dark dark:text-brand-gold hover:bg-brand-gold-light dark:hover:bg-brand-gold-dark/50 transition"
             >
               ⏳ Delay Order
             </button>
@@ -459,7 +459,7 @@ export default function OrderDetailsDrawer({
         {/* Delay Dialog */}
         {showDelayInput && (
           <div className="p-4 bg-brand-gold-light dark:bg-brand-gold-dark/80 border-t border-brand-gold/40 dark:border-brand-gold-dark space-y-2">
-            <p className="text-xs font-bold text-brand-gold-dark dark:text-brand-gold/40">Delay Notification Details:</p>
+            <p className="text-xs font-bold text-brand-gold-dark dark:text-brand-gold">Delay Notification Details:</p>
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="text"

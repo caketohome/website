@@ -145,7 +145,7 @@ export function ScrollSequenceSection({
       <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-brand-navy text-white p-6 sm:p-10 md:p-16 shadow-2xl">
         <div className="relative z-10 flex flex-col max-w-2xl gap-5">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-brand-gold/60 w-fit">
-            <Sparkles className="w-4 h-4 text-brand-gold/40 animate-pulse" />
+            <Sparkles className="w-4 h-4 text-brand-gold animate-pulse" />
             <span>{badgeText}</span>
           </div>
           <Heading level="h1" className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
@@ -205,7 +205,7 @@ export function ScrollSequenceSection({
         >
           <div className="max-w-2xl flex flex-col gap-4 sm:gap-5 pointer-events-auto">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-brand-gold/60 w-fit shadow-lg">
-              <Sparkles className="w-4 h-4 text-brand-gold/40 animate-pulse shrink-0" />
+              <Sparkles className="w-4 h-4 text-brand-gold animate-pulse shrink-0" />
               <span className="truncate">{badgeText}</span>
             </div>
 
@@ -272,7 +272,7 @@ export function ScrollSequenceSection({
           }}
         >
           <div className="max-w-md p-6 sm:p-8 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/15 text-white shadow-2xl space-y-3 pointer-events-auto">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-gold/20 text-brand-gold/40 text-[11px] font-bold border border-brand-gold/30 uppercase tracking-wider">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-gold/20 text-brand-gold text-[11px] font-bold border border-brand-gold/30 uppercase tracking-wider">
               <Layers className="w-3.5 h-3.5" /> Handcrafted Mastery
             </div>
             <Heading level="h2" className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white">
@@ -329,7 +329,7 @@ export function ScrollSequenceSection({
           style={{ opacity: Math.max(0, 1 - scrollProgress * 5) }}
         >
           <span className="text-[11px] font-medium tracking-wider uppercase text-brand-gold/60/90 flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-brand-gold/40 animate-pulse" /> Scroll To Reveal
+            <Sparkles className="w-3 h-3 text-brand-gold animate-pulse" /> Scroll To Reveal
           </span>
           <div className="w-5 h-8 rounded-full border-2 border-white/40 flex items-start justify-center p-1">
             <div className="w-1 h-2 rounded-full bg-brand-gold animate-bounce" />

@@ -201,7 +201,7 @@ export function FssaiComplianceTab({
             <p className="text-xs text-brand-gold-dark dark:text-brand-gold font-medium">Expiring Soon (≤90d)</p>
             <AlertTriangle className="w-4 h-4 text-brand-gold" />
           </div>
-          <div className="text-2xl font-extrabold text-brand-gold-dark dark:text-brand-gold/40 mt-1">
+          <div className="text-2xl font-extrabold text-brand-gold-dark dark:text-brand-gold mt-1">
             {overview?.expiringSoon ?? complianceList.filter((c) => c.status?.includes("EXPIRING")).length}
           </div>
           <p className="text-[11px] text-brand-gold/70 mt-0.5">Requires renewal</p>
@@ -228,7 +228,7 @@ export function FssaiComplianceTab({
               className={`p-3.5 rounded-xl border flex items-start justify-between gap-3 ${
                 alert.severity === "critical"
                   ? "bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-900 text-rose-900 dark:text-rose-200"
-                  : "bg-brand-gold-light dark:bg-brand-gold-dark/50 border-brand-gold/40 dark:border-brand-gold-dark text-brand-gold-dark dark:text-brand-gold/40"
+                  : "bg-brand-gold-light dark:bg-brand-gold-dark/50 border-brand-gold/40 dark:border-brand-gold-dark text-brand-gold-dark dark:text-brand-gold"
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -341,7 +341,7 @@ export function FssaiComplianceTab({
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified
                           </div>
                         ) : (
-                          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40 border border-brand-gold/40 dark:border-brand-gold-dark">
+                          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold border border-brand-gold/40 dark:border-brand-gold-dark">
                             <AlertTriangle className="w-3 h-3 text-brand-gold" /> {comp.verification_status || "UNVERIFIED"}
                           </div>
                         )}

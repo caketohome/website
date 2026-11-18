@@ -10,6 +10,20 @@ import { SharedInventoryService } from "./shared-inventory.service";
 import { OrderRepository } from "../repositories/order.repository";
 import type { AuthenticatedActor } from "./feature-flag.service";
 
+
+/** Only the order's own partner or authenticated staff may act on a partner order. */
+function actorMayActOnPartnerOrder(actor: AuthenticatedActor, partnerId: string | undefined): string | null {
+  const role = String(actor?.role || "").toUpperCase();
+  if (!actor?.userId || !role || role === "CUSTOMER" || role === "ANONYMOUS" || role === "GUEST") {
+    return "UNAUTHORIZED: Sign in as the partner or as staff to manage partner orders.";
+  }
+  if (role.startsWith("PARTNER_")) {
+    if (!partnerId || actor.partnerId !== partnerId) return "UNAUTHORIZED: This order belongs to another partner.";
+  }
+  if (!partnerId) return "This order is not assigned to a marketplace partner.";
+  return null;
+}
+
 export class MarketplaceOrderService {
   /**
    * Take an order-level commercial agreement snapshot upon order placement or partner assignment
@@ -85,11 +99,8 @@ export class MarketplaceOrderService {
       const order = orderRes.rows[0];
       const partnerId = order.metadata?.partner_id;
 
-      if (actor.role === "PARTNER_ADMIN" || actor.role === "PARTNER_OWNER") {
-        if (actor.partnerId !== partnerId) {
-          return { success: false, error: "UNAUTHORIZED: Cannot accept orders for another partner." };
-        }
-      }
+      const denied = actorMayActOnPartnerOrder(actor, partnerId);
+      if (denied) return { success: false, error: denied };
 
       await client.query(`
         UPDATE "order"
@@ -127,11 +138,8 @@ export class MarketplaceOrderService {
       const order = orderRes.rows[0];
       const partnerId = order.metadata?.partner_id;
 
-      if (actor.role === "PARTNER_ADMIN" || actor.role === "PARTNER_OWNER") {
-        if (actor.partnerId !== partnerId) {
-          return { success: false, error: "UNAUTHORIZED: Cannot reject orders for another partner." };
-        }
-      }
+      const denied = actorMayActOnPartnerOrder(actor, partnerId);
+      if (denied) return { success: false, error: denied };
 
       // Release inventory reservation
       await SharedInventoryService.releaseReservation(orderId, `Rejected by partner: ${reason}`, actor.userId, actor.role, client);
@@ -168,11 +176,8 @@ export class MarketplaceOrderService {
       const order = orderRes.rows[0];
       const partnerId = order.metadata?.partner_id;
 
-      if (actor.role === "PARTNER_ADMIN" || actor.role === "PARTNER_OWNER") {
-        if (actor.partnerId !== partnerId) {
-          return { success: false, error: "UNAUTHORIZED: Cannot dispatch orders for another partner." };
-        }
-      }
+      const denied = actorMayActOnPartnerOrder(actor, partnerId);
+      if (denied) return { success: false, error: denied };
 
       // Validate rider in delivery_partner
       const riderRes = await client.query(`
@@ -223,11 +228,8 @@ export class MarketplaceOrderService {
     const order = orderRes.rows[0];
     const partnerId = order.metadata?.partner_id;
 
-    if (actor.role === "PARTNER_ADMIN" || actor.role === "PARTNER_OWNER") {
-      if (actor.partnerId !== partnerId) {
-        return { success: false, error: "UNAUTHORIZED: Cannot fulfill orders for another partner." };
-      }
-    }
+    const denied = actorMayActOnPartnerOrder(actor, partnerId);
+    if (denied) return { success: false, error: denied };
 
     // Authoritative status advance to 'delivered': decrements physical stock and marks reservation fulfilled
     await OrderRepository.updateStatus(orderId, "delivered", `Order delivered and fulfilled by partner (${actor.userId})`);

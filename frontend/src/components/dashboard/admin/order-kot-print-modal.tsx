@@ -22,7 +22,7 @@ export function OrderKotPrintModal({ order, onClose }: OrderKotPrintModalProps) 
       <div className="bg-white dark:bg-slate-900 border rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
         {/* Action Header */}
         <div className="p-4 border-b flex items-center justify-between bg-brand-gold-light dark:bg-brand-gold-dark/40 print:hidden">
-          <Heading level="h3" className="text-sm font-bold flex items-center gap-2 text-brand-gold-dark dark:text-brand-gold/40">
+          <Heading level="h3" className="text-sm font-bold flex items-center gap-2 text-brand-gold-dark dark:text-brand-gold">
             <ChefHat className="w-5 h-5 text-brand-gold" /> Kitchen Order Ticket (KOT)
           </Heading>
           <div className="flex items-center gap-2">
@@ -94,7 +94,7 @@ export function OrderKotPrintModal({ order, onClose }: OrderKotPrintModalProps) 
                 </div>
 
                 {item.cake_message && (
-                  <div className="mt-2 p-1.5 bg-brand-gold-light dark:bg-brand-gold-dark/60 rounded border border-brand-gold/40 text-brand-gold-dark dark:text-brand-gold/40">
+                  <div className="mt-2 p-1.5 bg-brand-gold-light dark:bg-brand-gold-dark/60 rounded border border-brand-gold/40 text-brand-gold-dark dark:text-brand-gold">
                     <span className="text-[10px] font-bold block uppercase tracking-wider">Piping Text Message on Cake:</span>
                     <p className="font-extrabold text-xs">&ldquo;{item.cake_message}&rdquo;</p>
                   </div>

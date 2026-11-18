@@ -382,7 +382,7 @@ export function BranchCashTab() {
       )}
 
       {summary?.unconfigured_warnings && summary.unconfigured_warnings.length > 0 && (
-        <div className="p-4 rounded-xl bg-brand-gold-light border border-brand-gold/40 text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:border-brand-gold-dark dark:text-brand-gold/40 text-xs flex items-start gap-2.5">
+        <div className="p-4 rounded-xl bg-brand-gold-light border border-brand-gold/40 text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:border-brand-gold-dark dark:text-brand-gold text-xs flex items-start gap-2.5">
           <AlertTriangle className="w-4 h-4 shrink-0 text-brand-gold mt-0.5" />
           <div>
             <p className="font-bold">Branch Cash Limits Configuration Notice</p>
@@ -549,7 +549,7 @@ export function BranchCashTab() {
                           CRITICAL (140%+) • CASH BLOCKED
                         </span>
                       ) : b.drawer_threshold_status === "WARNING" ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40 border border-brand-gold/40">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold border border-brand-gold/40">
                           WARNING (100%+)
                         </span>
                       ) : (
@@ -589,21 +589,21 @@ export function BranchCashTab() {
                         </button>
                         <button
                           onClick={() => openSafeDrop(b)}
-                          className="px-2 py-1 text-[11px] font-semibold text-brand-navy dark:text-brand-primary/30 bg-brand-light dark:bg-brand-navy/60 hover:bg-brand-light dark:hover:bg-brand-navy/60 rounded-lg transition"
+                          className="px-2 py-1 text-[11px] font-semibold text-brand-navy dark:text-brand-primary bg-brand-light dark:bg-brand-navy/60 hover:bg-brand-light dark:hover:bg-brand-navy/60 rounded-lg transition"
                           title="Mid-day Safe Drop (Till -> Vault)"
                         >
                           Safe Drop
                         </button>
                         <button
                           onClick={() => openSafeToTill(b)}
-                          className="px-2 py-1 text-[11px] font-semibold text-brand-navy dark:text-brand-primary/30 bg-brand-light dark:bg-brand-navy/60 hover:bg-brand-light dark:hover:bg-brand-navy/60 rounded-lg transition"
+                          className="px-2 py-1 text-[11px] font-semibold text-brand-navy dark:text-brand-primary bg-brand-light dark:bg-brand-navy/60 hover:bg-brand-light dark:hover:bg-brand-navy/60 rounded-lg transition"
                           title="Float Replenishment (Vault -> Till)"
                         >
                           Safe → Till
                         </button>
                         <button
                           onClick={() => openPettyCash(b)}
-                          className="px-2 py-1 text-[11px] font-semibold text-brand-gold-dark dark:text-brand-gold/40 bg-brand-gold-light dark:bg-brand-gold-dark/60 hover:bg-brand-gold-light dark:hover:bg-brand-gold-dark/60 rounded-lg transition"
+                          className="px-2 py-1 text-[11px] font-semibold text-brand-gold-dark dark:text-brand-gold bg-brand-gold-light dark:bg-brand-gold-dark/60 hover:bg-brand-gold-light dark:hover:bg-brand-gold-dark/60 rounded-lg transition"
                           title="Petty Cash Imprest Management"
                         >
                           Petty Cash

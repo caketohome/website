@@ -151,7 +151,7 @@ export function CustomerLedgerModal({
             </div>
             <div className="p-3 rounded-xl bg-brand-gold-light/50 dark:bg-brand-gold-dark/20 border border-brand-gold/50 dark:border-brand-gold-dark/30">
               <span className="text-[11px] font-semibold text-brand-gold dark:text-brand-gold">Authoritative Balance</span>
-              <div className="text-base font-bold text-brand-gold-dark dark:text-brand-gold/40">
+              <div className="text-base font-bold text-brand-gold-dark dark:text-brand-gold">
                 ₹{Number(data.closing_balance || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </div>
               <span className="text-[10px] text-brand-gold dark:text-brand-gold font-semibold">Net Trade AR</span>

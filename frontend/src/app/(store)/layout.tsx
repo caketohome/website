@@ -14,6 +14,7 @@ import { Suspense } from "react";
 import { StorefrontFloatingWidgets } from "@frontend/components/store/storefront-floating-widgets";
 import { GuestCartLoginPrompt } from "@frontend/components/store/cart/guest-cart-login-prompt";
 import { VisitTracker } from "@frontend/components/store/visit-tracker";
+import { InstallAppButton } from "@frontend/components/pwa/install-app-button";
 
 export const metadata: Metadata = {
   title: "CakeToHome",
@@ -57,6 +58,7 @@ export default async function RootLayout({
 
             {/* Right Actions: Favorites, Cart, Profile */}
             <div className="flex gap-1.5 sm:gap-2 items-center shrink-0">
+              <InstallAppButton />
               <NavFavorites />
               <Suspense
                 fallback={
@@ -88,6 +90,7 @@ export default async function RootLayout({
               {/* Mobile Actions: Search, Wishlist, Cart, Profile */}
               <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                 <NavSearch mode="trigger-only" />
+                <InstallAppButton compact />
                 <NavFavorites />
                 <Suspense
                   fallback={

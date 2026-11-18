@@ -229,10 +229,10 @@ export function DeliveryPartnerDetailsDrawer({ partnerId, isOpen, onClose, onRef
                   </div>
 
                   <div className="p-4 border rounded-2xl bg-brand-gold-light/50 dark:bg-brand-gold-dark/20 space-y-2">
-                    <span className="text-[10px] font-extrabold text-brand-gold-dark dark:text-brand-gold/40 uppercase tracking-wider block">EMERGENCY CONTACT</span>
-                    <p><span className="font-bold text-brand-gold-dark dark:text-brand-gold/40">Name:</span> {partner.emergency_contact_name || "Emergency Contact"}</p>
-                    <p><span className="font-bold text-brand-gold-dark dark:text-brand-gold/40">Relationship:</span> {partner.emergency_contact_relationship || "Relative"}</p>
-                    <p><span className="font-bold text-brand-gold-dark dark:text-brand-gold/40">Phone:</span> {partner.emergency_contact_phone || partner.phone}</p>
+                    <span className="text-[10px] font-extrabold text-brand-gold-dark dark:text-brand-gold uppercase tracking-wider block">EMERGENCY CONTACT</span>
+                    <p><span className="font-bold text-brand-gold-dark dark:text-brand-gold">Name:</span> {partner.emergency_contact_name || "Emergency Contact"}</p>
+                    <p><span className="font-bold text-brand-gold-dark dark:text-brand-gold">Relationship:</span> {partner.emergency_contact_relationship || "Relative"}</p>
+                    <p><span className="font-bold text-brand-gold-dark dark:text-brand-gold">Phone:</span> {partner.emergency_contact_phone || partner.phone}</p>
                   </div>
                 </div>
               )}
@@ -421,7 +421,7 @@ export function DeliveryPartnerDetailsDrawer({ partnerId, isOpen, onClose, onRef
                     </div>
                     <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 text-center">
                       <span className="text-[10px] text-brand-gold-dark font-bold block uppercase">Rating</span>
-                      <span className="text-xl font-extrabold text-brand-gold-dark dark:text-brand-gold/40">⭐ {partner.rating || "5.0"}</span>
+                      <span className="text-xl font-extrabold text-brand-gold-dark dark:text-brand-gold">⭐ {partner.rating || "5.0"}</span>
                     </div>
                     <div className="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 text-center">
                       <span className="text-[10px] text-blue-700 font-bold block uppercase">Active Workload</span>

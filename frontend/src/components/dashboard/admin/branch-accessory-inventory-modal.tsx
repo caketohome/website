@@ -53,10 +53,10 @@ export function BranchAccessoryInventoryModal({ branch, onClose }: BranchAccesso
         {/* Header */}
         <div className="p-5 border-b bg-brand-light/70 dark:bg-brand-navy/40 flex items-center justify-between">
           <div>
-            <Heading level="h3" className="text-base font-bold flex items-center gap-2 text-brand-navy dark:text-brand-primary/30">
+            <Heading level="h3" className="text-base font-bold flex items-center gap-2 text-brand-navy dark:text-brand-primary">
               <ShoppingBag className="w-5 h-5 text-brand-primary" /> Branch Accessory Physical Inventory Tracker
             </Heading>
-            <Text className="text-xs text-brand-navy dark:text-brand-primary/30">
+            <Text className="text-xs text-brand-navy dark:text-brand-primary">
               Hub: <span className="font-bold">{branch.name}</span> ({branch.code}) • Track physical stock, reserved items, low stock alerts & stock transfers.
             </Text>
           </div>
@@ -128,7 +128,7 @@ export function BranchAccessoryInventoryModal({ branch, onClose }: BranchAccesso
                     {/* Adjust Form */}
                     {isAdjusting ? (
                       <div className="p-3 bg-brand-light dark:bg-brand-navy/30 rounded-xl border border-brand-primary/30 space-y-3">
-                        <div className="flex items-center justify-between font-bold text-brand-navy dark:text-brand-primary/30">
+                        <div className="flex items-center justify-between font-bold text-brand-navy dark:text-brand-primary">
                           <span>Adjust Stock for "{acc.name}"</span>
                           <Button size="small" variant="transparent" onClick={() => setAdjustingId(null)}>Cancel</Button>
                         </div>

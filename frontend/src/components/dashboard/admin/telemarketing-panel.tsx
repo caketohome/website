@@ -1153,7 +1153,7 @@ export const TelemarketingPanel = memo(function TelemarketingPanel() {
                   <Sparkles className="w-5 h-5 text-brand-gold" /> Score Breakdown: {scoreModalCandidate.customer_name}
                 </Heading>
                 <Text className="text-xs text-slate-300 font-mono mt-0.5">
-                  Priority Score: <span className="font-bold text-brand-gold/40">{scoreModalCandidate.score} / 100</span> ({scoreModalCandidate.priority})
+                  Priority Score: <span className="font-bold text-brand-gold">{scoreModalCandidate.score} / 100</span> ({scoreModalCandidate.priority})
                 </Text>
               </div>
               <button

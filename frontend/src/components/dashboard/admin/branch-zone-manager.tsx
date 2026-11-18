@@ -535,7 +535,7 @@ export function BranchZoneManager() {
                 <span className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
                   🏪 {selectedBranch.name}
                 </span>
-                <span className="font-mono text-[10px] bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40 px-2 py-0.5 rounded font-bold">
+                <span className="font-mono text-[10px] bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold px-2 py-0.5 rounded font-bold">
                   {selectedBranch.code}
                 </span>
               </div>
@@ -565,7 +565,7 @@ export function BranchZoneManager() {
               <div>
                 <div className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
                   <span>Store Maximum Service Radius:</span>
-                  <span className="text-brand-gold-dark dark:text-brand-gold/40 font-extrabold">{selectedBranch.max_delivery_radius_km ?? 15} km</span>
+                  <span className="text-brand-gold-dark dark:text-brand-gold font-extrabold">{selectedBranch.max_delivery_radius_km ?? 15} km</span>
                 </div>
                 <p className="text-[10px] text-slate-500 dark:text-slate-400">
                   Global Ceiling: 25 km · All delivery areas for {selectedBranch.name} are capped by this store-level boundary.
@@ -675,7 +675,7 @@ export function BranchZoneManager() {
                             <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                               <span>{zone.name}</span>
                               {isSelected && (
-                                <span className="text-[9px] bg-brand-gold/40 text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40 px-1.5 py-0.2 rounded font-bold">
+                                <span className="text-[9px] bg-brand-gold/40 text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold px-1.5 py-0.2 rounded font-bold">
                                   Selected
                                 </span>
                               )}
@@ -686,10 +686,10 @@ export function BranchZoneManager() {
                           <td className="p-3">
                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                               isPolygon
-                                ? "bg-brand-light text-brand-navy dark:bg-brand-navy dark:text-brand-primary/30"
+                                ? "bg-brand-light text-brand-navy dark:bg-brand-navy dark:text-brand-primary"
                                 : isRadius
                                 ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                                : "bg-brand-light text-brand-navy dark:bg-brand-navy dark:text-brand-primary/30"
+                                : "bg-brand-light text-brand-navy dark:bg-brand-navy dark:text-brand-primary"
                             }`}>
                               {zone.boundary_type || zone.fence_type || "hybrid"}
                             </span>
@@ -729,7 +729,7 @@ export function BranchZoneManager() {
                           <td className="p-3">
                             <div className="flex items-center gap-1 flex-wrap">
                               {zone.same_day_allowed && <span className="text-[9px] bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 px-1.5 py-0.5 rounded font-bold">SameDay</span>}
-                              {zone.express_allowed && <span className="text-[9px] bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold/40 px-1.5 py-0.5 rounded font-bold">Express</span>}
+                              {zone.express_allowed && <span className="text-[9px] bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold px-1.5 py-0.5 rounded font-bold">Express</span>}
                               
                               {zone.scheduled_allowed && <span className="text-[9px] bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 px-1.5 py-0.5 rounded font-bold">Slot</span>}
                             </div>
@@ -766,7 +766,7 @@ export function BranchZoneManager() {
                                   e.stopPropagation();
                                   openEditZone(zone);
                                 }}
-                                className="px-2.5 py-1 bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold/40 hover:bg-brand-gold-light rounded-lg text-xs font-bold flex items-center gap-1"
+                                className="px-2.5 py-1 bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold hover:bg-brand-gold-light rounded-lg text-xs font-bold flex items-center gap-1"
                               >
                                 <Edit3 className="w-3 h-3" /> Edit
                               </button>

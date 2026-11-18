@@ -136,8 +136,8 @@ const VOUCHER_TYPE_LABELS: Record<string, string> = {
 
 const ACCOUNT_TYPE_COLORS: Record<string, string> = {
   ASSET: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
-  LIABILITY: "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold/40",
-  EQUITY: "bg-brand-light text-brand-navy dark:bg-brand-navy/40 dark:text-brand-primary/30",
+  LIABILITY: "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/40 dark:text-brand-gold",
+  EQUITY: "bg-brand-light text-brand-navy dark:bg-brand-navy/40 dark:text-brand-primary",
   REVENUE: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
   EXPENSE: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
 };
@@ -402,7 +402,7 @@ function AccountLedgerView() {
               </div>
               <div className="bg-brand-gold-light dark:bg-brand-gold-dark/20 rounded-lg p-3">
                 <div className="text-[10px] font-bold text-brand-gold dark:text-brand-gold uppercase">Total Credit</div>
-                <div className="text-base font-bold text-brand-gold-dark dark:text-brand-gold/40">{formatCurrency(ledgerData.total_credit)}</div>
+                <div className="text-base font-bold text-brand-gold-dark dark:text-brand-gold">{formatCurrency(ledgerData.total_credit)}</div>
               </div>
               <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3">
                 <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">Closing Balance</div>
@@ -684,7 +684,7 @@ function TrialBalanceView() {
               </div>
               <div className="bg-brand-gold-light dark:bg-brand-gold-dark/20 rounded-lg p-3">
                 <div className="text-[10px] font-bold text-brand-gold dark:text-brand-gold uppercase">Total Credits</div>
-                <div className="text-lg font-bold text-brand-gold-dark dark:text-brand-gold/40">{formatCurrency(tbData.summary.total_credit)}</div>
+                <div className="text-lg font-bold text-brand-gold-dark dark:text-brand-gold">{formatCurrency(tbData.summary.total_credit)}</div>
               </div>
               <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3">
                 <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Accounts</div>

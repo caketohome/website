@@ -488,7 +488,7 @@ export const OrdersPanel = memo(function OrdersPanel() {
             {/* Custom Date Inputs */}
             {datePreset === "custom" && (
               <div className="flex items-center gap-1.5 bg-brand-light dark:bg-brand-navy/40 p-1 rounded-xl border border-brand-primary/30">
-                <span className="text-[10px] font-bold text-brand-navy dark:text-brand-primary/30">From:</span>
+                <span className="text-[10px] font-bold text-brand-navy dark:text-brand-primary">From:</span>
                 <Input
                   type="date"
                   value={fromDate}
@@ -501,7 +501,7 @@ export const OrdersPanel = memo(function OrdersPanel() {
                   className="h-7 text-xs w-32"
                   data-testid="from-date-input"
                 />
-                <span className="text-[10px] font-bold text-brand-navy dark:text-brand-primary/30">To:</span>
+                <span className="text-[10px] font-bold text-brand-navy dark:text-brand-primary">To:</span>
                 <Input
                   type="date"
                   value={toDate}

@@ -445,13 +445,13 @@ export const CorporateGiftingPanel = memo(function CorporateGiftingPanel() {
         );
       case "PROCESSING":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy animate-pulse">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary border border-brand-primary/30 dark:border-brand-navy animate-pulse">
             <RefreshCw className="w-3 h-3 animate-spin" /> Processing
           </span>
         );
       case "SCHEDULED":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold/40 border border-brand-gold/40 dark:border-brand-gold-dark">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold border border-brand-gold/40 dark:border-brand-gold-dark">
             <Clock className="w-3 h-3" /> Scheduled
           </span>
         );
@@ -489,14 +489,14 @@ export const CorporateGiftingPanel = memo(function CorporateGiftingPanel() {
       case "out_for_delivery":
       case "in_transit":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold/40 border border-brand-gold/40 dark:border-brand-gold-dark animate-pulse">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold border border-brand-gold/40 dark:border-brand-gold-dark animate-pulse">
             <Truck className="w-3 h-3" /> In Transit
           </span>
         );
       case "assigned":
       case "pickup_claimed":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary border border-brand-primary/30 dark:border-brand-navy">
             <Check className="w-3 h-3" /> Assigned
           </span>
         );
@@ -1233,7 +1233,7 @@ export const CorporateGiftingPanel = memo(function CorporateGiftingPanel() {
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 dark:border-brand-gold-dark text-xs text-brand-gold-dark dark:text-brand-gold/40 flex items-start gap-2">
+              <div className="p-3 rounded-xl bg-brand-gold-light dark:bg-brand-gold-dark/40 border border-brand-gold/40 dark:border-brand-gold-dark text-xs text-brand-gold-dark dark:text-brand-gold flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>
                   <strong>Strict Invariant:</strong> Exactly 1 master corporate tax invoice will be posted to General Ledger. Individual recipients will NOT receive separate invoices.
@@ -1350,7 +1350,7 @@ export const CorporateGiftingPanel = memo(function CorporateGiftingPanel() {
                               {detailRoutingSummary.assignedCount} / {detailRoutingSummary.totalRecipients} Assigned
                             </span>
                             {detailRoutingSummary.unassignedCount > 0 && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold/40">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold">
                                 {detailRoutingSummary.unassignedCount} In Review
                               </span>
                             )}

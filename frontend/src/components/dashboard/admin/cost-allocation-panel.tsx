@@ -801,7 +801,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
                             )}
                           </td>
                           <td className="px-4 py-3">
-                            <span className="text-xs font-medium px-2 py-0.5 rounded bg-brand-light dark:bg-brand-navy/40 text-brand-navy dark:text-brand-primary/30">
+                            <span className="text-xs font-medium px-2 py-0.5 rounded bg-brand-light dark:bg-brand-navy/40 text-brand-navy dark:text-brand-primary">
                               Fixed %
                             </span>
                           </td>
@@ -1438,7 +1438,7 @@ export const CostAllocationPanel = memo(function CostAllocationPanel() {
             </div>
 
             <form onSubmit={handleExecuteRun} className="p-6 space-y-4">
-              <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/30 rounded-lg text-xs text-brand-gold-dark dark:text-brand-gold/40 flex items-start gap-2">
+              <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/30 rounded-lg text-xs text-brand-gold-dark dark:text-brand-gold flex items-start gap-2">
                 <Info className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>
                   <strong>Maker-Checker Notice:</strong> Executing this run marks you as the <strong>Maker</strong>.

@@ -575,11 +575,11 @@ export default function AccountingWorkQueuePanel() {
       {/* ── Segregation of Duties Governance Banner ── */}
       <div className="p-4 rounded-2xl bg-brand-gold-light/80 dark:bg-brand-gold-dark/30 border border-brand-gold/40 dark:border-brand-gold-dark/60 text-xs flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-brand-gold/20 text-brand-gold-dark dark:text-brand-gold/40 flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-brand-gold/20 text-brand-gold-dark dark:text-brand-gold flex items-center justify-center shrink-0">
             <ShieldCheck className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="font-bold text-brand-gold-dark dark:text-brand-gold/40">
+            <h4 className="font-bold text-brand-gold-dark dark:text-brand-gold">
               Segregation of Duties (SoD) Active Invariant
             </h4>
             <p className="text-brand-gold-dark/80 dark:text-brand-gold/80 mt-0.5">
@@ -588,7 +588,7 @@ export default function AccountingWorkQueuePanel() {
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="px-2.5 py-1 rounded-full font-mono font-bold text-[11px] bg-brand-gold/60 dark:bg-brand-gold-dark/60 text-brand-gold-dark dark:text-brand-gold/40 border border-brand-gold/60 dark:border-brand-gold-dark">
+          <span className="px-2.5 py-1 rounded-full font-mono font-bold text-[11px] bg-brand-gold/60 dark:bg-brand-gold-dark/60 text-brand-gold-dark dark:text-brand-gold border border-brand-gold/60 dark:border-brand-gold-dark">
             3-TIER SO-D LOCKED
           </span>
         </div>
@@ -634,7 +634,7 @@ export default function AccountingWorkQueuePanel() {
               <Receipt className="w-3.5 h-3.5 text-brand-gold" />
               <span>Expense Claims</span>
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-brand-gold-light dark:bg-brand-gold-dark/60 text-brand-gold-dark dark:text-brand-gold/40 text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-brand-gold-light dark:bg-brand-gold-dark/60 text-brand-gold-dark dark:text-brand-gold text-[10px]">
               {summary?.pending_expenses.count ?? expenses.filter(e => e.status === "SUBMITTED" || e.status === "APPROVED").length} pending
             </span>
           </div>
@@ -682,7 +682,7 @@ export default function AccountingWorkQueuePanel() {
               <CreditCard className="w-3.5 h-3.5 text-brand-primary" />
               <span>Gateway Payouts</span>
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary/30 text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary text-[10px]">
               {summary?.pending_gateways.count ?? gateways.filter(g => g.status === "INGESTED" || g.status === "APPROVED").length} ingested
             </span>
           </div>
@@ -706,7 +706,7 @@ export default function AccountingWorkQueuePanel() {
               <FileCheck className="w-3.5 h-3.5 text-brand-primary" />
               <span>Sales Vouchers</span>
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary/30 text-[10px]">
+            <span className="px-2 py-0.5 rounded-full bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary text-[10px]">
               {summary?.pending_sales?.count ?? sales.filter(s => s.status === "DRAFT" || s.status === "SUBMITTED").length} pending
             </span>
           </div>
@@ -893,7 +893,7 @@ export default function AccountingWorkQueuePanel() {
                                 : p.status === "APPROVED"
                                 ? "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
                                 : p.status === "SUBMITTED"
-                                ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold/40"
+                                ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold"
                                 : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300"
                             }`}
                           >
@@ -1035,7 +1035,7 @@ export default function AccountingWorkQueuePanel() {
                                 : e.status === "APPROVED"
                                 ? "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
                                 : e.status === "SUBMITTED"
-                                ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold/40"
+                                ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold"
                                 : "bg-slate-100 text-slate-800"
                             }`}
                           >
@@ -1224,7 +1224,7 @@ export default function AccountingWorkQueuePanel() {
                                 : d.status === "APPROVED"
                                 ? "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
                                 : d.status === "PREPARED"
-                                ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold/40"
+                                ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark/60 dark:text-brand-gold"
                                 : "bg-rose-100 text-rose-800"
                             }`}
                           >
@@ -1365,7 +1365,7 @@ export default function AccountingWorkQueuePanel() {
                                 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
                                 : g.status === "APPROVED"
                                 ? "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
-                                : "bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary/30"
+                                : "bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary"
                             }`}
                           >
                             {g.status}
@@ -1495,7 +1495,7 @@ export default function AccountingWorkQueuePanel() {
                                 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
                                 : s.status === "APPROVED"
                                 ? "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
-                                : "bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary/30"
+                                : "bg-brand-light text-brand-navy dark:bg-brand-navy/60 dark:text-brand-primary"
                             }`}
                           >
                             {s.status}

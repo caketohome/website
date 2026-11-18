@@ -149,7 +149,7 @@ export function BranchZoneProductRestrictionsModal({
 
         {/* Security Alert Banner */}
         {!isAuthorizedBranch && (
-          <div className="px-5 py-2.5 bg-brand-gold-light dark:bg-brand-gold-dark/50 border-b border-brand-gold/40 text-brand-gold-dark dark:text-brand-gold/40 text-xs flex items-center gap-2">
+          <div className="px-5 py-2.5 bg-brand-gold-light dark:bg-brand-gold-dark/50 border-b border-brand-gold/40 text-brand-gold-dark dark:text-brand-gold text-xs flex items-center gap-2">
             <AlertOctagon className="w-4 h-4 text-brand-gold flex-shrink-0" />
             <span>Read-Only View: You are assigned to another branch and cannot modify restrictions for {branch.name}.</span>
           </div>

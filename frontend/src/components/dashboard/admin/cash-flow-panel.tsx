@@ -455,7 +455,7 @@ export function CashFlowPanel() {
             className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm ${
               data.reconciliation.is_reconciled
                 ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300"
-                : "bg-brand-gold-light dark:bg-brand-gold-dark/30 border-brand-gold/40 dark:border-brand-gold-dark/60 text-brand-gold-dark dark:text-brand-gold/40"
+                : "bg-brand-gold-light dark:bg-brand-gold-dark/30 border-brand-gold/40 dark:border-brand-gold-dark/60 text-brand-gold-dark dark:text-brand-gold"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -534,7 +534,7 @@ export function CashFlowPanel() {
 
             {/* 6. Closing Cash */}
             <div className="p-4 rounded-xl bg-gradient-to-br from-brand-navy to-slate-900 text-white shadow-sm border border-brand-navy">
-              <p className="text-xs font-medium text-brand-gold/40 uppercase tracking-wider">Closing Cash</p>
+              <p className="text-xs font-medium text-brand-gold uppercase tracking-wider">Closing Cash</p>
               <p className="text-lg font-bold text-brand-gold mt-1">
                 {formatINR(data.summary.closing_cash)}
               </p>
@@ -554,7 +554,7 @@ export function CashFlowPanel() {
                     Gross cash inflows and disbursements categorized by counterparty
                   </p>
                 </div>
-                <span className="text-xs font-mono font-medium px-2 py-0.5 rounded bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary/30 border border-brand-primary/30 dark:border-brand-navy">
+                <span className="text-xs font-mono font-medium px-2 py-0.5 rounded bg-brand-light dark:bg-brand-navy/60 text-brand-navy dark:text-brand-primary border border-brand-primary/30 dark:border-brand-navy">
                   Direct CFO: {formatINR(data.direct_schedule.operating.net_amount)}
                 </span>
               </div>

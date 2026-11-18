@@ -169,7 +169,7 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
               size="small"
               variant="secondary"
               onClick={() => setIsCampaignModalOpen(true)}
-              className="flex items-center gap-1.5 text-xs bg-brand-gold/10 hover:bg-brand-gold/20 text-brand-gold-dark dark:text-brand-gold/40 border-brand-gold/40 dark:border-brand-gold-dark"
+              className="flex items-center gap-1.5 text-xs bg-brand-gold/10 hover:bg-brand-gold/20 text-brand-gold-dark dark:text-brand-gold border-brand-gold/40 dark:border-brand-gold-dark"
             >
               <Zap className="w-3.5 h-3.5 text-brand-gold" /> Automated Workflows
             </Button>

@@ -103,10 +103,10 @@ export function DeliverySimulator() {
       {/* Banner */}
       <div className="p-4 bg-gradient-to-r from-brand-navy to-brand-navy text-white rounded-xl shadow-lg border border-brand-navy/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <Heading level="h2" className="text-base font-bold flex items-center gap-2 text-brand-gold/40">
+          <Heading level="h2" className="text-base font-bold flex items-center gap-2 text-brand-gold">
             <Compass className="w-5 h-5 text-brand-gold animate-spin-slow" /> Enterprise Delivery Serviceability Simulator
           </Heading>
-          <Text className="text-xs text-brand-primary/30 mt-1">
+          <Text className="text-xs text-brand-primary mt-1">
             Simulate customer checkout routing, 5-factor weighted branch scoring, zone intersection, prep time resolution, and fee calculation.
           </Text>
         </div>

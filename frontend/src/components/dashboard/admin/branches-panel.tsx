@@ -749,7 +749,7 @@ export const BranchesPanel = memo(function BranchesPanel() {
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               This will stop <strong>{confirmArchiveBranch.name}</strong> from accepting new orders and remove it from active branch operations. Existing orders, invoices, KOTs, reports, staff accounts, and historical records will be preserved.
             </p>
-            <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/30 border border-brand-gold/60 rounded-lg text-[11px] text-brand-gold-dark dark:text-brand-gold/40">
+            <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/30 border border-brand-gold/60 rounded-lg text-[11px] text-brand-gold-dark dark:text-brand-gold">
               ℹ️ Archiving does not delete any database records. You can restore this store at any time.
             </div>
             <div className="flex items-center justify-end gap-2 pt-2 border-t">

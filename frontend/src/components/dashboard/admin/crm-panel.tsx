@@ -321,7 +321,7 @@ export const CrmPanel = memo(function CrmPanel() {
                 size="small"
                 variant="secondary"
                 onClick={() => setShowDuplicateModal(true)}
-                className="flex items-center gap-1.5 text-xs text-brand-gold-dark bg-brand-gold-light hover:bg-brand-gold-light border-brand-gold/40 dark:bg-brand-gold-dark dark:text-brand-gold/40"
+                className="flex items-center gap-1.5 text-xs text-brand-gold-dark bg-brand-gold-light hover:bg-brand-gold-light border-brand-gold/40 dark:bg-brand-gold-dark dark:text-brand-gold"
               >
                 <Users className="w-3.5 h-3.5" /> Duplicates ({duplicateCount})
               </Button>
@@ -331,7 +331,7 @@ export const CrmPanel = memo(function CrmPanel() {
               size="small"
               variant="secondary"
               onClick={() => setShowSegmentModal(true)}
-              className="flex items-center gap-1.5 text-xs text-brand-navy bg-brand-light hover:bg-brand-light border-brand-primary/30 dark:bg-brand-navy dark:text-brand-primary/30"
+              className="flex items-center gap-1.5 text-xs text-brand-navy bg-brand-light hover:bg-brand-light border-brand-primary/30 dark:bg-brand-navy dark:text-brand-primary"
             >
               <Layers className="w-3.5 h-3.5" /> New Segment
             </Button>

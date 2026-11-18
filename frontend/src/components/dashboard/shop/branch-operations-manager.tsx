@@ -556,10 +556,10 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               <div className="flex items-center gap-3">
                 <AlertTriangle className="w-5 h-5 text-brand-gold dark:text-brand-gold shrink-0" />
                 <div>
-                  <h4 className="font-bold text-sm text-brand-gold-dark dark:text-brand-gold/40">
+                  <h4 className="font-bold text-sm text-brand-gold-dark dark:text-brand-gold">
                     Day Opening Drawer Float Pending
                   </h4>
-                  <p className="text-xs text-brand-gold-dark dark:text-brand-gold/40">
+                  <p className="text-xs text-brand-gold-dark dark:text-brand-gold">
                     Record your operational cash drawer float before counter sales reconciliation begins. (Physical drawer count only — does not alter GL 1111).
                   </p>
                 </div>
@@ -832,12 +832,12 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                               <span className="px-2 py-0.5 rounded bg-brand-light text-brand-primary text-[10px] font-bold uppercase">Pre-order · {String(ord.delivery_date).slice(0, 10)}</span>
                             ) : null}
                             {ord.priority === "EXPRESS" && (
-                              <span className="px-2 py-0.5 rounded bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40 text-[10px] font-black uppercase">
+                              <span className="px-2 py-0.5 rounded bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold text-[10px] font-black uppercase">
                                 ⚡ EXPRESS
                               </span>
                             )}
                             {ord.priority === "MIDNIGHT" && (
-                              <span className="px-2 py-0.5 rounded bg-brand-light text-brand-navy dark:bg-brand-navy dark:text-brand-primary/30 text-[10px] font-black uppercase">
+                              <span className="px-2 py-0.5 rounded bg-brand-light text-brand-navy dark:bg-brand-navy dark:text-brand-primary text-[10px] font-black uppercase">
                                 🌙 MIDNIGHT
                               </span>
                             )}
@@ -850,7 +850,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                           ord.status === "delivered" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" :
                           ord.status === "cancelled" ? "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300" :
                           ord.status === "preparing" ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300" :
-                          "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40"
+                          "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold"
                         }`}>
                           {ord.status}
                         </span>
@@ -886,7 +886,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
 
                       {ord.pickup_otp && (
                         <div className="mt-2.5 p-2 bg-brand-gold-light dark:bg-brand-gold-dark/40 rounded-xl border border-brand-gold/40 dark:border-brand-gold-dark/40 flex items-center justify-between text-xs">
-                          <span className="font-bold text-brand-gold-dark dark:text-brand-gold/40 flex items-center gap-1">
+                          <span className="font-bold text-brand-gold-dark dark:text-brand-gold flex items-center gap-1">
                             🔑 Pickup OTP:
                           </span>
                           <span className="font-mono font-black text-xs px-2.5 py-0.5 bg-brand-gold text-white rounded-lg shadow-sm tracking-wider">
@@ -1039,7 +1039,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                               : p.status === "APPROVED"
                               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                               : p.status === "SUBMITTED"
-                              ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40"
+                              ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold"
                               : "bg-brand-surface-muted text-brand-text dark:bg-zinc-800 dark:text-zinc-300"
                           }`}
                         >
@@ -1097,7 +1097,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
           {/* Invariant 3 Policy Banner */}
           <div className="p-4 bg-brand-light dark:bg-brand-navy/40 rounded-2xl border border-brand-primary/30 dark:border-brand-navy/60 flex items-start gap-3">
             <Info className="w-5 h-5 text-brand-primary dark:text-brand-primary shrink-0 mt-0.5" />
-            <div className="text-xs text-brand-navy dark:text-brand-primary/30 space-y-1">
+            <div className="text-xs text-brand-navy dark:text-brand-primary space-y-1">
               <p className="font-bold">
                 Operational Expense Claims & Control:
               </p>
@@ -1171,7 +1171,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                               : e.status === "APPROVED"
                               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                               : e.status === "SUBMITTED"
-                              ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40"
+                              ? "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold"
                               : "bg-brand-surface-muted text-brand-text dark:bg-zinc-800 dark:text-zinc-300"
                           }`}
                         >
@@ -1224,7 +1224,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                   className={`px-3 py-1 rounded-xl text-xs font-bold ${
                     cashPosition?.drawer_status === "OPEN"
                       ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                      : "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40"
+                      : "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold"
                   }`}
                 >
                   Drawer Status: {cashPosition?.drawer_status || "CLOSED"}
@@ -1321,7 +1321,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                           <h4 className="font-bold text-sm text-brand-navy dark:text-white">{rider.rider_name}</h4>
                           <p className="text-xs text-brand-text-muted">{rider.rider_phone}</p>
                         </div>
-                        <span className="px-2 py-0.5 rounded bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40 font-bold text-[10px]">
+                        <span className="px-2 py-0.5 rounded bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold font-bold text-[10px]">
                           {rider.orders_count || 0} COD Orders
                         </span>
                       </div>
@@ -1503,7 +1503,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
                                 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                                 : ds.status === "CANCELLED"
                                 ? "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
-                                : "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold/40"
+                                : "bg-brand-gold-light text-brand-gold-dark dark:bg-brand-gold-dark dark:text-brand-gold"
                             }`}
                           >
                             {ds.status}
@@ -2075,7 +2075,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               <button onClick={() => setIsGrnModalOpen(false)} className="text-brand-text-muted hover:text-zinc-600">✕</button>
             </div>
 
-            <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/40 rounded-xl border border-brand-gold/40 dark:border-brand-gold-dark/40 text-[11px] text-brand-gold-dark dark:text-brand-gold/40">
+            <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/40 rounded-xl border border-brand-gold/40 dark:border-brand-gold-dark/40 text-[11px] text-brand-gold-dark dark:text-brand-gold">
               ⚠️ Invariant 1: Completing this GRN checklist records physical custody at {branch.name}. It does not trigger GL posting until Accounting review.
             </div>
 
@@ -2509,7 +2509,7 @@ export default function BranchOperationsManager({ initialShop }: { initialShop?:
               <button onClick={() => setIsDamageModalOpen(false)} className="text-brand-text-muted hover:text-zinc-600">✕</button>
             </div>
 
-            <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/40 rounded-xl border border-brand-gold/40 dark:border-brand-gold-dark/40 text-[11px] text-brand-gold-dark dark:text-brand-gold/40">
+            <div className="p-3 bg-brand-gold-light dark:bg-brand-gold-dark/40 rounded-xl border border-brand-gold/40 dark:border-brand-gold-dark/40 text-[11px] text-brand-gold-dark dark:text-brand-gold">
               ⚠️ Invariant 4: Spoilage logging records operational waste. Financial write-off voucher (Dr 5190 / Cr Inventory) will be executed when the accounting service is verified.
             </div>
 

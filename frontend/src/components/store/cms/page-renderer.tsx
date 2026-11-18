@@ -1131,7 +1131,7 @@ export function PageRenderer({
                             color: config.badge_color || undefined,
                           }}
                         >
-                          <Sparkles className={`w-3.5 h-3.5 ${isLuxuryTheme ? "text-brand-gold" : "text-brand-gold/40"}`} /> {badgeText}
+                          <Sparkles className={`w-3.5 h-3.5 ${isLuxuryTheme ? "text-brand-gold" : "text-brand-gold"}`} /> {badgeText}
                         </span>
                       )}
                       <h1 className={`text-3xl sm:text-5xl lg:text-6xl tracking-tight drop-shadow-md leading-tight ${isLuxuryTheme ? "font-serif font-normal text-brand-warm-white" : "font-extrabold text-white"}`}>
@@ -1230,7 +1230,7 @@ export function PageRenderer({
                   <div className="relative z-10 p-6 sm:p-12 max-w-3xl flex flex-col items-center text-center gap-4">
                     {badgeText && (
                       <span className="inline-flex items-center gap-2 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 backdrop-blur-md text-white border border-white/30">
-                        <Sparkles className="w-3.5 h-3.5 text-brand-gold/40" />
+                        <Sparkles className="w-3.5 h-3.5 text-brand-gold" />
                         {badgeText}
                       </span>
                     )}
@@ -3506,7 +3506,7 @@ export function PageRenderer({
                         </span>
                       )}
                       {showLimitedTime && (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-brand-gold/40">
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-brand-gold">
                           <Clock className="w-3.5 h-3.5" /> Limited Time
                         </span>
                       )}
@@ -3522,7 +3522,7 @@ export function PageRenderer({
                   <div className="flex flex-col sm:flex-row items-center gap-3 z-10">
                     {couponCode && (
                       <div className="flex items-center gap-2 bg-black/30 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20">
-                        <Tag className="w-4 h-4 text-brand-gold/40" />
+                        <Tag className="w-4 h-4 text-brand-gold" />
                         <span className="font-mono font-bold text-sm tracking-wider">{couponCode}</span>
                       </div>
                     )}
