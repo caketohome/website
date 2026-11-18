@@ -10,7 +10,7 @@ const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-brand-deep text-white/80 border-t border-white/10 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:pb-8 transition-colors duration-200">
+    <footer className="w-full bg-[#1D2F5D] text-white/80 border-t border-white/10 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:pb-8 transition-colors duration-200">
       {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
 
       {/* Trust & Assurance Banner */}

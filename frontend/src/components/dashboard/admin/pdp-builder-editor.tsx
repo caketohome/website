@@ -203,6 +203,65 @@ export function PdpBuilderEditor({ config, onChange }: PdpBuilderEditorProps) {
           </Field>
         </div>
       </div>
+
+      {/* Product FAQ (shown on every product page; a product's own FAQs override it) */}
+      <div className="p-3.5 bg-ui-bg-subtle rounded-2xl border border-ui-border-base">
+        <PdpFaqEditor config={config} onChange={onChange} />
+      </div>
+    </div>
+  );
+}
+
+const STARTER_FAQS = [
+  { question: "Are all CakeToHome cakes freshly baked on order?", answer: "Yes. Every cake is baked fresh after you order, within hours of your delivery time." },
+  { question: "Can I get this cake made eggless?", answer: "Yes. Most cakes are eggless by default or offer an eggless option." },
+  { question: "How far in advance should I place my order?", answer: "Standard sizes can be delivered the same day if ordered before the daily cutoff. For tiered, photo or special cakes, order 24 hours ahead." },
+  { question: "How should I store the cake after delivery?", answer: "Keep it refrigerated in its box. Take it out 15-20 minutes before serving." },
+];
+
+function PdpFaqEditor({ config, onChange }: PdpBuilderEditorProps) {
+  const faqs: { question: string; answer: string }[] = Array.isArray(config.faqs) ? config.faqs : [];
+  const setFaqs = (next: { question: string; answer: string }[]) => onChange("faqs", next);
+  const update = (i: number, key: "question" | "answer", val: string) => setFaqs(faqs.map((f, j) => (j === i ? { ...f, [key]: val } : f)));
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= faqs.length) return;
+    const next = [...faqs];
+    [next[i], next[j]] = [next[j], next[i]];
+    setFaqs(next);
+  };
+  const inputCls = "w-full p-2 border rounded-lg text-xs bg-white dark:bg-slate-800";
+  return (
+    <div className="flex flex-col gap-3 pt-3 border-t border-ui-border-base">
+      <div className="flex items-center justify-between">
+        <Text className="text-xs font-bold">Product FAQ</Text>
+        <Toggle checked={config.show_faq !== false} onChange={(v) => onChange("show_faq", v)} label="Show FAQ" />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <input className={inputCls} value={config.faq_eyebrow ?? ""} onChange={(e) => onChange("faq_eyebrow", e.target.value)} placeholder="Small label (e.g. Ordering Assistance)" />
+        <input className={inputCls} value={config.faq_title ?? ""} onChange={(e) => onChange("faq_title", e.target.value)} placeholder="Heading (e.g. Frequently Asked Questions)" />
+      </div>
+      {faqs.length === 0 && (
+        <div className="p-3 rounded-lg bg-ui-bg-subtle text-[11px] text-ui-fg-muted flex items-center justify-between gap-2">
+          <span>No FAQs yet. The FAQ section is hidden until you add some.</span>
+          <button type="button" className="text-xs font-semibold underline" onClick={() => setFaqs(STARTER_FAQS)}>Start from suggestions</button>
+        </div>
+      )}
+      {faqs.map((f, i) => (
+        <div key={i} className="p-3 rounded-lg border border-ui-border-base flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold text-ui-fg-muted">Q{i + 1}</span>
+            <input className={inputCls} value={f.question} onChange={(e) => update(i, "question", e.target.value)} placeholder="Question" />
+            <button type="button" aria-label="Move up" className="text-xs px-1" onClick={() => move(i, -1)}>↑</button>
+            <button type="button" aria-label="Move down" className="text-xs px-1" onClick={() => move(i, 1)}>↓</button>
+            <button type="button" aria-label="Remove question" className="text-xs px-1 text-rose-600" onClick={() => setFaqs(faqs.filter((_, j) => j !== i))}>✕</button>
+          </div>
+          <textarea rows={2} className={inputCls} value={f.answer} onChange={(e) => update(i, "answer", e.target.value)} placeholder="Answer" />
+        </div>
+      ))}
+      <button type="button" className="self-start text-xs font-semibold px-3 py-1.5 rounded-lg border border-ui-border-base" onClick={() => setFaqs([...faqs, { question: "", answer: "" }])}>
+        + Add question
+      </button>
     </div>
   );
 }

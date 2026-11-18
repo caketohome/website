@@ -4,6 +4,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CakeToHomeLogo } from "@frontend/components/common/logo";
 import { Check } from "lucide-react";
+import { CmsRepository } from "@frontend/lib/repositories/cms.repository";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   return SeoMetadataBuilder.buildMetadata({
@@ -13,9 +16,32 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-const POINTS = ["Baked fresh on order", "Same-day delivery slots", "Delivered across Kerala"];
+// Defaults until set in Admin -> CMS -> Page Configurator -> "login" page -> Login Page tab.
+const DEFAULT_LOGIN = {
+  image_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1600&q=85",
+  image_alt: "Freshly baked chocolate cake",
+  headline: "Fresh cakes, handcrafted for your moments.",
+  points: ["Baked fresh on order", "Same-day delivery slots", "Delivered across Kerala"],
+};
 
-export default function LoginPage() {
+async function getLoginContent() {
+  try {
+    const page = await CmsRepository.findPageBySlug("login");
+    const lc: any = (page as any)?.login_config || {};
+    const points = Array.isArray(lc.points) ? lc.points.map((x: any) => String(x).trim()).filter(Boolean) : [];
+    return {
+      image_url: lc.image_url || DEFAULT_LOGIN.image_url,
+      image_alt: lc.image_alt || DEFAULT_LOGIN.image_alt,
+      headline: lc.headline || DEFAULT_LOGIN.headline,
+      points: points.length > 0 ? points : DEFAULT_LOGIN.points,
+    };
+  } catch {
+    return DEFAULT_LOGIN;
+  }
+}
+
+export default async function LoginPage() {
+  const content = await getLoginContent();
   return (
     <div className="w-full min-h-[calc(100vh-4rem)] bg-brand-warm-white text-brand-text flex flex-col flex-1 overflow-x-hidden">
       <div className="w-full flex-1 grid grid-cols-1 md:grid-cols-12 items-stretch">
@@ -23,16 +49,16 @@ export default function LoginPage() {
         <div className="hidden md:flex md:flex-col md:justify-end md:col-span-5 lg:col-span-6 relative overflow-hidden min-h-[560px] bg-brand-cream">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1600&q=85"
-            alt="Freshly baked chocolate cake"
+            src={content.image_url}
+            alt={content.image_alt}
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="relative z-10 m-6 lg:m-10 max-w-md rounded-xl bg-white/95 p-5 lg:p-6 border border-brand-border shadow-sm">
             <p className="font-serif text-xl lg:text-2xl text-brand-navy leading-snug">
-              Fresh cakes, handcrafted for your moments.
+              {content.headline}
             </p>
             <ul className="mt-4 space-y-2">
-              {POINTS.map((p) => (
+              {content.points.map((p: string) => (
                 <li key={p} className="flex items-center gap-2 text-sm text-brand-text">
                   <Check className="w-4 h-4 text-brand-gold shrink-0" aria-hidden />
                   {p}

@@ -852,7 +852,12 @@ export default function ProductDetailClient({
       </div>
 
       {/* 7. Bakery FAQ Section */}
-      <PdpFaqSection showFaq={true} />
+      <PdpFaqSection
+        showFaq={pdpConfig?.show_faq !== false}
+        customFaqs={Array.isArray(meta?.faqs) && meta.faqs.length > 0 ? meta.faqs : (Array.isArray(pdpConfig?.faqs) ? pdpConfig.faqs : [])}
+        eyebrow={pdpConfig?.faq_eyebrow}
+        title={pdpConfig?.faq_title}
+      />
 
       {/* 8. Floating Sticky Purchase Bar */}
       <PdpStickyBar

@@ -27,7 +27,7 @@ import {
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type DeviceMode = "desktop" | "tablet" | "mobile" | "full";
-type PageTab = "general" | "pdp" | "seo" | "theme" | "visibility" | "marketing" | "advanced" | "publish";
+type PageTab = "general" | "pdp" | "login" | "seo" | "theme" | "visibility" | "marketing" | "advanced" | "publish";
 type MobilePanelTab = "settings" | "preview" | "sections";
 
 // SECTION_TYPES is now sourced from the central section registry
@@ -1407,6 +1407,7 @@ export function PageConfigurator() {
                 {[
                   { id: "general", label: "General" },
                   ...((editingPage.page_type === "product" || editingPage.slug === "product") ? [{ id: "pdp", label: "PDP Layout" }] : []),
+                  ...(editingPage.slug === "login" ? [{ id: "login", label: "Login Page" }] : []),
                   { id: "seo", label: "SEO" },
                   { id: "theme", label: "Theme" },
                   { id: "visibility", label: "Visibility" },
@@ -1501,6 +1502,52 @@ export function PageConfigurator() {
                   }
                 />
               )}
+
+              {/* Login Page Tab: side image, headline and selling points shown next to the login form */}
+              {activeTab === "login" && editingPage.slug === "login" && (() => {
+                const lc = editingPage.login_config || {};
+                const setLc = (key: string, val: any) => updateField("login_config", { ...lc, [key]: val });
+                return (
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                      {lc.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={lc.image_url} alt={lc.image_alt || ""} className="w-28 h-20 object-cover rounded-lg border border-ui-border-base" />
+                      ) : (
+                        <div className="w-28 h-20 rounded-lg border border-dashed border-ui-border-base flex items-center justify-center text-[10px] text-ui-fg-muted">Default image</div>
+                      )}
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          variant="secondary"
+                          size="small"
+                          onClick={() => openImagePicker("Login Page Image", { url: lc.image_url, alt: lc.image_alt }, (sel) => updateField("login_config", { ...lc, image_url: sel.url, image_alt: sel.alt || lc.image_alt || "" }))}
+                        >
+                          <ImageIcon className="w-3.5 h-3.5 mr-1" /> {lc.image_url ? "Change image" : "Select image"}
+                        </Button>
+                        {lc.image_url && (
+                          <button type="button" className="text-[10px] text-rose-600 text-left" onClick={() => setLc("image_url", "")}>Use default image</button>
+                        )}
+                      </div>
+                    </div>
+                    <Field label="Image alt text">
+                      <input type="text" value={lc.image_alt || ""} onChange={(e) => setLc("image_alt", e.target.value)} placeholder="Freshly baked chocolate cake" className="w-full p-2 border rounded-lg text-xs bg-white dark:bg-slate-800" />
+                    </Field>
+                    <Field label="Headline">
+                      <input type="text" value={lc.headline || ""} onChange={(e) => setLc("headline", e.target.value)} placeholder="Fresh cakes, handcrafted for your moments." className="w-full p-2 border rounded-lg text-xs bg-white dark:bg-slate-800" />
+                    </Field>
+                    <Field label="Selling points (one per line)">
+                      <textarea
+                        rows={4}
+                        value={Array.isArray(lc.points) ? lc.points.join("\n") : ""}
+                        onChange={(e) => setLc("points", e.target.value.split("\n"))}
+                        placeholder={"Baked fresh on order\nSame-day delivery slots\nDelivered across Kerala"}
+                        className="w-full p-2 border rounded-lg text-xs bg-white dark:bg-slate-800"
+                      />
+                    </Field>
+                    <Text className="text-[10px] text-ui-fg-muted">Changes show on the login page after you save.</Text>
+                  </div>
+                );
+              })()}
 
               {/* SEO Tab */}
               {activeTab === "seo" && (

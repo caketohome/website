@@ -421,6 +421,8 @@ export interface CmsPageDomain {
   draft_config?: Record<string, any>;
   published_config?: Record<string, any> | null;
   pdp_config?: Record<string, any> | null;
+  /** Login page side panel: { image_url, image_alt, headline, points[] } */
+  login_config?: Record<string, any> | null;
   version_history?: any[];
   subheading?: string;
   h1?: string;
