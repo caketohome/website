@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   LayoutDashboard, Bell, Activity,
@@ -174,6 +174,28 @@ interface AdminSidebarProps {
 export function AdminSidebar({ activeTabId, onNavigate, user }: AdminSidebarProps) {
   const { sidebarCollapsed, setSidebarCollapsed, setSidebarOpen } = useAdminShell();
 
+  // Access: only sections the server says this user may open (super admins see everything).
+  const [accessUser, setAccessUser] = useState<any>(user || null);
+  useEffect(() => {
+    if (user) {
+      setAccessUser(user);
+      return;
+    }
+    let live = true;
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((j) => live && setAccessUser(j?.data?.user || { role: "", permitted_tabs: [] }))
+      .catch(() => live && setAccessUser({ role: "", permitted_tabs: [] }));
+    return () => {
+      live = false;
+    };
+  }, [user]);
+  const isSuper = String(accessUser?.role || "").toUpperCase() === "SUPER_ADMIN";
+  const permitted = new Set<string>(Array.isArray(accessUser?.permitted_tabs) ? accessUser.permitted_tabs : []);
+  const visibleGroups = !accessUser
+    ? []
+    : NAV_GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => isSuper || (i.tabId ? permitted.has(i.tabId) : false)) })).filter((g) => g.items.length > 0);
+
   // Track which groups are expanded
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
     // Auto-expand the group containing the active tab
@@ -243,7 +265,7 @@ export function AdminSidebar({ activeTabId, onNavigate, user }: AdminSidebarProp
 
       {/* ── Navigation groups ── */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden py-2 scrollbar-thin scrollbar-thumb-white/10" role="navigation" aria-label="Admin navigation">
-        {NAV_GROUPS.map((group) => {
+        {visibleGroups.map((group) => {
           const isExpanded = expandedGroups[group.id] ?? false;
           const hasActiveItem = group.items.some((item) => item.tabId === activeTabId);
           const GroupIcon = group.icon;

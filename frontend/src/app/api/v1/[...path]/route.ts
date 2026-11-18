@@ -121,6 +121,47 @@ function denyUnlessStaff(req: NextRequest): NextResponse | null {
   return null;
 }
 
+/**
+ * Module-level API access for sensitive admin areas (role-based access configured by the super admin).
+ * Reading needs any permission in the module; changing data needs a permission other than view.
+ * Staff/access-profile changes are SUPER_ADMIN only.
+ */
+const ADMIN_API_MODULES: Array<[string, string]> = [
+  ["admin/staff-profiles", "STAFF_MANAGEMENT"],
+  ["admin/staff/", "STAFF_MANAGEMENT"],
+  ["admin/accounting/", "ACCOUNTING"],
+  ["admin/bills-receivable", "ACCOUNTING"],
+  ["admin/bank", "BANK"],
+  ["admin/teller", "TELLER"],
+  ["admin/gateway", "GATEWAY"],
+  ["admin/bills-payable", "PURCHASE"],
+  ["admin/purchases", "PURCHASE"],
+  ["admin/suppliers", "PURCHASE"],
+  ["admin/expenses", "EXPENSE"],
+  ["admin/expense-categories", "EXPENSE"],
+  ["admin/marketplace", "MARKETPLACE"],
+  ["admin/cost-allocations", "COST_ALLOCATION"],
+  ["admin/corporate-accounts", "CORPORATE_ACCOUNTS"],
+  ["admin/corporate-gifting", "CORPORATE_GIFTING"],
+  ["admin/corporate-routing", "CORPORATE_ROUTING"],
+];
+
+function enforceAdminModuleAccess(req: NextRequest, path: string, method: string): NextResponse | null {
+  const entry = ADMIN_API_MODULES.find(([prefix]) => path.startsWith(prefix));
+  if (!entry) return null;
+  const session = resolveServerSession(req);
+  const role = (session?.role || "").toUpperCase();
+  if (role === "SUPER_ADMIN") return null;
+  const deny = (error: string) => NextResponse.json({ success: false, error }, { status: session ? 403 : 401 });
+  if (!session) return deny("UNAUTHORIZED");
+  const isWrite = method !== "GET";
+  if (entry[1] === "STAFF_MANAGEMENT" && isWrite) return deny("FORBIDDEN: Only a super admin can change staff access.");
+  const subject = { role, userId: session.userId, id: session.userId, phone: (session as any).phone };
+  const perms = StaffAccessControl.getEffectivePermissions(subject).filter((p) => p.startsWith(`${entry[1]}.`));
+  const ok = isWrite ? perms.some((p) => !p.split(".")[1].startsWith("VIEW")) : perms.length > 0;
+  return ok ? null : deny(`FORBIDDEN: Your access profile does not include ${entry[1]}${isWrite ? " changes" : ""}.`);
+}
+
 /** Partner-portal guard: a verified marketplace-partner session, scoped to its own partner. */
 function requirePartnerSession(req: NextRequest): { partnerId: string; userId: string; role: string } | NextResponse {
   const session = resolveServerSession(req);
@@ -1479,6 +1520,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
   try {
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
+    { const denied = enforceAdminModuleAccess(req, path, "GET"); if (denied) return denied; }
     const url = new URL(req.url);
     const queryString = url.searchParams.toString();
 
@@ -7269,6 +7311,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
   try {
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
+    { const denied = enforceAdminModuleAccess(req, path, "POST"); if (denied) return denied; }
     const contentType = (req.headers.get("content-type") || "").toLowerCase();
     const isMultipart = contentType.includes("multipart/form-data");
     const body = isMultipart ? {} : await safeParseJsonBody(req);
@@ -12505,6 +12548,7 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
   try {
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
+    { const denied = enforceAdminModuleAccess(req, path, "PUT"); if (denied) return denied; }
     const body = await safeParseJsonBody(req);
     console.log(`[API PUT] path="${path}"`);
 
@@ -13466,6 +13510,7 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
   try {
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
+    { const denied = enforceAdminModuleAccess(req, path, "DELETE"); if (denied) return denied; }
     const body = await safeParseJsonBody(req);
 
     // 1. Primary Route: PostgreSQL Backend Proxy (Port 9000)
@@ -14030,6 +14075,7 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
   try {
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
+    { const denied = enforceAdminModuleAccess(req, path, "PATCH"); if (denied) return denied; }
     const body = await safeParseJsonBody(req);
     console.log(`[API PATCH] path="${path}"`);
 

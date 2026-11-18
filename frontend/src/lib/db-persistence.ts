@@ -686,6 +686,22 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
       updated_at: s.updated_at,
     }));
 
+    // Staff access control (access profiles, staff logins, assignments): load saved state, then save on every change.
+    try {
+      const { StaffAccessControl } = await import("./staff-access-control");
+      const accessRow = (settingsRes.rows || []).find((s: any) => s.group === "access" && s.key === "store");
+      if (accessRow?.value) {
+        StaffAccessControl.loadState(typeof accessRow.value === "string" ? JSON.parse(accessRow.value) : accessRow.value);
+      }
+      StaffAccessControl.setChangeHook((state) => {
+        persistSettingToDb("access", "store", state, false).catch((e: any) =>
+          console.error("[StaffAccessControl] save failed:", e?.message)
+        );
+      });
+    } catch (e: any) {
+      console.error("[StaffAccessControl] hydrate failed:", e?.message);
+    }
+
     if (settingsRes.rows && settingsRes.rows.length > 0) {
       // Authoritative Fulfillment Config Hydration
       const fulfillmentSetting = settingsRes.rows.find(

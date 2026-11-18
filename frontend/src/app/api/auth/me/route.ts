@@ -54,6 +54,12 @@ export async function GET(req: NextRequest) {
       return response;
     }
 
+    // Authoritative access: computed on the server from the saved access profiles, never from client data.
+    const { StaffAccessControl } = await import("@/lib/staff-access-control");
+    const accessSubject = { role: String(role || "").toUpperCase(), userId, id: userId, phone };
+    const effectivePermissions = StaffAccessControl.getEffectivePermissions(accessSubject);
+    const permittedTabs = StaffAccessControl.listPermittedTabs({ ...accessSubject, permissions: effectivePermissions });
+
     const response = NextResponse.json(
       {
         success: true,
@@ -73,7 +79,8 @@ export async function GET(req: NextRequest) {
             partner_number: user.partner_number || null,
             profile_ids: user.profile_ids || [],
             profile_names: user.profile_names || [],
-            permissions: user.permissions || [],
+            permissions: effectivePermissions,
+            permitted_tabs: permittedTabs,
             date_of_birth: user.date_of_birth || user.dob || null,
             created_at: user.created_at || new Date().toISOString(),
           },

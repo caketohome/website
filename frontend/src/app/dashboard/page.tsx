@@ -337,25 +337,20 @@ export default function SuperAdminDashboardPage() {
           phone,
           branchId: sessionUser.branch_id || null,
           permissions: sessionUser.permissions || [],
+          permitted_tabs: (sessionUser.permitted_tabs || []) as string[],
         };
         setUser(userObj);
 
+        // Sections come from the server (permitted_tabs); super admins can open everything.
+        const allowed = (t: string) => role === "SUPER_ADMIN" || userObj.permitted_tabs.includes(t);
+        const firstAllowed = (Object.keys(PANEL_MAP) as AdminTabId[]).find((t) => allowed(t));
         const p = new URLSearchParams(window.location.search).get("tab") as AdminTabId;
-        if (p && PANEL_MAP[p]) {
-          try {
-            const { StaffAccessControl } = require("@frontend/lib/staff-access-control");
-            if (!StaffAccessControl.isTabPermitted(userObj, p)) {
-              setAccessDeniedMessage(`Access Denied: Your profile does not have permission for "${p}". Showing permitted default.`);
-              const permittedTab = role === "STAFF" || role === "TELECALLER" ? "telemarketing" : "orders";
-              setActiveTab(permittedTab as AdminTabId);
-              return;
-            }
-          } catch {
-            // ignore
-          }
+        if (p && PANEL_MAP[p] && allowed(p)) {
           setActiveTab(p);
-        } else if (role === "TELECALLER" || (role === "STAFF" && phone.includes("9876543210"))) {
-          setActiveTab("telemarketing");
+        } else if (!allowed(activeTab)) {
+          if (p) setAccessDeniedMessage(`Access Denied: you do not have access to "${p}".`);
+          if (firstAllowed) setActiveTab(firstAllowed);
+          else setAccessDeniedMessage("No sections have been assigned to your account yet. Ask a super admin to assign an access profile.");
         }
       } catch {
         if (active) window.location.href = "/login";
@@ -369,17 +364,10 @@ export default function SuperAdminDashboardPage() {
 
   const handleTabChange = (tabId: string) => {
     const tab = tabId as AdminTabId;
-    if (user) {
-      try {
-        const { StaffAccessControl } = require("@frontend/lib/staff-access-control");
-        if (!StaffAccessControl.isTabPermitted(user, tab)) {
-          setAccessDeniedMessage(`Access Denied: Your profile does not have permission for "${tab}".`);
-          setTimeout(() => setAccessDeniedMessage(null), 4000);
-          return;
-        }
-      } catch {
-        // ignore
-      }
+    if (user && user.role !== "SUPER_ADMIN" && !(user.permitted_tabs || []).includes(tab)) {
+      setAccessDeniedMessage(`Access Denied: you do not have access to "${tab}".`);
+      setTimeout(() => setAccessDeniedMessage(null), 4000);
+      return;
     }
 
     setAccessDeniedMessage(null);

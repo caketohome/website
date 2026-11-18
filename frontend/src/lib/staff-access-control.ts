@@ -273,6 +273,15 @@ export const PERMISSION_CATALOG: PermissionDefinition[] = [
   // CORPORATE ROUTING (Phase C7.11)
   { id: "CORPORATE_ROUTING.VIEW",             module: "CORPORATE_ROUTING",   action: "VIEW",            label: "View Corporate Routing",        description: "Read corporate delivery assignments, matching diagnostics, and audit events", category: "Corporate & Institutional" },
   { id: "CORPORATE_ROUTING.MANAGE",           module: "CORPORATE_ROUTING",   action: "MANAGE",          label: "Manage Corporate Routing",      description: "Execute single and batch corporate geographic matching and persist assignments", category: "Corporate & Institutional" },
+
+  // MARKETPLACE PARTNERS
+  { id: "MARKETPLACE.VIEW", module: "MARKETPLACE", action: "VIEW", label: "View Marketplace Partners", description: "View partners, statements and payouts", category: "Marketplace Partners" },
+  { id: "MARKETPLACE.MANAGE", module: "MARKETPLACE", action: "MANAGE", label: "Manage Marketplace Partners", description: "Onboard, approve, suspend partners; create and pay payouts", category: "Marketplace Partners" },
+
+  // ADMINISTRATION
+  { id: "SETTINGS.MANAGE", module: "SETTINGS", action: "MANAGE", label: "Manage System Settings", description: "Change feature flags and system configuration", category: "System Administration" },
+  { id: "ACCOUNTING.MANAGE", module: "ACCOUNTING", action: "MANAGE", label: "Manage Accounting Setup", description: "Chart of accounts, fiscal periods and accounting configuration", category: "Accounting & Finance" },
+  { id: "DELIVERY.VIEW_COVERAGE", module: "DELIVERY", action: "VIEW_COVERAGE", label: "View Delivery Coverage", description: "View delivery zones and partner coverage maps", category: "Delivery & Logistics" },
 ];
 
 // ── PRE-SEEDED SYSTEM ACCESS PROFILES ──────────────────────────────────────
@@ -471,158 +480,65 @@ export const SYSTEM_ACCESS_PROFILES: AccessProfile[] = [
 ];
 
 // ── PRE-SEEDED REALISTIC STAFF ACCOUNTS ────────────────────────────────────
-export const INITIAL_STAFF_MEMBERS: StaffMember[] = [
-  {
-    id: "staff_cat_01",
-    user_id: "usr_amit_catalog",
-    name: "Amit Patel",
-    phone: "+91 98765 11223",
-    email: "amit.patel@cakes2home.com",
-    role: "STAFF",
-    profile_id: "prof_catalog_admin",
-    profile_name: "Catalog Administrator",
-    profile_ids: ["prof_catalog_admin"],
-    profile_names: ["Catalog Administrator"],
-    branch_id: null,
-    city: "Bengaluru",
-    status: "ACTIVE",
-    overrides: {},
-    created_at: "2026-08-01T00:00:00.000Z",
-    updated_at: "2026-08-16T08:00:00.000Z",
-  },
-  {
-    id: "staff_01",
-    user_id: "usr_priya_telecaller",
-    name: "Priya Sharma",
-    phone: "+91 98765 99001",
-    email: "priya.sharma@cakes2home.com",
-    role: "STAFF",
-    profile_id: "prof_telecaller",
-    profile_name: "Telecaller",
-    profile_ids: ["prof_telecaller"],
-    profile_names: ["Telecaller"],
-    branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-    branch_name: "Indiranagar Flagship Kitchen",
-    city: "Bengaluru",
-    status: "ACTIVE",
-    overrides: {},
-    created_at: "2026-08-01T00:00:00.000Z",
-    updated_at: "2026-08-16T08:00:00.000Z",
-  },
-  {
-    id: "staff_02",
-    user_id: "usr_sneha_mktg",
-    name: "Sneha Menon",
-    phone: "+91 98800 55443",
-    email: "sneha.menon@cakes2home.com",
-    role: "STAFF",
-    profile_id: "prof_digital_marketing",
-    profile_name: "Digital Marketing",
-    profile_ids: ["prof_digital_marketing"],
-    profile_names: ["Digital Marketing"],
-    branch_id: null,
-    city: "Bengaluru",
-    status: "ACTIVE",
-    overrides: {},
-    created_at: "2026-08-01T00:00:00.000Z",
-    updated_at: "2026-08-16T08:00:00.000Z",
-  },
-  {
-    id: "staff_03",
-    user_id: "usr_rahul_seo",
-    name: "Rahul Verma",
-    phone: "+91 97711 22334",
-    email: "rahul.verma@cakes2home.com",
-    role: "STAFF",
-    profile_id: "prof_seo_manager",
-    profile_name: "SEO Manager",
-    profile_ids: ["prof_seo_manager"],
-    profile_names: ["SEO Manager"],
-    branch_id: null,
-    city: "Bengaluru",
-    status: "ACTIVE",
-    overrides: {},
-    created_at: "2026-08-05T00:00:00.000Z",
-    updated_at: "2026-08-16T08:00:00.000Z",
-  },
-  {
-    id: "staff_04",
-    user_id: "usr_kavita_cms",
-    name: "Kavita Iyer",
-    phone: "+91 99887 76655",
-    email: "kavita.iyer@cakes2home.com",
-    role: "STAFF",
-    profile_id: "prof_content_manager",
-    profile_name: "Content Manager",
-    profile_ids: ["prof_content_manager"],
-    profile_names: ["Content Manager"],
-    branch_id: null,
-    city: "Bengaluru",
-    status: "ACTIVE",
-    overrides: {},
-    created_at: "2026-08-10T00:00:00.000Z",
-    updated_at: "2026-08-16T08:00:00.000Z",
-  },
-  {
-    id: "staff_mgr_01",
-    user_id: "usr_mgr_01",
-    name: "Rajesh Kumar",
-    phone: "+91 98765 00001",
-    email: "rajesh.kumar@cakes2home.com",
-    role: "BRANCH_MANAGER",
-    profile_id: "prof_branch_ops",
-    profile_name: "Branch Operations",
-    profile_ids: ["prof_branch_ops"],
-    profile_names: ["Branch Operations"],
-    branch_id: "br_indiranagar",
-    branch_name: "Indiranagar Flagship Bakery",
-    city: "Bengaluru",
-    status: "ACTIVE",
-    overrides: {},
-    created_at: "2026-08-01T00:00:00.000Z",
-    updated_at: "2026-08-18T08:00:00.000Z",
-  },
-  {
-    id: "staff_dlp_01",
-    user_id: "dlp_01",
-    name: "Ramesh Rider",
-    phone: "+91 99000 11111",
-    email: "ramesh.rider@cakes2home.com",
-    role: "DELIVERY_PARTNER",
-    profile_id: "prof_delivery_ops",
-    profile_name: "Delivery Operations",
-    profile_ids: ["prof_delivery_ops"],
-    profile_names: ["Delivery Operations"],
-    branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-    branch_name: "Indiranagar Flagship Kitchen",
-    delivery_partner_id: "dlp_01",
-    city: "Bengaluru",
-    status: "ACTIVE",
-    overrides: {},
-    created_at: "2026-08-01T00:00:00.000Z",
-    updated_at: "2026-08-18T08:00:00.000Z",
-  },
-  {
-    id: "staff_dlp_02",
-    user_id: "dlp_02",
-    name: "Mahesh Rider",
-    phone: "+91 99000 22222",
-    email: "mahesh.rider@cakes2home.com",
-    role: "DELIVERY_PARTNER",
-    profile_id: "prof_delivery_ops",
-    profile_name: "Delivery Operations",
-    profile_ids: ["prof_delivery_ops"],
-    profile_names: ["Delivery Operations"],
-    branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-    branch_name: "Indiranagar Flagship Kitchen",
-    delivery_partner_id: "dlp_02",
-    city: "Bengaluru",
-    status: "ACTIVE",
-    overrides: {},
-    created_at: "2026-08-01T00:00:00.000Z",
-    updated_at: "2026-08-18T08:00:00.000Z",
-  },
-];
+/**
+ * Every admin dashboard section → the permission needed to see it. Sections not listed here are hidden from
+ * everyone except SUPER_ADMIN. Super admins grant these through Access Profiles (Staff Profiles panel).
+ */
+export const ADMIN_TAB_PERMISSIONS: Record<string, { module: string; action: string }> = {
+  orders: { module: "ORDERS", action: "VIEW" },
+  abandoned_carts: { module: "ORDERS", action: "VIEW" },
+  catalog: { module: "PRODUCTS", action: "VIEW" },
+  search_engine: { module: "PRODUCTS", action: "VIEW" },
+  tax_master: { module: "TAX_MASTER", action: "VIEW" },
+  telemarketing: { module: "TELEMARKETING", action: "VIEW" },
+  branches: { module: "BRANCHES", action: "VIEW" },
+  operational_closures: { module: "BRANCHES", action: "VIEW" },
+  fulfillment: { module: "BRANCHES", action: "VIEW" },
+  delivery: { module: "DELIVERY", action: "VIEW" },
+  delivery_coverage: { module: "DELIVERY", action: "VIEW_COVERAGE" },
+  fleet: { module: "FLEET", action: "VIEW" },
+  suppliers: { module: "PURCHASE", action: "VIEW" },
+  purchases: { module: "PURCHASE", action: "VIEW" },
+  bills_payable: { module: "PURCHASE", action: "VIEW" },
+  expenses: { module: "EXPENSE", action: "VIEW" },
+  marketplace: { module: "MARKETPLACE", action: "VIEW" },
+  general_ledger: { module: "ACCOUNTING", action: "VIEW" },
+  accounting_setup: { module: "ACCOUNTING", action: "MANAGE" },
+  accounting_work_queue: { module: "ACCOUNTING", action: "VIEW" },
+  manual_journals: { module: "ACCOUNTING", action: "VIEW" },
+  bills_receivable: { module: "ACCOUNTING", action: "VIEW" },
+  profit_loss: { module: "ACCOUNTING", action: "VIEW" },
+  balance_sheet: { module: "ACCOUNTING", action: "VIEW" },
+  cash_flow: { module: "ACCOUNTING", action: "VIEW" },
+  tds_register: { module: "ACCOUNTING", action: "VIEW" },
+  cost_allocations: { module: "COST_ALLOCATION", action: "VIEW" },
+  bank_management: { module: "BANK", action: "VIEW" },
+  bank_accounts: { module: "BANK", action: "VIEW" },
+  bank_reconciliation: { module: "BANK", action: "RECON_VIEW" },
+  gateway_settlements: { module: "GATEWAY", action: "VIEW" },
+  teller_custody: { module: "TELLER", action: "VIEW" },
+  crm: { module: "CUSTOMERS", action: "VIEW" },
+  corporate_accounts: { module: "CORPORATE_ACCOUNTS", action: "VIEW" },
+  corporate_gifting: { module: "CORPORATE_GIFTING", action: "VIEW" },
+  corporate_routing_review: { module: "CORPORATE_ROUTING", action: "VIEW" },
+  marketing: { module: "MARKETING", action: "VIEW" },
+  popups: { module: "POPUPS", action: "VIEW" },
+  automation: { module: "AUTOMATION", action: "VIEW" },
+  webhooks: { module: "WEBHOOKS", action: "VIEW" },
+  cms: { module: "CMS", action: "VIEW" },
+  media: { module: "CMS", action: "VIEW" },
+  seo: { module: "SEO", action: "VIEW" },
+  ai_concierge: { module: "SETTINGS", action: "VIEW" },
+  analytics: { module: "ANALYTICS", action: "VIEW" },
+  notifications: { module: "NOTIFICATIONS", action: "VIEW" },
+  login_activity: { module: "SETTINGS", action: "VIEW" },
+  feature_flags: { module: "SETTINGS", action: "MANAGE" },
+  settings: { module: "SETTINGS", action: "VIEW" },
+  staff_profiles: { module: "STAFF_MANAGEMENT", action: "VIEW" },
+};
+
+// No built-in staff: every staff login is created by a super admin and saved to the database.
+export const INITIAL_STAFF_MEMBERS: StaffMember[] = [];
 
 // ── STORE & ENGINE ─────────────────────────────────────────────────────────
 class StaffAccessControlStore {
@@ -658,41 +574,7 @@ class StaffAccessControlStore {
     });
 
     // 2. Seed Initial Audit Logs
-    this.auditLogs = [
-      {
-        id: "audit_init_1",
-        actor_user_id: "admin_01",
-        actor_name: "Super Admin",
-        target_type: "PROFILE",
-        target_id: "prof_telecaller",
-        target_name: "Telecaller",
-        action: "INITIALIZE_PROFILE",
-        details: "System seeded canonical Telecaller access profile with 13 permissions.",
-        created_at: "2026-08-01T00:00:00.000Z",
-      },
-      {
-        id: "audit_init_2",
-        actor_user_id: "admin_01",
-        actor_name: "Super Admin",
-        target_type: "STAFF",
-        target_id: "staff_01",
-        target_name: "Priya Sharma",
-        action: "ASSIGN_PROFILES",
-        details: "Assigned Priya Sharma (+91 98765 43210) to access profiles: Telecaller.",
-        created_at: "2026-08-01T00:00:00.000Z",
-      },
-      {
-        id: "audit_init_3",
-        actor_user_id: "admin_01",
-        actor_name: "Super Admin",
-        target_type: "PROFILE",
-        target_id: "prof_digital_marketing",
-        target_name: "Digital Marketing",
-        action: "INITIALIZE_PROFILE",
-        details: "System seeded Digital Marketing profile with 19 permissions.",
-        created_at: "2026-08-01T00:00:00.000Z",
-      },
-    ];
+    this.auditLogs = [];
   }
 
   // ── CORE PERMISSION RESOLUTION (UNION OF MULTIPLE PROFILES) ─────────────────
@@ -886,56 +768,17 @@ class StaffAccessControlStore {
       return true;
     }
 
-    const TAB_PERMISSION_MAP: Record<string, { module: string; action: string }> = {
-      orders: { module: "ORDERS", action: "VIEW" },
-      catalog: { module: "PRODUCTS", action: "VIEW" },
-      search_engine: { module: "PRODUCTS", action: "VIEW" },
-      branches: { module: "BRANCHES", action: "VIEW" },
-      delivery: { module: "DELIVERY", action: "VIEW" },
-      delivery_coverage: { module: "DELIVERY", action: "VIEW_COVERAGE" },
-      tax_master: { module: "TAX_MASTER", action: "VIEW" },
-      abandoned_carts: { module: "ORDERS", action: "VIEW" },
-      telemarketing: { module: "TELEMARKETING", action: "VIEW" },
-      crm: { module: "CUSTOMERS", action: "VIEW" },
-      login_activity: { module: "SETTINGS", action: "VIEW" },
-      marketing: { module: "MARKETING", action: "VIEW" },
-      popups: { module: "POPUPS", action: "VIEW" },
-      seo: { module: "SEO", action: "VIEW" },
-      automation: { module: "AUTOMATION", action: "VIEW" },
-      webhooks: { module: "WEBHOOKS", action: "VIEW" },
-      cms: { module: "CMS", action: "VIEW" },
-      analytics: { module: "ANALYTICS", action: "VIEW" },
-      notifications: { module: "NOTIFICATIONS", action: "VIEW" },
-      settings: { module: "SETTINGS", action: "VIEW" },
-      fulfillment: { module: "BRANCHES", action: "VIEW" },
-      suppliers: { module: "PURCHASE", action: "VIEW" },
-      purchases: { module: "PURCHASE", action: "VIEW" },
-      bills_payable: { module: "PURCHASE", action: "VIEW" },
-      bills_receivable: { module: "ACCOUNTING", action: "VIEW" },
-      expenses: { module: "EXPENSE", action: "VIEW" },
-      accounting_work_queue: { module: "ACCOUNTING", action: "VIEW" },
-      teller_custody: { module: "TELLER", action: "VIEW" },
-      manual_journals: { module: "ACCOUNTING", action: "VIEW" },
-      cost_allocations: { module: "COST_ALLOCATION", action: "VIEW" },
-      corporate_accounts: { module: "CORPORATE_ACCOUNTS", action: "VIEW" },
-      corporate_gifting: { module: "CORPORATE_GIFTING", action: "VIEW" },
-      corporate_routing_review: { module: "CORPORATE_ROUTING", action: "VIEW" },
-      fleet: { module: "FLEET", action: "VIEW" },
-      staff_profiles: { module: "STAFF_MANAGEMENT", action: "VIEW" },
-      gateway_settlements: { module: "GATEWAY", action: "VIEW" },
-      bank_accounts: { module: "BANK", action: "VIEW" },
-      bank_reconciliation: { module: "BANK", action: "RECON_VIEW" },
-      general_ledger: { module: "ACCOUNTING", action: "VIEW" },
-      accounting_setup: { module: "ACCOUNTING", action: "MANAGE" },
-      profit_loss: { module: "ACCOUNTING", action: "VIEW" },
-      balance_sheet: { module: "ACCOUNTING", action: "VIEW" },
-      cash_flow: { module: "ACCOUNTING", action: "VIEW" },
-    };
-
-    const req = TAB_PERMISSION_MAP[tabId];
-    if (!req) return true;
+    const req = ADMIN_TAB_PERMISSIONS[tabId];
+    // Unknown sections are hidden from non-super-admins (deny by default).
+    if (!req) return tabId === "dashboard" || tabId === "overview";
     return this.hasPermission(userOrRole, req.module, req.action);
   }
+
+  /** Dashboard sections this user may open (server: pass the session user). */
+  public listPermittedTabs(user: any): string[] {
+    return Object.keys(ADMIN_TAB_PERMISSIONS).filter((t) => this.isTabPermitted(user, t));
+  }
+
 
   // ── ACCESS PROFILES MANAGEMENT ───────────────────────────────────────────
   public listProfiles(): AccessProfile[] {
@@ -1531,6 +1374,45 @@ class StaffAccessControlStore {
     if (this.auditLogs.length > 500) {
       this.auditLogs = this.auditLogs.slice(0, 500);
     }
+    // Every access change is audited, so this is the single place that persists the store.
+    try {
+      this.changeHook?.(this.exportState());
+    } catch (err) {
+      console.error("[StaffAccessControl] persist failed:", (err as Error)?.message);
+    }
+  }
+
+  // ── PERSISTENCE (server) ───────────────────────────────────────────────────
+  private changeHook: ((state: ReturnType<StaffAccessControlStore["exportState"]>) => void) | null = null;
+
+  /** Register a callback that saves the store after every audited change (set once on the server). */
+  public setChangeHook(hook: (state: ReturnType<StaffAccessControlStore["exportState"]>) => void): void {
+    this.changeHook = hook;
+  }
+
+  public exportState() {
+    return {
+      version: 1,
+      profiles: this.profiles,
+      staffMembers: this.staffMembers,
+      profileAssignments: this.profileAssignments,
+      auditLogs: this.auditLogs.slice(0, 200),
+    };
+  }
+
+  /** Load saved state. System profiles keep their latest built-in definition unless an admin edited them. */
+  public loadState(state: any): void {
+    if (!state || typeof state !== "object") return;
+    if (Array.isArray(state.profiles) && state.profiles.length > 0) {
+      const saved = new Map<string, AccessProfile>(state.profiles.map((p: AccessProfile) => [p.id, p]));
+      const merged: AccessProfile[] = [];
+      for (const sys of SYSTEM_ACCESS_PROFILES) merged.push(saved.get(sys.id) || sys);
+      for (const p of state.profiles as AccessProfile[]) if (!merged.some((m) => m.id === p.id)) merged.push(p);
+      this.profiles = merged;
+    }
+    if (Array.isArray(state.staffMembers)) this.staffMembers = state.staffMembers;
+    if (Array.isArray(state.profileAssignments)) this.profileAssignments = state.profileAssignments;
+    if (Array.isArray(state.auditLogs)) this.auditLogs = state.auditLogs;
   }
 }
 
