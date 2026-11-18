@@ -12043,14 +12043,15 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
     // Occasions Taxonomy Management
     if (path === "admin/occasions" || path === "occasions") {
-      return jsonWithDataSource({ occasion: ApiEngine.createOccasion(body), success: true }, "postgres", 201);
+      return jsonWithDataSource({ occasion: await ApiEngine.createOccasion(body), success: true }, "postgres", 201);
     }
     if (path === "admin/occasions/migrate" || path === "occasions/migrate") {
       return jsonWithDataSource({ result: ApiEngine.migrateOccasions(), success: true }, "postgres");
     }
     if (path.startsWith("admin/occasions/") && path.endsWith("/restore")) {
       const id = path.replace("admin/occasions/", "").replace("/restore", "");
-      return jsonWithDataSource({ success: ApiEngine.restoreOccasion(id) }, "postgres");
+      const restored = await ApiEngine.restoreOccasion(id);
+      return jsonWithDataSource(restored, "postgres", restored.success ? 200 : 404);
     }
 
     // Media Upload & Management
@@ -13115,7 +13116,7 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
 
     if (path.startsWith("admin/occasions/") || path.startsWith("occasions/")) {
       const id = path.replace("admin/occasions/", "").replace("occasions/", "");
-      return jsonWithDataSource({ occasion: ApiEngine.updateOccasion(id, body), success: true }, "postgres");
+      const updatedOcc = await ApiEngine.updateOccasion(id, body); return jsonWithDataSource({ occasion: updatedOcc, success: Boolean(updatedOcc) }, "postgres", updatedOcc ? 200 : 404);
     }
 
     if (path.startsWith("admin/branches/") && path.endsWith("/operations")) {
@@ -14179,8 +14180,8 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
 
     if (path.startsWith("admin/occasions/") || path.startsWith("occasions/")) {
       const id = path.replace("admin/occasions/", "").replace("occasions/", "");
-      const res = ApiEngine.archiveOccasion(id);
-      return jsonWithDataSource(res, "postgres");
+      const res = await ApiEngine.archiveOccasion(id);
+      return jsonWithDataSource(res, "postgres", res.success ? 200 : 404);
     }
 
     if (path === "admin/branches" || path === "branches" || path.startsWith("admin/branches/")) {

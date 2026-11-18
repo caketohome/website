@@ -2001,487 +2001,6 @@ const DEFAULT_ACCESSORY_CATEGORIES: AccessoryCategory[] = [
 ];
 
 
-const DEFAULT_OCCASIONS: OccasionItem[] = [
-  {
-    id: "occ_birthday",
-    name: "Birthday",
-    slug: "birthday",
-    icon: "🎂",
-    description: "Cakes & celebrations for memorable birthday parties",
-    short_description: "Celebrate birthdays with handcrafted gourmet cakes and sparklers.",
-    long_description: "Make every birthday extraordinary with our artisanal birthday cakes. From rich Belgian chocolate truffles to whimsical rainbow layer cakes, customized with free celebration message plaques and express delivery across Bangalore.",
-    cover_image: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Handcrafted birthday celebration cake with candles and sprinkles",
-    image_position: "center",
-    featured: true,
-    is_featured: true,
-    show_on_homepage: true,
-    show_in_grid: true,
-    show_in_nav: true,
-    show_in_search: true,
-    seo_title: "Order Birthday Cakes Online in Bangalore — Express Delivery | CakeToHome",
-    seo_description: "Handcrafted birthday cakes delivered fresh in under 2 hours across Bangalore. Premium chocolate, red velvet, and custom photo cakes with express delivery.",
-    seo_keywords: "birthday cake online, birthday cake delivery bangalore, express birthday cake, gourmet birthday cakes",
-    og_image: "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&q=80&w=1200",
-    display_order: 1,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_anniversary",
-    name: "Anniversary",
-    slug: "anniversary",
-    icon: "💍",
-    description: "Romantic & milestone wedding anniversary cakes",
-    short_description: "Cherish romantic milestones with decadent anniversary bakes.",
-    long_description: "Celebrate love and companionship with our romantic anniversary collection. Heart-shaped red velvet cakes, champagne infusions, and delicate fondant floral decorations.",
-    cover_image: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Romantic wedding anniversary heart cake with delicate rose petals",
-    image_position: "center",
-    featured: true,
-    is_featured: true,
-    show_on_homepage: true,
-    show_in_grid: true,
-    show_in_nav: true,
-    show_in_search: true,
-    seo_title: "Anniversary Cakes Online Bangalore — Romantic Heart Cakes | CakeToHome",
-    seo_description: "Celebrate wedding milestones with romantic anniversary cakes delivered fresh across Bangalore.",
-    display_order: 2,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_wedding",
-    name: "Wedding",
-    slug: "wedding",
-    icon: "💒",
-    description: "Grand designer multi-tier wedding cakes",
-    short_description: "Magnificent multi-tier wedding centerpieces crafted to perfection.",
-    long_description: "Our master pastry artists craft stunning multi-tiered wedding cakes with bespoke fondant lace, edible gold leaf, and handcrafted sugar flowers.",
-    cover_image: "https://images.unsplash.com/photo-1535254973040-607b474cb50d?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1535254973040-607b474cb50d?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1535254973040-607b474cb50d?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1535254973040-607b474cb50d?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Grand designer multi-tier floral wedding cake centerpiece",
-    image_position: "center",
-    featured: true,
-    is_featured: true,
-    show_on_homepage: true,
-    show_in_grid: true,
-    show_in_nav: true,
-    show_in_search: true,
-    seo_title: "Luxury Wedding Cakes Bangalore — Designer Tiered Cakes | CakeToHome",
-    seo_description: "Grand designer wedding cakes with bespoke tasting consultations and chilled van delivery across Bangalore.",
-    display_order: 3,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_engagement",
-    name: "Engagement",
-    slug: "engagement",
-    icon: "✨",
-    description: "Elegant ring celebration & engagement cakes",
-    short_description: "Toast to forever with exquisite ring ceremony cakes.",
-    cover_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Elegant chocolate gold engagement ring cake",
-    image_position: "center",
-    featured: true,
-    is_featured: true,
-    show_on_homepage: true,
-    show_in_grid: true,
-    show_in_nav: true,
-    show_in_search: true,
-    display_order: 4,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_valentines_day",
-    name: "Valentine's Day",
-    slug: "valentines-day",
-    icon: "❤️",
-    description: "Romantic heart cakes & sweet confections",
-    short_description: "Express your deepest love with Valentine's gourmet specials.",
-    cover_image: "https://images.unsplash.com/photo-1586788680434-30d324b2d46f?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1586788680434-30d324b2d46f?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1586788680434-30d324b2d46f?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1586788680434-30d324b2d46f?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Velveteen heart shaped chocolate Valentine's celebration cake",
-    image_position: "center",
-    featured: true,
-    is_featured: true,
-    show_on_homepage: true,
-    show_in_grid: true,
-    show_in_nav: true,
-    show_in_search: true,
-    display_order: 5,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_mothers_day",
-    name: "Mother's Day",
-    slug: "mothers-day",
-    icon: "🌸",
-    description: "Special floral & gourmet treats for Mom",
-    short_description: "Pamper Mom with floral berry gateaux and light vanilla creams.",
-    cover_image: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Floral berry gateau cake for Mother's Day",
-    image_position: "center",
-    featured: true,
-    is_featured: true,
-    show_on_homepage: true,
-    show_in_grid: true,
-    show_in_nav: true,
-    show_in_search: true,
-    display_order: 6,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_fathers_day",
-    name: "Father's Day",
-    slug: "fathers-day",
-    icon: "👔",
-    description: "Custom handcrafted cakes celebrating Dad",
-    short_description: "Celebrate Dad with robust dark roast mocha and hazelnut cakes.",
-    cover_image: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Artisanal espresso chocolate cake for Father's Day",
-    image_position: "center",
-    featured: true,
-    is_featured: true,
-    show_on_homepage: true,
-    show_in_grid: true,
-    show_in_nav: true,
-    show_in_search: true,
-    display_order: 7,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_baby_shower",
-    name: "Baby Shower",
-    slug: "baby-shower",
-    icon: "🍼",
-    description: "Charming pastel theme cakes for welcoming baby",
-    short_description: "Welcome the bundle of joy with cute pastel themed cakes.",
-    cover_image: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Pastel rainbow theme baby shower drip cake",
-    image_position: "center",
-    featured: true,
-    is_featured: true,
-    show_on_homepage: true,
-    show_in_grid: true,
-    show_in_nav: true,
-    show_in_search: true,
-    display_order: 8,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_baby_birthday",
-    name: "Baby Birthday",
-    slug: "baby-birthday",
-    icon: "👶",
-    description: "Cute 1st birthday & kids theme cakes",
-    short_description: "Magical 1st birthday and cartoon theme creations for little ones.",
-    cover_image: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Playful teddy bear theme kids birthday cake",
-    image_position: "center",
-    featured: true,
-    is_featured: true,
-    show_on_homepage: true,
-    show_in_grid: true,
-    show_in_nav: true,
-    show_in_search: true,
-    display_order: 9,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_graduation",
-    name: "Graduation",
-    slug: "graduation",
-    icon: "🎓",
-    description: "Celebrate degrees, diplomas & convocation success",
-    short_description: "Honor academic excellence and convocation milestones.",
-    cover_image: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1562440499-64c9a111f713?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Festive graduation cap theme celebration cake",
-    image_position: "center",
-    featured: false,
-    is_featured: false,
-    show_on_homepage: false,
-    show_in_grid: true,
-    show_in_nav: true,
-    show_in_search: true,
-    display_order: 10,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_farewell",
-    name: "Farewell",
-    slug: "farewell",
-    icon: "👋",
-    description: "Heartfelt send-off cakes for colleagues & friends",
-    short_description: "Send warm wishes for new chapters with sweet farewell bakes.",
-    cover_image: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Artisanal berry farewell celebration cake",
-    image_position: "center",
-    display_order: 11,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_retirement",
-    name: "Retirement",
-    slug: "retirement",
-    icon: "🌅",
-    description: "Honoring years of excellence and a happy retirement",
-    short_description: "Celebrate a lifetime of dedication and golden years ahead.",
-    cover_image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Golden glaze retirement celebration cake",
-    image_position: "center",
-    display_order: 12,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_corporate_celebration",
-    name: "Corporate Celebration",
-    slug: "corporate-celebration",
-    icon: "🏢",
-    description: "Company milestones, product launches & work anniversaries",
-    short_description: "Impress clients and empower teams with branded corporate cakes.",
-    cover_image: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Premium designer corporate celebration cake",
-    image_position: "center",
-    display_order: 13,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_housewarming",
-    name: "Housewarming",
-    slug: "housewarming",
-    icon: "🏡",
-    description: "Blessings and sweet treats for new beginnings",
-    short_description: "Warm new homes with sweet blessings and nutty praline cakes.",
-    cover_image: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Nutty hazelnut housewarming celebration cake",
-    image_position: "center",
-    display_order: 14,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_thank_you",
-    name: "Thank You",
-    slug: "thank-you",
-    icon: "🙏",
-    description: "Show your appreciation with gourmet confections",
-    short_description: "A decadent gesture of gratitude crafted with Belgian cocoa.",
-    cover_image: "https://images.unsplash.com/photo-1526367790999-0150786686a2?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1526367790999-0150786686a2?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1526367790999-0150786686a2?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1526367790999-0150786686a2?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Gourmet macarons and thank you celebration cake",
-    image_position: "center",
-    display_order: 15,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_congratulations",
-    name: "Congratulations",
-    slug: "congratulations",
-    icon: "🎉",
-    description: "Celebrate victories, promotions and achievements",
-    short_description: "Pop the sweetness for promotions, victories, and success.",
-    cover_image: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Confetti drip congratulations cake",
-    image_position: "center",
-    display_order: 16,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_get_well_soon",
-    name: "Get Well Soon",
-    slug: "get-well-soon",
-    icon: "🌻",
-    description: "Warm wishes and comforting gourmet bakery treats",
-    short_description: "Brighten spirits with light fruit gateaux and honey vanilla bakes.",
-    cover_image: "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Comforting citrus vanilla get well soon cake",
-    image_position: "center",
-    display_order: 17,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_christmas",
-    name: "Christmas",
-    slug: "christmas",
-    icon: "🎄",
-    description: "Rich plum, fruit & festive holiday cakes",
-    short_description: "Traditional soaked fruit plum cakes and winter berry wreaths.",
-    cover_image: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Festive rich plum cake for Christmas",
-    image_position: "center",
-    display_order: 18,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_new_year",
-    name: "New Year",
-    slug: "new-year",
-    icon: "🎆",
-    description: "Sparkling celebration cakes for ringing in the new year",
-    short_description: "Celebrate the countdown with artisan truffle cakes.",
-    cover_image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Sparkling dark truffle New Year celebration cake",
-    image_position: "center",
-    display_order: 19,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_diwali",
-    name: "Diwali",
-    slug: "diwali",
-    icon: "🪔",
-    description: "Festival of lights gourmet fusion hampers & cakes",
-    short_description: "Royal saffron, pistachio, and motichoor artisanal fusion cakes.",
-    cover_image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Royal saffron pistachio fusion Diwali cake",
-    image_position: "center",
-    display_order: 20,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_eid",
-    name: "Eid",
-    slug: "eid",
-    icon: "🌙",
-    description: "Festive celebration cakes and sweet delicacies",
-    short_description: "Rose cardamom, sheer khurma infusions, and pistachio treats.",
-    cover_image: "https://images.unsplash.com/photo-1579372786545-d24232daf58c?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1579372786545-d24232daf58c?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1579372786545-d24232daf58c?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1579372786545-d24232daf58c?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Rose cardamom Eid celebration gateau",
-    image_position: "center",
-    display_order: 21,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_onam",
-    name: "Onam",
-    slug: "onam",
-    icon: "🌼",
-    description: "Traditional fusion festive celebration treats",
-    short_description: "Traditional coconut jaggery and palada payasam fusion cakes.",
-    cover_image: "https://images.unsplash.com/photo-1505976378723-9726b54e9bb9?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1505976378723-9726b54e9bb9?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1505976378723-9726b54e9bb9?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1505976378723-9726b54e9bb9?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Traditional Onam festive fusion cake",
-    image_position: "center",
-    display_order: 22,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_raksha_bandhan",
-    name: "Raksha Bandhan",
-    slug: "raksha-bandhan",
-    icon: "🧵",
-    description: "Celebrate the bond of brother & sister",
-    short_description: "Sweet bonds celebrated with gourmet kesar rasmalai cakes.",
-    cover_image: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Sweet saffron fusion cake for Raksha Bandhan",
-    image_position: "center",
-    display_order: 23,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "occ_friendship_day",
-    name: "Friendship Day",
-    slug: "friendship-day",
-    icon: "🤝",
-    description: "Fun, vibrant celebration cakes for best friends",
-    short_description: "Fun, vibrant berry burst cakes to celebrate best friends.",
-    cover_image: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=1200",
-    image_url: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=1200",
-    mobile_cover_image: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=600",
-    thumbnail_image: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&q=80&w=400",
-    alt_text: "Vibrant berry burst Friendship Day cake",
-    image_position: "center",
-    display_order: 24,
-    status: "active",
-    created_at: new Date().toISOString(),
-  },
-];
 
 
 export interface DeliveryPartnerConfig {
@@ -13598,25 +13117,22 @@ export class ApiEngine {
 
   // ── Structured Occasions & Taxonomy ──────────────────────────────
   static listOccasions(status?: string): OccasionItem[] {
-    if (!memoryStore || !Array.isArray(memoryStore.occasions)) {
-      if (memoryStore) memoryStore.occasions = [...DEFAULT_OCCASIONS];
-      return DEFAULT_OCCASIONS;
-    }
-    let list = memoryStore.occasions.length > 0 ? memoryStore.occasions : DEFAULT_OCCASIONS;
-    // Non-destructive fallback backfill for legacy occasions missing cover images
+    // Occasions come only from the saved list (setting taxonomy.occasions) — nothing built in.
+    if (!memoryStore) return [];
+    if (!Array.isArray(memoryStore.occasions)) memoryStore.occasions = [];
+    let list: OccasionItem[] = memoryStore.occasions;
     list = list.map((occ) => {
-      const def = DEFAULT_OCCASIONS.find((d) => d.id === occ.id || d.slug === occ.slug);
-      const cover = occ.cover_image || occ.image_url || def?.cover_image || "";
-      const mobileCover = occ.mobile_cover_image || def?.mobile_cover_image || cover;
-      const thumb = occ.thumbnail_image || occ.thumbnail || def?.thumbnail_image || cover;
+      const cover = occ.cover_image || occ.image_url || "";
+      const mobileCover = occ.mobile_cover_image || cover;
+      const thumb = occ.thumbnail_image || occ.thumbnail || cover;
       return {
         ...occ,
         cover_image: cover,
         image_url: cover,
         mobile_cover_image: mobileCover,
         thumbnail_image: thumb,
-        alt_text: occ.alt_text || def?.alt_text || `${occ.name} celebration cake`,
-        image_position: occ.image_position || def?.image_position || "center",
+        alt_text: occ.alt_text || `${occ.name} celebration cake`,
+        image_position: occ.image_position || "center",
         show_in_grid: occ.show_in_grid !== false,
         show_on_homepage: occ.show_on_homepage !== false,
         show_in_nav: occ.show_in_nav !== false,
@@ -13642,7 +13158,7 @@ export class ApiEngine {
 
   static async createOccasion(data: any): Promise<OccasionItem> {
     if (!memoryStore.occasions || !Array.isArray(memoryStore.occasions)) {
-      memoryStore.occasions = [...DEFAULT_OCCASIONS];
+      memoryStore.occasions = [];
     }
     const cleanName = (data.name || "New Occasion").trim();
     const cleanSlug = (data.slug || cleanName.toLowerCase().replace(/[^a-z0-9]+/g, "-")).replace(/^-|-$/g, "");
@@ -13695,13 +13211,13 @@ export class ApiEngine {
 
     ApiEngine.addAuditLog(`Created Occasion "${newOccasion.name}"`);
     ApiEngine.persist();
-    await persistSettingToDb("taxonomy", "occasions", memoryStore.occasions, true).catch(() => null);
+    await persistSettingToDb("taxonomy", "occasions", memoryStore.occasions, true);
     return newOccasion;
   }
 
   static async updateOccasion(id: string, data: any): Promise<OccasionItem | null> {
     if (!memoryStore.occasions || !Array.isArray(memoryStore.occasions)) {
-      memoryStore.occasions = [...DEFAULT_OCCASIONS];
+      memoryStore.occasions = [];
     }
     const idx = memoryStore.occasions.findIndex((o) => o.id === id || o.slug === id);
     if (idx >= 0) {
@@ -13721,7 +13237,7 @@ export class ApiEngine {
       memoryStore.occasions[idx] = updated;
       ApiEngine.addAuditLog(`Updated Occasion "${updated.name}"`);
       ApiEngine.persist();
-      await persistSettingToDb("taxonomy", "occasions", memoryStore.occasions, true).catch(() => null);
+      await persistSettingToDb("taxonomy", "occasions", memoryStore.occasions, true);
       return updated;
     }
     return null;
@@ -13738,7 +13254,7 @@ export class ApiEngine {
       };
       ApiEngine.addAuditLog(`Archived Occasion "${memoryStore.occasions[idx].name}"`);
       ApiEngine.persist();
-      await persistSettingToDb("taxonomy", "occasions", memoryStore.occasions, true).catch(() => null);
+      await persistSettingToDb("taxonomy", "occasions", memoryStore.occasions, true);
       return { success: true, message: "Occasion archived successfully" };
     }
     return { success: false, message: "Occasion not found" };
@@ -13756,16 +13272,14 @@ export class ApiEngine {
       delete memoryStore.occasions[idx].deleted_at;
       ApiEngine.addAuditLog(`Restored Occasion "${memoryStore.occasions[idx].name}"`);
       ApiEngine.persist();
-      await persistSettingToDb("taxonomy", "occasions", memoryStore.occasions, true).catch(() => null);
+      await persistSettingToDb("taxonomy", "occasions", memoryStore.occasions, true);
       return { success: true };
     }
     return { success: false };
   }
 
   static migrateOccasions(): { migratedProducts: number; mappedCount: number } {
-    if (!memoryStore.occasions || memoryStore.occasions.length === 0) {
-      memoryStore.occasions = [...DEFAULT_OCCASIONS];
-    }
+    if (!Array.isArray(memoryStore.occasions)) memoryStore.occasions = [];
     if (!memoryStore.product_occasions) memoryStore.product_occasions = [];
     if (!memoryStore.category_occasions) memoryStore.category_occasions = [];
 

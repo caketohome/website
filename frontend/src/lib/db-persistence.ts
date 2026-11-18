@@ -769,7 +769,7 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
       if (occasionsSetting && occasionsSetting.value) {
         try {
           const val = typeof occasionsSetting.value === "string" ? JSON.parse(occasionsSetting.value) : occasionsSetting.value;
-          if (Array.isArray(val) && val.length > 0) {
+          if (Array.isArray(val)) {
             targetStore.occasions = val;
           }
         } catch {}
