@@ -6876,8 +6876,15 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const permErr = verifyApiPermission(req, "TELEMARKETING", "VIEW");
       if (permErr) return permErr;
       const q = Object.fromEntries(url.searchParams);
-      // Reminders are always derived from real order history (no seeded/sample candidates).
-      TelemarketingEngine.evaluateHistoricalOrders(ApiEngine.getAdminOrders({ limit: 1000 })?.orders || [], new Date().toISOString());
+      // Reminders come from real order history in the database (no seeded/sample candidates).
+      // The saved call list is loaded first; a rescan runs at most every 10 minutes.
+      const tm = await import("@frontend/lib/telemarketing-store");
+      await tm.ensureTelemarketingLoaded();
+      const gTm = globalThis as any;
+      if (!gTm.__cthTmLastScan || Date.now() - gTm.__cthTmLastScan > 10 * 60 * 1000) {
+        TelemarketingEngine.evaluateHistoricalOrders(await tm.loadOrdersForTelemarketing(), new Date().toISOString());
+        gTm.__cthTmLastScan = Date.now();
+      }
       return jsonWithDataSource(TelemarketingEngine.listCandidates(q), "postgres");
     }
     if (path === "admin/telemarketing/eligible-staff" || path === "admin/outreach/eligible-staff") {
@@ -6904,6 +6911,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       return jsonWithDataSource({ success: true, staff: staffList }, "postgres");
     }
     if (path === "admin/telemarketing/metrics") {
+      await (await import("@frontend/lib/telemarketing-store")).ensureTelemarketingLoaded();
       const permErr = verifyApiPermission(req, "TELEMARKETING", "VIEW");
       if (permErr) return permErr;
       return jsonWithDataSource({ metrics: TelemarketingEngine.getCandidateMetrics(), success: true }, "postgres");
@@ -10897,6 +10905,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
         if (custUid && ord.id) {
           try {
+            await (await import("@frontend/lib/telemarketing-store")).ensureTelemarketingLoaded();
             TelemarketingEngine.matchAndAttributeCheckoutOrder(custUid, ord.id, ord.total_amount || ord.total || 0);
           } catch {}
         }
@@ -12274,6 +12283,9 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     // ── Telemarketing Endpoints (POST) ──
+    if (path.startsWith("admin/telemarketing")) {
+      await (await import("@frontend/lib/telemarketing-store")).ensureTelemarketingLoaded();
+    }
     if (path === "admin/telemarketing/export") {
       const permErr = verifyApiPermission(req, "TELEMARKETING", "EXPORT");
       if (permErr) return permErr;
@@ -12303,10 +12315,16 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     if (path === "admin/telemarketing/evaluate") {
       const permErr = verifyApiPermission(req, "TELEMARKETING", "VIEW");
       if (permErr) return permErr;
-      const ordersRes = ApiEngine.getAdminOrders({ limit: 1000 });
-      const ordersList = ordersRes?.orders || [];
+      const tm = await import("@frontend/lib/telemarketing-store");
+      await tm.ensureTelemarketingLoaded();
+      const ordersList = await tm.loadOrdersForTelemarketing();
       const result = TelemarketingEngine.evaluateHistoricalOrders(ordersList, body.currentDate || new Date().toISOString());
+      (globalThis as any).__cthTmLastScan = Date.now();
+      await tm.saveTelemarketing();
       return jsonWithDataSource({ ...result, success: true }, "postgres");
+    }
+    if (path.startsWith("admin/telemarketing")) {
+      await (await import("@frontend/lib/telemarketing-store")).ensureTelemarketingLoaded();
     }
     if (path.startsWith("admin/telemarketing/candidates/") && path.endsWith("/call")) {
       const permErr = verifyApiPermission(req, "TELEMARKETING", "CONTACT");
@@ -13621,6 +13639,9 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     }
 
     // ── Telemarketing Endpoints (PUT) ──
+    if (path.startsWith("admin/telemarketing")) {
+      await (await import("@frontend/lib/telemarketing-store")).ensureTelemarketingLoaded();
+    }
     if (path.startsWith("admin/telemarketing/candidates/") && path.endsWith("/status")) {
       const permErr = verifyApiPermission(req, "TELEMARKETING", "UPDATE_STATUS");
       if (permErr) return permErr;

@@ -41,6 +41,17 @@ export class SupplierService {
       input = { ...input, gstin: normalized };
     }
 
+    // Optional bank details (a supplier can be created without them)
+    const bank: any = (input.metadata as any)?.bank_details;
+    if (bank) {
+      const acct = String(bank.account_number || "").replace(/\s/g, "");
+      const ifsc = String(bank.ifsc || "").trim().toUpperCase();
+      if (acct && !/^\d{6,18}$/.test(acct)) return { success: false, error: "Bank account number should be 6–18 digits." };
+      if (ifsc && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc)) return { success: false, error: `Invalid IFSC: ${ifsc}. Expected like SBIN0001234.` };
+      if ((acct && !ifsc) || (!acct && ifsc)) return { success: false, error: "Enter both account number and IFSC (or leave both empty)." };
+      input = { ...input, metadata: { ...(input.metadata || {}), bank_details: { ...bank, account_number: acct || null, ifsc: ifsc || null } } };
+    }
+
     try {
       const supplier = await SupplierRepository.create(input, createdBy);
       return { success: true, data: supplier };

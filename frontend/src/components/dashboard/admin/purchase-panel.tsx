@@ -51,6 +51,38 @@ export default function PurchasePanel() {
   const [selectedPurchase, setSelectedPurchase] = useState<PurchaseRow | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [suppliers, setSuppliers] = useState<SupplierRow[]>([]);
+  // Quick-add supplier from the purchase form (bank details optional)
+  const EMPTY_SUP = { name: "", gstin: "", phone: "", state: "", showBank: false, holder: "", account: "", ifsc: "", bank: "", upi: "" };
+  const [newSup, setNewSup] = useState<typeof EMPTY_SUP | null>(null);
+  const [supErr, setSupErr] = useState<string | null>(null);
+  const [supSaving, setSupSaving] = useState(false);
+  const saveNewSupplier = async () => {
+    if (!newSup) return;
+    setSupErr(null);
+    if (!newSup.name.trim()) { setSupErr("Supplier name is required."); return; }
+    const bank = newSup.showBank && (newSup.account || newSup.ifsc || newSup.upi)
+      ? { account_holder: newSup.holder.trim() || newSup.name.trim(), account_number: newSup.account.replace(/\s/g, ""), ifsc: newSup.ifsc.trim().toUpperCase(), bank_name: newSup.bank.trim(), upi_id: newSup.upi.trim() }
+      : null;
+    setSupSaving(true);
+    try {
+      const res = await apiPost("admin/suppliers", {
+        name: newSup.name.trim(),
+        gstin: newSup.gstin.trim() || null,
+        phone: newSup.phone.trim() || null,
+        state: newSup.state.trim() || null,
+        metadata: bank ? { bank_details: bank } : {},
+      });
+      if (!res?.success) throw new Error(res?.error || "Could not create supplier.");
+      const created = res.data;
+      setSuppliers((list) => [...list, created].sort((a: any, b: any) => String(a.name).localeCompare(String(b.name))));
+      setForm((f) => ({ ...f, supplier_id: created.id }));
+      setNewSup(null);
+    } catch (e: any) {
+      setSupErr(e.message);
+    } finally {
+      setSupSaving(false);
+    }
+  };
 
   // Form state
   const [form, setForm] = useState({
@@ -266,11 +298,42 @@ export default function PurchasePanel() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelCls}>Supplier</label>
-              <select className={inputCls} value={form.supplier_id} onChange={e => setForm(f => ({ ...f, supplier_id: e.target.value }))}>
-                <option value="">— No supplier —</option>
-                {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}{s.gstin ? ` (${s.gstin})` : ""}</option>)}
-              </select>
+              <div className="flex gap-2">
+                <select className={inputCls} value={form.supplier_id} onChange={e => setForm(f => ({ ...f, supplier_id: e.target.value }))}>
+                  <option value="">— No supplier —</option>
+                  {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}{s.gstin ? ` (${s.gstin})` : ""}</option>)}
+                </select>
+                <button type="button" onClick={() => { setSupErr(null); setNewSup({ ...EMPTY_SUP }); }} className="shrink-0 px-3 rounded-lg border border-gray-300 text-xs font-semibold text-[#1D2F5D] hover:bg-gray-50">+ New</button>
+              </div>
             </div>
+            {newSup && (
+              <div className="col-span-2 rounded-lg border border-blue-200 bg-blue-50/40 p-3 space-y-2">
+                <p className="text-xs font-semibold text-gray-700">New supplier</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input className={inputCls} placeholder="Supplier name *" value={newSup.name} onChange={e => setNewSup({ ...newSup, name: e.target.value })} />
+                  <input className={inputCls} placeholder="GSTIN (optional)" value={newSup.gstin} onChange={e => setNewSup({ ...newSup, gstin: e.target.value.toUpperCase() })} />
+                  <input className={inputCls} placeholder="Phone (optional)" value={newSup.phone} onChange={e => setNewSup({ ...newSup, phone: e.target.value })} />
+                  <input className={inputCls} placeholder="State (optional)" value={newSup.state} onChange={e => setNewSup({ ...newSup, state: e.target.value })} />
+                </div>
+                <label className="flex items-center gap-2 text-xs text-gray-700">
+                  <input type="checkbox" checked={newSup.showBank} onChange={e => setNewSup({ ...newSup, showBank: e.target.checked })} /> Add bank details (optional — can be added later)
+                </label>
+                {newSup.showBank && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input className={inputCls} placeholder="Account holder name" value={newSup.holder} onChange={e => setNewSup({ ...newSup, holder: e.target.value })} />
+                    <input className={inputCls} placeholder="Account number" inputMode="numeric" value={newSup.account} onChange={e => setNewSup({ ...newSup, account: e.target.value })} />
+                    <input className={inputCls} placeholder="IFSC (e.g. SBIN0001234)" value={newSup.ifsc} onChange={e => setNewSup({ ...newSup, ifsc: e.target.value.toUpperCase() })} />
+                    <input className={inputCls} placeholder="Bank name" value={newSup.bank} onChange={e => setNewSup({ ...newSup, bank: e.target.value })} />
+                    <input className={inputCls} placeholder="UPI ID (optional)" value={newSup.upi} onChange={e => setNewSup({ ...newSup, upi: e.target.value })} />
+                  </div>
+                )}
+                {supErr && <p className="text-xs text-red-600">{supErr}</p>}
+                <div className="flex gap-2">
+                  <button type="button" onClick={saveNewSupplier} disabled={supSaving} className="px-3 py-1.5 rounded-lg bg-[#1D2F5D] text-white text-xs font-semibold disabled:opacity-50">{supSaving ? "Saving…" : "Save supplier"}</button>
+                  <button type="button" onClick={() => setNewSup(null)} className="px-3 py-1.5 rounded-lg border border-gray-300 text-xs">Cancel</button>
+                </div>
+              </div>
+            )}
             <div>
               <label className={labelCls}>Invoice No.</label>
               <input className={inputCls} value={form.invoice_no} onChange={e => setForm(f => ({ ...f, invoice_no: e.target.value }))} placeholder="INV-2024-001" />

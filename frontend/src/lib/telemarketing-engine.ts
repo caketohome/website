@@ -180,12 +180,25 @@ export interface TelemarketingMetrics {
   interested_count: number;
 }
 
+/** Today's date in India (the call team works in IST). */
+const istToday = () => new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
+
 class TelemarketingEngineStore {
   private candidates: ReorderCandidate[] = [];
   private toleranceDays: number = 14; // Default ±14 days anniversary window
   private attributionWindowDays: number = 14; // 14-day outreach conversion attribution window
 
   // Candidates come only from real order history (evaluateHistoricalOrders).
+
+  /** Snapshot of every candidate (for saving to the database). */
+  public exportAll(): ReorderCandidate[] {
+    return this.candidates;
+  }
+
+  /** Replace in-memory candidates with the saved list (loaded from the database). */
+  public importAll(list: ReorderCandidate[]) {
+    this.candidates = Array.isArray(list) ? list : [];
+  }
 
   public setToleranceDays(days: number) {
     this.toleranceDays = Math.max(1, days);
@@ -389,14 +402,24 @@ class TelemarketingEngineStore {
         const ordDate = new Date(ord.order_date || ord.orderDate || ord.created_at);
         if (isNaN(ordDate.getTime())) continue;
 
-        const orderYear = ordDate.getUTCFullYear();
         const daysSinceOrder = Math.floor((today.getTime() - ordDate.getTime()) / (1000 * 60 * 60 * 24));
 
-        // Derive anniversary date in target year
-        const anniversaryDate = new Date(ordDate);
-        anniversaryDate.setUTCFullYear(targetYear);
+        // The occasion is the day the cake was for (delivery date), falling back to the order date.
+        const rawOccasion = String(ord.delivery_date || ord.deliveryDate || ord.delivery?.date || "").slice(0, 10);
+        const occasionDate = /^\d{4}-\d{2}-\d{2}$/.test(rawOccasion) ? new Date(`${rawOccasion}T00:00:00Z`) : ordDate;
+        const occasionYear = occasionDate.getUTCFullYear();
 
-        const daysDiff = Math.abs(Math.floor((today.getTime() - anniversaryDate.getTime()) / (1000 * 60 * 60 * 24)));
+        // Nearest anniversary to today (handles Dec/Jan), and only for occasions in an earlier year —
+        // a cake bought for this year's occasion is not a "same time last year" reminder.
+        let anniversaryDate = new Date(occasionDate);
+        let daysDiff = Number.POSITIVE_INFINITY;
+        for (const y of [targetYear - 1, targetYear, targetYear + 1]) {
+          if (y <= occasionYear) continue;
+          const cand = new Date(occasionDate);
+          cand.setUTCFullYear(y);
+          const diff = Math.abs(Math.floor((today.getTime() - cand.getTime()) / (1000 * 60 * 60 * 24)));
+          if (diff < daysDiff) { daysDiff = diff; anniversaryDate = cand; }
+        }
 
         // Candidate qualifies if within tolerance window (default ±14 days) or is dormant high-value
         const isAnniversaryWindow = daysDiff <= this.toleranceDays;
@@ -422,7 +445,7 @@ class TelemarketingEngineStore {
           oppType = "RECENT_REPEAT_PURCHASE";
         }
 
-        const expectedDateStr = isAnniversaryWindow ? anniversaryDate.toISOString().slice(0, 10) : today.toISOString().slice(0, 10);
+        const expectedDateStr = isAnniversaryWindow ? anniversaryDate.toISOString().slice(0, 10) : istToday();
         const dedupeKey = `${customerUid}_${oppType}_${expectedDateStr}_${ord.id || ord.order_number}`;
 
         const scoreBreakdown = this.calculateDeterministicScore({
@@ -444,7 +467,7 @@ class TelemarketingEngineStore {
           customerName: custName,
           productName: prodName,
           occasion: occasionStr,
-          orderDateStr: ordDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+          orderDateStr: occasionDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
           opportunityType: oppType,
           cityName: ord.city || "",
         });
@@ -591,7 +614,7 @@ class TelemarketingEngineStore {
     offset?: number;
   } = {}): { candidates: ReorderCandidate[]; total: number; metrics: TelemarketingMetrics } {
     let list = this.candidates.filter((c) => !c.do_not_contact);
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = istToday();
 
     if (filters.customer_uid) {
       list = list.filter((c) => c.customer_uid === filters.customer_uid);
@@ -671,7 +694,7 @@ class TelemarketingEngineStore {
   // ── Telemarketing Executive Metrics ────────────────────────
   public getCandidateMetrics(): TelemarketingMetrics {
     const active = this.candidates.filter((c) => !c.do_not_contact);
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = istToday();
 
     const highPriority = active.filter((c) => c.priority === "HIGH").length;
     const mediumPriority = active.filter((c) => c.priority === "MEDIUM").length;
@@ -701,8 +724,8 @@ class TelemarketingEngineStore {
       high_priority: highPriority,
       medium_priority: mediumPriority,
       low_priority: lowPriority,
-      calls_due_today: callsDueToday || 2,
-      follow_ups_due: followUpsDue || 1,
+      calls_due_today: callsDueToday,
+      follow_ups_due: followUpsDue,
       orders_generated: ordersGenerated,
       revenue_generated: revenueGenerated,
       conversion_rate_pct: conversionRatePct,
