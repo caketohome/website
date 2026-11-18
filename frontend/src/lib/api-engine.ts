@@ -18471,6 +18471,9 @@ export class ApiEngine {
       id: dbCart.id,
       cart_uid: dbCart.id,
       customer_uid: dbCart.customer_id || dbCart.customer_uid || null,
+      // Set when a signed-in customer owns the cart (claim-cart); abandon detection needs a phone to recover it.
+      customer_phone: dbCart.customer_phone || dbCart.metadata?.customer_phone || null,
+      customer_name: dbCart.customer_name || dbCart.metadata?.customer_name || null,
       items: normalizedItems,
       subtotal,
       promo_code: promoCode,

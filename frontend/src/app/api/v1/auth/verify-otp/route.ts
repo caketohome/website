@@ -63,6 +63,15 @@ export async function POST(req: NextRequest) {
     });
     setSessionCookies(res, session);
     res.headers.set("Cache-Control", "no-store");
+
+    // Attach the guest cart (if any) to this customer so it can be recovered if abandoned.
+    if (session.role === "CUSTOMER") {
+      const cartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
+      if (cartId) {
+        const { claimCartForCustomer } = await import("@frontend/lib/cart-recovery/claim-cart");
+        await claimCartForCustomer(cartId, { userId: session.userId, phone });
+      }
+    }
     return res;
   } catch (e) {
     const pe = e instanceof PhoneAuthError ? e : new PhoneAuthError("auth_failed", "Verification failed.", 500);

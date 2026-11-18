@@ -40,8 +40,16 @@ async function getLoginContent() {
   }
 }
 
-export default async function LoginPage() {
+/** Only same-site paths ("/cart", "/checkout?x=1"), never "//evil.com" or absolute URLs. */
+function safeNext(raw: unknown): string | undefined {
+  const v = typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : "";
+  if (!v || !v.startsWith("/") || v.startsWith("//") || v.startsWith("/\\") || v.startsWith("/login")) return undefined;
+  return v;
+}
+
+export default async function LoginPage({ searchParams }: { searchParams?: Record<string, string | string[] | undefined> }) {
   const content = await getLoginContent();
+  const next = safeNext(searchParams?.next);
   return (
     <div className="w-full min-h-[calc(100vh-4rem)] bg-brand-warm-white text-brand-text flex flex-col flex-1 overflow-x-hidden">
       <div className="w-full flex-1 grid grid-cols-1 md:grid-cols-12 items-stretch">
@@ -79,7 +87,7 @@ export default async function LoginPage() {
               </div>
             </div>
 
-            <OtpLoginForm />
+            <OtpLoginForm redirectUrl={next} />
 
             <p className="text-xs text-center text-brand-text-muted pt-4 border-t border-brand-border">
               By continuing, you agree to our{" "}

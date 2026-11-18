@@ -102,11 +102,27 @@ export async function addToCart(
       },
     });
 
-    const authoritativeCart = persistedCart
+    let authoritativeCart = persistedCart
       ? ApiEngine.syncCartFromDb(persistedCart)
       : mutatedCart;
 
     const cookieStore = cookies();
+
+    // Signed-in shopper: attach the cart to them so an abandoned cart can be recovered.
+    try {
+      const { resolveServerSession } = await import("../security/auth-session");
+      const session = resolveServerSession({ cookies: cookieStore, headers: { get: () => "" } });
+      if (session?.userId && session.role === "CUSTOMER") {
+        const { claimCartForCustomer } = await import("../cart-recovery/claim-cart");
+        if (await claimCartForCustomer(cartId!, { userId: session.userId, phone: session.phone, name: session.name })) {
+          const claimed = await CartRepository.findCartById(cartId!);
+          if (claimed) authoritativeCart = ApiEngine.syncCartFromDb(claimed);
+        }
+      }
+    } catch {
+      // never block add-to-cart on recovery bookkeeping
+    }
+
     cookieStore.set("_cth_cart_id", cartId!, { path: "/", maxAge: 60 * 60 * 24 * 30 });
     cookieStore.set("_medusa_cart_id", cartId!, { path: "/", maxAge: 60 * 60 * 24 * 30 });
     revalidateTag(getCacheTag("carts"));
