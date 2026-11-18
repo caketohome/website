@@ -2177,18 +2177,7 @@ const DEFAULT_VARIANT_OPTIONS = [
   { id: "opt_w_04", type: "weight", name: "2.0 kg", display_name: "2.0 Kilograms", weight_val: 2.0, unit: "kg", price_modifier: 0, display_order: 4, status: "active" },
   { id: "opt_w_05", type: "weight", name: "5.0 kg", display_name: "5.0 Kilograms (Party Size)", weight_val: 5.0, unit: "kg", price_modifier: 0, display_order: 5, status: "active" },
 
-  // Shapes
-  { id: "opt_s_01", type: "shape", name: "Round", display_name: "Classic Round", price_modifier: 0, display_order: 1, status: "active" },
-  { id: "opt_s_02", type: "shape", name: "Heart", display_name: "Romantic Heart Shape", price_modifier: 150, display_order: 2, status: "active" },
-  { id: "opt_s_03", type: "shape", name: "Square", display_name: "Modern Square", price_modifier: 200, display_order: 3, status: "active" },
-  { id: "opt_s_04", type: "shape", name: "2-Tier Designer", display_name: "Grand 2-Tier Designer", price_modifier: 2500, display_order: 4, status: "active" },
 
-  // Flavours
-  { id: "opt_f_01", type: "flavour", name: "Belgian Dark Chocolate", display_name: "Belgian Dark Chocolate", price_modifier: 0, display_order: 1, status: "active" },
-  { id: "opt_f_02", type: "flavour", name: "Red Velvet", display_name: "Red Velvet Cream Cheese", price_modifier: 0, display_order: 2, status: "active" },
-  { id: "opt_f_03", type: "flavour", name: "Alphonso Mango", display_name: "Alphonso Mango Fresh Fruit", price_modifier: 0, display_order: 3, status: "active" },
-  { id: "opt_f_04", type: "flavour", name: "Lotus Biscoff", display_name: "Lotus Biscoff Caramel", price_modifier: 100, display_order: 4, status: "active" },
-  { id: "opt_f_05", type: "flavour", name: "Ferrero Rocher", display_name: "Ferrero Rocher Hazelnut", price_modifier: 150, display_order: 5, status: "active" },
 
   // Fillings
   { id: "opt_fil_01", type: "filling", name: "Chocolate Ganache", display_name: "Rich Chocolate Ganache Layer", price_modifier: 100, display_order: 1, status: "active" },
