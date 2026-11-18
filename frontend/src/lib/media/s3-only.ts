@@ -11,7 +11,7 @@ import { isS3Enabled, putMediaObject } from "./media-storage";
 
 const DATA_IMAGE = /^data:(image\/(png|jpe?g|webp|gif|avif));base64,/i;
 const EXTERNAL_HOSTS = ["images.unsplash.com", "res.cloudinary.com"];
-const SKIP_KEYS = new Set(["blur_placeholder"]); // tiny inline blur previews, not media files
+const SKIP_KEYS = new Set<string>();
 const MAX_BYTES = 10 * 1024 * 1024;
 
 const extFor = (type: string) => (type.includes("png") ? "png" : type.includes("webp") ? "webp" : type.includes("gif") ? "gif" : type.includes("avif") ? "avif" : "jpg");
@@ -89,8 +89,8 @@ export async function inlineImagesToS3<T>(body: T, folder = "uploads"): Promise<
   return r.value;
 }
 
-// Tables whose old values are history, not live content.
-const SKIP_TABLES = /(^cms_revision$|audit|_log$|_logs$|history|outbox|^media$)/;
+// The media table is handled below (url / thumbnail columns); every other table, history included, is scanned.
+const SKIP_TABLES = /^media$/;
 
 /** Copies media stored outside S3 (base64 in rows, stock-photo links) into S3 and rewrites the rows. */
 export async function moveExternalMediaToS3(): Promise<{ moved: number; rows: number; errors: string[] }> {
@@ -154,5 +154,25 @@ export async function moveExternalMediaToS3(): Promise<{ moved: number; rows: nu
       rows++;
     }
   }
+  // Inline base64 blur previews are no longer used — clear them so no image bytes remain in the database.
+  const blur = await dbQuery(`UPDATE public.media SET blur_placeholder = NULL WHERE blur_placeholder LIKE 'data:%'`).catch(() => ({ rowCount: 0 } as any));
+  rows += blur.rowCount || 0;
   return { moved, rows, errors };
+}
+
+/** Counts media still held in the database instead of S3 (base64 / stock-photo links). */
+export async function auditDatabaseMedia(): Promise<Array<{ table: string; column: string; rows: number }>> {
+  const cols = await dbQuery(
+    `SELECT c.table_name, c.column_name FROM information_schema.columns c
+       JOIN information_schema.tables t ON t.table_schema = c.table_schema AND t.table_name = c.table_name AND t.table_type = 'BASE TABLE'
+      WHERE c.table_schema = 'public' AND c.data_type IN ('text', 'character varying', 'jsonb', 'json')`
+  );
+  const out: Array<{ table: string; column: string; rows: number }> = [];
+  for (const { table_name: t, column_name: col } of cols.rows) {
+    const r = await dbQuery(
+      `SELECT COUNT(*)::int n FROM public."${t}" WHERE "${col}"::text LIKE '%;base64,%' OR "${col}"::text LIKE '%images.unsplash.com%' OR "${col}"::text LIKE '%res.cloudinary.com%'`
+    ).catch(() => ({ rows: [{ n: 0 }] }));
+    if (r.rows[0].n) out.push({ table: t, column: col, rows: r.rows[0].n });
+  }
+  return out;
 }

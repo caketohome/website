@@ -104,6 +104,23 @@ export function MediaLibraryPanel() {
     setTimeout(() => setToastMsg(null), 3000);
   };
 
+  // S3-only storage check (super admin)
+  const [storageAudit, setStorageAudit] = useState<{ s3_configured: boolean; clean: boolean; found: Array<{ table: string; column: string; rows: number }> } | null>(null);
+  const [movingToS3, setMovingToS3] = useState(false);
+  const moveToS3 = async () => {
+    setMovingToS3(true);
+    try {
+      const r = await fetch("/api/v1/admin/media/move-to-s3", { method: "POST" }).then((x) => x.json());
+      if (r?.error === "FORBIDDEN") showToast("Only a super admin can move media.");
+      else showToast(r?.success ? `Moved ${r.moved} file(s) to S3, updated ${r.rows} record(s).` : `Some media could not be moved: ${(r?.errors || []).slice(0, 2).join("; ") || "see storage status"}`);
+      await loadData();
+    } catch (e: any) {
+      showToast(`Move failed: ${e.message}`);
+    } finally {
+      setMovingToS3(false);
+    }
+  };
+
   // Load Media and Stats
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -117,6 +134,8 @@ export function MediaLibraryPanel() {
       if (statsRes?.stats) {
         setStats(statsRes.stats);
       }
+      const audit = await fetch("/api/v1/admin/media/storage-audit").then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      setStorageAudit(audit?.success ? audit : null);
     } catch (err) {
       console.error("[MediaLibrary] Failed to load media:", err);
     } finally {
@@ -281,12 +300,15 @@ export function MediaLibraryPanel() {
       <PageHeader
         icon={ImageIcon}
         title="Media Library & Pipeline"
-        description="High-performance PostgreSQL-backed media catalog with automated Sharp WebP/AVIF compression, responsive variants, and LQIP placeholders."
-        badge={<StatusBadge status="gold" label="PostgreSQL Synced" />}
+        description="Image files are stored in AWS S3 only; the database keeps just the S3 links. Uploads are compressed to WebP/AVIF with responsive sizes."
+        badge={<StatusBadge status="gold" label="Stored in S3" />}
         actions={
           <div className="flex items-center gap-3">
             <SecondaryButton icon={RefreshCw} onClick={loadData}>
               Refresh
+            </SecondaryButton>
+            <SecondaryButton icon={Upload} onClick={moveToS3} disabled={movingToS3}>
+              {movingToS3 ? "Moving…" : "Move remaining media to S3"}
             </SecondaryButton>
             <PrimaryButton icon={Upload} onClick={() => setShowUploadModal(true)}>
               Upload Image
@@ -294,6 +316,16 @@ export function MediaLibraryPanel() {
           </div>
         }
       />
+
+      {storageAudit && (
+        <div className={`rounded-lg border px-4 py-3 text-sm ${storageAudit.clean ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-900"}`}>
+          {!storageAudit.s3_configured
+            ? "S3 is not configured on this server (AWS_S3_BUCKET_NAME / AWS keys) — uploads will fail until it is set."
+            : storageAudit.clean
+              ? "All media is in S3 — no image files are stored in the database."
+              : `Media still outside S3: ${storageAudit.found.map((f) => `${f.table}.${f.column} (${f.rows})`).join(", ")}. Use “Move remaining media to S3”.`}
+        </div>
+      )}
 
       {/* KPI Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

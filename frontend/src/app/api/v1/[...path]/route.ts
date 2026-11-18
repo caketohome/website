@@ -9,7 +9,7 @@ import { inlineImagesToS3 } from "@frontend/lib/media/s3-only";
 import { normalizePhone, SYSTEM_SEGMENTS } from "@frontend/lib/crm/crm-engine";
 import { FulfillmentEngine, DeliverySlotGenerator, DEFAULT_SLOT_CONFIG } from "@frontend/lib/fulfillment";
 import { createApiEngineProvider, ensureFulfillmentStore, generateOtp, verifyOtp, getActiveOtp } from "@frontend/lib/fulfillment/api-engine-provider";
-import { persistSettingToDb } from "@frontend/lib/db-persistence";
+import { persistSettingToDb, hydrateStoreFromDatabase } from "@frontend/lib/db-persistence";
 import {
   ProductRepository,
   OrderRepository,
@@ -7078,6 +7078,14 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         return jsonWithDataSource({ media: ApiEngine.getAdminMedia() }, "postgres");
       }
     }
+    if (path === "admin/media/storage-audit") {
+      // Media held in the database instead of S3 (should always be empty)
+      if ((resolveServerSession(req)?.role || "").toUpperCase() !== "SUPER_ADMIN") return jsonWithDataSource({ success: false, error: "FORBIDDEN" }, "postgres", 403);
+      const { auditDatabaseMedia } = await import("@frontend/lib/media/s3-only");
+      const { isS3Enabled } = await import("@frontend/lib/media/media-storage");
+      const found = await auditDatabaseMedia();
+      return jsonWithDataSource({ success: true, s3_configured: isS3Enabled(), clean: found.length === 0, found }, "postgres");
+    }
     if (path === "admin/media/stats") {
       try {
         const stats = await MediaRepository.getMediaStats();
@@ -12066,6 +12074,15 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const id = path.replace("admin/occasions/", "").replace("/restore", "");
       const restored = await ApiEngine.restoreOccasion(id);
       return jsonWithDataSource(restored, "postgres", restored.success ? 200 : 404);
+    }
+
+    if (path === "admin/media/move-to-s3") {
+      if ((resolveServerSession(req)?.role || "").toUpperCase() !== "SUPER_ADMIN") return jsonWithDataSource({ success: false, error: "FORBIDDEN" }, "postgres", 403);
+      const { moveExternalMediaToS3, auditDatabaseMedia } = await import("@frontend/lib/media/s3-only");
+      const result = await moveExternalMediaToS3();
+      if (result.rows) await hydrateStoreFromDatabase((globalThis as any).__CTH_MEMORY_STORE__).catch(() => null);
+      const remaining = await auditDatabaseMedia();
+      return jsonWithDataSource({ success: result.errors.length === 0 && remaining.length === 0, ...result, remaining }, "postgres");
     }
 
     // Media Upload & Management

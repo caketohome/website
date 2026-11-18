@@ -57,18 +57,8 @@ export class MediaProcessor {
     const originalWidth = metadata.width || 1200;
     const originalHeight = metadata.height || 800;
 
-    // 1. Generate base64 blur placeholder (24px width)
-    let blur_placeholder = "";
-    try {
-      const placeholderBuf = await sharp(buffer)
-        .resize(24, Math.round(24 * (originalHeight / originalWidth)), { fit: "inside" })
-        .blur(2)
-        .toFormat("webp", { quality: 20 })
-        .toBuffer();
-      blur_placeholder = `data:image/webp;base64,${placeholderBuf.toString("base64")}`;
-    } catch (e) {
-      console.warn("[MediaProcessor] Failed to generate blur placeholder:", e);
-    }
+    // 1. No inline base64 blur preview: every image byte lives in S3, none in the database.
+    const blur_placeholder = "";
 
     // 2. Save optimized original (strip EXIF metadata for privacy)
     const mainFileName = `${baseName}_${uniqueId}.${ext}`;
