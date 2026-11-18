@@ -91,7 +91,7 @@ export function OrderSummary({
       {/* Items List */}
       <div className="flex flex-col gap-3.5 max-h-64 overflow-y-auto pr-1">
         {items.map((item: any) => {
-          const image = item.thumbnail || item.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=300";
+          const image = item.thumbnail || item.image_url || "/images/placeholder-cake.webp";
           const unitPrice = Number(item.unit_price || item.price || 0);
           const quantity = Number(item.quantity || 1);
           const weight = item.weight || item.metadata?.weight || null;

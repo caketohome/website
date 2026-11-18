@@ -106,7 +106,7 @@ const DEFAULT_SEO_CONFIG: GlobalSeoConfig = {
   meta_description: "Order fresh handcrafted cakes online for birthdays, anniversaries, and celebrations with same-day 2-hour delivery across Bangalore.",
   keywords: "cake delivery, online cake order, birthday cakes, anniversary cakes, chocolate truffle, customized cakes bangalore",
   canonical_url: "https://caketohome.com",
-  og_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587",
+  og_image: "",
   ga_id: "",
   fb_pixel_id: "",
   gtm_id: "",

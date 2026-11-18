@@ -11,12 +11,12 @@ import {
 const ACCESSORY_ASSET_MAP: Record<string, string> = {
   acc_01: "/images/gold-acrylic-topper.jpg",
   acc_02: "/images/birthday-candles.jpg",
-  acc_03: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=600&auto=format&fit=crop&q=80",
-  acc_04: "https://images.unsplash.com/photo-1561181286-d3fee7d55364?w=600&auto=format&fit=crop&q=80",
-  acc_05: "https://images.unsplash.com/photo-1559454403-b8fb88521f11?w=600&auto=format&fit=crop&q=80",
-  acc_06: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&auto=format&fit=crop&q=80",
-  acc_07: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&auto=format&fit=crop&q=80",
-  acc_08: "https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=600&auto=format&fit=crop&q=80"
+  acc_03: "/images/placeholder-cake.webp",
+  acc_04: "/images/placeholder-cake.webp",
+  acc_05: "/images/placeholder-cake.webp",
+  acc_06: "/images/placeholder-cake.webp",
+  acc_07: "/images/placeholder-cake.webp",
+  acc_08: "/images/placeholder-cake.webp"
 };
 
 export class ProductRepository {

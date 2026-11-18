@@ -142,7 +142,7 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
           {sortedOrders.map((ord: any) => {
             const firstItem = ord.items?.[0] || {};
             const cakeTitle = firstItem.title || firstItem.name || "Artisanal Celebration Cake";
-            const cakeThumbnail = firstItem.thumbnail || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=300&q=80";
+            const cakeThumbnail = firstItem.thumbnail || "/images/placeholder-cake.webp";
             const itemCount = ord.items?.length || 1;
             const orderTotal = Number(ord.total || ord.grand_total || ord.pricing?.grand_total || 0);
             const placedDate = ord.created_at || ord.placed_at

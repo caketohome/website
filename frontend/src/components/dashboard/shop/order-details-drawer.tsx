@@ -58,7 +58,7 @@ export default function OrderDetailsDrawer({
   };
 
   const isPhotoCake = order.is_photo_cake || !!order.customization?.photo_url || (order.items || []).some((i: any) => (i.title || "").toLowerCase().includes("photo"));
-  const photoUrl = order.photo_url || order.customization?.photo_url || (isPhotoCake ? "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800" : null);
+  const photoUrl = order.photo_url || order.customization?.photo_url || (isPhotoCake ? "/images/placeholder-cake.webp" : null);
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-sm flex justify-end animate-in fade-in duration-200">

@@ -5,6 +5,7 @@ import { WebhookEngine } from "@frontend/lib/webhook-engine";
 import { TelemarketingEngine } from "@frontend/lib/telemarketing-engine";
 import { TelemarketingExportService } from "@frontend/lib/telemarketing-export-service";
 import { StaffAccessControl, PERMISSION_CATALOG, marketplaceWritePermission } from "@frontend/lib/staff-access-control";
+import { inlineImagesToS3 } from "@frontend/lib/media/s3-only";
 import { normalizePhone, SYSTEM_SEGMENTS } from "@frontend/lib/crm/crm-engine";
 import { FulfillmentEngine, DeliverySlotGenerator, DEFAULT_SLOT_CONFIG } from "@frontend/lib/fulfillment";
 import { createApiEngineProvider, ensureFulfillmentStore, generateOtp, verifyOtp, getActiveOtp } from "@frontend/lib/fulfillment/api-engine-provider";
@@ -1511,16 +1512,22 @@ function getPath(req: NextRequest, context?: any): string {
   return String(p || "");
 }
 
-async function safeParseJsonBody(req: NextRequest): Promise<any> {
+async function safeParseJsonBody(req: NextRequest, path?: string): Promise<any> {
+  let body: any = {};
   try {
     const rawText = await req.text();
     if (rawText && rawText.trim().length > 0) {
-      return JSON.parse(rawText);
+      body = JSON.parse(rawText);
     }
   } catch {
     // fallback empty object
   }
-  return {};
+  // Media is stored in S3 only: base64 images in a save are uploaded and replaced by their S3 URL.
+  // (admin/media handles its own upload pipeline.)
+  if (path && !/^(admin\/)?media(\/|$)/.test(path)) {
+    body = await inlineImagesToS3(body, path.split("/").filter(Boolean).slice(0, 2).join("_") || "uploads");
+  }
+  return body;
 }
 
 export async function GET(req: NextRequest, context: { params: { path: string[] } }) {
@@ -7450,7 +7457,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     { const denied = enforceAdminModuleAccess(req, path, "POST"); if (denied) return denied; }
     const contentType = (req.headers.get("content-type") || "").toLowerCase();
     const isMultipart = contentType.includes("multipart/form-data");
-    const body = isMultipart ? {} : await safeParseJsonBody(req);
+    const body = isMultipart ? {} : await safeParseJsonBody(req, path);
     console.log(`[API POST] path="${path}"`);
 
     // Surprise / gift services: POST admin/gift-services (create or update)
@@ -12802,7 +12809,7 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
     { const denied = enforceAdminModuleAccess(req, path, "PUT"); if (denied) return denied; }
-    const body = await safeParseJsonBody(req);
+    const body = await safeParseJsonBody(req, path);
     console.log(`[API PUT] path="${path}"`);
 
     // 1. Primary Route: PostgreSQL Backend Proxy (Port 9000)
@@ -14344,7 +14351,7 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
     { const denied = enforceAdminModuleAccess(req, path, "PATCH"); if (denied) return denied; }
-    const body = await safeParseJsonBody(req);
+    const body = await safeParseJsonBody(req, path);
     console.log(`[API PATCH] path="${path}"`);
 
     // 1. Primary Route: PostgreSQL Backend Proxy (Port 9000)

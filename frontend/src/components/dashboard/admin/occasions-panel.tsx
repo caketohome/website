@@ -624,7 +624,7 @@ export function OccasionsPanel() {
                           id="occ_cover_url"
                           value={coverImage}
                           onChange={(e) => setCoverImage(e.target.value)}
-                          placeholder="https://images.unsplash.com/photo-..."
+                          placeholder="Upload an image (stored in S3)"
                           className="mt-0.5 text-xs font-mono"
                         />
                       </div>
@@ -900,7 +900,7 @@ export function OccasionsPanel() {
                     id="occ_og_img"
                     value={ogImage}
                     onChange={(e) => setOgImage(e.target.value)}
-                    placeholder={coverImage || "https://images.unsplash.com/..."}
+                    placeholder={coverImage || "Upload an image (stored in S3)"}
                     className="mt-1 text-xs font-mono"
                   />
                 </div>
@@ -1064,7 +1064,7 @@ export function OccasionsPanel() {
               const prodCount = getProductCountForOccasion(occ);
               const catCount = getCategoryCountForOccasion(occ);
               const isArchived = occ.status === "archived";
-              const cover = occ.cover_image || occ.image_url || occ.thumbnail_image || "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&q=80&w=600";
+              const cover = occ.cover_image || occ.image_url || occ.thumbnail_image || "/images/placeholder-cake.webp";
 
               return (
                 <div

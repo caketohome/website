@@ -270,7 +270,7 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
       unit_price: unitPrice,
       price: unitPrice,
       total: unitPrice * customForm.quantity,
-      image_url: customizingProduct.thumbnail || customizingProduct.images?.[0]?.url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800",
+      image_url: customizingProduct.thumbnail || customizingProduct.images?.[0]?.url || "/images/placeholder-cake.webp",
       custom_message: customForm.cake_message || null,
     };
 
@@ -903,7 +903,7 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
                   {/* Products Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-72 overflow-y-auto p-1">
                     {filteredProducts.slice(0, 12).map((prod) => {
-                      const img = prod.thumbnail || prod.images?.[0]?.url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800";
+                      const img = prod.thumbnail || prod.images?.[0]?.url || "/images/placeholder-cake.webp";
                       const price = prod.price || prod.variants?.[0]?.prices?.[0]?.amount || 599;
                       return (
                         <div key={prod.id || prod.product_id} className="p-3 border rounded-xl bg-white dark:bg-slate-900 flex flex-col justify-between space-y-2 hover:shadow-md transition-shadow">

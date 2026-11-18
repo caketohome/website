@@ -189,11 +189,11 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
   const [addOnFlowers, setAddOnFlowers] = useState(false);
 
   // Media & Gallery
-  const [thumbnailUrl, setThumbnailUrl] = useState(product?.thumbnail || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800");
+  const [thumbnailUrl, setThumbnailUrl] = useState(product?.thumbnail || "");
   const [galleryImages, setGalleryImages] = useState<string[]>(
     Array.isArray(product?.gallery) && product.gallery.length > 0
       ? product.gallery
-      : [product?.thumbnail || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800"]
+      : (product?.thumbnail ? [product.thumbnail] : [])
   );
   const [videoUrl, setVideoUrl] = useState(product?.video_url || "");
   const [altText, setAltText] = useState(product?.alt_text || "Freshly baked celebration cake");
@@ -310,7 +310,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
         compressedResults.push(compressedWebP);
       }
       setGalleryImages((prev) => [...prev, ...compressedResults]);
-      if (compressedResults.length > 0 && (!thumbnailUrl || thumbnailUrl.includes("unsplash"))) {
+      if (compressedResults.length > 0 && !thumbnailUrl) {
         setThumbnailUrl(compressedResults[0]);
       }
     } catch {

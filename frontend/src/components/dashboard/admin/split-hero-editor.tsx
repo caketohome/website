@@ -224,7 +224,7 @@ export function SplitHeroEditor({ config, onChange, openImagePicker }: SplitHero
                 onChange("desktop_image", e.target.value);
                 onChange("image_url", e.target.value);
               }}
-              placeholder="https://images.unsplash.com/photo-1578985545062-69928b1d9587..."
+              placeholder="Upload an image (stored in S3)"
             />
           </Field>
 

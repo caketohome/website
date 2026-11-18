@@ -1715,39 +1715,39 @@ export function PageRenderer({
 
               // Curated 4-Tier Fallback Dictionary for standard bakery celebration occasions
               const OCCASION_FALLBACK_IMAGES: Record<string, string> = {
-                birthday: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=800&q=80",
-                "birthday-cakes": "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=800&q=80",
-                anniversary: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?w=800&q=80",
-                "anniversary-cakes": "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?w=800&q=80",
-                wedding: "https://images.unsplash.com/photo-1535254973040-607b474cb50d?w=800&q=80",
-                "wedding-cakes": "https://images.unsplash.com/photo-1535254973040-607b474cb50d?w=800&q=80",
-                engagement: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&q=80",
-                valentine: "https://images.unsplash.com/photo-1518047601542-4505c678a202?w=800&q=80",
-                "valentines-day": "https://images.unsplash.com/photo-1518047601542-4505c678a202?w=800&q=80",
-                "mothers-day": "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=800&q=80",
-                "fathers-day": "https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=800&q=80",
-                "baby-shower": "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80",
-                "baby-birthday": "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80",
-                graduation: "https://images.unsplash.com/photo-1621303837174-89787a7d4729?w=800&q=80",
-                farewell: "https://images.unsplash.com/photo-1579372786545-d24232daf58c?w=800&q=80",
-                retirement: "https://images.unsplash.com/photo-1542826438-bd32f43d626f?w=800&q=80",
-                corporate: "https://images.unsplash.com/photo-1571115177098-24ec42ed204d?w=800&q=80",
-                housewarming: "https://images.unsplash.com/photo-1562440499-64c9a111f713?w=800&q=80",
-                "thank-you": "https://images.unsplash.com/photo-1587314168485-3236d6710814?w=800&q=80",
-                congratulations: "https://images.unsplash.com/photo-1567171466295-4afa63d45416?w=800&q=80",
-                "get-well-soon": "https://images.unsplash.com/photo-1534432182912-63863115e106?w=800&q=80",
-                christmas: "https://images.unsplash.com/photo-1512485800893-b09ec1ea62b1?w=800&q=80",
-                "new-year": "https://images.unsplash.com/photo-1546554137-f86b9593a222?w=800&q=80",
-                diwali: "https://images.unsplash.com/photo-1605651202774-7d573fd3f12d?w=800&q=80",
-                eid: "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?w=800&q=80",
-                onam: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=800&q=80",
-                "raksha-bandhan": "https://images.unsplash.com/photo-1627834377411-8da5f4f09de8?w=800&q=80",
-                "friendship-day": "https://images.unsplash.com/photo-1516054575922-f0b8eeadec1a?w=800&q=80",
-                kids: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80",
+                birthday: "/images/placeholder-cake.webp",
+                "birthday-cakes": "/images/placeholder-cake.webp",
+                anniversary: "/images/placeholder-cake.webp",
+                "anniversary-cakes": "/images/placeholder-cake.webp",
+                wedding: "/images/placeholder-cake.webp",
+                "wedding-cakes": "/images/placeholder-cake.webp",
+                engagement: "/images/placeholder-cake.webp",
+                valentine: "/images/placeholder-cake.webp",
+                "valentines-day": "/images/placeholder-cake.webp",
+                "mothers-day": "/images/placeholder-cake.webp",
+                "fathers-day": "/images/placeholder-cake.webp",
+                "baby-shower": "/images/placeholder-cake.webp",
+                "baby-birthday": "/images/placeholder-cake.webp",
+                graduation: "/images/placeholder-cake.webp",
+                farewell: "/images/placeholder-cake.webp",
+                retirement: "/images/placeholder-cake.webp",
+                corporate: "/images/placeholder-cake.webp",
+                housewarming: "/images/placeholder-cake.webp",
+                "thank-you": "/images/placeholder-cake.webp",
+                congratulations: "/images/placeholder-cake.webp",
+                "get-well-soon": "/images/placeholder-cake.webp",
+                christmas: "/images/placeholder-cake.webp",
+                "new-year": "/images/placeholder-cake.webp",
+                diwali: "/images/placeholder-cake.webp",
+                eid: "/images/placeholder-cake.webp",
+                onam: "/images/placeholder-cake.webp",
+                "raksha-bandhan": "/images/placeholder-cake.webp",
+                "friendship-day": "/images/placeholder-cake.webp",
+                kids: "/images/placeholder-cake.webp",
               };
 
               const getResolvedOccasionImage = (occ: any): string => {
-                if (!occ) return "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=800&q=80";
+                if (!occ) return "/images/placeholder-cake.webp";
                 // 1. Direct custom image (from manual editor or upload)
                 if (typeof occ.image === "string" && occ.image.trim() !== "") {
                   return occ.image.trim();
@@ -1778,7 +1778,7 @@ export function PageRenderer({
                   return occ.image_url.trim();
                 }
                 // 6. Safe global celebration cake image
-                return "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=800&q=80";
+                return "/images/placeholder-cake.webp";
               };
 
               // Resolve occasions from live PIM database or manual cards
@@ -2255,7 +2255,7 @@ export function PageRenderer({
                 const originalPrice = product.original_price || product.compare_at_price || price;
                 const rating = Number(product.rating) || 0;
                 const reviewCount = Number(product.review_count || product.reviews_count) || 0;
-                const image = product.thumbnail || product.image_url || product.images?.[0]?.url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=600";
+                const image = product.thumbnail || product.image_url || product.images?.[0]?.url || "/images/placeholder-cake.webp";
                 const flavour = product.flavour || product.metadata?.flavour;
                 const weight = product.weight || product.weights?.[0];
 
@@ -3130,7 +3130,7 @@ export function PageRenderer({
                   author: "Chef Alexandre",
                   date: "Sep 2, 2026",
                   read_time: "4 min read",
-                  image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80",
+                  image: "/images/placeholder-cake.webp",
                   slug: "cake-size-party-guide",
                 },
                 {
@@ -3140,7 +3140,7 @@ export function PageRenderer({
                   author: "Logistics Team",
                   date: "Aug 28, 2026",
                   read_time: "3 min read",
-                  image: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?w=600&q=80",
+                  image: "/images/placeholder-cake.webp",
                   slug: "chiller-van-delivery-logistics",
                 },
                 {
@@ -3150,7 +3150,7 @@ export function PageRenderer({
                   author: "Pastry Guild",
                   date: "Aug 20, 2026",
                   read_time: "5 min read",
-                  image: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=600&q=80",
+                  image: "/images/placeholder-cake.webp",
                   slug: "top-celebration-cake-flavors",
                 },
               ];
@@ -3547,7 +3547,7 @@ export function PageRenderer({
               const title = targetProduct.title || targetProduct.name || "Artisan Cake";
               const price = targetProduct.price || targetProduct.base_price || 699;
               const originalPrice = targetProduct.original_price || price + 200;
-              const image = targetProduct.thumbnail || targetProduct.image_url || targetProduct.images?.[0]?.url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800";
+              const image = targetProduct.thumbnail || targetProduct.image_url || targetProduct.images?.[0]?.url || "/images/placeholder-cake.webp";
               const slug = targetProduct.slug || targetProduct.id;
               const desc = config.description || targetProduct.description || "Master chocolatier crafted layered cake with rich Belgian ganache and airy sponge.";
 
@@ -3891,9 +3891,9 @@ export function PageRenderer({
             case "kitchen_gallery": {
               const heading = config.heading || "Fresh from Our Kitchen Domes";
               const defaultImages = [
-                { url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=600", caption: "Belgian Truffle Drip" },
-                { url: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=600", caption: "Red Velvet Heart" },
-                { url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=600", caption: "Berry Bliss Gateau" },
+                { url: "/images/placeholder-cake.webp", caption: "Belgian Truffle Drip" },
+                { url: "/images/placeholder-cake.webp", caption: "Red Velvet Heart" },
+                { url: "/images/placeholder-cake.webp", caption: "Berry Bliss Gateau" },
               ];
               const images = (config.images && config.images.length > 0) ? config.images : defaultImages;
 

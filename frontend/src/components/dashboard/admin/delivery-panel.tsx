@@ -320,7 +320,7 @@ export const DeliveryPanel = memo(function DeliveryPanel() {
                           <td className="p-3.5 whitespace-nowrap">
                             <div className="flex items-center gap-2.5">
                               <img
-                                src={p.profile_photo || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200"}
+                                src={p.profile_photo || "/images/placeholder-cake.webp"}
                                 className="w-8 h-8 rounded-full object-cover border"
                                 alt="Rider"
                               />

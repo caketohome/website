@@ -109,7 +109,7 @@ export default async function CartPage() {
               <div className="flex items-center gap-4">
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-zinc-100 shrink-0 border border-zinc-200/60">
                   <img
-                    src={item.thumbnail || item.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=200"}
+                    src={item.thumbnail || item.image_url || "/images/placeholder-cake.webp"}
                     alt={item.title || "Product"}
                     className="w-full h-full object-cover"
                   />

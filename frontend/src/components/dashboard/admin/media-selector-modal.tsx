@@ -398,7 +398,7 @@ export function MediaSelectorModal({
                     setUrlInput(e.target.value);
                     setSelectedItem((prev) => ({ ...prev, url: e.target.value }));
                   }}
-                  placeholder="https://images.unsplash.com/photo-..."
+                  placeholder="Upload an image (stored in S3)"
                 />
                 <Text className="text-[10px] text-ui-fg-muted">Provide a direct image URL accessible publicly</Text>
               </div>

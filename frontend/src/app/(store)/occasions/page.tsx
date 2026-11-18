@@ -60,7 +60,7 @@ export default async function OccasionsDirectoryPage() {
             const cover =
               occasion.cover_image ||
               occasion.image_url ||
-              "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800";
+              "/images/placeholder-cake.webp";
 
             return (
               <Link

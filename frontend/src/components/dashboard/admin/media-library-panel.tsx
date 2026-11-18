@@ -432,7 +432,7 @@ export function MediaLibraryPanel() {
                   loading="lazy"
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   onError={(e: any) => {
-                    e.currentTarget.src = "https://images.unsplash.com/photo-1578985545062-69928b1d9587";
+                    e.currentTarget.src = "/images/placeholder-cake.webp";
                   }}
                 />
 
@@ -538,7 +538,7 @@ export function MediaLibraryPanel() {
                         alt={item.name}
                         className="w-full h-full object-cover"
                         onError={(e: any) => {
-                          e.currentTarget.src = "https://images.unsplash.com/photo-1578985545062-69928b1d9587";
+                          e.currentTarget.src = "/images/placeholder-cake.webp";
                         }}
                       />
                     </div>
@@ -618,7 +618,7 @@ export function MediaLibraryPanel() {
                   alt={activeItem.alt_text || activeItem.name}
                   className="max-h-72 w-auto object-contain"
                   onError={(e: any) => {
-                    e.currentTarget.src = "https://images.unsplash.com/photo-1578985545062-69928b1d9587";
+                    e.currentTarget.src = "/images/placeholder-cake.webp";
                   }}
                 />
               </div>

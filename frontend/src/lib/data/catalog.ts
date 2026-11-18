@@ -863,7 +863,7 @@ export async function listPimCategories(): Promise<any[]> {
             pc.id,
             pc.name,
             pc.handle as slug,
-            COALESCE(pc.metadata->>'image', 'https://images.unsplash.com/photo-1578985545062-69928b1d9587') as image,
+            COALESCE(pc.metadata->>'image', '/images/placeholder-cake.webp') as image,
             COALESCE(pc.metadata->>'icon', 'cake') as icon,
             COALESCE(pc.metadata->>'color', 'bg-rose-50 border-rose-200 text-rose-900') as color,
             COUNT(p.id)::int as product_count
@@ -916,7 +916,7 @@ export async function listPimCategories(): Promise<any[]> {
 
         let icon = "🎂";
         let color = "bg-rose-50 border-rose-200 text-rose-900";
-        let fallbackImage = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800";
+        let fallbackImage = "/images/placeholder-cake.webp";
 
         if (slug.includes("accessories") || id.includes("accessories") || name.includes("accessories")) {
           icon = "🎉";
@@ -925,19 +925,19 @@ export async function listPimCategories(): Promise<any[]> {
         } else if (slug.includes("bouquet") || id.includes("bouquet") || name.includes("flower")) {
           icon = "💐";
           color = "bg-emerald-50 border-emerald-200 text-emerald-900";
-          fallbackImage = "https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&q=80&w=800";
+          fallbackImage = "/images/placeholder-cake.webp";
         } else if (slug.includes("cupcake") || id.includes("cupcake") || name.includes("cupcake")) {
           icon = "🧁";
           color = "bg-pink-50 border-pink-200 text-pink-900";
-          fallbackImage = "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=800";
+          fallbackImage = "/images/placeholder-cake.webp";
         } else if (slug.includes("pastr") || id.includes("pastr") || name.includes("pastr")) {
           icon = "🥐";
           color = "bg-orange-50 border-orange-200 text-orange-900";
-          fallbackImage = "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&q=80&w=800";
+          fallbackImage = "/images/placeholder-cake.webp";
         } else if (slug.includes("chocolate") || name.includes("chocolate")) {
           icon = "🍫";
           color = "bg-amber-900/10 border-amber-800/20 text-amber-950";
-          fallbackImage = "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&q=80&w=800";
+          fallbackImage = "/images/placeholder-cake.webp";
         }
 
         const chosenImage = r.sample_image || fallbackImage;
@@ -1013,8 +1013,8 @@ export async function listOccasions(): Promise<any[]> {
           title: r.title,
           name: r.name,
           slug: r.slug,
-          image: r.image || "https://images.unsplash.com/photo-1558636508-e0db3814bd1d",
-          cover_image: r.cover_image || "https://images.unsplash.com/photo-1558636508-e0db3814bd1d",
+          image: r.image || "/images/placeholder-cake.webp",
+          cover_image: r.cover_image || "/images/placeholder-cake.webp",
           icon: "🎂",
           active: true,
           is_active: true,

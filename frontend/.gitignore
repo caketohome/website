@@ -38,3 +38,6 @@ next-env.d.ts
 
 # local production build folder (NEXT_DIST_DIR)
 .next-prod/
+
+# Media lives in S3 only
+public/uploads/

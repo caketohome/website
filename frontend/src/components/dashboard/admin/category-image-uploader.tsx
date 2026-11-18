@@ -221,7 +221,7 @@ export function CategoryImageUploader({
         <div className="flex gap-2 p-2.5 bg-ui-bg-subtle rounded-lg border border-ui-border-base">
           <input
             type="url"
-            placeholder="https://images.unsplash.com/..."
+            placeholder="Upload an image (stored in S3)"
             value={customUrl || value}
             onChange={(e) => setCustomUrl(e.target.value)}
             className="flex-1 px-3 py-1.5 text-xs rounded border border-ui-border-base bg-white dark:bg-slate-900"

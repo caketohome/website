@@ -837,13 +837,7 @@ export const SeoPanel = memo(function SeoPanel() {
               </Table.Row>
             </Table.Header>
             <Table.Body>
-              {(mediaList.length > 0 ? mediaList.slice(0, 8) : [
-                { id: "med_01", name: "chocolate-truffle-cake.webp", url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587", alt: "Fresh Belgian chocolate truffle birthday cake with gold leaf flakes" },
-                { id: "med_02", name: "red-velvet-heart-cake.webp", url: "https://images.unsplash.com/photo-1616031037011-087265dd433a", alt: "Eggless red velvet heart cake with cream cheese frosting" },
-                { id: "med_03", name: "black-forest-gateau.webp", url: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62", alt: "Traditional German black forest gateau with maraschino cherries" },
-                { id: "med_04", name: "butterscotch-crunch-cake.webp", url: "https://images.unsplash.com/photo-1535141192574-5d4897c13136", alt: "Artisanal butterscotch praline cake with caramel drizzle" },
-                { id: "med_05", name: "blueberry-cheesecake.webp", url: "https://images.unsplash.com/photo-1533134242443-d4fd215305ad", alt: "New York style baked blueberry cheesecake with fresh compote" },
-              ]).map((m: any, idx: number) => (
+              {mediaList.slice(0, 8).map((m: any, idx: number) => (
                 <Table.Row key={m.id || idx}>
                   <Table.Cell>
                     <img src={m.url} alt={m.alt || m.name} className="w-10 h-10 rounded-lg object-cover border" />

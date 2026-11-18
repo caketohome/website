@@ -256,7 +256,7 @@ export const CatalogPanel = memo(function CatalogPanel() {
                     const title = item.title || item.name || "Untitled Item";
                     const priceVal = item.price || item.selling_price || item.amount || 0;
                     const catVal = resolveCategoryName(item);
-                    const thumbnail = item.thumbnail || item.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=800";
+                    const thumbnail = item.thumbnail || item.image_url || "/images/placeholder-cake.webp";
 
                     return (
                       <WidgetErrorBoundary key={item.id} moduleName={`Product Card (${title})`} compact>

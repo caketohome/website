@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { inlineImagesToS3 } from "@frontend/lib/media/s3-only";
 import { ApiEngine } from "@frontend/lib/api-engine";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const data = await req.json();
+    const data = await inlineImagesToS3(await req.json(), "accessories");
     if (data.type === "category") {
       const cat = ApiEngine.createAccessoryCategory(data);
       return NextResponse.json({ category: cat, success: true });
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const data = await req.json();
+    const data = await inlineImagesToS3(await req.json(), "accessories");
     if (!data.id) return NextResponse.json({ error: "Accessory ID required" }, { status: 400 });
     const updated = ApiEngine.updateAccessory(data.id, data);
     return NextResponse.json({ accessory: updated, success: true });

@@ -164,7 +164,7 @@ export function AccessoriesManagementPanel() {
     setGstRate("18");
     setTaxTreatment("inclusive");
 
-    setThumbnail("https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&q=80&w=400");
+    setThumbnail("");
     setImageMeta(null);
     setImageError(null);
     setShowUrlInput(false);
@@ -578,7 +578,7 @@ export function AccessoriesManagementPanel() {
                     <Input
                       value={thumbnail}
                       onChange={(e) => setThumbnail(e.target.value)}
-                      placeholder="https://images.unsplash.com/..."
+                      placeholder="Upload an image (stored in S3)"
                     />
                     <span className="text-[10px] text-slate-400 mt-1 block">
                       Direct image URL input. Formats: WebP, PNG, JPG.

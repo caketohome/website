@@ -167,7 +167,7 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
                   {/* Image Container */}
                   <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-slate-100">
                     <img
-                      src={prod.thumbnail || "https://images.unsplash.com/photo-1578985545062-69928b1d9587"}
+                      src={prod.thumbnail || "/images/placeholder-cake.webp"}
                       alt={prod.title || prod.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
@@ -238,7 +238,7 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
                 >
                   <div className="aspect-square rounded-xl overflow-hidden bg-slate-100 mb-2.5">
                     <img
-                      src={acc.thumbnail || "https://images.unsplash.com/photo-1513151233558-d860c5398176"}
+                      src={acc.thumbnail || "/images/placeholder-cake.webp"}
                       alt={acc.name}
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                       loading="lazy"

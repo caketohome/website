@@ -998,6 +998,19 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
     console.log(
       `[PostgreSQL Persistence] Hydrated store: ${summary.branchesCount} branches, ${summary.productsCount} products, ${summary.customersCount} customers, ${summary.ordersCount} orders, ${summary.variantOptionsCount} variant options, ${summary.favoritesCount} favorites, ${summary.reviewsCount} reviews.`
     );
+    // Once per server start: copy any media still stored outside S3 into S3, then reload so pages use the S3 links.
+    const gAny = globalThis as any;
+    if (!gAny.__cthMediaToS3Started && process.env.AWS_S3_BUCKET_NAME && process.env.MEDIA_MIGRATION_DISABLED !== "true") {
+      gAny.__cthMediaToS3Started = true;
+      const store = targetStore;
+      import("./media/s3-only")
+        .then(({ moveExternalMediaToS3 }) => moveExternalMediaToS3())
+        .then(async (r) => {
+          if (r.rows || r.errors.length) console.log(`[media] moved ${r.moved} file(s) to S3, updated ${r.rows} row(s)`, r.errors.slice(0, 5));
+          if (r.rows) await hydrateStoreFromDatabase(store);
+        })
+        .catch((e) => console.error("[media] move to S3 failed:", e?.message));
+    }
     return summary;
   } catch (err: any) {
     console.error("[PostgreSQL Persistence] Failed to hydrate store from database:", err.message);

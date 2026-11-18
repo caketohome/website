@@ -1,14 +1,11 @@
 /**
- * Media object storage. AWS S3 when AWS_S3_BUCKET_NAME is set (server-only env);
- * otherwise local public/uploads for offline development only.
+ * Media object storage: AWS S3 only (AWS_S3_BUCKET_NAME, server-only env). Uploads fail if it isn't set.
  *
  * The bucket stays private: files are served by /api/media/<folder>/<file> using the app's
  * own key. Set MEDIA_PUBLIC_BASE_URL (e.g. a CloudFront URL mapped to media/) to serve
  * directly from a CDN instead.
  */
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import fs from "fs";
-import path from "path";
 
 let client: S3Client | null = null;
 
@@ -42,15 +39,8 @@ export async function putMediaObject(folder: string, fileName: string, body: Buf
     return `${base}/${safeFolder}/${fileName}`;
   }
 
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("Media storage not configured: set AWS_S3_BUCKET_NAME, AWS_REGION and AWS credentials.");
-  }
-  let root = process.cwd();
-  if (!root.endsWith("frontend") && fs.existsSync(path.join(root, "frontend"))) root = path.join(root, "frontend");
-  const dir = path.join(root, "public", "uploads", safeFolder);
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, fileName), body);
-  return `/uploads/${safeFolder}/${fileName}`;
+  // S3 only — media is never written to local disk or the database.
+  throw new Error("Media storage not configured: set AWS_S3_BUCKET_NAME, AWS_REGION and AWS credentials.");
 }
 
 /** Reads a media object for /api/media. Only image content types are passed through. */

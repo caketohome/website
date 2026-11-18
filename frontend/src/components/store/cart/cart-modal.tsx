@@ -610,7 +610,7 @@ function DrawerCartItem({
   const thumbnail =
     item.thumbnail ||
     item.image_url ||
-    "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=200";
+    "/images/placeholder-cake.webp";
 
   const title = item.title || item.name || "Gourmet Bakery Item";
   const unitPrice = Number(item.unit_price || item.price || 0);

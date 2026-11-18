@@ -322,7 +322,7 @@ export default async function YourOrderPage({
                 const img =
                   item.thumbnail && item.thumbnail !== "/images/placeholder-cake.png"
                     ? item.thumbnail
-                    : item.image_url || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=300";
+                    : item.image_url || "/images/placeholder-cake.webp";
                 const qty = Math.max(1, Number(item.quantity || 1));
                 const lineTaxable = Number(item.taxable_value ?? item.subtotal ?? item.total_line_amount ?? 0);
                 const unitPrice = lineTaxable > 0

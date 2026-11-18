@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // Defaults until set in Admin -> CMS -> Page Configurator -> "login" page -> Login Page tab.
 const DEFAULT_LOGIN = {
-  image_url: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1600&q=85",
+  image_url: "/images/placeholder-cake.webp",
   image_alt: "Freshly baked chocolate cake",
   headline: "Fresh cakes, handcrafted for your moments.",
   points: ["Baked fresh on order", "Same-day delivery slots", "Delivered across Kerala"],

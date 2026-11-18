@@ -129,7 +129,7 @@ export function DeliveryPartnerDetailsDrawer({ partnerId, isOpen, onClose, onRef
         {/* Drawer Header */}
         <div className="p-5 border-b bg-slate-900 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={partner?.profile_photo || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200"} className="w-12 h-12 rounded-full object-cover border-2 border-blue-400" alt="Avatar" />
+            <img src={partner?.profile_photo || "/images/placeholder-cake.webp"} className="w-12 h-12 rounded-full object-cover border-2 border-blue-400" alt="Avatar" />
             <div>
               <div className="flex items-center gap-2">
                 <Heading level="h3" className="text-base text-white">{partner?.full_name || partner?.name}</Heading>
