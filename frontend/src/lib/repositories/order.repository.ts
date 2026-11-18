@@ -421,7 +421,7 @@ export class OrderRepository {
       delivery_landmark: customer.landmark,
       delivery_instructions: customer.delivery_instructions,
       seller_gstin: o.seller_gstin || meta.seller_gstin || meta.compliance_snapshot?.seller_gstin || (branch as any)?.metadata?.gstin || (branch as any)?.gstin || undefined,
-      seller_legal_name: o.seller_legal_name || meta.seller_legal_name || meta.compliance_snapshot?.seller_legal_name || (branch as any)?.metadata?.seller_legal_name || undefined,
+      seller_legal_name: o.seller_legal_name || meta.seller_legal_name || meta.compliance_snapshot?.seller_legal_name || undefined,
       compliance_snapshot: meta.compliance_snapshot || undefined,
       metadata: meta,
       created_at: o.created_at,

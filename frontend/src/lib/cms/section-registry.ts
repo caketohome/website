@@ -1244,7 +1244,7 @@ export const SECTION_REGISTRY: SectionTypeDefinition[] = [
     category: "footer",
     description: "Contact details — phone, email, address",
     editorType: "features",
-    defaultConfig: { heading: "Contact Us", features: [{ icon: "Phone", title: "Call Us", desc: "+91 98765 43210" }, { icon: "Mail", title: "Email", desc: "hello@caketohome.com" }] },
+    defaultConfig: { heading: "Contact Us", features: [{ icon: "Phone", title: "Call Us", desc: "Your support phone" }, { icon: "Mail", title: "Email", desc: "Your support email" }] },
   },
   {
     value: "branch_locations",

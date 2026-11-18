@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { fetchBranchOrderInvoice } from "@frontend/lib/data/manager";
+import { useCompanyInfo } from "@frontend/lib/hooks/use-company-info";
 
 interface InvoiceModalProps {
   orderId: string | null;
@@ -11,6 +12,7 @@ interface InvoiceModalProps {
 
 export default function InvoiceModal({ orderId, isOpen, onClose }: InvoiceModalProps) {
   const [invoice, setInvoice] = useState<any>(null);
+  const company = useCompanyInfo();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -80,17 +82,17 @@ export default function InvoiceModal({ orderId, isOpen, onClose }: InvoiceModalP
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/assets/brand/caketo-home-logo-navy.png"
-                  alt="CakeToHome"
+                  alt={company?.trade_name || "Logo"}
                   className="h-9 w-auto object-contain mb-1.5 print:block dark:hidden"
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/assets/brand/caketo-home-logo-white.png"
-                  alt="CakeToHome"
+                  alt={company?.trade_name || "Logo"}
                   className="h-9 w-auto object-contain mb-1.5 hidden dark:block print:hidden"
                 />
-                <p className="text-[11px] text-brand-text-muted dark:text-zinc-300 font-semibold">{invoice.branch_name || "CakeToHome Kitchen Hub"}</p>
-                <p className="text-[10px] text-brand-text-muted">GSTIN: {invoice.branch_gstin || "UNVERIFIED_GSTIN"}</p>
+                <p className="text-[11px] text-brand-text-muted dark:text-zinc-300 font-semibold">{invoice.seller_legal_name || company?.legal_name}{invoice.branch_name ? ` — ${invoice.branch_name}` : ""}</p>
+                <p className="text-[10px] text-brand-text-muted">GSTIN: {invoice.branch_gstin || invoice.seller_gstin || company?.gstin || "UNVERIFIED_GSTIN"}{company?.address_text ? ` | Regd. Office: ${company.address_text}` : ""}</p>
                 <p className="text-[10px] text-brand-text-muted">FSSAI Lic No: {invoice.branch_fssai || "UNVERIFIED_FSSAI"}</p>
               </div>
               <div className="text-right">
@@ -182,8 +184,8 @@ export default function InvoiceModal({ orderId, isOpen, onClose }: InvoiceModalP
 
             {/* Footer */}
             <div className="text-center text-[10px] text-brand-text-muted pt-4 border-t border-brand-border dark:border-zinc-800">
-              <p>Thank you for choosing CakeToHome! This is a computer-generated tax invoice.</p>
-              <p className="mt-0.5">For support inquiries: care@cakes2home.com</p>
+              <p>Thank you for choosing {company?.trade_name || "us"}! This is a computer-generated tax invoice.</p>
+              {(company?.support_email || company?.support_phone) && <p className="mt-0.5">For support: {[company?.support_email, company?.support_phone].filter(Boolean).join(" | ")}</p>}
             </div>
           </div>
         ) : (

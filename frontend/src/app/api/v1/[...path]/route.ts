@@ -6,6 +6,7 @@ import { TelemarketingEngine } from "@frontend/lib/telemarketing-engine";
 import { TelemarketingExportService } from "@frontend/lib/telemarketing-export-service";
 import { StaffAccessControl, PERMISSION_CATALOG, marketplaceWritePermission } from "@frontend/lib/staff-access-control";
 import { inlineImagesToS3 } from "@frontend/lib/media/s3-only";
+import { mapCompanyRow, getCompanyProfile, invalidateCompanyProfile, publicCompanyInfo } from "@frontend/lib/company-profile";
 import { normalizePhone, SYSTEM_SEGMENTS } from "@frontend/lib/crm/crm-engine";
 import { FulfillmentEngine, DeliverySlotGenerator, DEFAULT_SLOT_CONFIG } from "@frontend/lib/fulfillment";
 import { createApiEngineProvider, ensureFulfillmentStore, generateOtp, verifyOtp, getActiveOtp } from "@frontend/lib/fulfillment/api-engine-provider";
@@ -96,7 +97,7 @@ import { MarketplaceOrderService } from "@frontend/lib/services/marketplace-orde
 import { MarketplaceReconciliationService } from "@frontend/lib/services/marketplace-reconciliation.service";
 import { MarketplacePartnerRepository } from "@frontend/lib/repositories/marketplace-partner.repository";
 import { MarketplaceInvoiceRepository } from "@frontend/lib/repositories/marketplace-invoice.repository";
-import { ExcelExportService } from "@frontend/lib/excel-export-service";
+import { ExcelExportService, setExportBusinessIdentity } from "@frontend/lib/excel-export-service";
 import { GstReportingService } from "@frontend/lib/services/gst-reporting.service";
 import type { GstReportFilters, GstReportType } from "@frontend/lib/services/gst-reporting.service";
 import { PaymentVerificationService } from "@frontend/lib/services/payment-verification.service";
@@ -704,48 +705,8 @@ async function handleSaveTaxMasterConfiguration(req: NextRequest, body: any, idO
 }
 
 function mapCompanyToBusinessProfile(c: any) {
-  if (!c) return null;
-  const isKerala = (c.state_code === "32" || !c.state_code || c.state_code === "KL");
-  const stateName = STATE_NAMES_MAP[c.state_code] || (isKerala ? "Kerala" : "Karnataka");
-  return {
-    id: c.id,
-    legal_name: c.legal_name || "Baked Cakes & Pastries (CakeToHome)",
-    trade_name: c.trade_name || c.legal_name || "CakeToHome",
-    business_type: c.business_type || (isKerala ? "PROPRIETORSHIP" : "PRIVATE_LIMITED"),
-    pan: c.pan || "",
-    tan: c.tan || "",
-    cin: c.cin || null,
-    fssai: c.fssai || "Vellayambalam, Kowdiar PO, Thiruvananthapuram, Kerala - 695003",
-    registered_email: c.email || "caketohomeoffice@gmail.com",
-    registered_phone: c.phone || "+91 81389 16888",
-    website: c.website || "https://cakestohome.com",
-    support_email: c.email || "caketohomeoffice@gmail.com",
-    support_phone: c.phone || "+91 81389 16888",
-    status: c.is_active ? "ACTIVE" : "INACTIVE",
-    registered_address: {
-      line1: c.registered_address || (isKerala ? "16/956, Thannimukku" : "100 Feet Road, HAL 2nd Stage"),
-      line2: isKerala ? "Mayyanad" : "Indiranagar",
-      city: c.city || (isKerala ? "Kollam" : "Bengaluru"),
-      state: stateName,
-      state_code: c.state_code || (isKerala ? "32" : "29"),
-      country: "India",
-      country_code: "IN",
-      pincode: c.pin_code || (isKerala ? "691303" : "560038"),
-    },
-    primary_contact: {
-      name: c.primary_contact_name || "CakeToHome Operations",
-      phone: c.phone || "+91 81389 16888",
-      email: c.email || "caketohomeoffice@gmail.com",
-      designation: isKerala ? "Proprietor / Authorized Manager" : "Managing Director",
-    },
-    authorized_signatory: {
-      name: c.authorized_signatory_name || "CakeToHome Operations",
-      designation: "Authorized Signatory",
-      email: c.email || "caketohomeoffice@gmail.com",
-      phone: c.phone || "+91 81389 16888",
-    },
-    logo_url: "/logo.png",
-  };
+  // Single source: public.company (no invented fallbacks) — see lib/company-profile.ts
+  return c ? mapCompanyRow(c) : null;
 }
 
 const STATE_NAMES_MAP: Record<string, string> = {
@@ -1544,6 +1505,9 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
     // 2. Fallback Route: Disk-Backed ApiEngine
     if (path === "health") return jsonWithDataSource(ApiEngine.getHealth(), "postgres");
+    if (path === "store/company" || path === "company") {
+      return jsonWithDataSource({ success: true, company: publicCompanyInfo(await getCompanyProfile()) }, "postgres");
+    }
 
     if (path.startsWith("payments/razorpay/status/")) {
       const orderId = path.replace("payments/razorpay/status/", "");
@@ -7209,6 +7173,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const startDate = url.searchParams.get("start_date") || "2020-01-01";
       const endDate = url.searchParams.get("end_date") || new Date().toISOString().split("T")[0];
       const statement = await MarketplaceReconciliationService.generateStatement(partnerId, startDate, endDate);
+      { const co = await getCompanyProfile(); setExportBusinessIdentity(co.trade_name && co.trade_name !== co.legal_name ? `${co.trade_name.toUpperCase()} (${co.legal_name})` : co.legal_name, co.gstin || undefined); }
       const buffer = await ExcelExportService.generatePartnerReconciliationWorkbookXlsx(statement);
       return new NextResponse(buffer, {
         headers: {
@@ -11696,25 +11661,43 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         trade_name: (body.trade_name || legalName).trim(),
         registered_address: typeof body.registered_address === "string"
           ? body.registered_address.trim()
-          : [addr.line1, addr.line2].filter(Boolean).join(", ") || "100 Feet Road, HAL 2nd Stage, Indiranagar",
-        city: (addr.city || body.city || "Bengaluru").trim(),
+          : [addr.line1, addr.line2].filter(Boolean).join(", "),
+        city: String(addr.city || body.city || "").trim(),
         state_code: stateCode,
-        pin_code: (addr.pincode || body.pin_code || "560038").trim(),
+        pin_code: String(addr.pincode || body.pin_code || "").trim(),
         pan: pan || undefined,
         cin: body.cin ? body.cin.trim().toUpperCase() : undefined,
         fssai: body.fssai ? body.fssai.trim() : undefined,
-        invoice_prefix: body.invoice_prefix || "CTH",
+        invoice_prefix: body.invoice_prefix || undefined,
         phone: body.registered_phone || body.support_phone || body.phone,
         email: body.registered_email || body.support_email || body.email,
         website: body.website,
+        // Details without their own column live in company.metadata
+        metadata: {
+          business_type: body.business_type || null,
+          tan: body.tan ? String(body.tan).trim().toUpperCase() : null,
+          support_email: body.support_email || null,
+          support_phone: body.support_phone || null,
+          support_whatsapp: body.support_whatsapp || null,
+          logo_url: body.logo_url || null,
+          registered_address: typeof body.registered_address === "object" && body.registered_address ? body.registered_address : null,
+          primary_contact: body.primary_contact || null,
+          authorized_signatory: body.authorized_signatory || null,
+        },
       };
 
       const existing = await CompanyService.getCompany();
+      const oldLegalName = existing.success && existing.data ? existing.data.legal_name : null;
       let res;
       if (existing.success && existing.data) {
-        res = await CompanyService.updateCompany(existing.data.id, companyInput, userCtx.userId, userCtx.role);
+        res = await CompanyService.updateCompany(existing.data.id, companyInput as any, userCtx.userId, userCtx.role);
       } else {
-        res = await CompanyService.createCompany(companyInput, userCtx.userId, userCtx.role);
+        res = await CompanyService.createCompany(companyInput as any, userCtx.userId, userCtx.role);
+        if (res.success && res.data) {
+          const { dbQuery } = await import("@frontend/lib/db");
+          await dbQuery(`UPDATE public.company SET metadata = COALESCE(metadata, '{}'::jsonb) || $1::jsonb WHERE id = $2`, [JSON.stringify(companyInput.metadata), res.data.id]);
+          res.data.metadata = { ...(res.data.metadata || {}), ...companyInput.metadata };
+        }
       }
 
       if (!res.success) {
@@ -11729,15 +11712,14 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         }, "error", sc);
       }
 
-      ApiEngine.updateBusinessProfile({
-        ...body,
-        id: res.data.id,
-        legal_name: res.data.legal_name,
-        trade_name: res.data.trade_name || res.data.legal_name,
-        pan: res.data.pan || "",
-        cin: res.data.cin || "",
-        fssai: res.data.fssai || "",
-      });
+      // Company legal name change → GST registrations that carried the old name follow it
+      if (oldLegalName && oldLegalName !== res.data.legal_name) {
+        const { dbQuery } = await import("@frontend/lib/db");
+        await dbQuery(`UPDATE public.gst_registration SET legal_name = $1, updated_at = NOW() WHERE company_id = $2 AND legal_name = $3`, [res.data.legal_name, res.data.id, oldLegalName]);
+      }
+      invalidateCompanyProfile();
+      ApiEngine.updateBusinessProfile(mapCompanyRow(res.data) as any);
+      try { const { revalidatePath } = await import("next/cache"); revalidatePath("/", "layout"); } catch {}
 
       const profile = mapCompanyToBusinessProfile(res.data);
       return jsonWithDataSource({ profile, success: true }, "postgres");
@@ -13360,25 +13342,43 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
         trade_name: (body.trade_name || legalName).trim(),
         registered_address: typeof body.registered_address === "string"
           ? body.registered_address.trim()
-          : [addr.line1, addr.line2].filter(Boolean).join(", ") || "100 Feet Road, HAL 2nd Stage, Indiranagar",
-        city: (addr.city || body.city || "Bengaluru").trim(),
+          : [addr.line1, addr.line2].filter(Boolean).join(", "),
+        city: String(addr.city || body.city || "").trim(),
         state_code: stateCode,
-        pin_code: (addr.pincode || body.pin_code || "560038").trim(),
+        pin_code: String(addr.pincode || body.pin_code || "").trim(),
         pan: pan || undefined,
         cin: body.cin ? body.cin.trim().toUpperCase() : undefined,
         fssai: body.fssai ? body.fssai.trim() : undefined,
-        invoice_prefix: body.invoice_prefix || "CTH",
+        invoice_prefix: body.invoice_prefix || undefined,
         phone: body.registered_phone || body.support_phone || body.phone,
         email: body.registered_email || body.support_email || body.email,
         website: body.website,
+        // Details without their own column live in company.metadata
+        metadata: {
+          business_type: body.business_type || null,
+          tan: body.tan ? String(body.tan).trim().toUpperCase() : null,
+          support_email: body.support_email || null,
+          support_phone: body.support_phone || null,
+          support_whatsapp: body.support_whatsapp || null,
+          logo_url: body.logo_url || null,
+          registered_address: typeof body.registered_address === "object" && body.registered_address ? body.registered_address : null,
+          primary_contact: body.primary_contact || null,
+          authorized_signatory: body.authorized_signatory || null,
+        },
       };
 
       const existing = await CompanyService.getCompany();
+      const oldLegalName = existing.success && existing.data ? existing.data.legal_name : null;
       let res;
       if (existing.success && existing.data) {
-        res = await CompanyService.updateCompany(existing.data.id, companyInput, userCtx.userId, userCtx.role);
+        res = await CompanyService.updateCompany(existing.data.id, companyInput as any, userCtx.userId, userCtx.role);
       } else {
-        res = await CompanyService.createCompany(companyInput, userCtx.userId, userCtx.role);
+        res = await CompanyService.createCompany(companyInput as any, userCtx.userId, userCtx.role);
+        if (res.success && res.data) {
+          const { dbQuery } = await import("@frontend/lib/db");
+          await dbQuery(`UPDATE public.company SET metadata = COALESCE(metadata, '{}'::jsonb) || $1::jsonb WHERE id = $2`, [JSON.stringify(companyInput.metadata), res.data.id]);
+          res.data.metadata = { ...(res.data.metadata || {}), ...companyInput.metadata };
+        }
       }
 
       if (!res.success) {
@@ -13393,15 +13393,14 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
         }, "error", sc);
       }
 
-      ApiEngine.updateBusinessProfile({
-        ...body,
-        id: res.data.id,
-        legal_name: res.data.legal_name,
-        trade_name: res.data.trade_name || res.data.legal_name,
-        pan: res.data.pan || "",
-        cin: res.data.cin || "",
-        fssai: res.data.fssai || "",
-      });
+      // Company legal name change → GST registrations that carried the old name follow it
+      if (oldLegalName && oldLegalName !== res.data.legal_name) {
+        const { dbQuery } = await import("@frontend/lib/db");
+        await dbQuery(`UPDATE public.gst_registration SET legal_name = $1, updated_at = NOW() WHERE company_id = $2 AND legal_name = $3`, [res.data.legal_name, res.data.id, oldLegalName]);
+      }
+      invalidateCompanyProfile();
+      ApiEngine.updateBusinessProfile(mapCompanyRow(res.data) as any);
+      try { const { revalidatePath } = await import("next/cache"); revalidatePath("/", "layout"); } catch {}
 
       const profile = mapCompanyToBusinessProfile(res.data);
       return jsonWithDataSource({ profile, success: true }, "postgres");

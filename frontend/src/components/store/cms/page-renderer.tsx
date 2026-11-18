@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useCompanyInfo } from "@frontend/lib/hooks/use-company-info";
 import { Heading, Text, Badge, Button } from "@medusajs/ui";
 import Link from "next/link";
 import {
@@ -828,6 +829,8 @@ export function PageRenderer({
   theme,
 }: PageRendererProps) {
   const [openFaqIdx, setOpenFaqIdx] = useState<number | null>(0);
+  // Company details from Settings → Business Profile
+  const company = useCompanyInfo();
 
   // Filter and sort enabled sections (prevent duplicate top announcement bar)
   const hasTopAnnouncement = Boolean(announcementBar && announcementBar.enabled !== false);
@@ -2441,10 +2444,10 @@ export function PageRenderer({
 
             // ── 3b. Header Navigation ──────────────────────────────────
             case "header": {
-              const brandName = config.brand_name || "CakeToHome";
+              const brandName = config.brand_name || company?.trade_name || "";
               const showSearch = config.show_search !== false;
               const showCart = config.show_cart !== false;
-              const phone = config.phone || "+91 98765 43210";
+              const phone = config.phone || company?.support_phone || "";
 
               return (
                 <header key={sectionKey} className="w-full bg-white/95 dark:bg-brand-deep/95 backdrop-blur-md sticky top-0 z-40 border-b border-brand-border dark:border-white/10 py-3 px-4 sm:px-6 shadow-sm rounded-2xl mb-4">
@@ -2770,12 +2773,12 @@ export function PageRenderer({
                 { icon: "Truck", title: "2-Hour Express Delivery", desc: "Fast-track delivery across all Kerala localities" },
                 { icon: "Clock", title: "Scheduled Delivery Slots", desc: "Select 1-hour delivery windows for seamless party planning" },
                 { icon: "ShieldCheck", title: "Chiller Van Fleet", desc: "Air-conditioned cold chain transit protects delicate fondant" },
-                { icon: "Gift", title: "Free Express Delivery", desc: "Enjoy zero delivery fee on all gourmet orders above ₹499" },
+                { icon: "Gift", title: "Fair Delivery Charges", desc: "Delivery fee is based on distance from our nearest kitchen" },
               ] : section.type === "contact_information" ? [
-                { icon: "Clock", title: "Phone Hotline", desc: "+91 98765 43210 (Available 8:00 AM – 11:30 PM daily)" },
-                { icon: "Sparkles", title: "WhatsApp Desk", desc: "Instant response for bespoke design cake enquiries" },
-                { icon: "Award", title: "Flagship Kitchen", desc: "100ft Road, HAL 2nd Stage, Indiranagar, Bengaluru" },
-                { icon: "Heart", title: "Email Support", desc: "hello@caketohome.com — replies within 15 minutes" },
+                ...(company?.support_phone ? [{ icon: "Clock", title: "Phone", desc: company.support_phone }] : []),
+                ...(company?.support_whatsapp ? [{ icon: "Sparkles", title: "WhatsApp", desc: company.support_whatsapp }] : []),
+                ...(company?.address_text ? [{ icon: "Award", title: "Registered Office", desc: company.address_text }] : []),
+                ...(company?.support_email ? [{ icon: "Heart", title: "Email", desc: company.support_email }] : []),
               ] : section.type === "certifications" ? [
                 { icon: "ShieldCheck", title: "FSSAI Registered", desc: "100% compliant food safety and hygiene audited commercial kitchens" },
                 { icon: "Award", title: "ISO 22000 Standards", desc: "International food manufacturing safety and sanitation protocols" },

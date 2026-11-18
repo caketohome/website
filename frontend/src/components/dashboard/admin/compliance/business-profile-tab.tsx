@@ -23,40 +23,41 @@ export function BusinessProfileTab({
   onProfileUpdated: (updated: any) => void;
 }) {
   const [formData, setFormData] = useState({
-    legal_name: profile?.legal_name || "Baked Cakes & Pastries (CakeToHome)",
-    trade_name: profile?.trade_name || "CakeToHome",
+    legal_name: profile?.legal_name || "",
+    trade_name: profile?.trade_name || "",
     business_type: profile?.business_type || "PROPRIETORSHIP",
     pan: profile?.pan || "",
     tan: profile?.tan || "",
     cin: profile?.cin || null,
-    registered_email: profile?.registered_email || "caketohomeoffice@gmail.com",
-    registered_phone: profile?.registered_phone || "+91 81389 16888",
-    website: profile?.website || "https://cakestohome.com",
-    support_email: profile?.support_email || "caketohomeoffice@gmail.com",
-    support_phone: profile?.support_phone || "+91 81389 16888",
+    registered_email: profile?.registered_email || "",
+    registered_phone: profile?.registered_phone || "",
+    website: profile?.website || "",
+    support_email: profile?.support_email || "",
+    support_phone: profile?.support_phone || "",
+    support_whatsapp: profile?.support_whatsapp || "",
     registered_address: {
-      line1: profile?.registered_address?.line1 || "16/956, Thannimukku",
-      line2: profile?.registered_address?.line2 || "Mayyanad",
-      city: profile?.registered_address?.city || "Kollam",
-      state: profile?.registered_address?.state || "Kerala",
-      state_code: profile?.registered_address?.state_code || "32",
+      line1: profile?.registered_address?.line1 || "",
+      line2: profile?.registered_address?.line2 || "",
+      city: profile?.registered_address?.city || "",
+      state: profile?.registered_address?.state || "",
+      state_code: profile?.registered_address?.state_code || "",
       country: profile?.registered_address?.country || "India",
       country_code: profile?.registered_address?.country_code || "IN",
-      pincode: profile?.registered_address?.pincode || "691303",
+      pincode: profile?.registered_address?.pincode || "",
     },
     primary_contact: {
-      name: profile?.primary_contact?.name || "CakeToHome Operations",
-      phone: profile?.primary_contact?.phone || "+91 81389 16888",
-      email: profile?.primary_contact?.email || "caketohomeoffice@gmail.com",
-      designation: profile?.primary_contact?.designation || "Proprietor / Authorized Manager",
+      name: profile?.primary_contact?.name || "",
+      phone: profile?.primary_contact?.phone || "",
+      email: profile?.primary_contact?.email || "",
+      designation: profile?.primary_contact?.designation || "",
     },
     authorized_signatory: {
-      name: profile?.authorized_signatory?.name || "CakeToHome Operations",
+      name: profile?.authorized_signatory?.name || "",
       designation: profile?.authorized_signatory?.designation || "Authorized Signatory",
-      email: profile?.authorized_signatory?.email || "caketohomeoffice@gmail.com",
-      phone: profile?.authorized_signatory?.phone || "+91 81389 16888",
+      email: profile?.authorized_signatory?.email || "",
+      phone: profile?.authorized_signatory?.phone || "",
     },
-    logo_url: profile?.logo_url || "/assets/brand/caketo-home-logo-navy.png",
+    logo_url: profile?.logo_url || "",
     status: profile?.status || "ACTIVE",
   });
 
@@ -79,6 +80,7 @@ export function BusinessProfileTab({
         website: profile.website ?? prev.website,
         support_email: profile.support_email ?? prev.support_email,
         support_phone: profile.support_phone ?? prev.support_phone,
+        support_whatsapp: profile.support_whatsapp ?? prev.support_whatsapp,
         registered_address: {
           ...prev.registered_address,
           ...(profile.registered_address || {}),
@@ -383,6 +385,17 @@ export function BusinessProfileTab({
                 value={formData.support_phone}
                 onChange={(e) => setFormData({ ...formData, support_phone: e.target.value })}
                 required
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="support_whatsapp" className="text-xs font-semibold">Customer WhatsApp Number</Label>
+              <Input
+                id="support_whatsapp"
+                value={formData.support_whatsapp}
+                onChange={(e) => setFormData({ ...formData, support_whatsapp: e.target.value })}
+                placeholder="+91 95677 89888"
                 className="mt-1"
               />
             </div>

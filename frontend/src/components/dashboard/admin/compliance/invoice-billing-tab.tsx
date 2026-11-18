@@ -43,7 +43,7 @@ export function InvoiceBillingTab({
     terms_and_conditions:
       invoiceSettings?.terms_and_conditions ||
       "1. Perishable confectionery goods. Consume within 24 hours of delivery.\n2. Subject to local jurisdiction.\n3. Goods once sold cannot be returned due to food safety & hygiene regulations.",
-    authorized_signatory_title: invoiceSettings?.authorized_signatory_title || "For CakeToHome India Pvt Ltd",
+    authorized_signatory_title: invoiceSettings?.authorized_signatory_title || "",
   });
 
   const [saving, setSaving] = useState(false);
@@ -213,7 +213,7 @@ export function InvoiceBillingTab({
             <div>
               <Label className="text-xs font-semibold">Seller GSTIN (15 chars)</Label>
               <Input
-                placeholder="29AABCC1234F1Z5"
+                placeholder="GSTIN (15 characters)"
                 value={newSeriesGstin}
                 onChange={(e) => setNewSeriesGstin(e.target.value)}
                 required

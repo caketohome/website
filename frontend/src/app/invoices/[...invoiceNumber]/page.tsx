@@ -1,6 +1,7 @@
 import React from "react";
 import { notFound } from "next/navigation";
 import { dbQuery } from "@frontend/lib/db";
+import { getCompanyProfile } from "@frontend/lib/company-profile";
 import { Printer, FileText, ArrowLeft, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
@@ -48,34 +49,9 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
     invoiceRes = { rows: [] };
   }
 
-  const sampleFallbackInvoice = {
-    id: "inv_demo_000216",
-    invoice_number: rawParam || "CH/26-27/000216",
-    order_id: "ord_demo_1001",
-    order_number: "ORD-2026-8812",
-    seller_legal_name: "Baked Cakes & Pastries (CakeToHome)",
-    seller_gstin: "32AAAAA0000A1Z5",
-    branch_name: "CakeToHome Central Kitchen & Hub",
-    branch_address: "12/48 Baker Street, Kochi, Kerala 682001",
-    customer_name: "Priya Sharma",
-    customer_phone: "+91 98765 43210",
-    delivery_address: "Flat 4B, Palm Grove Residences, Marine Drive, Kochi, Kerala 682031",
-    subtotal: 950.00,
-    tax_total: 47.50,
-    grand_total: 997.50,
-    status: "PAID",
-    created_at: new Date().toISOString(),
-    metadata: {
-      items: [
-        { name: "Belgian Dark Chocolate Cake (1 kg)", quantity: 1, unit_price: 650, total: 650 },
-        { name: "Red Velvet Jar Cakes (Set of 2)", quantity: 1, unit_price: 300, total: 300 }
-      ],
-      cgst: 23.75,
-      sgst: 23.75,
-    }
-  };
-
-  const invoice = invoiceRes.rows[0] || (process.env.NODE_ENV !== "production" && rawParam.includes("demo") ? sampleFallbackInvoice : null);
+  const invoice = invoiceRes.rows[0] || null;
+  // Company details (Settings → Business Profile). Seller name / GSTIN stay as recorded on the issued invoice.
+  const company = await getCompanyProfile();
   if (!invoice) {
     console.log('[StatutoryInvoicePage] Invoice not found for rawParam:', rawParam);
     notFound();
@@ -89,12 +65,16 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
     year: "numeric",
   });
 
-  const sellerLegalName = invoice.seller_legal_name || "Baked Cakes & Pastries (CakeToHome)";
-  const sellerGstin = invoice.seller_gstin || "32PENDINGREG001";
+  const sellerLegalName = invoice.seller_legal_name || company.legal_name;
+  const sellerGstin = invoice.seller_gstin || company.gstin;
   const customerGstin: string | null = invoice.customer_gstin || metadata.customer_gstin || null;
   const customerName = (customerGstin && (invoice.customer_legal_name || metadata.customer_legal_name)) || invoice.customer_name || invoice.ord_customer_name || "Valued Customer";
   const isPartnerSale = Boolean(invoice.is_partner_sale);
-  const placeOfSupply = metadata.customer_state || (invoice.seller_state_code === '29' ? 'Karnataka (State Code 29)' : 'Kerala (State Code 32)');
+  const sellerStateCode = String(invoice.seller_state_code || String(sellerGstin || "").slice(0, 2) || company.registered_address.state_code || "");
+  const placeOfSupply = metadata.customer_state
+    || (sellerStateCode === company.registered_address.state_code && company.registered_address.state
+      ? `${company.registered_address.state} (State Code ${sellerStateCode})`
+      : `State Code ${sellerStateCode}`);
   const customerPhone = invoice.customer_phone || invoice.ord_customer_phone || "";
   const deliveryAddress = invoice.delivery_address || invoice.ord_delivery_address || metadata.delivery_address || "";
 
@@ -138,13 +118,13 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/assets/brand/caketo-home-logo-navy.png"
-                  alt="CakeToHome"
+                  alt={company.trade_name || "Logo"}
                   className="h-11 w-auto object-contain dark:hidden print:block"
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/assets/brand/caketo-home-logo-white.png"
-                  alt="CakeToHome"
+                  alt={company.trade_name || "Logo"}
                   className="h-11 w-auto object-contain hidden dark:block print:hidden"
                 />
                 <span className="text-xs uppercase tracking-widest text-slate-400 font-mono self-end pb-1">India</span>
@@ -152,11 +132,11 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
               <h1 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{sellerLegalName}</h1>
               {isPartnerSale ? (
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-md">
-                  Sold by a CakeToHome marketplace partner. Supplied through CakeToHome (e-commerce operator; GST TCS u/s 52).
+                  Sold by a marketplace partner. Supplied through {company.trade_name} (e-commerce operator; GST TCS u/s 52).
                 </p>
               ) : (
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-md">
-                  Registered Office: 16/956, Thannimukku, Mayyanad, Kollam, Kerala - 691303
+                  Registered Office: {company.address_text}
                 </p>
               )}
               <div className="mt-2 text-xs font-mono text-slate-700 dark:text-slate-300 space-y-0.5">
@@ -164,7 +144,13 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
                   <strong>GSTIN:</strong> {sellerGstin} | <strong>State Code:</strong> {String(sellerGstin).slice(0, 2)}
                 </p>
                 {!isPartnerSale && <p>
-                  <strong>FSSAI Premises:</strong> Kowdiar, Thiruvananthapuram, Kerala - 695003 | <strong>Email:</strong> caketohomeoffice@gmail.com
+                  {company.fssai && <><strong>FSSAI Lic:</strong> {company.fssai}{" | "}</>}
+                  {invoice.branch_address && <><strong>Supplied from:</strong> {invoice.branch_address}{" | "}</>}
+                  {company.support_email && <><strong>Email:</strong> {company.support_email}</>}
+                  {company.support_phone && <>{" | "}<strong>Phone:</strong> {company.support_phone}</>}
+                </p>}
+                {!isPartnerSale && (company.cin || company.pan) && <p>
+                  {company.cin && <><strong>CIN:</strong> {company.cin}{" "}</>}{company.pan && <><strong>PAN:</strong> {company.pan}</>}
                 </p>}
               </div>
             </div>
@@ -338,14 +324,14 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
             </div>
             <div className="text-center sm:text-right space-y-2">
               <div className="font-bold text-slate-700 dark:text-slate-300">
-                For CakeToHome India Private Limited
+                For {sellerLegalName}
               </div>
               <div className="h-12 flex items-center justify-center sm:justify-end">
                 <span className="font-serif italic font-bold text-slate-500 text-sm border-b border-dashed border-slate-400 pb-1 px-4">
                   Authorized Signatory
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400">Finance &amp; Statutory Accounts Officer</p>
+              <p className="text-[10px] text-slate-400">{company.authorized_signatory.name || "Authorized Signatory"}</p>
             </div>
           </div>
         </div>

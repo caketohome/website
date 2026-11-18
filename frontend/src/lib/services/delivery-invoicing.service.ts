@@ -312,7 +312,7 @@ export class DeliveryInvoicingService {
         );
         if (gstLookup.rows.length > 0) {
           if (!sellerGstinRaw) sellerGstinRaw = gstLookup.rows[0].gstin;
-          if (!sellerLegalNameRaw) sellerLegalNameRaw = gstLookup.rows[0].legal_name || "CakeToHome India Private Limited";
+          if (!sellerLegalNameRaw) sellerLegalNameRaw = gstLookup.rows[0].legal_name || null; // company / GST registration name only
         }
       } catch (_gstErr) {}
     }

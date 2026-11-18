@@ -11,6 +11,8 @@
  * (Catalog) once product/review models exist.
  */
 
+import { getCompanyProfile } from "@frontend/lib/company-profile";
+
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://caketohome.com";
 
 type JsonLd = Record<string, unknown>;
@@ -27,12 +29,26 @@ function Script({ data }: { data: JsonLd }) {
 }
 
 /** Organization + WebSite structured data — rendered once in the root layout. */
-export function OrganizationJsonLd() {
+export async function OrganizationJsonLd() {
+    // Company details from Settings → Business Profile (public.company)
+    const company = await getCompanyProfile();
+    const brand = company.trade_name || company.legal_name || "CakeToHome";
     const org: JsonLd = {
         "@context": "https://schema.org",
         "@type": "Organization",
-        name: "CakeToHome",
-        url: BASE_URL,
+        name: brand,
+        legalName: company.legal_name || undefined,
+        url: company.website || BASE_URL,
+        email: company.support_email || undefined,
+        telephone: company.support_phone || undefined,
+        address: company.address_text ? {
+            "@type": "PostalAddress",
+            streetAddress: [company.registered_address.line1, company.registered_address.line2].filter(Boolean).join(", "),
+            addressLocality: company.registered_address.city || undefined,
+            addressRegion: company.registered_address.state || undefined,
+            postalCode: company.registered_address.pincode || undefined,
+            addressCountry: company.registered_address.country_code || "IN",
+        } : undefined,
         logo: `${BASE_URL}/assets/brand/caketo-home-logo-navy.png`,
         image: `${BASE_URL}/assets/brand/caketo-home-logo-navy.png`,
         description: "Order premium cakes and bakery products online with delivery to your doorstep.",
@@ -44,7 +60,7 @@ export function OrganizationJsonLd() {
     const website: JsonLd = {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        name: "CakeToHome",
+        name: brand,
         url: BASE_URL,
         potentialAction: {
             "@type": "SearchAction",
@@ -215,15 +231,14 @@ export function LocalBusinessJsonLd({
         "@context": "https://schema.org",
         "@type": ["LocalBusiness", "Bakery"],
         name: name || "CakeToHome Bakery",
-        description: description || `Premium cake delivery in ${city || "Kerala"}`,
+        description: description || (city ? `Cake delivery in ${city}` : undefined),
         url: url || BASE_URL,
-        telephone: telephone || "+91 98765 43210",
+        telephone: telephone || undefined,
         image: image ? [image] : undefined,
         address: address ? {
             "@type": "PostalAddress",
             streetAddress: address,
-            addressLocality: city || "Kollam",
-            addressRegion: "Kerala",
+            addressLocality: city || undefined,
             addressCountry: "IN",
         } : undefined,
         geo: (latitude && longitude) ? {

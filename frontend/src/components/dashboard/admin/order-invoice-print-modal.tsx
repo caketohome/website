@@ -2,6 +2,7 @@
 
 import { Heading, Text, Badge, Button } from "@medusajs/ui";
 import { Printer, X, FileText, Download } from "lucide-react";
+import { useCompanyInfo } from "@frontend/lib/hooks/use-company-info";
 
 interface OrderInvoicePrintModalProps {
   order?: any;
@@ -13,6 +14,7 @@ export function OrderInvoicePrintModal({ order, invoice, onClose }: OrderInvoice
   const handlePrint = () => {
     window.print();
   };
+  const company = useCompanyInfo();
 
   const inv = invoice || order?.invoice || order || {};
   const customer = inv.customer || order?.customer || {};
@@ -29,14 +31,14 @@ export function OrderInvoicePrintModal({ order, invoice, onClose }: OrderInvoice
     year: "numeric",
   });
 
-  const sellerLegalName = inv.seller_legal_name || compliance.seller_legal_name || order?.seller_legal_name || branch?.metadata?.seller_legal_name || "UNVERIFIED_SELLER_IDENTITY";
+  const sellerLegalName = inv.seller_legal_name || compliance.seller_legal_name || order?.seller_legal_name || company?.legal_name || "UNVERIFIED_SELLER_IDENTITY";
   const sellerTradeName = inv.seller_trade_name || compliance.seller_trade_name || branch?.name || "UNVERIFIED_SELLER";
-  const sellerGstin = inv.seller_gstin || compliance.seller_gstin || order?.seller_gstin || branch?.metadata?.gstin || branch?.metadata?.gst_number || branch?.gstin || "UNVERIFIED_GSTIN";
+  const sellerGstin = inv.seller_gstin || compliance.seller_gstin || order?.seller_gstin || branch?.metadata?.gstin || branch?.metadata?.gst_number || branch?.gstin || company?.gstin || "UNVERIFIED_GSTIN";
   const sellerState = inv.seller_state || compliance.seller_state || branch?.state || "";
   const sellerStateCode = inv.seller_state_code || compliance.seller_state_code || branch?.state_code || "";
 
   // Reject false statutory FSSAI licence "11223344556677"
-  const rawFssai = inv.seller_fssai_number || compliance.seller_fssai_number || branch?.fssai_number || branch?.metadata?.fssai_number;
+  const rawFssai = inv.seller_fssai_number || compliance.seller_fssai_number || branch?.fssai_number || branch?.metadata?.fssai_number || company?.fssai;
   const sellerFssai = (rawFssai && rawFssai !== "11223344556677") ? rawFssai : "UNVERIFIED_FSSAI";
 
   const sellerAddress = inv.seller_address || compliance.seller_address || branch?.address || "";
@@ -101,7 +103,7 @@ export function OrderInvoicePrintModal({ order, invoice, onClose }: OrderInvoice
                 GSTIN: <span className="font-mono">{sellerGstin}</span> | State: {sellerState} ({sellerStateCode})
               </p>
               <p className="text-[11px] text-slate-500">
-                FSSAI Lic #: <span className="font-mono font-bold">{sellerFssai}</span> | Support: support@cakes2home.com
+                FSSAI Lic #: <span className="font-mono font-bold">{sellerFssai}</span> {company?.support_email ? ` | Support: ${company.support_email}` : ""}{company?.support_phone ? ` | ${company.support_phone}` : ""}
               </p>
             </div>
             <div className="text-right space-y-1">

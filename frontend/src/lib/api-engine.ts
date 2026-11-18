@@ -645,8 +645,8 @@ export class GstVerificationProvider {
 
     return {
       gstin: cleanGst,
-      legalName: "CakeToHome India Private Limited",
-      tradeName: `CakeToHome ${stName}`,
+      legalName: ApiEngine.getBusinessProfile().legal_name,
+      tradeName: ApiEngine.getBusinessProfile().trade_name,
       registrationType: "REGULAR",
       state: stName,
       stateCode: stCode,
@@ -700,8 +700,8 @@ export class FssaiVerificationProvider {
     return {
       licenseNumber: cleanLic,
       licenseType: cleanLic.startsWith("1") ? "STATE_LICENSE" : "CENTRAL_LICENSE",
-      fboName: "CakeToHome India Private Limited",
-      premiseName: "CakeToHome Gourmet Bakery Hub",
+      fboName: ApiEngine.getBusinessProfile().legal_name,
+      premiseName: ApiEngine.getBusinessProfile().trade_name,
       status: "ACTIVE",
       verified: true,
       provider: "FoSCoS-Verification-Service",
@@ -714,43 +714,25 @@ export class FssaiVerificationProvider {
 
 // ── Default Compliance Datasets ─────────────────────────────────────────────
 
+// Real values come from public.company (Settings → Business Profile), loaded at startup. Nothing invented here.
 const DEFAULT_BUSINESS_PROFILE: BusinessProfile = {
-  legal_name: "CakeToHome India Private Limited",
-  trade_name: "CakeToHome",
-  business_type: "PRIVATE_LIMITED",
-  pan: "AABCC1234F",
-  tan: "BLRC12345D",
-  cin: "U15400KA2024PTC189001",
-  registered_email: "compliance@cakes2home.com",
-  registered_phone: "+91 80 4900 1234",
-  website: "https://caketohome.com",
-  support_email: "support@cakes2home.com",
-  support_phone: "+91 80 4900 1234",
-  registered_address: {
-    line1: "100 Feet Road, HAL 2nd Stage",
-    line2: "Indiranagar",
-    city: "Bengaluru",
-    state: "Karnataka",
-    state_code: "29",
-    country: "India",
-    country_code: "IN",
-    pincode: "560038",
-  },
-  primary_contact: {
-    name: "Rajesh Kumar",
-    phone: "+91 98765 00001",
-    email: "rajesh@cakes2home.com",
-    designation: "Managing Director",
-  },
-  authorized_signatory: {
-    name: "Rajesh Kumar",
-    designation: "Authorized Signatory",
-    email: "signatory@cakes2home.com",
-    phone: "+91 98765 00001",
-  },
+  legal_name: "",
+  trade_name: "",
+  business_type: "" as any,
+  pan: "",
+  tan: "",
+  cin: "",
+  registered_email: "",
+  registered_phone: "",
+  website: "",
+  support_email: "",
+  support_phone: "",
+  registered_address: { line1: "", line2: "", city: "", state: "", state_code: "", country: "India", country_code: "IN", pincode: "" },
+  primary_contact: { name: "", phone: "", email: "", designation: "" },
+  authorized_signatory: { name: "", designation: "Authorized Signatory", email: "", phone: "" },
   logo_url: "/logo.png",
-  status: "ACTIVE",
-  updated_at: "2026-01-01T00:00:00Z",
+  status: "INACTIVE" as any,
+  updated_at: "",
 };
 
 
@@ -769,7 +751,7 @@ const DEFAULT_INVOICE_SETTINGS: InvoiceBillingSettings = {
   show_fssai: true,
   invoice_footer: "Thank you for celebrating with CakeToHome! Freshly baked with premium ingredients.",
   terms_and_conditions: "1. Perishable confectionery goods. Consume within 24 hours of delivery.\n2. Subject to local jurisdiction.\n3. Goods once sold cannot be returned due to food safety & hygiene regulations.",
-  authorized_signatory_title: "For CakeToHome India Pvt Ltd",
+  authorized_signatory_title: "", // empty → "For <company legal name>"
   logo_url: "/logo.png",
   updated_at: "2026-01-01T00:00:00Z",
 };
@@ -1016,8 +998,8 @@ const DEFAULT_DELIVERY_PARTNERS = [
 
 const DEFAULT_SETTINGS = {
   store_name: "CakeToHome Bakery",
-  support_email: "support@cakes2home.com",
-  support_phone: "+91 80 4900 1234",
+  support_email: "",
+  support_phone: "",
   currency: "INR",
   tax_rate_percent: 5,
   free_delivery_threshold: 599,
@@ -11639,7 +11621,7 @@ export class ApiEngine {
     memoryStore.business_profile = updated;
     ApiEngine.addAuditLog(`Updated Business Profile for "${updated.legal_name}"`);
     ApiEngine.persist();
-    persistSettingToDb("general", "business_profile", updated, true).catch(() => null);
+    // Saved in public.company by the business-profile API; this keeps the in-memory copy in step.
     return updated;
   }
 
@@ -11671,7 +11653,7 @@ export class ApiEngine {
     const newRecord: GstRegistrationItem = {
       id,
       gstin: cleanGst,
-      legal_name: data.legal_name || memoryStore.business_profile?.legal_name || "CakeToHome India Private Limited",
+      legal_name: data.legal_name || memoryStore.business_profile?.legal_name || "",
       trade_name: data.trade_name || `CakeToHome ${data.state || "State"}`,
       registration_type: data.registration_type || "REGULAR",
       state: data.state || "",
@@ -11794,7 +11776,7 @@ export class ApiEngine {
       gst_registration_id: data.gst_registration_id || "gst_ka",
       fssai_number: data.fssai_number || "11223344556677",
       fssai_license_type: data.fssai_license_type || "STATE_LICENSE",
-      fbo_name: data.fbo_name || memoryStore.business_profile?.legal_name || "CakeToHome India Pvt Ltd",
+      fbo_name: data.fbo_name || memoryStore.business_profile?.legal_name || "",
       business_activity: data.business_activity || "Bakery / Food Preparation & Delivery",
       premise_name: data.premise_name || branch?.name || "Bakery Kitchen",
       premise_address: data.premise_address || branch?.address || "Branch Address",
@@ -12159,12 +12141,12 @@ export class ApiEngine {
       supply_type: isIntraState ? "INTRA-STATE" : "INTER-STATE",
       sellerGstin: gstReg?.gstin || branch?.gst_number || null,
       seller_gstin: gstReg?.gstin || branch?.gst_number || null,
-      sellerLegalName: bizProfile?.legal_name || "CakeToHome India Private Limited",
-      seller_legal_name: bizProfile?.legal_name || "CakeToHome India Private Limited",
+      sellerLegalName: (gstReg as any)?.legal_name || bizProfile?.legal_name || "",
+      seller_legal_name: (gstReg as any)?.legal_name || bizProfile?.legal_name || "",
       sellerTradeName: gstReg?.trade_name || bizProfile?.trade_name || "CakeToHome",
-      seller_trade_name: gstReg?.trade_name || bizProfile?.trade_name || "CakeToHome",
-      sellerFssai: compliance?.fssai_number || branch?.fssai_number || "11223344556677",
-      seller_fssai_number: compliance?.fssai_number || branch?.fssai_number || "11223344556677",
+      seller_trade_name: gstReg?.trade_name || bizProfile?.trade_name || "",
+      sellerFssai: compliance?.fssai_number || branch?.fssai_number || (ApiEngine.getBusinessProfile() as any).fssai || "",
+      seller_fssai_number: compliance?.fssai_number || branch?.fssai_number || (ApiEngine.getBusinessProfile() as any).fssai || "",
       sellerFssaiType: compliance?.fssai_license_type || "STATE_LICENSE",
       seller_fssai_type: compliance?.fssai_license_type || "STATE_LICENSE",
       sellerAddress: branch?.address || bizProfile?.registered_address?.line1 || "100 Feet Rd, Indiranagar, Bengaluru - 560038",
@@ -20899,8 +20881,8 @@ export class ApiEngine {
       invoice_number: invNumber,
       order_number: ord.order_number,
       invoice_date: ord.created_at || new Date().toISOString(),
-      seller_legal_name: snap.seller_legal_name || bizProfile?.legal_name || "CakeToHome India Private Limited",
-      seller_trade_name: snap.seller_trade_name || bizProfile?.trade_name || "CakeToHome",
+      seller_legal_name: snap.seller_legal_name || bizProfile?.legal_name || "",
+      seller_trade_name: snap.seller_trade_name || bizProfile?.trade_name || "",
       seller_state: snap.seller_state || ord.branch?.state || "",
       seller_state_code: snap.seller_state_code || (ord.branch?.state ? ApiEngine.resolveStateCode(ord.branch.state).gst_code : ""),
       place_of_supply: snap.customer_state || ord.state || ord.shipping_address?.state || "",
@@ -22655,12 +22637,12 @@ export class ApiEngine {
       serviceability_result: (validation as any).branchRes?.resolvedBy || (validation as any).resolvedBy || "geofence_verified",
       eta_minutes: (validation as any).branchRes?.etaminutes || (validation as any).delivery?.estimated_minutes || 45,
       compliance_snapshot: {
-        seller_legal_name: validation.taxes?.seller_legal_name || "CakeToHome India Private Limited",
-        seller_trade_name: validation.taxes?.seller_trade_name || "CakeToHome",
+        seller_legal_name: validation.taxes?.seller_legal_name || ApiEngine.getBusinessProfile().legal_name,
+        seller_trade_name: validation.taxes?.seller_trade_name || ApiEngine.getBusinessProfile().trade_name,
         seller_gstin: validation.taxes?.seller_gstin || branch?.gst_number || null,
         seller_state: validation.taxes?.seller_state || branch?.state || "",
         seller_state_code: validation.taxes?.seller_state_code || (branch?.state ? ApiEngine.resolveStateCode(branch.state).gst_code : ""),
-        seller_fssai_number: validation.taxes?.seller_fssai_number || branch?.fssai_number || "11223344556677",
+        seller_fssai_number: validation.taxes?.seller_fssai_number || branch?.fssai_number || (ApiEngine.getBusinessProfile() as any).fssai || "",
         seller_fssai_type: validation.taxes?.seller_fssai_type || "STATE_LICENSE",
         seller_address: validation.taxes?.seller_address || branch?.address || "",
         branch_id: branch.id,

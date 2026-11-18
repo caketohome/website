@@ -849,17 +849,13 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
         } catch {}
       }
 
-      // Authoritative Business Profile Hydration
-      const businessProfileSetting = settingsRes.rows.find(
-        (s) => (s.key === "business_profile" && s.group === "general") || s.key === "business_profile"
-      );
-      if (businessProfileSetting && businessProfileSetting.value) {
-        try {
-          const val = typeof businessProfileSetting.value === "string" ? JSON.parse(businessProfileSetting.value) : businessProfileSetting.value;
-          if (val && typeof val === "object") {
-            targetStore.business_profile = { ...(targetStore.business_profile || {}), ...val };
-          }
-        } catch {}
+      // Business profile = public.company (Settings → Business Profile). Single source for invoices & pages.
+      try {
+        const { getCompanyProfile, invalidateCompanyProfile } = await import("./company-profile");
+        invalidateCompanyProfile();
+        targetStore.business_profile = await getCompanyProfile();
+      } catch (e: any) {
+        console.warn("[PostgreSQL Persistence] company profile load failed:", e?.message);
       }
 
       // Authoritative Delivery Defaults Hydration

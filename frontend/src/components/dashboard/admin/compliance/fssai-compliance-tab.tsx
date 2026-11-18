@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useCompanyInfo } from "@frontend/lib/hooks/use-company-info";
 import { Container, Heading, Text, Button, Input, Label, Badge } from "@medusajs/ui";
 import { ShieldAlert, Plus, CheckCircle2, AlertTriangle, AlertOctagon, RefreshCw, Edit2, Calendar, FileCheck, X, FileText, Trash2 } from "lucide-react";
 import { apiClient } from "@frontend/lib/api-client";
@@ -28,7 +29,9 @@ export function FssaiComplianceTab({
   const [formBranchId, setFormBranchId] = useState(branches[0]?.id || "br_indiranagar");
   const [formFssaiNumber, setFormFssaiNumber] = useState("");
   const [formLicenseType, setFormLicenseType] = useState<"STATE_LICENSE" | "CENTRAL_LICENSE" | "REGISTRATION">("STATE_LICENSE");
-  const [formFboName, setFormFboName] = useState("CakeToHome India Private Limited");
+  const [formFboName, setFormFboName] = useState("");
+  const company = useCompanyInfo();
+  useEffect(() => { if (company?.legal_name) setFormFboName((v) => v || company.legal_name); }, [company]);
   const [formPremiseName, setFormPremiseName] = useState("");
   const [formPremiseAddress, setFormPremiseAddress] = useState("");
   const [formIssueDate, setFormIssueDate] = useState(new Date().toISOString().slice(0, 10));
@@ -43,7 +46,7 @@ export function FssaiComplianceTab({
     setFormBranchId(firstBranch.id || "");
     setFormFssaiNumber("");
     setFormLicenseType("STATE_LICENSE");
-    setFormFboName("CakeToHome India Private Limited");
+    setFormFboName(company?.legal_name || "");
     setFormPremiseName(firstBranch.name || "Bakery Kitchen");
     setFormPremiseAddress(firstBranch.address || "");
     setFormIssueDate(new Date().toISOString().slice(0, 10));
@@ -60,7 +63,7 @@ export function FssaiComplianceTab({
     setFormBranchId(comp.branch_id);
     setFormFssaiNumber(comp.fssai_number || "");
     setFormLicenseType(comp.fssai_license_type || "STATE_LICENSE");
-    setFormFboName(comp.fbo_name || "CakeToHome India Private Limited");
+    setFormFboName(comp.fbo_name || company?.legal_name || "");
     setFormPremiseName(comp.premise_name || comp.branch_name || "");
     setFormPremiseAddress(comp.premise_address || "");
     setFormIssueDate(comp.issue_date || new Date().toISOString().slice(0, 10));

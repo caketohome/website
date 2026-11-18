@@ -14,6 +14,9 @@ import type { ExcelExportService as ExcelExportServiceType } from "@frontend/lib
 const ExcelExportService: typeof ExcelExportServiceType = new Proxy({} as any, {
   get: (_target, prop: string) => async (...args: any[]) => {
     const mod = await import("@frontend/lib/excel-export-service");
+    const { loadCompanyInfo } = await import("@frontend/lib/hooks/use-company-info");
+    const co = await loadCompanyInfo();
+    if (co) mod.setExportBusinessIdentity(co.trade_name && co.legal_name && co.trade_name !== co.legal_name ? `${co.trade_name.toUpperCase()} (${co.legal_name})` : (co.legal_name || co.trade_name), co.gstin || undefined);
     return (mod.ExcelExportService as any)[prop](...args);
   }
 });

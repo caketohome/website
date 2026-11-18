@@ -1,6 +1,6 @@
 import * as ExcelJS from "exceljs";
 
-let dynamicBrandLine = "CAKETOHOME (CakeToHome India Private Limited)";
+let dynamicBrandLine = ""; // set from Settings → Business Profile before exporting
 let dynamicPrimaryGstin: string | null = null;
 
 /**

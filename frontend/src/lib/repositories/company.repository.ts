@@ -155,6 +155,10 @@ export class CompanyRepository {
       setClauses.push(`is_active = $${idx++}`);
       values.push(input.is_active);
     }
+    if (input.metadata !== undefined) {
+      setClauses.push(`metadata = COALESCE(metadata, '{}'::jsonb) || $${idx++}::jsonb`);
+      values.push(JSON.stringify(input.metadata || {}));
+    }
 
     const sql = `
       UPDATE public.company

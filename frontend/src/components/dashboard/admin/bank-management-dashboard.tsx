@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useCompanyInfo } from "@frontend/lib/hooks/use-company-info";
 import { Container, Heading, Text, Button, Input, Badge, Label } from "@medusajs/ui";
 import {
   Landmark,
@@ -106,7 +107,9 @@ export function BankManagementDashboard() {
 
   // Add Bank Form state
   const [bankName, setBankName] = useState("HDFC Bank");
-  const [accountHolderName, setAccountHolderName] = useState("CakeToHome India Private Limited");
+  const [accountHolderName, setAccountHolderName] = useState("");
+  const company = useCompanyInfo();
+  useEffect(() => { if (company?.legal_name) setAccountHolderName((v) => v || company.legal_name); }, [company]);
   const [accountNumber, setAccountNumber] = useState("");
   const [confirmAccountNumber, setConfirmAccountNumber] = useState("");
   const [ifscCode, setIfscCode] = useState("");
@@ -1402,7 +1405,7 @@ export function BankManagementDashboard() {
                 <div>
                   <Label className="text-xs font-medium">Account Holder Name *</Label>
                   <Input
-                    placeholder="e.g. CakeToHome India Private Limited"
+                    placeholder={company?.legal_name ? `e.g. ${company.legal_name}` : "Account holder name"}
                     value={accountHolderName}
                     onChange={(e) => setAccountHolderName(e.target.value)}
                     className="mt-1 text-xs"
@@ -1711,7 +1714,7 @@ export function BankManagementDashboard() {
                     </div>
                     <div>
                       <span className="text-slate-400">Legal Entity:</span>{" "}
-                      <span className="font-semibold">CakeToHome India Private Limited</span>
+                      <span className="font-semibold">{company?.legal_name}</span>
                     </div>
                     <div>
                       <span className="text-slate-400">Associated Branch:</span>{" "}

@@ -63,6 +63,8 @@ export interface CompanyUpdateInput {
   email?: string;
   website?: string;
   is_active?: boolean;
+  /** Merged into company.metadata (contacts, signatory, TAN, logo, address parts) */
+  metadata?: Record<string, unknown>;
 }
 
 // ─── GST Registration Row (maps to public.gst_registration) ────────────────────

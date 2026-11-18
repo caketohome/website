@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useCompanyInfo } from "@frontend/lib/hooks/use-company-info";
 import { Container, Heading, Text, Button, Input, Label, Badge } from "@medusajs/ui";
 import { ShieldCheck, Receipt, FileText, X, CheckCircle2, AlertCircle, Save, UploadCloud, Trash2 } from "lucide-react";
 import { apiClient } from "@frontend/lib/api-client";
@@ -29,7 +30,9 @@ export function BranchComplianceModal({
   );
   const [fssaiNumber, setFssaiNumber] = useState(compliance?.fssai_number || "");
   const [licenseType, setLicenseType] = useState(compliance?.fssai_license_type || "STATE_LICENSE");
-  const [fboName, setFboName] = useState(compliance?.fbo_name || "CakeToHome India Private Limited");
+  const [fboName, setFboName] = useState(compliance?.fbo_name || "");
+  const company = useCompanyInfo();
+  useEffect(() => { if (company?.legal_name) setFboName((v: string) => v || company.legal_name); }, [company]);
   const [premiseName, setPremiseName] = useState(compliance?.premise_name || branch.name || "");
   const [premiseAddress, setPremiseAddress] = useState(compliance?.premise_address || branch.address || "");
   const [issueDate, setIssueDate] = useState(compliance?.issue_date || new Date().toISOString().slice(0, 10));

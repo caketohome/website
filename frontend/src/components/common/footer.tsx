@@ -5,10 +5,15 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { FooterNavigation } from "@frontend/components/store/cms/navigation";
 import { Suspense } from "react";
 import { Heart, ShieldCheck, Truck, Clock, Sparkles } from "lucide-react";
+import { getCompanyProfile } from "@frontend/lib/company-profile";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
-export default function Footer() {
+export default async function Footer() {
+  // Company details from Settings → Business Profile (public.company)
+  const company = await getCompanyProfile();
+  const whatsapp = company.support_whatsapp;
+  const waDigits = whatsapp.replace(/\D/g, "");
   return (
     <footer className="w-full bg-[#1D2F5D] text-white/80 border-t border-white/10 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:pb-8 transition-colors duration-200">
       {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
@@ -83,8 +88,9 @@ export default function Footer() {
           <div className="flex flex-col gap-2.5">
             <h4 className="text-xs uppercase tracking-wider font-bold text-white/70 font-sans">Help & Support</h4>
             <div className="text-xs text-slate-300 flex flex-col gap-1.5">
-              <p>Email: <a href="mailto:support@caketohome.com" className="text-white/70 hover:underline">support@caketohome.com</a></p>
-              <p>WhatsApp: <a href="https://wa.me/919567789888" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 font-mono font-semibold">+91 95677 89888</a></p>
+              {company.support_email && <p>Email: <a href={`mailto:${company.support_email}`} className="text-white/70 hover:underline">{company.support_email}</a></p>}
+              {company.support_phone && <p>Phone: <a href={`tel:${company.support_phone.replace(/\s/g, "")}`} className="text-white/70 hover:underline">{company.support_phone}</a></p>}
+              {whatsapp && <p>WhatsApp: <a href={`https://wa.me/${waDigits}`} target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 font-mono font-semibold">{whatsapp}</a></p>}
               <p>Hours: 9:00 AM – 11:00 PM IST</p>
               <p className="text-[11px] text-slate-400 mt-1">Razorpay 256-bit SSL Encrypted Standard Checkout</p>
             </div>
@@ -120,10 +126,11 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
           <p className="text-center sm:text-left">
-            © {new Date().getFullYear()} CakeToHome India Private Limited. All rights reserved.
+            © {new Date().getFullYear()} {company.legal_name || company.trade_name}. All rights reserved.
+            {company.address_text && <span className="block text-[11px] text-slate-500 mt-0.5">{company.address_text}{company.fssai ? ` · FSSAI ${company.fssai}` : ""}{company.gstin ? ` · GSTIN ${company.gstin}` : ""}</span>}
           </p>
           <div className="flex items-center gap-4 text-xs text-slate-300">
-            <span className="flex items-center gap-1">Made with <Heart className="w-3 h-3 text-rose-400 fill-rose-400" /> in Kerala</span>
+            <span className="flex items-center gap-1">Made with <Heart className="w-3 h-3 text-rose-400 fill-rose-400" />{company.registered_address.state ? ` in ${company.registered_address.state}` : ""}</span>
           </div>
         </div>
       </div>
