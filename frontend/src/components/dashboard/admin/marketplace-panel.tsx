@@ -532,6 +532,35 @@ export const MarketplacePanel = memo(function MarketplacePanel() {
                             Suspend
                           </button>
                         )}
+                        {(partner.status === "APPROVED" || partner.status === "ACTIVE" || partner.status === "SUSPENDED") && (
+                          <button
+                            onClick={async () => {
+                              const phone = window.prompt(`Grant portal login for ${partner.trade_name || partner.legal_name}.\nPartner contact's mobile number:`);
+                              if (!phone) return;
+                              const name = window.prompt("Contact name (optional):") || undefined;
+                              try {
+                                setLoading(true);
+                                setErrorMsg(null);
+                                const res = await fetch(`/api/v1/admin/marketplace/partners/${encodeURIComponent(partner.id)}/portal-access`, {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ phone, name }),
+                                });
+                                const data = await res.json();
+                                if (!res.ok || !data.success) throw new Error(data.error || "Could not grant portal access.");
+                                setSuccessMsg(`Portal login granted to ${data.user.phone}. They sign in with an OTP and land on /partner.`);
+                              } catch (err: any) {
+                                setErrorMsg(err.message);
+                              } finally {
+                                setLoading(false);
+                              }
+                            }}
+                            disabled={loading}
+                            className="px-2.5 py-1 text-[11px] font-semibold text-blue-700 border border-blue-300 hover:bg-blue-50 rounded-lg disabled:opacity-50"
+                          >
+                            Portal login
+                          </button>
+                        )}
                         {partner.status === "SUSPENDED" && (
                           <button
                             onClick={() => changePartnerStatus(partner.id, "reactivate")}

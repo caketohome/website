@@ -117,8 +117,17 @@ function denyUnlessStaff(req: NextRequest): NextResponse | null {
   const session = resolveServerSession(req);
   const role = (session?.role || "").toUpperCase();
   if (!session) return NextResponse.json({ success: false, error: "UNAUTHORIZED" }, { status: 401 });
-  if (!role || role === "CUSTOMER") return NextResponse.json({ success: false, error: "FORBIDDEN" }, { status: 403 });
+  if (!role || role === "CUSTOMER" || role.startsWith("PARTNER_")) return NextResponse.json({ success: false, error: "FORBIDDEN" }, { status: 403 });
   return null;
+}
+
+/** Partner-portal guard: a verified marketplace-partner session, scoped to its own partner. */
+function requirePartnerSession(req: NextRequest): { partnerId: string; userId: string; role: string } | NextResponse {
+  const session = resolveServerSession(req);
+  const role = (session?.role || "").toUpperCase();
+  if (!session) return NextResponse.json({ success: false, error: "UNAUTHORIZED" }, { status: 401 });
+  if (!role.startsWith("PARTNER_") || !session.partnerId) return NextResponse.json({ success: false, error: "FORBIDDEN" }, { status: 403 });
+  return { partnerId: String(session.partnerId), userId: session.userId || "", role };
 }
 
 function resolveUserContext(req: NextRequest) {
@@ -4175,6 +4184,44 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         }
 
 
+        // GSTR-8 (GST TCS by e-commerce operator): GET admin/accounting/gstr8?from=YYYY-MM-DD&to=YYYY-MM-DD
+        // Per month × partner GSTIN: net taxable supplies made through us and TCS collected (2131, 0.5%).
+        if (acctSubPath === "gstr8") {
+          const from = url.searchParams.get("from") || "1900-01-01";
+          const to = url.searchParams.get("to") || "2999-12-31";
+          const q = await dbQuery(
+            `SELECT to_char(av.voucher_date, 'YYYY-MM') AS return_period,
+                    jl.metadata->>'partner_gstin' AS partner_gstin,
+                    p.legal_name AS partner_legal_name,
+                    COUNT(DISTINCT av.id)::int AS supply_count,
+                    COALESCE(SUM(NULLIF(jl.metadata->>'tcs_base_amount', '')::numeric), 0) AS net_taxable_value,
+                    COALESCE(SUM(jl.credit_amount - jl.debit_amount), 0) AS tcs_amount
+             FROM public.accounting_journal_line jl
+             JOIN public.accounting_account a ON a.id = jl.account_id AND a.code = '2131'
+             JOIN public.accounting_journal_entry je ON je.id = jl.journal_entry_id
+             JOIN public.accounting_voucher av ON av.id = je.voucher_id AND av.status = 'POSTED'
+             LEFT JOIN public.marketplace_partner p ON p.id = jl.metadata->>'marketplace_partner_id'
+             WHERE av.voucher_date BETWEEN $1::date AND $2::date
+             GROUP BY 1, 2, 3
+             ORDER BY 1, 2`,
+            [from, to]
+          );
+          const rows = q.rows.map((r: any) => ({
+            ...r,
+            net_taxable_value: Number(r.net_taxable_value),
+            tcs_amount: Number(r.tcs_amount),
+            // Intra-state TCS splits 0.25% CGST + 0.25% SGST; inter-state is 0.5% IGST.
+          }));
+          return jsonWithDataSource({
+            success: true,
+            rows,
+            totals: {
+              net_taxable_value: rows.reduce((s: number, r: any) => s + r.net_taxable_value, 0),
+              tcs_amount: rows.reduce((s: number, r: any) => s + r.tcs_amount, 0),
+            },
+          }, "postgres");
+        }
+
         // TDS Register: GET admin/accounting/tds-register?from=YYYY-MM-DD&to=YYYY-MM-DD
         // 2130 = TDS we deducted when paying (owed to govt); 1125 = TDS customers deducted (claimable).
         if (acctSubPath === "tds-register") {
@@ -6929,6 +6976,25 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path === "admin/marketplace/invoices") {
       const invoices = await MarketplaceInvoiceRepository.listInvoices(Object.fromEntries(url.searchParams));
       return jsonWithDataSource({ invoices, success: true }, "postgres");
+    }
+    // Partner portal access list: GET admin/marketplace/partners/:id/portal-users
+    {
+      const m = path.match(/^admin\/marketplace\/partners\/([^/]+)\/portal-users$/);
+      if (m) {
+        const users = await MarketplacePartnerService.listPortalUsers(m[1]);
+        return jsonWithDataSource({ success: true, users }, "postgres");
+      }
+    }
+    // Partner portal: GET partner/portal/summary — the logged-in partner's own data only.
+    if (path === "partner/portal/summary") {
+      const ps = requirePartnerSession(req);
+      if (ps instanceof NextResponse) return ps;
+      try {
+        const summary = await MarketplacePartnerService.getPortalSummary(ps.partnerId);
+        return jsonWithDataSource({ success: true, ...summary }, "postgres");
+      } catch (e: any) {
+        return jsonWithDataSource({ success: false, error: e.message }, "postgres", 404);
+      }
     }
     // Marketplace payouts (commission model)
     if (path === "admin/marketplace/payouts" || path === "admin/marketplace/payouts/preview") {
@@ -11546,6 +11612,25 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const userCtx = resolveUserContext(req);
       const res = await MarketplacePartnerService.onboardPartner(body, toAuthenticatedActor(userCtx));
       return jsonWithDataSource(res, "postgres", res.success ? 201 : 400);
+    }
+    // Partner portal access: POST admin/marketplace/partners/:id/portal-access  |  admin/marketplace/portal-users/:id/revoke
+    {
+      const grant = path.match(/^admin\/marketplace\/partners\/([^/]+)\/portal-access$/);
+      const revoke = path.match(/^admin\/marketplace\/portal-users\/([^/]+)\/revoke$/);
+      if (grant || revoke) {
+        const actor = toAuthenticatedActor(resolveUserContext(req));
+        const res = grant
+          ? await MarketplacePartnerService.grantPortalAccess(grant[1], { phone: body.phone, name: body.name }, actor)
+          : await MarketplacePartnerService.revokePortalAccess(revoke![1], actor);
+        return jsonWithDataSource(res, "postgres", res.success ? 200 : 400);
+      }
+    }
+    // Partner order actions: partner login (own orders, enforced in the service) or staff only.
+    if (path.startsWith("partner/orders/")) {
+      const s = resolveServerSession(req);
+      const r = (s?.role || "").toUpperCase();
+      if (!s) return jsonWithDataSource({ success: false, error: "UNAUTHORIZED" }, "postgres", 401);
+      if (!r || r === "CUSTOMER") return jsonWithDataSource({ success: false, error: "FORBIDDEN" }, "postgres", 403);
     }
     // POST admin/marketplace/partners/:id/{approve|suspend|reactivate}
     {

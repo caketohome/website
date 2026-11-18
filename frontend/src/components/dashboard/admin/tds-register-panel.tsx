@@ -34,6 +34,7 @@ export function TdsRegisterPanel() {
   const [totals, setTotals] = useState({ deducted_by_us: 0, deducted_from_us: 0 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [gstr8, setGstr8] = useState<any[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -44,6 +45,8 @@ export function TdsRegisterPanel() {
       if (!res.ok || !json?.success) throw new Error(json?.error || "Failed to load TDS register.");
       setRows(json.rows || []);
       setTotals(json.totals || { deducted_by_us: 0, deducted_from_us: 0 });
+      const g = await fetch(`/api/v1/admin/accounting/gstr8?from=${range.from}&to=${range.to}`).then((r) => r.json()).catch(() => null);
+      setGstr8(g?.rows || []);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -122,6 +125,43 @@ export function TdsRegisterPanel() {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-bold text-slate-900 dark:text-white">GST TCS collected — GSTR-8</h3>
+        <p className="text-xs text-slate-500 mb-2">
+          0.5% TCS on marketplace partners' net taxable supplies, by return period and partner GSTIN (file by the 10th of the next month).
+        </p>
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+          <table className="w-full text-xs">
+            <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300">
+              <tr>
+                <th className="text-left p-2.5">Return period</th>
+                <th className="text-left p-2.5">Partner GSTIN</th>
+                <th className="text-left p-2.5">Partner</th>
+                <th className="text-right p-2.5">Supplies</th>
+                <th className="text-right p-2.5">Net taxable value</th>
+                <th className="text-right p-2.5">TCS (0.5%)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+              {gstr8.length === 0 ? (
+                <tr><td colSpan={6} className="p-4 text-center text-slate-500">No marketplace TCS in this period.</td></tr>
+              ) : (
+                gstr8.map((g) => (
+                  <tr key={`${g.return_period}-${g.partner_gstin}`} className="text-slate-800 dark:text-slate-200">
+                    <td className="p-2.5">{g.return_period}</td>
+                    <td className="p-2.5 font-mono">{g.partner_gstin || "—"}</td>
+                    <td className="p-2.5">{g.partner_legal_name || "—"}</td>
+                    <td className="p-2.5 text-right">{g.supply_count}</td>
+                    <td className="p-2.5 text-right">{inr(g.net_taxable_value)}</td>
+                    <td className="p-2.5 text-right font-semibold">{inr(g.tcs_amount)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

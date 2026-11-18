@@ -141,6 +141,107 @@ export class MarketplacePartnerService {
     return { success: true, partner: saved };
   }
 
+  // ── Partner portal access ────────────────────────────────────────────────
+
+  /** Grant a partner contact's phone OTP access to the partner portal (one active grant per phone). */
+  static async grantPortalAccess(
+    partnerId: string,
+    input: { phone: string; name?: string },
+    actor: AuthenticatedActor
+  ): Promise<{ success: boolean; user?: any; error?: string }> {
+    if (actor.role !== "SUPER_ADMIN" && actor.role !== "ADMIN") {
+      return { success: false, error: "UNAUTHORIZED: Only administrators can grant partner portal access." };
+    }
+    const digits = String(input.phone || "").replace(/\D/g, "").slice(-10);
+    if (!/^[6-9][0-9]{9}$/.test(digits)) return { success: false, error: "Enter a valid 10-digit Indian mobile number." };
+    const partner = await MarketplacePartnerRepository.findPartnerById(partnerId);
+    if (!partner) return { success: false, error: "Partner not found." };
+    if (partner.status === "PENDING_APPROVAL") return { success: false, error: "Approve the partner before granting portal access." };
+    const { dbQuery } = await import("../db");
+    // A phone that already has a staff/admin role must not be turned into a partner login.
+    const roleRes = await dbQuery(
+      `SELECT ura.role_id FROM public.profiles pr JOIN public.user_role_assignments ura ON ura.user_id = pr.id
+       WHERE right(regexp_replace(pr.phone, '\\D', '', 'g'), 10) = $1 AND ura.role_id <> 'CUSTOMER' LIMIT 1`,
+      [digits]
+    );
+    if (roleRes.rows[0]) return { success: false, error: `This phone already has the ${roleRes.rows[0].role_id} role and cannot be a partner login.` };
+    try {
+      const res = await dbQuery(
+        `INSERT INTO public.marketplace_partner_user (partner_id, phone, name, created_by) VALUES ($1, $2, $3, $4) RETURNING *`,
+        [partner.id, digits, input.name?.trim() || null, actor.userId || "system"]
+      );
+      return { success: true, user: res.rows[0] };
+    } catch (e: any) {
+      if (e?.code === "23505") return { success: false, error: "This phone already has active partner portal access." };
+      throw e;
+    }
+  }
+
+  static async revokePortalAccess(userId: string, actor: AuthenticatedActor): Promise<{ success: boolean; error?: string }> {
+    if (actor.role !== "SUPER_ADMIN" && actor.role !== "ADMIN") {
+      return { success: false, error: "UNAUTHORIZED: Only administrators can revoke partner portal access." };
+    }
+    const { dbQuery } = await import("../db");
+    const res = await dbQuery(
+      `UPDATE public.marketplace_partner_user SET status = 'REVOKED', revoked_by = $2, revoked_at = NOW(), updated_at = NOW()
+       WHERE id = $1 AND status = 'ACTIVE' RETURNING id`,
+      [userId, actor.userId || "system"]
+    );
+    return res.rows.length ? { success: true } : { success: false, error: "Active portal access not found." };
+  }
+
+  static async listPortalUsers(partnerId: string): Promise<any[]> {
+    const { dbQuery } = await import("../db");
+    const res = await dbQuery(
+      `SELECT id, phone, name, role, status, created_at, revoked_at FROM public.marketplace_partner_user
+       WHERE partner_id = $1 ORDER BY status ASC, created_at DESC`,
+      [partnerId]
+    );
+    return res.rows;
+  }
+
+  /** Everything the partner portal shows — strictly scoped to one partner. */
+  static async getPortalSummary(partnerId: string): Promise<any> {
+    const { dbQuery } = await import("../db");
+    const { MarketplacePayoutService } = await import("./marketplace-payout.service");
+    const partner = await MarketplacePartnerRepository.findPartnerById(partnerId);
+    if (!partner) throw new Error("Partner not found.");
+    const bank = partner.bank_details || {};
+    const acct = String(bank.account_number || "");
+    const agreement = await MarketplacePartnerRepository.getActiveAgreement(partnerId);
+    const todayIst = new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
+    const unpaid = await MarketplacePayoutService.buildStatement(partnerId, "2000-01-01", todayIst);
+    const payouts = await MarketplacePayoutService.listPayouts(partnerId);
+    const orders = await dbQuery(
+      `SELECT o.id, o.display_id, o.status, o.created_at, o.grand_total,
+              o.metadata->>'partner_order_status' AS partner_order_status,
+              o.metadata->>'delivery_date' AS delivery_date, i.invoice_number
+       FROM public.marketplace_order_snapshot s
+       JOIN public."order" o ON o.id = s.order_id AND o.deleted_at IS NULL
+       LEFT JOIN public.invoice i ON i.order_id = o.id AND i.deleted_at IS NULL
+       WHERE s.partner_id = $1
+       ORDER BY o.created_at DESC LIMIT 100`,
+      [partnerId]
+    );
+    return {
+      partner: {
+        id: partner.id, code: partner.code, trade_name: partner.trade_name, legal_name: partner.legal_name,
+        gstin: partner.gstin, status: partner.status,
+        bank_account: acct ? `••••${acct.slice(-4)} (${String(bank.ifsc || "").toUpperCase()})` : null,
+      },
+      agreement: agreement ? { agreement_type: agreement.agreement_type, commission_rate: Number(agreement.commission_rate), fixed_fee_per_order: Number(agreement.fixed_fee_per_order), effective_from: agreement.effective_from } : null,
+      unpaid: unpaid.totals,
+      unpaid_lines: unpaid.lines,
+      payouts: payouts.map((p: any) => ({
+        id: p.id, period_start: p.period_start, period_end: p.period_end, order_count: p.order_count,
+        partner_sales_gross: Number(p.partner_sales_gross), commission_amount: Number(p.commission_amount), commission_gst: Number(p.commission_gst),
+        tcs_amount: Number(p.tcs_amount), tds_194o_amount: Number(p.tds_194o_amount), net_payable: Number(p.net_payable),
+        commission_invoice_number: p.commission_invoice_number, status: p.status, payment_reference: p.payment_reference, paid_at: p.paid_at,
+      })),
+      orders: orders.rows,
+    };
+  }
+
   /** Orders may only be routed to approved partners. */
   static isPartnerOrderable(partner: MarketplacePartnerRow | null): boolean {
     return Boolean(partner && (partner.status === "APPROVED" || partner.status === "ACTIVE"));

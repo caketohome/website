@@ -235,6 +235,27 @@ async function resolveSessionClaims(userId: string, phone: string) {
     }
   }
 
+  // Marketplace partner portal: an admin-granted, active phone signs in scoped to its partner.
+  if (role === "CUSTOMER") {
+    try {
+      const { dbQuery } = await import("../db");
+      const pu = await dbQuery(
+        `SELECT u.role, u.partner_id FROM public.marketplace_partner_user u
+         JOIN public.marketplace_partner p ON p.id = u.partner_id AND p.deleted_at IS NULL
+         WHERE u.phone = $1 AND u.status = 'ACTIVE' AND p.status IN ('APPROVED', 'ACTIVE', 'SUSPENDED')
+         LIMIT 1`,
+        [digits]
+      );
+      if (pu.rows[0]) {
+        role = pu.rows[0].role;
+        partnerId = pu.rows[0].partner_id;
+        branchId = null;
+      }
+    } catch {
+      // partner table unavailable -> stay CUSTOMER (fail closed)
+    }
+  }
+
   let customerUid = `cth_cus_${digits}`; // existing order/address/customer linkage key
   if (role === "CUSTOMER") {
     try {

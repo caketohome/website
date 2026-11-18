@@ -75,6 +75,8 @@ export async function middleware(request: NextRequest) {
       }
       if (!hasAuthSession) return deny(401, "UNAUTHORIZED");
       if (!rawRole || rawRole === "CUSTOMER") return deny(403, "FORBIDDEN");
+      // Marketplace partner logins only use their own portal APIs, never admin APIs.
+      if (rawRole.startsWith("PARTNER_")) return deny(403, "FORBIDDEN");
       return NextResponse.next();
     }
 

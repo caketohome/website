@@ -10,6 +10,7 @@ function destinationFor(role: string): string {
   if (role === "DELIVERY_PARTNER") return "/dashboard/delivery-partner";
   if (role === "BRANCH_MANAGER") return "/dashboard/shop";
   if (role === "CUSTOMER") return "/account";
+  if (role === "PARTNER_OWNER" || role === "PARTNER_ADMIN") return "/partner";
   return "/dashboard";
 }
 
