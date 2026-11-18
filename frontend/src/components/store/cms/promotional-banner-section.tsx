@@ -103,14 +103,16 @@ export function PromotionalBannerSection({
   }>({ status: "idle" });
 
   // Content Extraction
-  const headline = config.headline || config.heading || "🎉 Monsoon Special — Flat 50% OFF";
-  const rawSubheadline = config.subheadline || config.description || "Valid on all birthday & anniversary cakes above ₹299";
+  // No made-up offers: the banner shows only what the CMS configures.
+  const headline = config.headline || config.heading || "";
+  const rawSubheadline = config.subheadline || config.description || "";
   const couponCode = config.coupon_code || config.offer_code;
   const couponLabel = config.coupon_label ?? "Use Code:";
   const showCoupon = config.coupon_visible !== false && !!couponCode;
 
   // Clean Subtitle (avoiding redundant repetition of the coupon code text)
   let cleanSubtitle = rawSubheadline;
+  if (!headline && !couponCode) return null;
   if (couponCode && cleanSubtitle.includes(couponCode)) {
     cleanSubtitle = cleanSubtitle
       .replace(new RegExp(`Use Code:?\\s*${couponCode}[.,—\\s-]*`, "gi"), "")

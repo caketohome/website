@@ -47,13 +47,14 @@ export function renderTemplate(
         return `₹${context.cart?.total || 0}`;
 
       case "coupon_code":
-        return offer?.couponCode ? escapeHtml(offer.couponCode) : "SWEET10";
+        // No invented codes/discounts: blank unless the campaign has a real coupon.
+        return offer?.couponCode ? escapeHtml(offer.couponCode) : "";
 
       case "coupon_discount":
-        return "10% OFF";
+        return "";
 
       case "coupon_expiry":
-        return "11:59 PM";
+        return "";
 
       case "city":
       case "city_name":

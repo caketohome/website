@@ -1,14 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
 import { WhatsAppSupportButton } from "./whatsapp-support-button";
 
-const ExitIntentPopup = dynamic(
-  () => import("@frontend/components/store/marketing/exit-intent-popup"),
-  { ssr: false }
-);
-
+// The hardcoded exit-intent "extra 10% OFF" popup was removed: offers now come only from
+// admin-configured engagement campaigns (Marketing → Popups).
 export function StorefrontFloatingWidgets() {
   const [mounted, setMounted] = useState(false);
 
@@ -18,12 +14,7 @@ export function StorefrontFloatingWidgets() {
 
   if (!mounted) return null;
 
-  return (
-    <>
-      <WhatsAppSupportButton />
-      <ExitIntentPopup />
-    </>
-  );
+  return <WhatsAppSupportButton />;
 }
 
 export default StorefrontFloatingWidgets;

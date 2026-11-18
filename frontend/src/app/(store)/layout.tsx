@@ -13,6 +13,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { StorefrontFloatingWidgets } from "@frontend/components/store/storefront-floating-widgets";
 import { GuestCartLoginPrompt } from "@frontend/components/store/cart/guest-cart-login-prompt";
+import { VisitTracker } from "@frontend/components/store/visit-tracker";
 
 export const metadata: Metadata = {
   title: "CakeToHome",
@@ -116,6 +117,7 @@ export default async function RootLayout({
       <StorefrontFloatingWidgets />
       {/* Guests with a cart: ask them to log in so the cart is saved and recoverable */}
       {!user && <GuestCartLoginPrompt />}
+      <VisitTracker />
     </EngagementProvider>
   );
 }

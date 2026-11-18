@@ -798,7 +798,7 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
         if (accessoriesSetting && accessoriesSetting.value) {
           try {
             const val = typeof accessoriesSetting.value === "string" ? JSON.parse(accessoriesSetting.value) : accessoriesSetting.value;
-            if (Array.isArray(val) && val.length > 0) {
+            if (Array.isArray(val)) {
               targetStore.accessories = val;
             }
           } catch {}
@@ -825,7 +825,7 @@ export async function hydrateStoreFromDatabase(targetStore?: any): Promise<any> 
       if (crossSellSetting && crossSellSetting.value) {
         try {
           const val = typeof crossSellSetting.value === "string" ? JSON.parse(crossSellSetting.value) : crossSellSetting.value;
-          if (Array.isArray(val) && val.length > 0) {
+          if (Array.isArray(val)) {
             targetStore.cross_sell_rules = val;
           }
         } catch {}

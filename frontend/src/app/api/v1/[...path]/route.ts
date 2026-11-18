@@ -6692,6 +6692,16 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
 
     // ── Abandoned Cart Management & Recovery (GET) ──
+    // Viewed but didn't buy (browse abandonment): GET admin/abandoned-carts/browse?days=7
+    if (path === "admin/abandoned-carts/browse") {
+      const userCtx = resolveUserContext(req);
+      if (userCtx.role === "DELIVERY_PARTNER" || userCtx.role === "DLP") {
+        return jsonWithDataSource({ success: false, error: "Forbidden" }, "postgres", 403);
+      }
+      const { getBrowseAbandonment } = await import("@frontend/lib/services/storefront-events.service");
+      const result = await getBrowseAbandonment({ days: Number(url.searchParams.get("days") || 7) });
+      return jsonWithDataSource({ success: true, ...result }, "postgres");
+    }
     if (path === "admin/abandoned-carts/campaigns") {
       return jsonWithDataSource(ApiEngine.listRecoveryCampaigns(), "postgres");
     }

@@ -1,11 +1,28 @@
 /**
  * CakeToHome Storefront Analytics Data Layer
+ *
+ * Page views, cake views, add-to-cart and searches are sent to /api/v1/store/track so the team can
+ * see who browsed or looked at a cake and left without buying (Cart Recovery → Viewed but didn't buy).
+ * Other events are accepted by these helpers but not stored.
  */
 
-import { apiClient } from "../api-client";
+const STORED = new Set(["page_view", "product_view", "add_to_cart", "search"]);
 
 export async function trackEvent(eventType: string, payload: Record<string, unknown> = {}): Promise<void> {
-  // Best-effort event tracking
+  if (typeof window === "undefined" || !STORED.has(eventType)) return;
+  try {
+    const body = JSON.stringify({ event_type: eventType, payload, path: window.location.pathname });
+    // keepalive lets the beacon finish even when the shopper navigates away
+    await fetch("/api/v1/store/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+      keepalive: true,
+      credentials: "same-origin",
+    });
+  } catch {
+    // best effort
+  }
 }
 
 export const trackPageView = (slug: string) => trackEvent("page_view", { slug });

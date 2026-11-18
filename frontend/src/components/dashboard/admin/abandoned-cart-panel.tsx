@@ -40,8 +40,10 @@ import {
   TopAbandonedProduct,
 } from "@/lib/cart-recovery/types";
 
+import { BrowseAbandonmentTab } from "./browse-abandonment-tab";
+
 export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
-  const [activeTab, setActiveTab] = useState<"carts" | "channels" | "products">("carts");
+  const [activeTab, setActiveTab] = useState<"carts" | "channels" | "products" | "browse">("carts");
   const [carts, setCarts] = useState<AbandonedCartRecord[]>([]);
   const [metrics, setMetrics] = useState<AbandonedCartMetrics>({
     total_abandoned: 0,
@@ -341,7 +343,19 @@ export const AbandonedCartPanel = memo(function AbandonedCartPanel() {
           >
             <Package className="w-3.5 h-3.5" /> Top Abandoned Cakes
           </button>
+          <button
+            onClick={() => setActiveTab("browse")}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+              activeTab === "browse"
+                ? "bg-brand-gold text-white"
+                : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            }`}
+          >
+            Viewed but didn&apos;t buy
+          </button>
         </div>
+
+        {activeTab === "browse" && <BrowseAbandonmentTab />}
 
         {/* Tab 1: Abandoned Carts Table View */}
         {activeTab === "carts" && (

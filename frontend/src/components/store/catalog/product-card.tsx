@@ -2,7 +2,6 @@
 
 import type { SearchResult } from "@frontend/lib/data/catalog";
 import { useFavorites } from "@/providers/favorites-provider";
-import { trackProductView } from "@frontend/lib/data/analytics";
 import { Heart } from "@medusajs/icons";
 import { useState } from "react";
 import Link from "next/link";
@@ -69,7 +68,6 @@ export function ProductCard({ product }: { product: SearchResult }) {
             {/* Stretched Link: Makes entire card clickable without invalid nested HTML */}
             <Link
                 href={productHref}
-                onClick={() => trackProductView(product.product_id)}
                 className="absolute inset-0 z-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
                 aria-label={`View details for ${product.title}`}
             />

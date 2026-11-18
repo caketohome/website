@@ -2334,176 +2334,6 @@ const DEFAULT_ACCESSORY_CATEGORIES: AccessoryCategory[] = [
   { id: "cat_acc_hampers", name: "Luxury Gift Hampers", slug: "gift-hampers", display_order: 7, status: "active" },
 ];
 
-const DEFAULT_ACCESSORIES: AccessoryItem[] = [
-  {
-    id: "acc_01",
-    sku: "ACC-TOP-GOLD",
-    barcode: "8901000200011",
-    name: "Gold Acrylic Happy Birthday Topper",
-    category_id: "cat_acc_cake",
-    category_name: "Cake Accessories",
-    price: 99,
-    cost_price: 42,
-    mrp: 149,
-    stock: 45,
-    low_stock_threshold: 5,
-    gst_rate: 18,
-    thumbnail: "/images/gold-acrylic-topper.jpg",
-    images: ["/images/gold-acrylic-topper.jpg"],
-    description: "Premium mirror gold finish acrylic topper for birthday cakes.",
-    status: "active",
-    weight: "50g",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "acc_02",
-    sku: "ACC-CAN-MAGIC",
-    barcode: "8901000200028",
-    name: "Magic Re-Lighting Birthday Candles (Pack of 10)",
-    category_id: "cat_acc_cake",
-    category_name: "Cake Accessories",
-    price: 49,
-    cost_price: 18,
-    mrp: 79,
-    stock: 80,
-    low_stock_threshold: 10,
-    gst_rate: 18,
-    thumbnail: "/images/birthday-candles.jpg",
-    images: ["/images/birthday-candles.jpg"],
-    description: "Fun magic trick candles that relight automatically after blowing out.",
-    status: "active",
-    weight: "30g",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "acc_03",
-    sku: "ACC-CRD-HAND",
-    barcode: "8901000200035",
-    name: "Custom Handwritten Greeting Card",
-    category_id: "cat_acc_cards",
-    category_name: "Greeting Cards",
-    price: 99,
-    cost_price: 25,
-    mrp: 149,
-    stock: 120,
-    low_stock_threshold: 15,
-    gst_rate: 12,
-    thumbnail: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=400",
-    images: ["https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=400"],
-    description: "Personalized card written with calligraphy fountain pen.",
-    status: "active",
-    weight: "20g",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "acc_04",
-    sku: "ACC-FLW-ROSE10",
-    barcode: "8901000200042",
-    name: "Fresh Bouquet of 10 Red Roses",
-    category_id: "cat_acc_flowers",
-    category_name: "Fresh Flowers & Bouquets",
-    price: 299,
-    cost_price: 130,
-    mrp: 399,
-    stock: 25,
-    low_stock_threshold: 5,
-    gst_rate: 5,
-    thumbnail: "https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&q=80&w=400",
-    images: ["https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&q=80&w=400"],
-    description: "Freshly plucked long-stem Dutch red roses wrapped in eco-craft paper.",
-    status: "active",
-    weight: "350g",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "acc_05",
-    sku: "ACC-TOY-TEDDY",
-    barcode: "8901000200059",
-    name: "Soft Plush Brown Teddy Bear (8-Inch)",
-    category_id: "cat_acc_toys",
-    category_name: "Soft Toys & Plush",
-    price: 349,
-    cost_price: 140,
-    mrp: 499,
-    stock: 18,
-    low_stock_threshold: 4,
-    gst_rate: 12,
-    thumbnail: "https://images.unsplash.com/photo-1559454403-b8fb88521f11?auto=format&fit=crop&q=80&w=400",
-    images: ["https://images.unsplash.com/photo-1559454403-b8fb88521f11?auto=format&fit=crop&q=80&w=400"],
-    description: "Ultra-soft premium cotton plush teddy bear.",
-    status: "active",
-    weight: "200g",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "acc_06",
-    sku: "ACC-CHO-FER16",
-    barcode: "8901000200066",
-    name: "Ferrero Rocher Chocolate Box (16 Pieces)",
-    category_id: "cat_acc_chocolates",
-    category_name: "Gourmet Chocolates",
-    price: 549,
-    cost_price: 380,
-    mrp: 649,
-    stock: 30,
-    low_stock_threshold: 6,
-    gst_rate: 18,
-    thumbnail: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?auto=format&fit=crop&q=80&w=400",
-    images: ["https://images.unsplash.com/photo-1549007994-cb92caebd54b?auto=format&fit=crop&q=80&w=400"],
-    description: "Whole crunchy hazelnut in delicious creamy chocolate shell.",
-    status: "active",
-    weight: "200g",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "acc_07",
-    sku: "ACC-BAL-HEL",
-    barcode: "8901000200073",
-    name: "Helium Foil Metallic Balloon Bouquet (Bunch of 5)",
-    category_id: "cat_acc_balloons",
-    category_name: "Party Balloons",
-    price: 199,
-    cost_price: 75,
-    mrp: 299,
-    stock: 50,
-    low_stock_threshold: 8,
-    gst_rate: 18,
-    thumbnail: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&q=80&w=400",
-    images: ["https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&q=80&w=400"],
-    description: "Shimmering metallic gold and rose helium balloons.",
-    status: "active",
-    weight: "100g",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "acc_08",
-    sku: "ACC-HMP-LUX",
-    barcode: "8901000200080",
-    name: "Royal Celebration Luxury Gift Basket",
-    category_id: "cat_acc_hampers",
-    category_name: "Luxury Gift Hampers",
-    price: 1299,
-    cost_price: 750,
-    mrp: 1699,
-    stock: 12,
-    low_stock_threshold: 3,
-    gst_rate: 18,
-    thumbnail: "https://images.unsplash.com/photo-1513885535751-8b9238bd345a?auto=format&fit=crop&q=80&w=400",
-    images: ["https://images.unsplash.com/photo-1513885535751-8b9238bd345a?auto=format&fit=crop&q=80&w=400"],
-    description: "Includes imported cookies, artisanal chocolates, sparkling juice, and greeting card.",
-    status: "active",
-    weight: "1200g",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
 
 const DEFAULT_OCCASIONS: OccasionItem[] = [
   {
@@ -2987,43 +2817,6 @@ const DEFAULT_OCCASIONS: OccasionItem[] = [
   },
 ];
 
-const DEFAULT_CROSS_SELL_RULES: CrossSellRule[] = [
-  {
-    id: "rule_01",
-    name: "Birthday Celebration Smart Auto Upsell",
-    occasion: "Birthday",
-    occasion_ids: ["occ_birthday"],
-    accessory_ids: ["acc_01", "acc_02", "acc_03", "acc_07"],
-    priority: 1,
-    status: "active",
-  },
-  {
-    id: "rule_02",
-    name: "Anniversary & Romance Smart Upsell",
-    occasion: "Anniversary",
-    occasion_ids: ["occ_anniversary", "occ_valentines_day"],
-    accessory_ids: ["acc_04", "acc_03", "acc_06", "acc_08"],
-    priority: 2,
-    status: "active",
-  },
-  {
-    id: "rule_03",
-    name: "Kids Party Smart Upsell",
-    occasion: "Kids",
-    occasion_ids: ["occ_baby_birthday", "occ_birthday"],
-    accessory_ids: ["acc_02", "acc_05", "acc_07"],
-    priority: 3,
-    status: "active",
-  },
-  {
-    id: "rule_04",
-    name: "General Celebration Cross-Sell",
-    occasion_ids: [],
-    accessory_ids: ["acc_01", "acc_02", "acc_03", "acc_04"],
-    priority: 4,
-    status: "active",
-  },
-];
 
 export interface DeliveryPartnerConfig {
   enabled: boolean;
@@ -4328,221 +4121,7 @@ export interface RecoveryToken {
   created_at: string;
 }
 
-const DEFAULT_LOGIN_EVENTS: LoginEvent[] = [
-  {
-    id: "logevt_01",
-    user_id: "admin_01",
-    identifier: "+91 98765 00000",
-    role: "SUPER_ADMIN",
-    authentication_method: "OTP_SMS",
-    event_type: "LOGIN",
-    status: "SUCCESS",
-    failure_category: null,
-    ip_address: "103.21.124.5",
-    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-    device_type: "desktop",
-    created_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-  },
-  {
-    id: "logevt_02",
-    user_id: "cus_1785518113834",
-    customer_id: "cus_1785518113834",
-    identifier: "+91 98765 43210",
-    role: "CUSTOMER",
-    authentication_method: "OTP_SMS",
-    event_type: "LOGIN",
-    status: "SUCCESS",
-    failure_category: null,
-    ip_address: "49.207.210.88",
-    user_agent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X)",
-    device_type: "mobile",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-  },
-  {
-    id: "logevt_03",
-    user_id: "shpmgr_indiranagar",
-    identifier: "+91 98765 00001",
-    role: "BRANCH_MANAGER",
-    authentication_method: "OTP_WHATSAPP",
-    event_type: "LOGIN",
-    status: "SUCCESS",
-    failure_category: null,
-    ip_address: "122.172.85.14",
-    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-    device_type: "desktop",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-  },
-  {
-    id: "logevt_04",
-    identifier: "+91 98765 99999",
-    role: "CUSTOMER",
-    authentication_method: "OTP_SMS",
-    event_type: "OTP_FAILED",
-    status: "FAILED",
-    failure_category: "INVALID_OTP",
-    ip_address: "106.51.24.11",
-    user_agent: "Mozilla/5.0 (Linux; Android 14; Pixel 8)",
-    device_type: "mobile",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
-  },
-  {
-    id: "logevt_05",
-    user_id: "dlp_101",
-    identifier: "+91 98765 00001",
-    role: "DELIVERY_PARTNER",
-    authentication_method: "OTP_SMS",
-    event_type: "LOGIN",
-    status: "SUCCESS",
-    failure_category: null,
-    ip_address: "157.48.19.42",
-    user_agent: "CakeToHome-RiderApp/2.4.1 (Android 13)",
-    device_type: "mobile",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-  },
-  {
-    id: "logevt_06",
-    identifier: "+91 91234 56789",
-    role: "CUSTOMER",
-    authentication_method: "OTP_SMS",
-    event_type: "OTP_REQUESTED",
-    status: "OTP_SENT",
-    failure_category: null,
-    ip_address: "182.73.188.19",
-    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-    device_type: "desktop",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 30).toISOString(),
-  },
-];
 
-const DEFAULT_ABANDONED_CARTS: AbandonedCart[] = [
-  {
-    id: "abcart_01",
-    cart_id: "cart_ab_101",
-    customer_id: "cus_1785518113834",
-    customer_name: "Ananya Rao",
-    customer_phone: "+91 98765 43210",
-    customer_email: "ananya@example.com",
-    branch_id: "br_indiranagar",
-    branch_name: "Indiranagar Flagship Kitchen",
-    city_id: "city_bbr",
-    city_name: "Bengaluru",
-    delivery_pincode: "560038",
-    delivery_zone_name: "Zone A (Indiranagar / Domlur)",
-    items: [
-      {
-        id: "item_ab_1",
-        product_id: "prod_1",
-        product_name: "Belgian Chocolate Truffle Cake",
-        quantity: 1,
-        unit_price: 649,
-        total_price: 649,
-        thumbnail: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&q=80&w=400",
-        cake_message: "Happy Birthday Rohan!",
-      },
-      {
-        id: "item_ab_2",
-        product_id: "acc_01",
-        product_name: "Gold Acrylic Happy Birthday Topper",
-        quantity: 1,
-        unit_price: 99,
-        total_price: 99,
-        thumbnail: "/images/gold-acrylic-topper.jpg",
-      },
-    ],
-    item_count: 2,
-    subtotal: 748,
-    discount_total: 0,
-    tax_total: 37.4,
-    delivery_fee: 0,
-    grand_total: 785.4,
-    status: "ABANDONED",
-    created_at: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
-    updated_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    last_activity_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    abandoned_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-    recovery_attempts_count: 0,
-  },
-  {
-    id: "abcart_02",
-    cart_id: "cart_ab_102",
-    customer_id: "cus_02",
-    customer_name: "Rahul Verma",
-    customer_phone: "+91 98765 43211",
-    customer_email: "rahul@example.com",
-    branch_id: "br_koramangala",
-    branch_name: "Koramangala Central Hub",
-    city_id: "city_bbr",
-    city_name: "Bengaluru",
-    delivery_pincode: "560034",
-    delivery_zone_name: "Zone A (Koramangala 4th Block)",
-    items: [
-      {
-        id: "item_ab_3",
-        product_id: "prod_2",
-        product_name: "Classic Red Velvet Cream Cheese Cake",
-        quantity: 2,
-        unit_price: 749,
-        total_price: 1498,
-        thumbnail: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?auto=format&fit=crop&q=80&w=400",
-      },
-    ],
-    item_count: 2,
-    subtotal: 1498,
-    discount_total: 200,
-    tax_total: 64.9,
-    delivery_fee: 0,
-    grand_total: 1362.9,
-    status: "RECOVERY_SENT",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
-    last_activity_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
-    abandoned_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    recovery_attempts_count: 1,
-    last_recovery_channel: "WHATSAPP",
-    last_contact_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-  },
-  {
-    id: "abcart_03",
-    cart_id: "cart_ab_103",
-    customer_id: "cus_03",
-    customer_name: "Priya Nair",
-    customer_phone: "+91 98765 43212",
-    customer_email: "priya@example.com",
-    branch_id: "br_whitefield",
-    branch_name: "Whitefield Gourmet Studio",
-    city_id: "city_bbr",
-    city_name: "Bengaluru",
-    delivery_pincode: "560066",
-    delivery_zone_name: "Zone A (ITPL Hub)",
-    items: [
-      {
-        id: "item_ab_4",
-        product_id: "prod_3",
-        product_name: "Fresh Alphonso Mango Mousse Cake",
-        quantity: 1,
-        unit_price: 699,
-        total_price: 699,
-        thumbnail: "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400",
-      },
-    ],
-    item_count: 1,
-    subtotal: 699,
-    discount_total: 0,
-    tax_total: 34.95,
-    delivery_fee: 0,
-    grand_total: 733.95,
-    status: "RECOVERED",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 22).toISOString(),
-    last_activity_at: new Date(Date.now() - 1000 * 60 * 60 * 22).toISOString(),
-    abandoned_at: new Date(Date.now() - 1000 * 60 * 60 * 20).toISOString(),
-    recovered_at: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
-    recovery_order_id: "ord_rec_01",
-    recovery_attempts_count: 1,
-    last_recovery_channel: "EMAIL",
-    last_contact_at: new Date(Date.now() - 1000 * 60 * 60 * 19).toISOString(),
-  },
-];
 
 const DEFAULT_RECOVERY_ATTEMPTS: CartRecoveryAttempt[] = [
   {
@@ -15030,10 +14609,11 @@ export class ApiEngine {
   // ── Product-Specific Weight Pricing Matrix ──────────────────────────────
   static listAccessories(filters?: { category_id?: string; in_stock_only?: boolean; search?: string }) {
     if (!memoryStore || !Array.isArray(memoryStore.accessories)) {
-      if (memoryStore) memoryStore.accessories = [...DEFAULT_ACCESSORIES];
-      return DEFAULT_ACCESSORIES;
+      // Real accessories only (products / saved catalog) — no built-in demo items.
+      if (memoryStore) memoryStore.accessories = [];
+      return [];
     }
-    let list = memoryStore.accessories.length > 0 ? memoryStore.accessories : DEFAULT_ACCESSORIES;
+    let list = memoryStore.accessories;
     if (filters?.category_id) {
       list = list.filter((a: any) => a.category_id === filters.category_id);
     }
@@ -15054,7 +14634,7 @@ export class ApiEngine {
 
   static createAccessory(data: any) {
     if (!memoryStore.accessories || !Array.isArray(memoryStore.accessories)) {
-      memoryStore.accessories = [...DEFAULT_ACCESSORIES];
+      memoryStore.accessories = [];
     }
     const accId = `acc_${Date.now()}`;
     const newAcc: AccessoryItem = {
@@ -15064,9 +14644,9 @@ export class ApiEngine {
       name: data.name || "New Celebration Accessory",
       category_id: data.category_id || "cat_acc_cake",
       category_name: data.category_name || "Cake Accessories",
-      price: Number(data.price) || 99,
-      cost_price: Number(data.cost_price) || 40,
-      mrp: Number(data.mrp) || 149,
+      price: Number(data.price) || 0,
+      cost_price: Number(data.cost_price) || 0,
+      mrp: Number(data.mrp) || Number(data.price) || 0,
       stock: Number(data.stock || 0),
       low_stock_threshold: Number(data.low_stock_threshold) || 5,
       tax_category_id: data.tax_category_id || "cat_tax_candles",
@@ -15074,9 +14654,9 @@ export class ApiEngine {
       gst_rate: Number(data.gst_rate) || Number(data.gst_rate_pct) || 18,
       gst_rate_pct: Number(data.gst_rate_pct) || Number(data.gst_rate) || 18,
       tax_treatment: data.tax_treatment || "inclusive",
-      thumbnail: data.thumbnail || "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&q=80&w=400",
-      images: Array.isArray(data.images) && data.images.length > 0 ? data.images : [data.thumbnail || "https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b"],
-      description: data.description || "Premium celebration accessory.",
+      thumbnail: data.thumbnail || "",
+      images: Array.isArray(data.images) && data.images.length > 0 ? data.images : (data.thumbnail ? [data.thumbnail] : []),
+      description: data.description || "",
       status: data.status || "active",
       weight: data.weight || "100g",
       created_at: new Date().toISOString(),
@@ -15154,15 +14734,16 @@ export class ApiEngine {
 
   static listCrossSellRules() {
     if (!memoryStore || !Array.isArray(memoryStore.cross_sell_rules)) {
-      if (memoryStore) memoryStore.cross_sell_rules = [...DEFAULT_CROSS_SELL_RULES];
-      return DEFAULT_CROSS_SELL_RULES;
+      // Admin-created rules only — no built-in demo rules.
+      if (memoryStore) memoryStore.cross_sell_rules = [];
+      return [];
     }
-    return memoryStore.cross_sell_rules.length > 0 ? memoryStore.cross_sell_rules : DEFAULT_CROSS_SELL_RULES;
+    return memoryStore.cross_sell_rules;
   }
 
   static saveCrossSellRule(data: any) {
     if (!memoryStore.cross_sell_rules || !Array.isArray(memoryStore.cross_sell_rules)) {
-      memoryStore.cross_sell_rules = [...DEFAULT_CROSS_SELL_RULES];
+      memoryStore.cross_sell_rules = [];
     }
     const ruleId = data.id || `rule_${Date.now()}`;
     const idx = memoryStore.cross_sell_rules.findIndex((r: any) => r.id === ruleId);
@@ -17841,15 +17422,16 @@ export class ApiEngine {
 
   static getBranchAnalytics(branchId: string) {
     const b = ApiEngine.getBranchById(branchId);
+    // No invented figures: zeros/blank until real analytics exist for the branch.
     return b?.analytics_summary || {
-      revenue: 45890,
-      orders: 68,
-      avg_basket: 674,
-      cancellation_pct: 1.2,
-      late_delivery_pct: 2.1,
-      best_seller_cake: "Classic Chocolate Truffle Cake",
-      best_seller_accessory: "Gold Acrylic Happy Birthday Topper",
-      rating: 4.9,
+      revenue: 0,
+      orders: 0,
+      avg_basket: 0,
+      cancellation_pct: 0,
+      late_delivery_pct: 0,
+      best_seller_cake: null,
+      best_seller_accessory: null,
+      rating: null,
     };
   }
 
@@ -24076,7 +23658,7 @@ export class ApiEngine {
   // ── Login Activity & Authentication Analytics Engine ─────────────────────
   static recordLoginEvent(event: Omit<LoginEvent, "id" | "created_at">): LoginEvent {
     if (!Array.isArray(memoryStore.login_events)) {
-      memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
+      memoryStore.login_events = [];
     }
     const newEvent: LoginEvent = {
       id: `logevt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
@@ -24144,7 +23726,7 @@ export class ApiEngine {
     limit?: number;
   }) {
     if (!Array.isArray(memoryStore.login_events)) {
-      memoryStore.login_events = [...DEFAULT_LOGIN_EVENTS];
+      memoryStore.login_events = [];
     }
     const { start, end } = this.parseDateFilter(query.preset, query.startDate, query.endDate);
 

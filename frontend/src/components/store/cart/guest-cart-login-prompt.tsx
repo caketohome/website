@@ -5,6 +5,8 @@
  * (claim-cart on login) and can be recovered by WhatsApp / telecaller if they leave.
  *
  * Shows a few seconds after a guest adds to cart, or on exit intent on the cart/checkout pages.
+ * A guest who is just browsing is asked once per visit to log in to see offers and prices they are
+ * eligible for (no discount is promised here — real offers are applied after login).
  * Dismissal is remembered for 24 hours on this browser.
  */
 
@@ -15,7 +17,11 @@ import { cartBus } from "@frontend/lib/cart/cart-event-bus";
 
 const DISMISS_KEY = "cth_guest_cart_prompt_dismissed_at";
 const DISMISS_MS = 24 * 60 * 60 * 1000;
-const HIDDEN_ON = ["/login", "/account", "/dashboard", "/partner", "/your-order"];
+const HIDDEN_ON = ["/login", "/account", "/dashboard", "/partner", "/your-order", "/checkout"];
+const VISIT_KEY = "cth_guest_visit_prompt_shown"; // sessionStorage: once per visit
+const VISIT_DELAY_MS = 8000;
+
+type Reason = "cart" | "visit";
 
 function recentlyDismissed(): boolean {
   try {
@@ -43,17 +49,37 @@ async function isGuest(): Promise<boolean> {
 export function GuestCartLoginPrompt() {
   const pathname = usePathname() || "/";
   const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState<Reason>("cart");
   const shownRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hiddenHere = HIDDEN_ON.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  // Exit intent on checkout still allowed (cart reason); the visit prompt never shows there.
+  const isCheckout = pathname.startsWith("/checkout");
 
-  const tryShow = useCallback(async () => {
-    if (shownRef.current || hiddenHere || recentlyDismissed()) return;
+  const tryShow = useCallback(async (why: Reason = "cart") => {
+    if (shownRef.current || recentlyDismissed()) return;
+    if (hiddenHere && !(isCheckout && why === "cart")) return;
     if (!(await isGuest())) return;
     shownRef.current = true;
+    setReason(why);
     setOpen(true);
-  }, [hiddenHere]);
+  }, [hiddenHere, isCheckout]);
+
+  // A guest browsing the site: ask once per visit, after they've had a look around.
+  useEffect(() => {
+    if (hiddenHere) return;
+    try {
+      if (window.sessionStorage.getItem(VISIT_KEY)) return;
+    } catch {}
+    const t = setTimeout(() => {
+      try {
+        window.sessionStorage.setItem(VISIT_KEY, "1");
+      } catch {}
+      tryShow("visit");
+    }, VISIT_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [hiddenHere, tryShow]);
 
   // A guest just added something: ask after the cart drawer has had a moment.
   useEffect(() => {
@@ -61,7 +87,7 @@ export function GuestCartLoginPrompt() {
       const count = Array.isArray(cart?.items) ? cart.items.length : 0;
       if (count === 0) return;
       if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(tryShow, 4000);
+      timerRef.current = setTimeout(() => tryShow("cart"), 4000);
     });
   }, [tryShow]);
 
@@ -69,7 +95,7 @@ export function GuestCartLoginPrompt() {
   useEffect(() => {
     if (!(pathname.startsWith("/cart") || pathname.startsWith("/checkout"))) return;
     const onLeave = (e: MouseEvent) => {
-      if (e.clientY <= 0 && hasCartCookie()) tryShow();
+      if (e.clientY <= 0 && hasCartCookie()) tryShow("cart");
     };
     document.addEventListener("mouseleave", onLeave);
     return () => document.removeEventListener("mouseleave", onLeave);
@@ -108,24 +134,28 @@ export function GuestCartLoginPrompt() {
           <span className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center shrink-0">
             <ShoppingBag className="w-4.5 h-4.5" aria-hidden />
           </span>
-          <h2 id="guest-cart-prompt-title" className="font-serif text-lg leading-snug">Save your cart</h2>
+          <h2 id="guest-cart-prompt-title" className="font-serif text-lg leading-snug">
+            {reason === "cart" ? "Save your cart" : "Log in for your offers"}
+          </h2>
           <button type="button" onClick={dismiss} aria-label="Close" className="ml-auto p-1 rounded-md text-white/70 hover:text-white">
             <X className="w-4 h-4" />
           </button>
         </div>
         <div className="px-5 py-4 space-y-4">
           <p className="text-sm text-slate-600">
-            Log in with your mobile number and we&apos;ll keep your cart for you, so you can finish your order any time on any device.
+            {reason === "cart"
+              ? "Log in with your mobile number and we'll keep your cart for you, so you can finish your order any time on any device."
+              : "Log in with your mobile number to see the offers and prices you're eligible for, track orders and check out faster."}
           </p>
           <div className="flex flex-col gap-2">
             <a
               href={`/login?next=${next}`}
               className="w-full text-center rounded-xl bg-[#1D2F5D] text-white text-sm font-semibold py-2.5 hover:opacity-95"
             >
-              Log in to save cart
+              {reason === "cart" ? "Log in to save cart" : "Log in to see my offers"}
             </a>
             <button type="button" onClick={dismiss} className="w-full text-center rounded-xl text-sm text-slate-500 py-2 hover:text-slate-800">
-              Continue as guest
+              {reason === "cart" ? "Continue as guest" : "Maybe later"}
             </button>
           </div>
         </div>

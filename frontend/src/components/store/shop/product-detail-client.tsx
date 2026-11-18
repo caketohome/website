@@ -8,6 +8,7 @@ import type { ProductReview } from "@frontend/lib/data/catalog";
 import { addToCart } from "@frontend/lib/actions/carts";
 import { retrieveBranchInventory } from "@frontend/lib/data/branches";
 import { apiClient } from "@frontend/lib/api-client";
+import { trackAddToCart, trackProductView } from "@frontend/lib/data/analytics";
 import { cartBus } from "@frontend/lib/cart/cart-event-bus";
 import { resolveProductInventoryMode } from "@frontend/lib/types/domain";
 
@@ -77,6 +78,11 @@ export default function ProductDetailClient({
   const { isFavorited, toggleFavorite } = useFavorites();
   const prodId = product.id || product.product_id;
   const isWishlisted = isFavorited(prodId);
+
+  // Record the cake view (browse-abandonment: who looked at a cake and left without buying)
+  useEffect(() => {
+    if (prodId) trackProductView(String(prodId));
+  }, [prodId]);
 
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [cartLoading, setCartLoading] = useState(false);
@@ -574,6 +580,7 @@ export default function ProductDetailClient({
       setCakeMessage("");
 
       if (res?.cart) {
+        trackAddToCart(String(prodId));
         cartBus.emitCartUpdated(res.cart);
       }
 

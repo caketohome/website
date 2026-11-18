@@ -3486,23 +3486,30 @@ export function PageRenderer({
             case "limited_time_offer":
             case "flash_sale":
             case "coupon_banner": {
-              const heading = config.heading || "⚡ Limited-Time Weekend Flash Sale";
-              const subheading = config.subheading || "Enjoy flat 25% OFF on all gourmet truffle and velvet cakes";
-              const couponCode = config.coupon_code || "CELEBRATE25";
-              const discountText = config.discount_text || "FLAT 25% OFF";
-              const ctaText = config.cta_text || "Claim Offer";
+              // No made-up offers: show only what the CMS section configures; hide when empty.
+              const heading = config.heading || "";
+              const subheading = config.subheading || "";
+              const couponCode = config.coupon_code || "";
+              const discountText = config.discount_text || "";
+              const showLimitedTime = Boolean(config.limited_time || config.ends_at || config.end_date);
+              const ctaText = config.cta_text || "Shop now";
               const ctaUrl = config.cta_url || "/products";
+              if (!heading && !couponCode && !discountText) return null;
 
               return (
                 <section key={sectionKey} className="w-full p-6 sm:p-10 rounded-3xl bg-gradient-to-br from-brand-gold via-brand-navy to-brand-deep text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
                   <div className="flex flex-col gap-2 max-w-xl text-center md:text-left z-10">
                     <div className="flex items-center gap-2 justify-center md:justify-start">
-                      <span className="px-3 py-1 rounded-full text-xs font-black bg-white/20 backdrop-blur-md uppercase tracking-wider text-white">
-                        {discountText}
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-xs font-bold text-brand-gold/40">
-                        <Clock className="w-3.5 h-3.5" /> Limited Time
-                      </span>
+                      {discountText && (
+                        <span className="px-3 py-1 rounded-full text-xs font-black bg-white/20 backdrop-blur-md uppercase tracking-wider text-white">
+                          {discountText}
+                        </span>
+                      )}
+                      {showLimitedTime && (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-brand-gold/40">
+                          <Clock className="w-3.5 h-3.5" /> Limited Time
+                        </span>
+                      )}
                     </div>
                     <Heading level="h2" className="text-2xl sm:text-3xl font-extrabold text-white">
                       {heading}
