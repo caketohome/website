@@ -227,7 +227,7 @@ export function DeliveryCoverageMap() {
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ui-fg-muted" />
                             <Input
-                                placeholder="Enter 6-digit Pincode (e.g. 560034, 560038)"
+                                placeholder="Enter 6-digit pincode"
                                 value={pincode}
                                 onChange={(e) => setPincode(e.target.value)}
                                 className="pl-9"

@@ -201,7 +201,7 @@ export const BranchesPanel = memo(function BranchesPanel() {
     setLocationSearchQuery("");
     setLocationSearchResults([]);
     setPhone("");
-    setEmail(`branch_${Date.now()}@cakes2home.com`);
+    setEmail("");
     setManagerName("");
     setManagerPhone("");
     setManagerEmail("");
@@ -856,11 +856,11 @@ export const BranchesPanel = memo(function BranchesPanel() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>Hub Name *</Label>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. HSR Layout Delivery Hub" required />
+                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Kollam Main Kitchen" required />
                 </div>
                 <div>
                   <Label>Hub Code *</Label>
-                  <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="HUB-BLR-01" required />
+                  <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="e.g. KLM-01" required />
                 </div>
 
                 <div>
@@ -965,7 +965,7 @@ export const BranchesPanel = memo(function BranchesPanel() {
                 </div>
                 <div>
                   <Label>Primary Pincode *</Label>
-                  <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="e.g. 560038" required />
+                  <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="6-digit pincode" required />
                 </div>
 
                 <div className="sm:col-span-2">
@@ -1046,7 +1046,7 @@ export const BranchesPanel = memo(function BranchesPanel() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     <div>
-                      <Label className="text-[11px]">Latitude (e.g. 12.971600) *</Label>
+                      <Label className="text-[11px]">Latitude *</Label>
                       <Input
                         type="number"
                         step="0.000001"
@@ -1055,12 +1055,12 @@ export const BranchesPanel = memo(function BranchesPanel() {
                           setLatitude(e.target.value);
                           setLocationSource("MANUAL_MAP");
                         }}
-                        placeholder="12.971600"
+                        placeholder="e.g. 8.893200"
                         required
                       />
                     </div>
                     <div>
-                      <Label className="text-[11px]">Longitude (e.g. 77.594600) *</Label>
+                      <Label className="text-[11px]">Longitude *</Label>
                       <Input
                         type="number"
                         step="0.000001"
@@ -1069,7 +1069,7 @@ export const BranchesPanel = memo(function BranchesPanel() {
                           setLongitude(e.target.value);
                           setLocationSource("MANUAL_MAP");
                         }}
-                        placeholder="77.594600"
+                        placeholder="e.g. 76.614100"
                         required
                       />
                     </div>

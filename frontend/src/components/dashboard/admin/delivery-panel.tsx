@@ -51,9 +51,11 @@ export const DeliveryPanel = memo(function DeliveryPanel() {
   const [savingRules, setSavingRules] = useState(false);
 
   const fetchBranches = useCallback(() => {
-    apiClient.getEligibleBranches({})
+    // All active shops (admin list) — riders can be assigned to any of them.
+    fetch("/api/v1/admin/branches?lifecycle=active&limit=200", { credentials: "same-origin", cache: "no-store" })
+      .then((r) => r.json())
       .then((res: any) => {
-        setBranches(res?.branches || res || []);
+        setBranches(Array.isArray(res?.branches) ? res.branches : []);
       })
       .catch(() => {
         setBranches([]);
@@ -371,7 +373,7 @@ export const DeliveryPanel = memo(function DeliveryPanel() {
 
                           {/* Coverage Pincodes */}
                           <td className="p-3.5 whitespace-nowrap font-mono text-[10px]">
-                            {(p.coverage?.pincodes || [p.pincode || "560038"]).slice(0, 3).join(", ")}
+                            {(p.coverage?.pincodes || (p.pincode ? [p.pincode] : [])).slice(0, 3).join(", ")}
                             {(p.coverage?.pincodes?.length > 3) && ` (+${p.coverage.pincodes.length - 3})`}
                           </td>
 

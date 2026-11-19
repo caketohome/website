@@ -14359,7 +14359,7 @@ export class ApiEngine {
           min_km: 0,
           max_km: Math.min(15, storeMaxRadius),
           radius_km: Math.min(15, storeMaxRadius),
-          base_fee: 49,
+          // no fee here: the fee comes from Supabase delivery settings until the shop draws its own zones
           pincodes: [cleanPin],
           areas: [resolvedCityName],
           enabled: true,
@@ -18715,13 +18715,24 @@ export class ApiEngine {
   }
 
   static listCityAreasPincodes() {
-    return [
-      { id: "area_1", city: "Bangalore", zone: "East", area_name: "Indiranagar", pincode: "560038", mapped_branch_id: "branch_1", status: "active" },
-      { id: "area_2", city: "Bangalore", zone: "East", area_name: "Koramangala", pincode: "560034", mapped_branch_id: "branch_1", status: "active" },
-      { id: "area_3", city: "Bangalore", zone: "East", area_name: "Whitefield", pincode: "560066", mapped_branch_id: "branch_1", status: "active" },
-      { id: "area_4", city: "Bangalore", zone: "South", area_name: "Jayanagar", pincode: "560041", mapped_branch_id: "branch_2", status: "active" },
-      { id: "area_5", city: "Bangalore", zone: "South", area_name: "JP Nagar", pincode: "560078", mapped_branch_id: "branch_2", status: "active" },
-    ];
+    // Real service areas only: the pincodes in each shop's own delivery zones (empty until zones are drawn).
+    const out: any[] = [];
+    for (const b of (memoryStore.branches || []) as any[]) {
+      for (const z of (b.delivery_zones || []) as any[]) {
+        for (const pin of (Array.isArray(z.pincodes) ? z.pincodes : []) as string[]) {
+          out.push({
+            id: `${b.id}_${z.id || z.name}_${pin}`,
+            city: b.city || "",
+            zone: z.name || "Delivery Zone",
+            area_name: z.name || b.name,
+            pincode: String(pin),
+            mapped_branch_id: b.id,
+            status: z.is_active === false ? "inactive" : "active",
+          });
+        }
+      }
+    }
+    return out;
   }
 
   static listStores(): ParentStore[] {

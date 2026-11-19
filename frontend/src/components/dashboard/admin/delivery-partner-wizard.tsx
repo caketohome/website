@@ -220,23 +220,23 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="wiz_fname">First Name *</Label>
-                  <Input id="wiz_fname" value={formData.first_name} onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} placeholder="e.g. Suresh" required />
+                  <Input id="wiz_fname" value={formData.first_name} onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} placeholder="First name" required />
                 </div>
                 <div>
                   <Label htmlFor="wiz_lname">Last Name</Label>
-                  <Input id="wiz_lname" value={formData.last_name} onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} placeholder="e.g. Kumar" />
+                  <Input id="wiz_lname" value={formData.last_name} onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} placeholder="Last name" />
                 </div>
                 <div>
                   <Label htmlFor="wiz_phone">Primary Mobile Number *</Label>
-                  <Input id="wiz_phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+91 98123 45678" required />
+                  <Input id="wiz_phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="10-digit mobile" required />
                 </div>
                 <div>
                   <Label htmlFor="wiz_alt_phone">Alternate Mobile Number</Label>
-                  <Input id="wiz_alt_phone" value={formData.alternate_phone} onChange={(e) => setFormData({ ...formData, alternate_phone: e.target.value })} placeholder="+91 98123 00000" />
+                  <Input id="wiz_alt_phone" value={formData.alternate_phone} onChange={(e) => setFormData({ ...formData, alternate_phone: e.target.value })} placeholder="10-digit mobile" />
                 </div>
                 <div>
                   <Label htmlFor="wiz_email">Email Address</Label>
-                  <Input id="wiz_email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="suresh.k@cakes2home.com" />
+                  <Input id="wiz_email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="Email (optional)" />
                 </div>
                 <div>
                   <Label htmlFor="wiz_dob">Date of Birth</Label>
@@ -261,7 +261,7 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
                     <Label htmlFor="wiz_e_name">Contact Person Name</Label>
-                    <Input id="wiz_e_name" value={formData.emergency_contact_name} onChange={(e) => setFormData({ ...formData, emergency_contact_name: e.target.value })} placeholder="Anita Kumar" />
+                    <Input id="wiz_e_name" value={formData.emergency_contact_name} onChange={(e) => setFormData({ ...formData, emergency_contact_name: e.target.value })} placeholder="Contact name" />
                   </div>
                   <div>
                     <Label htmlFor="wiz_e_rel">Relationship</Label>
@@ -269,7 +269,7 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
                   </div>
                   <div>
                     <Label htmlFor="wiz_e_phone">Contact Phone</Label>
-                    <Input id="wiz_e_phone" value={formData.emergency_contact_phone} onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })} placeholder="+91 98123 00000" />
+                    <Input id="wiz_e_phone" value={formData.emergency_contact_phone} onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })} placeholder="10-digit mobile" />
                   </div>
                 </div>
               </div>
@@ -573,7 +573,7 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
                     <p><span className="font-bold text-emerald-700">City / Pincode:</span> {formData.city} - {formData.pincode}</p>
                   </div>
                   <div>
-                    <p><span className="font-bold text-emerald-700">Primary Store:</span> {branches.find((b: any) => b.id === formData.primary_branch_id)?.name || "Indiranagar Kitchen"}</p>
+                    <p><span className="font-bold text-emerald-700">Primary Store:</span> {branches.find((b: any) => b.id === formData.primary_branch_id)?.name || "Not selected"}</p>
                     <p><span className="font-bold text-emerald-700">Max Capacity:</span> {formData.maximum_concurrent_orders} concurrent orders</p>
                     <p><span className="font-bold text-emerald-700">Status:</span> {formData.status}</p>
                   </div>

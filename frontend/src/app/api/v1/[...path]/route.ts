@@ -6227,7 +6227,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         success: true,
       }, "postgres");
     }
-    if (path.startsWith("admin/branches/") || path.startsWith("branches/")) {
+    if ((path.startsWith("admin/branches/") || path.startsWith("branches/")) && path !== "branches/eligible" && path !== "admin/branches/eligible") {
       const branchId = path.replace(/^admin\/branches\//, "").replace(/^branches\//, "");
       if (!branchId.includes("/")) {
         const branch = (await BranchRepository.findById(branchId)) || ApiEngine.getBranchById(branchId);

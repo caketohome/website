@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/providers/auth-provider";
+import { usePathname } from "next/navigation";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
 const DISMISS_KEY = "cth_pwa_prompt_dismissed";
@@ -41,7 +42,12 @@ async function subscribeThisDevice(): Promise<boolean> {
  * when a push arrives while the app is open.
  */
 export function PwaNotifications() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const pathname = usePathname() || "";
+  // Order alerts are for shop staff and riders, not customers; never on sign-in or QR receive pages.
+  const role = String(user?.role || "").toUpperCase();
+  const isStaffOrRider = Boolean(role) && role !== "CUSTOMER";
+  const hiddenHere = /^\/(login|rider\/login|receive\/)/.test(pathname);
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">("unsupported");
   const [installEvent, setInstallEvent] = useState<any>(null);
   const [dismissed, setDismissed] = useState(true);
@@ -156,7 +162,7 @@ export function PwaNotifications() {
     } catch {}
   };
 
-  if (!isAuthenticated || dismissed) return null;
+  if (!isAuthenticated || dismissed || !isStaffOrRider || hiddenHere) return null;
 
   const iosNeedsInstall = isIos() && !isStandalone();
   const canEnableAlerts = permission === "default" && Boolean(VAPID_PUBLIC_KEY);
