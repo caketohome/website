@@ -1558,6 +1558,15 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
     { const denied = enforceAdminModuleAccess(req, path, "GET"); if (denied) return denied; }
+    if (path.startsWith("admin/abandoned-carts") || path.startsWith("admin/cart-recovery") || path === "admin/abandoned-cart") {
+      // Cart Recovery works on real carts and saved recovery state from Supabase.
+      try {
+        const { syncCartRecoveryFromDb } = await import("@frontend/lib/cart-recovery/recovery-store");
+        await syncCartRecoveryFromDb(ApiEngine.getStore());
+      } catch (err: any) {
+        console.error("[CartRecovery] load from Supabase failed:", err?.message);
+      }
+    }
     const url = new URL(req.url);
     const queryString = url.searchParams.toString();
 
@@ -5486,7 +5495,17 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
     // Popup & Engagement Manager Endpoints
     if (path === "popups/config" || path === "store/popups/config" || path === "engagement/config" || path === "store/engagement/config") {
-      return jsonWithDataSource(ApiEngine.getPublishedEngagementConfig(Object.fromEntries(url.searchParams)), "postgres");
+      const cfg: any = ApiEngine.getPublishedEngagementConfig(Object.fromEntries(url.searchParams));
+      // Signed-in visitors never receive visitor-only popups (e.g. the sign-in popup).
+      if (resolveServerSession(req) && Array.isArray(cfg?.campaigns)) {
+        cfg.campaigns = cfg.campaigns.filter((c: any) => {
+          const v = c.current_version || c.draft_version || {};
+          const statuses: string[] = Array.isArray(v.audience?.customerStatus) ? v.audience.customerStatus : [];
+          const guestOnly = c.popup_type === "LOGIN" || (statuses.length > 0 && statuses.every((s: string) => s === "guest"));
+          return v.frequency?.showToAuthenticated === true || !guestOnly;
+        });
+      }
+      return jsonWithDataSource(cfg, "postgres");
     }
     if (path === "admin/popups/options" || path === "popups/options" || path === "admin/popup-options" || path === "popup-options") {
       return jsonWithDataSource(ApiEngine.getPopupOptions(), "postgres");
@@ -7468,6 +7487,15 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
     { const denied = enforceAdminModuleAccess(req, path, "POST"); if (denied) return denied; }
+    if (path.startsWith("admin/abandoned-carts") || path.startsWith("admin/cart-recovery") || path === "admin/abandoned-cart") {
+      // Cart Recovery works on real carts and saved recovery state from Supabase.
+      try {
+        const { syncCartRecoveryFromDb } = await import("@frontend/lib/cart-recovery/recovery-store");
+        await syncCartRecoveryFromDb(ApiEngine.getStore());
+      } catch (err: any) {
+        console.error("[CartRecovery] load from Supabase failed:", err?.message);
+      }
+    }
     const contentType = (req.headers.get("content-type") || "").toLowerCase();
     const isMultipart = contentType.includes("multipart/form-data");
     const body = isMultipart ? {} : await safeParseJsonBody(req, path);
@@ -12865,6 +12893,15 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
     { const denied = enforceAdminModuleAccess(req, path, "PUT"); if (denied) return denied; }
+    if (path.startsWith("admin/abandoned-carts") || path.startsWith("admin/cart-recovery") || path === "admin/abandoned-cart") {
+      // Cart Recovery works on real carts and saved recovery state from Supabase.
+      try {
+        const { syncCartRecoveryFromDb } = await import("@frontend/lib/cart-recovery/recovery-store");
+        await syncCartRecoveryFromDb(ApiEngine.getStore());
+      } catch (err: any) {
+        console.error("[CartRecovery] load from Supabase failed:", err?.message);
+      }
+    }
     const body = await safeParseJsonBody(req, path);
     console.log(`[API PUT] path="${path}"`);
 

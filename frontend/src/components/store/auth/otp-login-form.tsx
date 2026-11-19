@@ -152,11 +152,26 @@ export function OtpLoginForm({
   const finish = async (role: string, target: string) => {
     await refetchCustomer();
     if (onSuccess) onSuccess({ role });
-    if (isModal && role === "CUSTOMER" && !redirectUrl) {
-      if (onClose) onClose();
+    if (role === "CUSTOMER") {
+      // Customers just get signed in: stay on the page (modal), or go back to where they were.
+      if (isModal && !redirectUrl) {
+        if (onClose) onClose();
+        router.refresh();
+        return;
+      }
+      let back = redirectUrl || "";
+      if (!back && typeof window !== "undefined" && document.referrer) {
+        try {
+          const ref = new URL(document.referrer);
+          if (ref.origin === window.location.origin && !/^\/(login|signup|rider\/login)/.test(ref.pathname)) back = ref.pathname + ref.search;
+        } catch { /* ignore */ }
+      }
+      router.push(back || "/");
+      router.refresh();
       return;
     }
-    router.push(role === "CUSTOMER" && redirectUrl ? redirectUrl : target);
+    // Admin, shop staff, riders, partners: their own panel.
+    router.push(target);
     router.refresh();
   };
 

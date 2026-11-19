@@ -23,8 +23,9 @@ export async function createCart(data?: any, shop_id: string = "default_shop"): 
   const newCartId = `cart_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
   const cartPayload = {
     id: newCartId,
-    shop_id,
-    branch_id: shop_id,
+    // No made-up shop: the real shop is decided at checkout from the customer's map location.
+    shop_id: shop_id && shop_id !== "default_shop" ? shop_id : null,
+    branch_id: shop_id && shop_id !== "default_shop" ? shop_id : null,
     items: [],
     subtotal: 0,
     total: 0,

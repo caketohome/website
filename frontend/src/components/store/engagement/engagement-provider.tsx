@@ -19,6 +19,7 @@ import { selectWinningPopup } from "@frontend/lib/engagement/popup-priority-engi
 import { isFrequencyCapped, recordFrequencyDisplay } from "@frontend/lib/engagement/popup-frequency-manager";
 import { evaluateCampaignTriggers } from "@frontend/lib/engagement/popup-trigger-engine";
 import { hasClientAuthSession } from "@frontend/lib/auth-service";
+import { useAuth } from "@/providers/auth-provider";
 import { cartBus } from "@/lib/cart/cart-event-bus";
 
 export type EngagementPopupType =
@@ -60,6 +61,8 @@ const POPUP_PRIORITIES: Record<EngagementPopupType, number> = {
 };
 
 export function EngagementProvider({ children }: { children: React.ReactNode }) {
+  // Real sign-in state (login cookies are httpOnly, so the page cannot read them directly).
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [activePopup, setActivePopup] = useState<EngagementPopupType | null>(null);
   const [activeCampaign, setActiveCampaign] = useState<PopupCampaign | null>(null);
   const [loginOptions, setLoginOptions] = useState<LoginModalOptions>({});
@@ -200,7 +203,7 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
           : "desktop"
         : "desktop";
 
-    const isLoggedIn = typeof document !== "undefined" ? hasClientAuthSession() : false;
+    const isLoggedIn = isAuthenticated || (typeof document !== "undefined" ? hasClientAuthSession() : false);
     const custStatus: CustomerStatus = isLoggedIn ? "logged_in" : "guest";
     let custName: string | undefined;
     let custId: string | undefined;
@@ -296,7 +299,7 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
         active: isCheckout,
       },
     };
-  }, []);
+  }, [isAuthenticated]);
 
   const isSuppressed = useCallback(
     (key: string): boolean => {
@@ -345,10 +348,18 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
     [activeCampaign]
   );
 
+  // Signed in while a visitor-only popup is open -> close it.
+  useEffect(() => {
+    if (!isAuthenticated || !activeCampaign) return;
+    const ver = activeCampaign.current_version || activeCampaign.draft_version;
+    if (ver?.frequency?.showToAuthenticated !== true) setActiveCampaign(null);
+  }, [isAuthenticated, activeCampaign]);
+
   // Main campaign arbitration trigger
   const triggerCampaignCheck = useCallback(
     (triggerHint?: string, eventValue?: any) => {
       if (activeCampaign || activePopup) return; // Already showing a popup
+      if (authLoading) return; // wait until we know whether the visitor is signed in
 
       try {
         const ctx = gatherActiveContext();
@@ -449,7 +460,7 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
         // Fail-open: Never break storefront if an arbitration error occurs
       }
     },
-    [activeCampaign, activePopup, publishedCampaigns, isSuppressed, gatherActiveContext]
+    [activeCampaign, activePopup, publishedCampaigns, isSuppressed, gatherActiveContext, authLoading]
   );
 
   const triggerEngagement = useCallback(

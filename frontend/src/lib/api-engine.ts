@@ -4723,6 +4723,12 @@ export class ApiEngine {
     try {
       saveStore(memoryStore);
     } catch {}
+    // Cart recovery state is kept in Supabase (debounced; server only).
+    if (typeof window === "undefined") {
+      import("./cart-recovery/recovery-store")
+        .then((m) => m.scheduleCartRecoverySave(memoryStore))
+        .catch(() => {});
+    }
   }
 
   static saveStore(data: any) {
@@ -17641,7 +17647,7 @@ export class ApiEngine {
             const rawPhone = c.customer_phone || c.phone || "";
             const normPhone = normalizePhone(rawPhone);
             const customerUid = c.customer_uid || (normPhone ? `cth_cus_${normPhone}` : null);
-            const customerName = c.customer_name || c.name || "Guest Customer";
+            const customerName = c.customer_name || c.name || (normPhone ? "Customer" : "Guest (no phone)");
             const cartVal = Number(c.subtotal || c.total || 0);
 
             // Deduplication by cart id or session fingerprint
@@ -17649,11 +17655,7 @@ export class ApiEngine {
               (ab) => ab.cart_uid === c.id || ab.id === c.id || (ab.session_id && ab.session_id === c.id)
             );
 
-            const branchInfo = ApiEngine.resolveBranchRecord(c.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT") || {
-              id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-              name: "Indiranagar Central Hub",
-              city: "Bengaluru",
-            };
+            const branchInfo: any = c.branch_id ? ApiEngine.resolveBranchRecord(c.branch_id) : null;
 
             const abRecord: DomainAbandonedCartRecord = {
               id: c.id,
