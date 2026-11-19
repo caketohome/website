@@ -894,7 +894,7 @@ export async function listPimCategories(): Promise<any[]> {
       // If product_category table is empty, dynamically derive from product metadata in PostgreSQL
       const derived = await dbQuery(`
         SELECT 
-          COALESCE(metadata->>'category', 'Artisanal Cakes') as name,
+          COALESCE(metadata->>'category', 'Cakes') as name,
           COALESCE(metadata->>'category_slug', 'cakes') as slug,
           COALESCE(metadata->>'primary_category_id', 'cat_' || LOWER(REGEXP_REPLACE(metadata->>'category', '[^a-zA-Z0-9]+', '_', 'g'))) as id,
           COUNT(*)::int as product_count,

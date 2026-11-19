@@ -1426,7 +1426,7 @@ class CakeToHomeApiClient {
     delivery_slot_id: string;
     delivery_type?: string;
     coupon_code?: string;
-    payment_method: "cod" | "razorpay" | "cashfree" | "test_mode" | "wallet";
+    payment_method: "cod" | "razorpay" | "test_mode" | "wallet";
     payment_details?: any;
     customer_gstin?: string;
     customer_business_name?: string;
@@ -1520,10 +1520,6 @@ class CakeToHomeApiClient {
     });
   }
 
-  // Cashfree Decommissioned Stub
-  async createCashfreeOrder() {
-    throw new Error("Cashfree has been decommissioned. Razorpay Standard Checkout is the sole active payment gateway for CakeToHome.");
-  }
 
   // ── Checkout & Availability Engine ──
   async getCheckoutAvailability(query: {

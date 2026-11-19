@@ -206,9 +206,11 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
                   {isPaid ? "PAID IN FULL" : "PENDING PAYMENT"}
                 </span>
               </div>
-              <p className="text-slate-600 dark:text-slate-400 mt-1">
-                Payment Gateway: <strong>{invoice.payment_provider ? (invoice.payment_provider.toLowerCase() === "cashfree" ? "Cashfree Payments India (Historical)" : "Razorpay Standard Checkout") : "Razorpay Standard Checkout"}</strong>
-              </p>
+              {invoice.payment_provider && invoice.payment_provider.toLowerCase() === "razorpay" && (
+                <p className="text-slate-600 dark:text-slate-400 mt-1">
+                  Payment Gateway: <strong>Razorpay</strong>
+                </p>
+              )}
               <p className="text-slate-600 dark:text-slate-400">
                 Fulfillment Kitchen: <strong>{invoice.branch_name || ""}</strong>
               </p>
@@ -239,7 +241,7 @@ export default async function StatutoryInvoicePage({ params }: InvoicePageProps)
                   <tr>
                     <td className="py-3 px-3">1</td>
                     <td className="py-3 px-3 font-semibold text-slate-900 dark:text-white">
-                      Freshly Baked Artisan Cake &amp; Bakery Specialties
+                      Freshly Baked Cake &amp; Bakery Specialties
                     </td>
                     <td className="py-3 px-3 font-mono text-slate-500">19059010</td>
                     <td className="py-3 px-3 text-center">1</td>

@@ -56,7 +56,7 @@ function Submit({ disabled, paymentMethod }: { disabled?: boolean; paymentMethod
   disabled={disabled}
   aria-label="Confirm and place your cake order"
   >
-  {paymentMethod === "razorpay" || (paymentMethod === "razorpay" || paymentMethod === "cashfree")
+  {paymentMethod === "razorpay"
     ? "Proceed to Razorpay Payment 💳"
     : paymentMethod === "cod"
     ? "Confirm Cash on Delivery 💵"
@@ -172,7 +172,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
      ? `🎉 Coupon ${cart.promo_code} applied! You saved ₹${cart.discount_total}.`
      : ""
  );
- const [paymentMethod, setPaymentMethod] = useState<"cod" | "razorpay" | "cashfree" | "test_mode">("razorpay");
+ const [paymentMethod, setPaymentMethod] = useState<"cod" | "razorpay" | "test_mode">("razorpay");
  const [wantsGstInvoice, setWantsGstInvoice] = useState(false);
  const [customerGstin, setCustomerGstin] = useState("");
  const [customerBusinessName, setCustomerBusinessName] = useState("");
@@ -1744,7 +1744,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  type="button"
  onClick={() => setPaymentMethod("razorpay")}
  className={`p-4 rounded-2xl border text-left flex flex-col gap-2 transition-all ${
- (paymentMethod === "razorpay" || paymentMethod === "cashfree")
+ paymentMethod === "razorpay"
  ? "border-brand-primary bg-blue-50/60 ring-2 ring-blue-500/20"
  : "border-slate-200 hover:border-blue-300"
  }`}
@@ -1752,9 +1752,9 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <div className="flex justify-between items-center">
  <span className="text-2xl">💳</span>
  <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${
- (paymentMethod === "razorpay" || paymentMethod === "cashfree") ? "border-brand-primary bg-brand-primary text-brand-primary text-[10px]" : "border-stone/70"
+ paymentMethod === "razorpay" ? "border-brand-primary bg-brand-primary text-brand-primary text-[10px]" : "border-stone/70"
  }`}>
- {(paymentMethod === "razorpay" || paymentMethod === "cashfree") && "✓"}
+ {paymentMethod === "razorpay" && "✓"}
  </span>
  </div>
  <div>

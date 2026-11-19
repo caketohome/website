@@ -238,148 +238,28 @@ let dynamicBranches: any[] | null = null;
 let dynamicCustomers: any[] | null = null;
 let isPostgresAuthoritative: boolean = false;
 
-const DEFAULT_SEED_BRANCHES = [
-  { id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT", name: "Indiranagar Flagship", code: "HUB-01", city: "Bengaluru", is_open: true, max_orders_per_hour: 30, current_hourly_load: 18 },
-  { id: "res_02KXYMAHGFPRY1G9TZKEVGAGAU", name: "Koramangala Hub", code: "HUB-02", city: "Bengaluru", is_open: true, max_orders_per_hour: 25, current_hourly_load: 14 },
-  { id: "res_03KXYMAHGFPRY1G9TZKEVGAGAV", name: "Whitefield Express", code: "HUB-03", city: "Bengaluru", is_open: true, max_orders_per_hour: 20, current_hourly_load: 11 },
-  { id: "res_04KXYMAHGFPRY1G9TZKEVGAGAW", name: "Jayanagar Artisan Kitchen", code: "HUB-04", city: "Bengaluru", is_open: true, max_orders_per_hour: 22, current_hourly_load: 9 },
-];
 
-const DEFAULT_SEED_PRODUCTS = [
-  { id: "prod_1", title: "Belgian Dark Truffle Signature Cake", name: "Belgian Dark Truffle Signature Cake", sku: "SKU-TRUFFLE-01", price: 699, metadata: { category: "Cakes", occasion: "Birthday", hsn_code: "19059090", uqc: "NOS", gst_rate: 5, cost_price: 245 } },
-  { id: "prod_2", title: "Fresh Red Velvet Heart Cake", name: "Fresh Red Velvet Heart Cake", sku: "SKU-REDVELVET-02", price: 749, metadata: { category: "Cakes", occasion: "Anniversary", hsn_code: "19059090", uqc: "NOS", gst_rate: 5, cost_price: 260 } },
-  { id: "prod_3", title: "Black Forest German Classic Cake", name: "Black Forest German Classic Cake", sku: "SKU-BLACKFOREST-03", price: 649, metadata: { category: "Cakes", occasion: "Birthday", hsn_code: "19059090", uqc: "NOS", gst_rate: 5, cost_price: 220 } },
-  { id: "prod_4", title: "Fresh Mango Cream Summer Special", name: "Fresh Mango Cream Summer Special", sku: "SKU-MANGO-04", price: 799, metadata: { category: "Cakes", occasion: "Celebration", hsn_code: "19059090", uqc: "NOS", gst_rate: 5, cost_price: 280 } },
-  { id: "prod_5", title: "Custom Birthday Photo Cake", name: "Custom Birthday Photo Cake", sku: "SKU-PHOTO-05", price: 899, metadata: { category: "Custom Cakes", occasion: "Birthday", hsn_code: "19059090", uqc: "NOS", gst_rate: 5, cost_price: 315 } },
-  { id: "prod_6", title: "Sparkler Birthday Celebration Candles", name: "Sparkler Birthday Celebration Candles", sku: "SKU-CANDLE-06", price: 99, metadata: { category: "Accessories", occasion: "Party", hsn_code: "34060010", uqc: "PKT", gst_rate: 18, cost_price: 35 } },
-  { id: "prod_7", title: "Happy Birthday Gold Foil Cake Topper", name: "Happy Birthday Gold Foil Cake Topper", sku: "SKU-TOPPER-07", price: 149, metadata: { category: "Accessories", occasion: "Birthday", hsn_code: "95059000", uqc: "PKT", gst_rate: 18, cost_price: 50 } },
-  { id: "prod_8", title: "Artisan Chocolate Brownie Box", name: "Artisan Chocolate Brownie Box", sku: "SKU-BROWNIE-08", price: 449, metadata: { category: "Pastries & Brownies", occasion: "Gifting", hsn_code: "19059090", uqc: "BOX", gst_rate: 5, cost_price: 155 } },
-];
 
-const DEFAULT_SEED_ORDERS = [
-  {
-    id: "ord_101",
-    order_number: "CTH-20260815-001",
-    invoice_number: "CTH/26-27/000001",
-    customer_name: "Rahul Verma",
-    customer_phone: "+91 98765 43210",
-    customer_email: "rahul@example.com",
-    created_at: new Date().toISOString(),
-    delivery_date: new Date().toISOString().slice(0, 10),
-    status: "delivered",
-    delivery_status: "delivered",
-    payment_status: "paid",
-    payment_method: "upi",
-    subtotal: 798,
-    discount_total: 50,
-    delivery_fee: 0,
-    tax_total: 37.4,
-    total: 785.4,
-    branch: DEFAULT_SEED_BRANCHES[0],
-    branch_id: DEFAULT_SEED_BRANCHES[0].id,
-    shipping_address: { address_1: "100 Feet Rd", area: "Indiranagar", city: "Bengaluru", state: "Karnataka", postal_code: "560038" },
-    items: [
-      { product_id: "prod_1", title: "Belgian Dark Truffle Signature Cake", quantity: 1, unit_price: 699, subtotal: 699, hsn_code: "19059090", uqc: "NOS", gst_rate: 5 },
-      { product_id: "prod_6", title: "Sparkler Birthday Celebration Candles", quantity: 1, unit_price: 99, subtotal: 99, hsn_code: "34060010", uqc: "PKT", gst_rate: 18 },
-    ],
-  },
-  {
-    id: "ord_102",
-    order_number: "CTH-20260815-002",
-    invoice_number: "CTH/26-27/000002",
-    customer_name: "Pooja Sharma",
-    customer_phone: "+91 98765 22222",
-    customer_email: "pooja@example.com",
-    created_at: new Date().toISOString(),
-    delivery_date: new Date().toISOString().slice(0, 10),
-    status: "delivered",
-    delivery_status: "delivered",
-    payment_status: "paid",
-    payment_method: "card",
-    subtotal: 749,
-    discount_total: 0,
-    delivery_fee: 49,
-    tax_total: 37.45,
-    total: 835.45,
-    branch: DEFAULT_SEED_BRANCHES[1],
-    branch_id: DEFAULT_SEED_BRANCHES[1].id,
-    shipping_address: { address_1: "80 Feet Rd", area: "Koramangala", city: "Bengaluru", state: "Karnataka", postal_code: "560034" },
-    items: [
-      { product_id: "prod_2", title: "Fresh Red Velvet Heart Cake", quantity: 1, unit_price: 749, subtotal: 749, hsn_code: "19059090", uqc: "NOS", gst_rate: 5 },
-    ],
-  },
-  {
-    id: "ord_103",
-    order_number: "CTH-20260815-003",
-    invoice_number: "CTH/26-27/000003",
-    customer_name: "Vikram Malhotra",
-    customer_phone: "+91 98765 33333",
-    customer_email: "vikram@example.com",
-    created_at: new Date().toISOString(),
-    delivery_date: new Date().toISOString().slice(0, 10),
-    status: "out_for_delivery",
-    delivery_status: "out_for_delivery",
-    payment_status: "paid",
-    payment_method: "upi",
-    subtotal: 1048,
-    discount_total: 100,
-    delivery_fee: 0,
-    tax_total: 51.4,
-    total: 999.4,
-    branch: DEFAULT_SEED_BRANCHES[2],
-    branch_id: DEFAULT_SEED_BRANCHES[2].id,
-    shipping_address: { address_1: "ITPL Main Rd", area: "Whitefield", city: "Bengaluru", state: "Karnataka", postal_code: "560066" },
-    items: [
-      { product_id: "prod_5", title: "Custom Birthday Photo Cake", quantity: 1, unit_price: 899, subtotal: 899, hsn_code: "19059090", uqc: "NOS", gst_rate: 5 },
-      { product_id: "prod_7", title: "Happy Birthday Gold Foil Cake Topper", quantity: 1, unit_price: 149, subtotal: 149, hsn_code: "95059000", uqc: "PKT", gst_rate: 18 },
-    ],
-  },
-  {
-    id: "ord_104",
-    order_number: "CTH-20260815-004",
-    invoice_number: "CTH/26-27/000004",
-    customer_name: "Sneha Reddy",
-    customer_phone: "+91 98765 44444",
-    customer_email: "sneha@example.com",
-    created_at: new Date().toISOString(),
-    delivery_date: new Date().toISOString().slice(0, 10),
-    status: "preparing",
-    delivery_status: "pending",
-    payment_status: "paid",
-    payment_method: "upi",
-    subtotal: 649,
-    discount_total: 0,
-    delivery_fee: 0,
-    tax_total: 32.45,
-    total: 681.45,
-    branch: DEFAULT_SEED_BRANCHES[3],
-    branch_id: DEFAULT_SEED_BRANCHES[3].id,
-    shipping_address: { address_1: "9th Main Rd", area: "Jayanagar", city: "Bengaluru", state: "Karnataka", postal_code: "560041" },
-    items: [
-      { product_id: "prod_3", title: "Black Forest German Classic Cake", quantity: 1, unit_price: 649, subtotal: 649, hsn_code: "19059090", uqc: "NOS", gst_rate: 5 },
-    ],
-  },
-];
 
 function getAllOrders(): any[] {
   if (dynamicOrders !== null) {
     return dynamicOrders;
   }
-  return isPostgresAuthoritative ? [] : DEFAULT_SEED_ORDERS;
+  return [];
 }
 
 function getAllProducts(): any[] {
   if (dynamicProducts !== null) {
     return dynamicProducts;
   }
-  return isPostgresAuthoritative ? [] : DEFAULT_SEED_PRODUCTS;
+  return [];
 }
 
 function getAllBranches(): any[] {
   if (dynamicBranches !== null) {
     return dynamicBranches;
   }
-  return isPostgresAuthoritative ? [] : DEFAULT_SEED_BRANCHES;
+  return [];
 }
 
 function parseOrderDate(order: any): Date {
@@ -1508,7 +1388,7 @@ export class ReportsEngineData {
 
     const partnersList = (dynamicPartnersParam && dynamicPartnersParam.length > 0)
       ? dynamicPartnersParam
-      : [{ id: "dlp_101", name: "Express Fleet Rider 01", branchName: "Indiranagar Hub", status: "ONLINE", rating: 4.9 }];
+      : [];
 
     const partners = partnersList.map((p) => {
       const partnerOrders = deliveredOrders.filter((o) =>

@@ -35,7 +35,7 @@ export function renderTemplate(
         return context.customer?.name ? escapeHtml(context.customer.name) : "Valued Customer";
 
       case "product_name":
-        return context.product?.name ? escapeHtml(context.product.name) : "Gourmet Artisan Cake";
+        return context.product?.name ? escapeHtml(context.product.name) : "Gourmet Cake";
 
       case "product_price":
         return context.product?.price ? `₹${context.product.price}` : "₹599";

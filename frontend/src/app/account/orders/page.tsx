@@ -20,7 +20,7 @@ import { ReorderButton } from "@frontend/components/store/account/reorder-button
 
 export const metadata = {
   title: "My Orders | CakeToHome",
-  description: "View and track your CakeToHome artisan cake orders and delivery timelines.",
+  description: "View and track your CakeToHome cake orders and delivery timelines.",
 };
 
 export const dynamic = "force-dynamic";
@@ -141,7 +141,7 @@ export default async function AccountOrdersPage({ searchParams }: AccountOrdersP
         <div className="space-y-4">
           {sortedOrders.map((ord: any) => {
             const firstItem = ord.items?.[0] || {};
-            const cakeTitle = firstItem.title || firstItem.name || "Artisanal Celebration Cake";
+            const cakeTitle = firstItem.title || firstItem.name || "Celebration Cake";
             const cakeThumbnail = firstItem.thumbnail || "/images/placeholder-cake.webp";
             const itemCount = ord.items?.length || 1;
             const orderTotal = Number(ord.total || ord.grand_total || ord.pricing?.grand_total || 0);

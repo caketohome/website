@@ -144,7 +144,7 @@ export function SplitHeroEditor({ config, onChange, openImagePicker }: SplitHero
             <Input
               value={config.eyebrow || ""}
               onChange={(e) => onChange("eyebrow", e.target.value)}
-              placeholder="Artisanal Bakery & Confectionery"
+              placeholder="Bakery & Confectionery"
             />
           </Field>
 
@@ -160,7 +160,7 @@ export function SplitHeroEditor({ config, onChange, openImagePicker }: SplitHero
             <Input
               value={config.subheadline || ""}
               onChange={(e) => onChange("subheadline", e.target.value)}
-              placeholder="Handcrafted cakes, artisan croissants, and celebratory bakes."
+              placeholder="Handcrafted cakes, croissants, and celebratory bakes."
             />
           </Field>
 

@@ -239,7 +239,7 @@ export class SeoAuditEngine {
             title: "Thin Product Description",
             description: `Product '${prod.title}' description is too short or missing (<30 chars).`,
             url: prodUrl,
-            recommendation: "Add rich artisanal tasting notes, ingredients, and allergen info to improve SEO.",
+            recommendation: "Add rich tasting notes, ingredients, and allergen info to improve SEO.",
           });
         } else {
           descCovered++;

@@ -66,8 +66,7 @@ type ActiveViewMode =
   | "cash_accounts"
   | "transactions"
   | "transfers"
-  | "reconciliation"
-  | "settlements";
+  | "reconciliation";
 
 export function BankManagementDashboard() {
   const [activeTab, setActiveTab] = useState<ActiveViewMode>("dashboard");
@@ -89,7 +88,6 @@ export function BankManagementDashboard() {
   const [accounts, setAccounts] = useState<BankAccountRow[]>([]);
   const [cashAccounts, setCashAccounts] = useState<CashAccountRow[]>([]);
   const [transactions, setTransactions] = useState<BankTransactionRow[]>([]);
-  const [settlements, setSettlements] = useState<any[]>([]);
   const [glAccounts, setGlAccounts] = useState<GlAccountOption[]>([]);
 
   // Search & Filter
@@ -175,13 +173,6 @@ export function BankManagementDashboard() {
       if (cashRes && cashRes.ok) {
         const cashJson = await cashRes.json();
         if (cashJson.success) setCashAccounts(cashJson.data || cashJson.cashAccounts || []);
-      }
-
-      // 4. Load Settlements
-      const setRes = await fetch("/api/v1/accounting/cashfree-settlements").catch(() => null);
-      if (setRes && setRes.ok) {
-        const setJson = await setRes.json();
-        if (setJson.success) setSettlements(setJson.data || setJson.settlements || []);
       }
 
       // 5. Load GL Bank Accounts for dropdown
@@ -374,53 +365,6 @@ export function BankManagementDashboard() {
     }
   };
 
-  // ── Handle CSV Statement Import ──────────────────────────────────────────────
-  const handleProcessCsvRecon = async () => {
-    try {
-      const lines = reconCsvInput
-        .trim()
-        .split("\n")
-        .slice(1) // Skip header
-        .map((row) => {
-          const parts = row.split(",");
-          return {
-            date: parts[0]?.trim(),
-            description: parts[1]?.trim(),
-            reference_no: parts[2]?.trim(),
-            debit: parseFloat(parts[3]) || 0,
-            credit: parseFloat(parts[4]) || 0,
-            balance: parseFloat(parts[5]) || 0,
-          };
-        })
-        .filter((l) => l.date && (l.debit > 0 || l.credit > 0));
-
-      const res = await fetch("/api/v1/accounting/reconciliations/import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bank_account_id: reconBankId,
-          file_name: "sample_bank_statement.csv",
-          lines,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        const bookBal = summary.totalBankBalance;
-        const stmtBal = parseFloat(reconStatementBalance) || bookBal;
-        const diff = Math.abs(stmtBal - bookBal);
-        setReconImportResult({
-          importedLines: lines.length,
-          statementClosing: stmtBal,
-          bookClosing: bookBal,
-          reconciledAmount: stmtBal - diff,
-          difference: diff,
-          lines,
-        });
-      }
-    } catch (e: any) {
-      alert("Error importing CSV: " + e.message);
-    }
-  };
 
   return (
     <div className="w-full min-h-screen bg-slate-50/50 dark:bg-slate-950 p-4 lg:p-6 space-y-6">
@@ -510,7 +454,6 @@ export function BankManagementDashboard() {
           { id: "transactions", label: "Bank Transactions", icon: Receipt },
           { id: "transfers", label: "Bank Transfers", icon: ArrowRightLeft },
           { id: "reconciliation", label: "Bank Reconciliation (BRS)", icon: FileSpreadsheet },
-          { id: "settlements", label: "Gateway Settlements & Bank Verification", icon: ShieldCheck },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -738,18 +681,6 @@ export function BankManagementDashboard() {
               </div>
             </div>
 
-            <div
-              onClick={() => setActiveTab("settlements")}
-              className="p-4 rounded-xl bg-gradient-to-br from-brand-gold-light/50 to-brand-gold-light/50 dark:from-slate-900 dark:to-slate-850 border border-slate-200 dark:border-slate-800 hover:border-brand-gold cursor-pointer transition-all flex items-start gap-3"
-            >
-              <div className="w-9 h-9 rounded-lg bg-brand-gold text-white flex items-center justify-center shrink-0">
-                <Clock className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Payment Gateway Clearing</h4>
-                <p className="text-xs text-slate-500 mt-0.5">Transit clearing vs actual settled bank payouts</p>
-              </div>
-            </div>
           </div>
         </div>
       )}
@@ -1188,173 +1119,17 @@ export function BankManagementDashboard() {
           MODE 6: BANK RECONCILIATION STATEMENT (SCREEN 7)
          ═══════════════════════════════════════════════════════════════════════ */}
       {activeTab === "reconciliation" && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-5">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <FileSpreadsheet className="w-4 h-4 text-brand-primary" />
-                Bank Reconciliation Statement (BRS) &amp; Statement Import
-              </h3>
-              <p className="text-xs text-slate-500">
-                Import CSV bank statement, match against ledger lines, identify discrepancies, and balance book vs statement
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Label className="text-xs text-slate-500">Bank Account:</Label>
-              <select
-                value={reconBankId}
-                onChange={(e) => setReconBankId(e.target.value)}
-                className="text-xs py-1.5 px-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg"
-              >
-                {accounts.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.bank_name} ({b.account_number_masked})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-3">
-              <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                Paste CSV Bank Statement (Date, Description, Reference, Debit, Credit, Balance)
-              </Label>
-              <textarea
-                rows={7}
-                value={reconCsvInput}
-                onChange={(e) => setReconCsvInput(e.target.value)}
-                placeholder={"Date,Description,Reference,Debit,Credit,Balance\n2026-04-01,Opening balance,REF-1,0,10000,10000"}
-                className="w-full font-mono text-xs p-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-navy"
-              />
-              <div className="flex items-center gap-2">
-                <Input
-                  size="small"
-                  placeholder="Statement Closing Balance"
-                  value={reconStatementBalance}
-                  onChange={(e) => setReconStatementBalance(e.target.value)}
-                  className="w-48 text-xs font-mono"
-                />
-                <Button size="small" className="bg-brand-navy text-white" onClick={handleProcessCsvRecon}>
-                  <Upload className="w-3.5 h-3.5 mr-1 text-brand-gold" /> Parse &amp; Match Statement
-                </Button>
-              </div>
-            </div>
-
-            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Reconciliation Balance Summary</h4>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between py-1 border-b border-slate-200 dark:border-slate-800">
-                  <span className="text-slate-600 dark:text-slate-400">Statement Closing Balance:</span>
-                  <span className="font-mono font-bold text-slate-900 dark:text-white">
-                    ₹{Number(reconStatementBalance || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-200 dark:border-slate-800">
-                  <span className="text-slate-600 dark:text-slate-400">Book Closing Balance:</span>
-                  <span className="font-mono font-bold text-slate-900 dark:text-white">
-                    ₹{Number(summary.totalBankBalance || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-200 dark:border-slate-800">
-                  <span className="text-slate-600 dark:text-slate-400">Reconciled / Matched Items:</span>
-                  <span className="font-mono font-medium text-emerald-600">
-                    {reconImportResult ? `${reconImportResult.importedLines} items matched` : "Pending import"}
-                  </span>
-                </div>
-                <div className="flex justify-between py-2 border-t border-slate-300 dark:border-slate-700 text-sm">
-                  <span className="font-bold text-slate-900 dark:text-white">Difference / Variance:</span>
-                  <span
-                    className={`font-mono font-bold ${
-                      reconImportResult && reconImportResult.difference === 0 ? "text-emerald-600" : "text-brand-gold"
-                    }`}
-                  >
-                    ₹{reconImportResult ? reconImportResult.difference.toLocaleString("en-IN", { minimumFractionDigits: 2 }) : "0.00"}
-                  </span>
-                </div>
-              </div>
-
-              {reconImportResult && (
-                <div className="p-2.5 rounded-lg bg-emerald-50 text-emerald-800 text-xs flex items-center gap-2 border border-emerald-200">
-                  <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>
-                    Imported {reconImportResult.importedLines} lines. Audit trail logged for reconciliation sign-off.
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-3">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white">Bank Reconciliation (BRS)</h3>
+          <p className="text-xs text-slate-500">
+            Statements are imported and matched against your ledger in the Bank Reconciliation screen.
+          </p>
+          <Button size="small" className="bg-brand-navy text-white" onClick={() => { window.location.href = "/dashboard?tab=bank_reconciliation"; }}>
+            Open Bank Reconciliation
+          </Button>
         </div>
       )}
 
-      {/* ═══════════════════════════════════════════════════════════════════════
-          MODE 7: CASHFREE SETTLEMENTS (SECTION 10)
-         ═══════════════════════════════════════════════════════════════════════ */}
-      {activeTab === "settlements" && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-4">
-          <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Clock className="w-4 h-4 text-brand-gold" />
-              Payment Gateway Settlement Clearing Ledger (GL 1113)
-            </h3>
-            <p className="text-xs text-slate-500">
-              Clear segregation: Customer collections transit through Gateway Clearing before net settlement deposit into company bank account
-            </p>
-          </div>
-
-          <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-lg">
-            <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-              <thead className="bg-slate-50 dark:bg-slate-800/80 uppercase font-semibold text-slate-500 text-[11px] border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="py-2.5 px-3">Settlement ID</th>
-                  <th className="py-2.5 px-3">Date</th>
-                  <th className="py-2.5 px-3">Destination Bank</th>
-                  <th className="py-2.5 px-3 text-right">Gross Captured</th>
-                  <th className="py-2.5 px-3 text-right">Gateway Fees</th>
-                  <th className="py-2.5 px-3 text-right">GST on Fee</th>
-                  <th className="py-2.5 px-3 text-right">Net Bank Settlement</th>
-                  <th className="py-2.5 px-3 text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {settlements.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="py-8 text-center text-slate-400">
-                      No gateway settlements recorded yet. Razorpay settlement webhooks populate this clearing ledger.
-                    </td>
-                  </tr>
-                ) : (
-                  settlements.map((st) => (
-                    <tr key={st.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
-                      <td className="py-3 px-3 font-mono font-medium text-blue-600">{st.settlement_id}</td>
-                      <td className="py-3 px-3 font-mono">{st.settlement_date}</td>
-                      <td className="py-3 px-3">{st.bank_name || "HDFC Bank"} ({st.account_number_masked})</td>
-                      <td className="py-3 px-3 text-right font-mono font-semibold">
-                        ₹{Number(st.gross_amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="py-3 px-3 text-right font-mono text-rose-600">
-                        ₹{Number(st.fee_amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="py-3 px-3 text-right font-mono text-rose-600">
-                        ₹{Number(st.tax_amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="py-3 px-3 text-right font-mono font-bold text-emerald-600">
-                        ₹{Number(st.net_amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="py-3 px-3 text-center">
-                        <Badge size="small" color="green">
-                          {st.status}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
 
       {/* ═══════════════════════════════════════════════════════════════════════
           SCREEN 2: ADD BANK ACCOUNT MODAL (FULL POLISHED FORM)

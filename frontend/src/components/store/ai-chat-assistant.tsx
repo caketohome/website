@@ -57,7 +57,7 @@ export function AiChatAssistant() {
     {
       id: "msg_welcome",
       sender: "ai",
-      text: "👋 Hi! I'm your CakeToHome AI Concierge.\n\nTell me your occasion, budget (e.g. *under ₹800*), or delivery area — I'll find the best handcrafted artisanal cakes fresh from our local kitchen hubs!",
+      text: "👋 Hi! I'm your CakeToHome AI Concierge.\n\nTell me your occasion, budget (e.g. *under ₹800*), or delivery area — I'll find the best handcrafted cakes fresh from our local kitchen hubs!",
       options: [
         "🎂 Birthday Celebration",
         "💖 Anniversary / Romantic",
@@ -136,7 +136,7 @@ export function AiChatAssistant() {
         const aiMsg: ChatMessage = {
           id: `ai_${Date.now()}`,
           sender: "ai",
-          text: data.message || "Here are our top handcrafted artisanal recommendations:",
+          text: data.message || "Here are our top handcrafted recommendations:",
           product_recommendations: data.products && data.products.length > 0 ? data.products : undefined,
           offers: data.offers && data.offers.length > 0 ? data.offers : undefined,
           actions: data.actions && data.actions.length > 0 ? data.actions : undefined,

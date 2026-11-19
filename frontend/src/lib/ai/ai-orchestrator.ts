@@ -263,7 +263,7 @@ export class AiOrchestrator {
 
       if (deliveryRes.serviceable) {
         return {
-          message: `🚀 **Great news!** We deliver fresh artisanal cakes to **${deliveryRes.pincode}** in **${deliveryRes.city}**.\n\n• **Express Delivery**: ~${deliveryRes.estimatedMinutes} minutes (Next available slot: ${deliveryRes.nextAvailableSlot})\n• **Scheduled Delivery**: Slots available from 9 AM to 10 PM\n• **Fulfillment Kitchen**: ${deliveryRes.branchName}`,
+          message: `🚀 **Great news!** We deliver fresh cakes to **${deliveryRes.pincode}** in **${deliveryRes.city}**.\n\n• **Express Delivery**: ~${deliveryRes.estimatedMinutes} minutes (Next available slot: ${deliveryRes.nextAvailableSlot})\n• **Scheduled Delivery**: Slots available from 9 AM to 10 PM\n• **Fulfillment Kitchen**: ${deliveryRes.branchName}`,
           delivery: deliveryRes,
           actions: [
             { type: "CHECK_PINCODE", label: `Change Pincode (Currently ${targetPin})`, payload: { pincode: targetPin } },
@@ -358,7 +358,7 @@ export class AiOrchestrator {
       AiAnalyticsService.logUnansweredQuery(userText, intent, session.cityId);
       const fallbackSearch = await AiToolRegistry.searchProducts({ limit: 3 }, context);
       return {
-        message: `I couldn't find an exact match for "${userText}" within those criteria in ${session.cityName || "your city"}. Here are our top artisanal best-sellers baked fresh today:`,
+        message: `I couldn't find an exact match for "${userText}" within those criteria in ${session.cityName || "your city"}. Here are our top best-sellers baked fresh today:`,
         products: fallbackSearch.products,
         followUpQuestions: ["Show all chocolate cakes", "View best sellers", "Check budget under ₹800"],
         intent,
@@ -366,13 +366,13 @@ export class AiOrchestrator {
       };
     }
 
-    let intro = `✨ Here are the top handcrafted artisanal cakes for you in **${session.cityName || "your area"}**:`;
+    let intro = `✨ Here are the top handcrafted cakes for you in **${session.cityName || "your area"}**:`;
     if (session.occasion === "birthday") {
       intro = `🎉 **Handcrafted Birthday Specials** baked fresh today with fast express delivery in **${session.cityName || "your area"}**:`;
     } else if (session.occasion === "anniversary") {
-      intro = `💖 **Artisanal Anniversary & Romantic Cakes** crafted with Belgian chocolate and fresh berries:`;
+      intro = `💖 **Anniversary & Romantic Cakes** crafted with Belgian chocolate and fresh berries:`;
     } else if (session.budget) {
-      intro = `💰 **Fresh Artisanal Cakes Under ₹${session.budget}** with same-day express delivery in **${session.cityName || "your area"}**:`;
+      intro = `💰 **Fresh Cakes Under ₹${session.budget}** with same-day express delivery in **${session.cityName || "your area"}**:`;
     }
 
     // Log conversation telemetry

@@ -1045,7 +1045,7 @@ export function ScrollFrameAnimation({
           </div>
         </div>
 
-        {/* ── Phase 2 Overlay (Craft / Artisan Kitchen Story) ── */}
+        {/* ── Phase 2 Overlay (Craft / Kitchen Story) ── */}
         <div
           ref={craftOverlayRef}
           className="absolute inset-0 flex flex-col items-center justify-center p-6 sm:p-12 text-center text-brand-navy z-10 max-w-3xl mx-auto opacity-0 will-change-transform pointer-events-none"

@@ -89,7 +89,7 @@ export function WishlistManager({
         </div>
         <h3 className="text-lg font-bold text-gray-900 mb-1">Your Favorites list is empty</h3>
         <p className="text-gray-500 max-w-sm mb-6 text-xs leading-relaxed">
-          Explore our signature celebratory cakes, artisanal mousse creations, and handcrafted desserts. Tap the heart icon to save your favorites here.
+          Explore our signature celebratory cakes, mousse creations, and handcrafted desserts. Tap the heart icon to save your favorites here.
         </p>
         <Link
           href="/products"

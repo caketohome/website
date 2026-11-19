@@ -330,6 +330,8 @@ export interface OrderItemDomain {
     cream?: string;
   };
   total_line_amount: number;
+  eggless?: boolean | null;
+  /** @deprecated old name of `eggless` */
   artisan?: boolean;
   flavour?: string;
   shape?: string;

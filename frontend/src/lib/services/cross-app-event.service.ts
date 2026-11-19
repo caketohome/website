@@ -20,8 +20,6 @@ export type CanonicalCrossAppEventType =
   | "bank_transfer.completed"
   | "journal_entry.posted"
   | "accounting_voucher.posted"
-  | "cashfree.settlement.received"
-  | "cashfree.settlement.updated"
   | "bank_reconciliation.completed"
   | "order.created"
   | "order.confirmed"
@@ -120,8 +118,7 @@ export function defaultRoleVisibilityForEvent(eventType: string): string[] {
   if (
     eventType.startsWith("bank_") ||
     eventType.startsWith("journal_") ||
-    eventType.startsWith("accounting_") ||
-    eventType.startsWith("cashfree.settlement")
+    eventType.startsWith("accounting_")
   ) {
     return ["SUPER_ADMIN", "ADMIN", "FINANCE", "ACCOUNTANT"];
   }

@@ -828,7 +828,7 @@ export function OccasionsGridEditor({ config, allOccasions = [], onChange }: Occ
                               <Textarea
                                 value={card.short_description || card.description || ""}
                                 onChange={(e) => handleUpdateCard(idx, { short_description: e.target.value, description: e.target.value })}
-                                placeholder="Handcrafted artisanal creations for life's sweetest milestones"
+                                placeholder="Handcrafted creations for life's sweetest milestones"
                                 rows={2}
                                 className="text-xs"
                               />

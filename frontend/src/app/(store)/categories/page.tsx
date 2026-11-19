@@ -53,7 +53,7 @@ export default async function CategoriesPage() {
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-12">
           <span className="text-xs font-bold uppercase tracking-widest text-brand-gold block mb-2">
-            Artisanal Patisserie Collections
+            Patisserie Collections
           </span>
           <h1 className="text-3xl sm:text-4xl font-serif font-bold text-brand-navy tracking-tight">
             Explore All Cake Categories

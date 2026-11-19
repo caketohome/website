@@ -190,9 +190,9 @@ export const SPLIT_HERO_SCHEMA: SectionSchema = {
   icon: "🖼️",
   version: 1,
   defaults: {
-    eyebrow: "Artisanal Bakery & Confectionery",
+    eyebrow: "Bakery & Confectionery",
     headline: "Baked Fresh Daily With Pure Ingredients",
-    subheadline: "Handcrafted cakes, artisan croissants, and celebratory bakes delivered across Kerala.",
+    subheadline: "Handcrafted cakes, croissants, and celebratory bakes delivered across Kerala.",
     description: "Every celebration deserves a showstopper. Choose from our curated collection of chocolate truffles, red velvets, and signature patisserie delicacies.",
     badge_text: "Freshly Baked",
     content_position: "left",
@@ -205,7 +205,7 @@ export const SPLIT_HERO_SCHEMA: SectionSchema = {
   capabilities: { motion: true, responsive: true, visibility: true, style: true, pimBinding: "none" },
   dataSources: ["manual"],
   fields: [
-    { key: "eyebrow", label: "Eyebrow Text", type: "text", defaultValue: "Artisanal Bakery & Confectionery" },
+    { key: "eyebrow", label: "Eyebrow Text", type: "text", defaultValue: "Bakery & Confectionery" },
     { key: "headline", label: "Headline", type: "text", required: true, defaultValue: "Baked Fresh Daily With Pure Ingredients" },
     { key: "subheadline", label: "Subheadline", type: "text", defaultValue: "Handcrafted cakes and celebratory bakes." },
     { key: "description", label: "Description", type: "textarea", defaultValue: "" },
@@ -391,7 +391,7 @@ export const FEATURES_SCHEMA: SectionSchema = {
   type: "features",
   name: "Features / Benefits",
   category: "trust",
-  description: "Highlight bakery USPs, trust credentials, fresh guarantee, and artisanal benefits",
+  description: "Highlight bakery USPs, trust credentials, fresh guarantee, and benefits",
   icon: "✨",
   version: 1,
   defaults: {
@@ -428,7 +428,7 @@ export const FEATURES_SCHEMA: SectionSchema = {
         id: "feat_4",
         icon: "ShieldCheck",
         icon_type: "lucide",
-        title: "Artisanal Celebration Cakes",
+        title: "Celebration Cakes",
         description: "Bespoke tier architecture, personalized messages, and handcrafted finishes.",
         icon_color: "#7c3aed",
       },

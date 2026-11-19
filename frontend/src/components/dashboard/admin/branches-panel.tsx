@@ -61,9 +61,9 @@ export const BranchesPanel = memo(function BranchesPanel() {
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [managerName, setManagerName] = useState("Rajesh Kumar");
-  const [managerPhone, setManagerPhone] = useState("+91 98765 00001");
-  const [managerEmail, setManagerEmail] = useState("manager@cakes2home.com");
+  const [managerName, setManagerName] = useState("");
+  const [managerPhone, setManagerPhone] = useState("");
+  const [managerEmail, setManagerEmail] = useState("");
 
   // Store Physical Location State
   const [latitude, setLatitude] = useState<number | string>("");
@@ -635,7 +635,7 @@ export const BranchesPanel = memo(function BranchesPanel() {
                         <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
                           <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-slate-400" /> {b.phone}</span>
                           <span className="flex items-center gap-1.5 font-medium text-slate-800 dark:text-slate-200">
-                            <User className="w-3.5 h-3.5 text-brand-gold" /> Manager: {b.manager_name || b.manager_account?.name || "Rajesh Kumar"}
+                            <User className="w-3.5 h-3.5 text-brand-gold" /> Manager: {b.manager_name || b.manager_account?.name || "Not assigned"}
                           </span>
                         </div>
                       </div>
@@ -1091,15 +1091,15 @@ export const BranchesPanel = memo(function BranchesPanel() {
 
                 <div>
                   <Label>Manager Full Name *</Label>
-                  <Input value={managerName} onChange={(e) => setManagerName(e.target.value)} placeholder="e.g. Rajesh Kumar" required />
+                  <Input value={managerName} onChange={(e) => setManagerName(e.target.value)} placeholder="Manager full name" required />
                 </div>
                 <div>
                   <Label>Manager Phone *</Label>
-                  <Input value={managerPhone} onChange={(e) => setManagerPhone(e.target.value)} placeholder="+91 98765 00001" required />
+                  <Input value={managerPhone} onChange={(e) => setManagerPhone(e.target.value)} placeholder="Manager mobile number" required />
                 </div>
                 <div className="sm:col-span-2">
                   <Label>Manager Email *</Label>
-                  <Input value={managerEmail} onChange={(e) => setManagerEmail(e.target.value)} placeholder="manager@cakes2home.com" required />
+                  <Input value={managerEmail} onChange={(e) => setManagerEmail(e.target.value)} placeholder="Manager email" required />
                 </div>
               </div>
 

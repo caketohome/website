@@ -23,7 +23,7 @@ const ScrollFrameHero = dynamic(
         <div className="relative z-10 p-6 sm:p-12 max-w-3xl flex flex-col items-center text-center gap-4">
           <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-1 bg-brand-gold-light text-brand-gold-dark border border-brand-gold/30">
             <Sparkles className="w-3.5 h-3.5 text-brand-gold" />
-            Artisanal Cakes • Express Delivery
+            Cakes • Express Delivery
           </span>
           <Heading level="h1" className="font-serif text-3xl sm:text-5xl md:text-6xl font-normal sm:font-semibold tracking-[-0.025em] leading-[1.1] text-brand-navy">
             Freshly Baked Happiness
@@ -740,7 +740,7 @@ function StoreBranchLocator({
  * Interactive Side-by-Side Product Comparison Matrix
  */
 function ProductComparisonTable({
-  heading = "Compare Our Artisan Cake Recipes",
+  heading = "Compare Our Cake Recipes",
   subheading = "Choose the perfect cake crafted for your celebration and guest count",
 }: {
   heading?: string;
@@ -1207,8 +1207,8 @@ export function PageRenderer({
             // ── 1c. Hero Video Section ──────────────────────────────────
             case "hero_video": {
               const headline = config.headline || "Handcrafted Luxury Cakes For Every Celebration";
-              const subheadline = config.subheadline || "Experience gourmet artisanal cakes baked fresh with pure butter and rich chocolate";
-              const badgeText = config.badge_text || config.badge || "Pure Artisanal Baking • 2-Hour Express Delivery";
+              const subheadline = config.subheadline || "Experience gourmet cakes baked fresh with pure butter and rich chocolate";
+              const badgeText = config.badge_text || config.badge || "Pure Baking • 2-Hour Express Delivery";
               const videoUrl = config.video_url || "";
               const posterUrl = config.desktop_image || config.poster_url || undefined;
               const primaryCtaText = config.cta_primary_text || config.cta_text || "Order Now";
@@ -1268,7 +1268,7 @@ export function PageRenderer({
               const headline = config.headline || "Freshly Baked Every Morning";
               const subheadline = config.subheadline || "We source single-origin cocoa, farm-fresh dairy, and handcraft each celebration cake to perfection.";
               const description = config.description || config.body || "";
-              const badgeText = config.badge_text || config.badge || "Artisanal Heritage";
+              const badgeText = config.badge_text || config.badge || "Heritage";
               const mediaPosition = config.content_position === "right" ? "left" : (config.media_position || config.image_position || "right");
               const ratio = config.ratio || "50_50";
               const mobileStackOrder = config.mobile_stack_order || "image_first";
@@ -1537,7 +1537,7 @@ export function PageRenderer({
                       </video>
                     </div>
                     <div className="flex-1 flex flex-col items-start gap-3">
-                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-brand-gold-light text-brand-gold-dark">Artisan Kitchen</span>
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-brand-gold-light text-brand-gold-dark">Kitchen</span>
                       <Heading level="h2" className="text-2xl sm:text-3xl font-extrabold text-ui-fg-base">{headline}</Heading>
                       <Text className="text-sm text-ui-fg-subtle leading-relaxed">{subheadline}</Text>
                       <Link href={primaryCtaUrl} className="pt-2">
@@ -1983,7 +1983,7 @@ export function PageRenderer({
                       <div className="absolute inset-0 bg-gradient-to-t from-brand-deep via-brand-deep/75 to-transparent" />
                       <div className="relative z-10 text-white">
                         <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-brand-gold font-semibold mb-1 block">
-                          🕯️ Artisanal Spotlight
+                          🕯️ Spotlight
                         </span>
                         {showTitle && (
                           <h3 className="font-serif text-base sm:text-lg text-brand-warm-white font-medium group-hover:text-brand-gold transition-colors leading-tight">
@@ -2193,7 +2193,7 @@ export function PageRenderer({
                 "🏆 Best-Selling Cakes";
 
               const heading = config.heading || defaultHeading;
-              const subheading = config.subheading || "Freshly baked artisan recipes ready for express 2-hour delivery";
+              const subheading = config.subheading || "Freshly baked and ready for delivery";
 
               // Dynamic PIM product resolution
               let displayProducts = resolveProducts(allProducts, {
@@ -2551,7 +2551,7 @@ export function PageRenderer({
             case "breadcrumbs": {
               const items = config.items || [
                 { label: "Home", url: "/" },
-                { label: config.parent_label || "Artisanal Cakes", url: "/products" },
+                { label: config.parent_label || "", url: "/products" },
                 { label: config.current_label || "Gourmet Collection", url: "" },
               ];
 
@@ -2694,7 +2694,7 @@ export function PageRenderer({
                       {body}
                     </p>
 
-                    {/* Artisanal Quality Pillars */}
+                    {/* Quality Pillars */}
                     <div className="grid grid-cols-2 gap-3 pt-2">
                       <div className={`p-3 rounded-xl flex items-center gap-2.5 ${isLuxuryTheme ? "bg-white/5 border border-white/10" : "bg-white border border-ui-border-base"}`}>
                         <Award className={`w-4 h-4 shrink-0 ${isLuxuryTheme ? "text-brand-gold" : "text-brand-gold"}`} />
@@ -2791,9 +2791,9 @@ export function PageRenderer({
                 { icon: "Award", title: "Taste Guarantee", desc: "Loved by over 50,000+ happy celebrators across India" },
               ] : [
                 { icon: "Truck", title: "2-Hour Express Delivery", desc: "Fastest doorstep cake delivery across Kerala" },
-                { icon: "Sparkles", title: "Artisan Quality", desc: "Premium gourmet cakes crafted with Belgian chocolate and fresh fruits" },
+                { icon: "Sparkles", title: "Quality", desc: "Premium gourmet cakes crafted with Belgian chocolate and fresh fruits" },
                 { icon: "Clock", title: "Scheduled Delivery", desc: "Flexible celebration slots to match your event timeline" },
-                { icon: "ShieldCheck", title: "Artisanal Fresh Baking", desc: "Baked fresh after order placement with zero preservatives" },
+                { icon: "ShieldCheck", title: "Fresh Baking", desc: "Baked fresh after order placement with zero preservatives" },
               ];
 
               const rawFeaturesList = (config.features && config.features.length > 0) ? config.features : defaultFeatures;
@@ -3098,7 +3098,7 @@ export function PageRenderer({
               const heading = config.heading || (
                 section.type === "location_content" ? "Local Cake Delivery Guide" :
                 section.type === "internal_links" ? "Popular Categories & Collections" :
-                "Artisanal Cake Delivery"
+                "Cake Delivery"
               );
               const content = config.content || "";
               return (
@@ -3277,7 +3277,7 @@ export function PageRenderer({
                   <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div className="flex flex-col gap-2 max-w-2xl">
                       <span className={`font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] font-semibold ${isLuxuryTheme ? "text-brand-gold" : "text-brand-gold"}`}>
-                        Artisan Commissions
+                        Commissions
                       </span>
                       <Heading level="h2" className={`text-2xl sm:text-3xl lg:text-4xl tracking-tight leading-tight ${isLuxuryTheme ? "font-serif font-normal text-brand-warm-white" : "font-extrabold"}`}>
                         {heading}
@@ -3547,7 +3547,7 @@ export function PageRenderer({
 
               if (!targetProduct) return null;
 
-              const title = targetProduct.title || targetProduct.name || "Artisan Cake";
+              const title = targetProduct.title || targetProduct.name || "Item";
               const price = targetProduct.price || targetProduct.base_price || 699;
               const originalPrice = targetProduct.original_price || price + 200;
               const image = targetProduct.thumbnail || targetProduct.image_url || targetProduct.images?.[0]?.url || "/images/placeholder-cake.webp";
@@ -3612,7 +3612,7 @@ export function PageRenderer({
             // ── 14. Product Comparison Table ────────────────────────────
             case "comparison_table":
             case "product_comparison": {
-              const heading = config.heading || "Compare Artisan Cakes";
+              const heading = config.heading || "Compare Cakes";
               const compareProducts = (config.product_ids && config.product_ids.length > 0)
                 ? config.product_ids.map((id: string) => allProducts.find((p: any) => (p.id || p.product_id) === id)).filter(Boolean)
                 : allProducts.slice(0, 3);
@@ -3853,7 +3853,7 @@ export function PageRenderer({
             case "timeline":
             case "bakery_timeline":
             case "quality_process": {
-              const heading = config.heading || "Our Journey of Artisanal Baking";
+              const heading = config.heading || "Our Journey of Baking";
               const defaultEvents = [
                 { year: "2020", title: "The First Micro-Bakery", desc: "Started baking handcrafted Belgian chocolate cakes in a boutique kitchen in Indiranagar." },
                 { year: "2022", title: "Express 2-Hour Delivery", desc: "Engineered shock-proof cake domes and cold-chain temperature control for pristine doorstep delivery." },
@@ -4009,7 +4009,7 @@ export function PageRenderer({
                     <Link href="https://wa.me/919567789888" className="p-2 rounded-full bg-ui-bg-subtle hover:text-emerald-600 transition-colors">WhatsApp</Link>
                     <Link href="https://facebook.com" className="p-2 rounded-full bg-ui-bg-subtle hover:text-blue-600 transition-colors">Facebook</Link>
                   </div>
-                  <span className="text-[11px] text-ui-fg-subtle">© {new Date().getFullYear()} CakeToHome. Freshly Baked Artisanal Delights.</span>
+                  <span className="text-[11px] text-ui-fg-subtle">© {new Date().getFullYear()} CakeToHome. Freshly Baked Delights.</span>
                 </section>
               );
             }

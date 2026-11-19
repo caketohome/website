@@ -22,7 +22,7 @@ const ScrollFrameHero = dynamic(
         <div className="relative z-10 p-6 sm:p-12 max-w-3xl flex flex-col items-center text-center gap-4">
           <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-sans text-[11px] font-semibold tracking-[0.2em] uppercase mb-1 bg-brand-gold-light text-brand-gold-dark border border-brand-gold/30">
             <Sparkles className="w-3.5 h-3.5 text-brand-gold" />
-            100% Fresh & Artisanal • Express 2-Hour Delivery
+            100% Fresh • Express 2-Hour Delivery
           </span>
           <Heading level="h1" className="font-serif text-3xl sm:text-5xl md:text-6xl font-normal sm:font-semibold tracking-[-0.025em] leading-[1.1] text-brand-navy">
             Freshly Baked Happiness
@@ -107,7 +107,7 @@ export function StorefrontProductHomepage({
       <ScrollFrameHero
         headline="Freshly Baked Happiness"
         subheadline="Explore gourmet cakes, handcrafted chocolates, fresh pastries, and savory treats. Delivered directly from our nearest kitchen for maximum freshness."
-        badgeText="100% Fresh & Artisanal • Express 2-Hour Delivery"
+        badgeText="100% Fresh • Express 2-Hour Delivery"
       />
 
       {/* Offers & Promotions Bar - Live PostgreSQL Offers */}

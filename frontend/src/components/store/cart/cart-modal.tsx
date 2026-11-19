@@ -422,7 +422,7 @@ export default function CartModal({
                   Your bag is empty
                 </h3>
                 <p className="text-xs text-slate-500 leading-relaxed font-sans">
-                  Explore our signature gourmet cakes, artisanal pastries, and celebration desserts.
+                  Explore our signature gourmet cakes, pastries, and celebration desserts.
                 </p>
               </div>
               <button

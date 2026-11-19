@@ -618,7 +618,7 @@ export function CouponDrawer({ isOpen, onClose, couponId, onSaveSuccess }: Coupo
                       rows={3}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder="e.g. Use code CAKE50 at checkout to get 50% discount on all artisan cakes."
+                      placeholder="e.g. Use code CAKE50 at checkout to get 50% discount on all cakes."
                       className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-gold"
                     />
                   </div>

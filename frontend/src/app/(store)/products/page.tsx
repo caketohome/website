@@ -9,7 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
     entityType: "category",
     slug: "products",
     fallbackTitle: "Gourmet Cakes & Sweets Catalog | CakeToHome Kerala",
-    fallbackDescription: "Explore our full range of handcrafted chocolate, vanilla, artisan, fruit, and custom celebration cakes online with same-day and scheduled delivery.",
+    fallbackDescription: "Explore our full range of handcrafted chocolate, vanilla, eggless, fruit, and custom celebration cakes online with same-day and scheduled delivery.",
   });
 }
 

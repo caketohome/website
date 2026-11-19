@@ -364,7 +364,7 @@ export function PopupEditorDrawer({
       setImmediateTrigger(false);
       setCustomerStatuses(["all"]);
       setEyebrow("FRESH FROM THE OVEN");
-      setHeadline("Handcrafted Artisanal Cakes Delivered in 2 Hours");
+      setHeadline("Handcrafted Cakes Delivered in 2 Hours");
       setContentDesc("Explore Kerala's finest cakes, baked fresh with 100% pure vegetarian ingredients.");
       setBadge("FRESH TODAY");
       setPrimaryLabel("Explore Cakes");

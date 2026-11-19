@@ -94,8 +94,8 @@ export class OrderRepository {
         sku: item.sku || item.metadata?.sku || undefined,
         barcode: item.barcode || item.metadata?.barcode || undefined,
         hsn_code: item.hsn_code || item.metadata?.hsn_code || undefined,
-        product_name: item.product_name || item.title || item.name || "Artisan Cake",
-        title: item.title || item.product_name || item.name || "Artisan Cake",
+        product_name: item.product_name || item.title || item.name || "Item",
+        title: item.title || item.product_name || item.name || "Item",
         thumbnail: item.thumbnail || "/images/placeholder-cake.png",
         variant_name: item.variant_name || item.weight || item.metadata?.variant_name || "1 kg",
         weight: item.weight || item.variant_name || item.metadata?.variant_name || "1 kg",
@@ -121,7 +121,7 @@ export class OrderRepository {
           ? Number(item.total)
           : Math.round((subtotal + lineTax) * 100) / 100,
         taxable_value: subtotal,
-        artisan: item.artisan !== undefined ? Boolean(item.artisan) : true,
+        eggless: (item.eggless ?? item.artisan) === undefined ? null : Boolean(item.eggless ?? item.artisan),
         flavour: item.flavour || item.flavor || "Belgian Chocolate",
         shape: item.shape || "Round",
         cake_message: cakeMsg,
@@ -298,7 +298,7 @@ export class OrderRepository {
     const customization = {
       cake_message: meta.customization?.cake_message || firstItemCakeMsg || meta.cake_message || null,
       special_instructions: meta.customization?.special_instructions || meta.special_instructions || null,
-      packaging_notes: meta.customization?.packaging_notes || "Standard Artisan Bakery Packaging",
+      packaging_notes: meta.customization?.packaging_notes || "",
       add_ons: meta.customization?.add_ons || meta.add_ons || [],
     };
 

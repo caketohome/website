@@ -111,7 +111,7 @@ export default async function DeliveryCard({
           <Table.Body>
             {items?.map((item: any, idx: number) => (
               <Table.Row key={`${delivery?.id || 'del'}_${item.id || idx}`}>
-                <Table.Cell className="text-wrap">{item.title || item.name || "Artisan Cake"}</Table.Cell>
+                <Table.Cell className="text-wrap">{item.title || item.name || "Item"}</Table.Cell>
                 <Table.Cell className="text-right">
                   {item.quantity as number}
                 </Table.Cell>

@@ -29,7 +29,7 @@ export function VisualPageBuilder() {
       id: "b1",
       type: "hero",
       title: "🎂 Handcrafted Gourmet Cakes Delivered in 2 Hours",
-      subtitle: "Order fresh artisanal cakes online in Kerala. Express 2-hour delivery available!",
+      subtitle: "Order fresh cakes online in Kerala. Express 2-hour delivery available!",
       cta_text: "Browse Cake Catalog →",
       cta_link: "/products",
     },
@@ -44,7 +44,7 @@ export function VisualPageBuilder() {
     {
       id: "b3",
       type: "products",
-      title: "🍰 Best-Selling Artisanal Cakes",
+      title: "🍰 Best-Selling Cakes",
       subtitle: "Freshly baked today using Belgian chocolate, Madagascar vanilla, and real fruit.",
     },
     {
@@ -53,7 +53,7 @@ export function VisualPageBuilder() {
       title: "❓ Frequently Asked Questions",
       items: [
         { q: "Do you deliver cakes on the same day?", a: "Yes! We offer 2-hour express delivery and scheduled celebration slots across Kerala." },
-        { q: "Can I customize the cake message and flavor?", a: "Absolutly! You can select size (0.5kg, 1kg, 2kg), artisan option, flavor, and add a custom name message during checkout." },
+        { q: "Can I customize the cake message and flavor?", a: "Absolutly! You can select size (0.5kg, 1kg, 2kg), eggless option, flavor, and add a custom name message during checkout." },
       ],
     },
   ]);

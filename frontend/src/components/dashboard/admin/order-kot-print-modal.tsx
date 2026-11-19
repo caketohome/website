@@ -85,7 +85,7 @@ export function OrderKotPrintModal({ order, onClose }: OrderKotPrintModalProps) 
               <div key={item.id || idx} className="p-2 border rounded bg-slate-50 dark:bg-slate-800/50 space-y-1">
                 <div className="flex items-start justify-between font-bold text-sm">
                   <span>{item.quantity}x {item.title}</span>
-                  <Badge color={item.artisan ? "green" : "red"}>{item.artisan ? "100% artisan" : "FRESH BAKED"}</Badge>
+                  {(item.eggless ?? item.artisan) === true ? <Badge color="green">EGGLESS</Badge> : (item.eggless ?? item.artisan) === false ? <Badge color="orange">CONTAINS EGG</Badge> : null}
                 </div>
                 <div className="text-xs grid grid-cols-3 gap-1 pt-1 font-semibold text-slate-700 dark:text-slate-300">
                   <div><span className="text-[10px] text-slate-400 block">WEIGHT:</span>{item.weight}</div>

@@ -14,6 +14,11 @@ interface CreateOrderDrawerProps {
   onOrderCreated: (newOrder: any) => void;
 }
 
+/** Eggless surcharge comes from the product's own settings (none when not set). */
+function egglessSurchargeOf(product: any): number {
+  return Number(product?.eggless_surcharge ?? product?.metadata?.eggless_surcharge ?? 0) || 0;
+}
+
 export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrderDrawerProps) {
   // ── Step Navigation ────────────────────────────────────────────────────────
   const [activeSection, setActiveSection] = useState<"customer" | "delivery" | "branch" | "products" | "pricing" | "payment" | "review">("customer");
@@ -59,10 +64,10 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
   // Product Customization Modal State
   const [customizingProduct, setCustomizingProduct] = useState<any | null>(null);
   const [customForm, setCustomForm] = useState({
-    weight: "1 kg",
-    flavor: "Belgian Chocolate Truffle",
-    shape: "Round",
-    is_artisan: true,
+    weight: "",
+    flavor: "",
+    shape: "",
+    is_eggless: false,
     cake_message: "",
     quantity: 1,
   });
@@ -256,10 +261,10 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
   // Add Product to Cart
   const handleAddProductToCart = () => {
     if (!customizingProduct) return;
-    const basePrice = Number(customizingProduct.price || customizingProduct.variants?.[0]?.prices?.[0]?.amount || 599);
-    const Charge = customForm.is_artisan ? 50 : 0;
-    const unitPrice = basePrice + Charge;
-    const variantStr = `${customForm.weight} | ${customForm.flavor} | ${customForm.shape} | ${customForm.is_artisan ? "artisan (+₹50)" : "With Egg"}`;
+    const basePrice = Number(customizingProduct.price || customizingProduct.variants?.[0]?.prices?.[0]?.amount || 0);
+    const egglessCharge = customForm.is_eggless ? egglessSurchargeOf(customizingProduct) : 0;
+    const unitPrice = basePrice + egglessCharge;
+    const variantStr = [customForm.weight, customForm.flavor, customForm.shape, customForm.is_eggless ? "Eggless" : "Contains egg"].filter(Boolean).join(" | ");
 
     const cartItem = {
       id: `item_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
@@ -272,6 +277,7 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
       total: unitPrice * customForm.quantity,
       image_url: customizingProduct.thumbnail || customizingProduct.images?.[0]?.url || "/images/placeholder-cake.webp",
       custom_message: customForm.cake_message || null,
+      eggless: customForm.is_eggless,
     };
 
     setCartItems((prev) => [...prev, cartItem]);
@@ -918,11 +924,11 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
                             onClick={() => {
                               setCustomizingProduct(prod);
                               setCustomForm({
-                                weight: "1 kg",
-                                flavor: "Chocolate Truffle",
-                                shape: "Round",
-                                is_artisan: true,
-                                cake_message: "Happy Birthday!",
+                                weight: "",
+                                flavor: "",
+                                shape: "",
+                                is_eggless: false,
+                                cake_message: "",
                                 quantity: 1,
                               });
                             }}
@@ -973,12 +979,12 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
                         <div>
                           <Label className="text-[10px]">Dietary</Label>
                           <select
-                            value={customForm.is_artisan ? "artisan" : "egg"}
-                            onChange={(e) => setCustomForm((prev) => ({ ...prev, is_artisan: e.target.value === "artisan" }))}
+                            value={customForm.is_eggless ? "eggless" : "egg"}
+                            onChange={(e) => setCustomForm((prev) => ({ ...prev, is_eggless: e.target.value === "eggless" }))}
                             className="w-full p-1.5 border rounded bg-white text-xs"
                           >
-                            <option value="artisan">artisan (+₹50)</option>
-                            <option value="egg">With Egg</option>
+                            <option value="egg">Contains egg</option>
+                            <option value="eggless">Eggless{egglessSurchargeOf(customizingProduct) ? ` (+₹${egglessSurchargeOf(customizingProduct)})` : ""}</option>
                           </select>
                         </div>
                         <div>
@@ -1005,7 +1011,7 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
                       </div>
 
                       <Button size="small" className="bg-emerald-600 hover:bg-emerald-700 text-white w-full" onClick={handleAddProductToCart}>
-                        Add Item to Cart (₹{((customizingProduct.price || customizingProduct.selling_price || 0) + (customForm.is_artisan ? 50 : 0)) * customForm.quantity})
+                        Add Item to Cart (₹{((customizingProduct.price || customizingProduct.selling_price || 0) + (customForm.is_eggless ? egglessSurchargeOf(customizingProduct) : 0)) * customForm.quantity})
                       </Button>
                     </div>
                   )}

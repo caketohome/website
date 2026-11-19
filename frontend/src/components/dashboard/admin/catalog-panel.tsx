@@ -72,13 +72,13 @@ export const CatalogPanel = memo(function CatalogPanel() {
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("all");
 
   const resolveCategoryName = (item: any) => {
-    if (!item) return "Artisanal Cakes";
+    if (!item) return "Uncategorized";
     if (item.category) return item.category;
     if (item.primary_category_id) {
       const match = categories.find((c) => c && (c.id === item.primary_category_id || c.name === item.primary_category_id));
       if (match) return match.name;
     }
-    return "Artisanal Cakes";
+    return "Uncategorized";
   };
 
   const filtered = products.filter((p: any) => {

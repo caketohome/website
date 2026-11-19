@@ -382,7 +382,7 @@ export class OrderLifecycleService {
       order.preparing_started_at = now;
       targetDeliveryState = "shop_preparing";
       timelineTitle = "Baking & Decoration In Progress";
-      timelineNotes = options.notes || "Artisan baker preparing fresh cake in kitchen.";
+      timelineNotes = options.notes || "baker preparing fresh cake in kitchen.";
       outboxEventType = "order.preparing";
     } else if (targetOrderState === "READY_FOR_PICKUP") {
       order.status = "packed";

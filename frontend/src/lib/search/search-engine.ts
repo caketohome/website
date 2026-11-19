@@ -160,7 +160,7 @@ export const DEFAULT_TAGS: ProductTag[] = [
   { tag_id: "tag_bday", name: "Birthday", slug: "birthday", type: "occasion", display_name: "Birthday Specials", search_weight: 60, status: "active" },
   { tag_id: "tag_anniv", name: "Anniversary", slug: "anniversary", type: "occasion", display_name: "Anniversary", search_weight: 55, status: "active" },
   { tag_id: "tag_best", name: "Bestseller", slug: "bestseller", type: "marketing", display_name: "🏆 Bestseller", search_weight: 45, status: "active" },
-  { tag_id: "tag_prem", name: "Premium", slug: "premium", type: "style", display_name: "✨ Premium Artisan", search_weight: 40, status: "active" },
+  { tag_id: "tag_prem", name: "Premium", slug: "premium", type: "style", display_name: "Premium", search_weight: 40, status: "active" },
   { tag_id: "tag_express", name: "Express Delivery", slug: "express-delivery", type: "delivery", display_name: "⚡ 2-Hour Express", search_weight: 35, status: "active" },
   { tag_id: "tag_mid", name: "Scheduled Delivery", slug: "scheduled-delivery", type: "delivery", display_name: "📅 Scheduled Delivery", search_weight: 40, status: "archived" },
   { tag_id: "tag_eggless", name: "Eggless", slug: "eggless", type: "dietary", display_name: "🌱 100% Eggless", search_weight: 50, status: "archived" },
@@ -298,7 +298,7 @@ export class SearchEngine {
 
     const existing = this.canonicalProducts.get(canonicalId);
 
-    const name = prod.name || prod.title || existing?.name || "Artisan Celebration Cake";
+    const name = prod.name || prod.title || existing?.name || "Celebration Cake";
     const slug = prod.slug || (prod as any).handle || name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     const category = prod.category || (prod as any).category_slug || existing?.category || "Cakes";
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Container, Heading, Text, Button, Input, Label, Badge } from "@medusajs/ui";
-import { CreditCard, CheckCircle2, AlertTriangle, ShieldCheck, Activity, Key, Lock, Eye, EyeOff, Zap, Archive } from "lucide-react";
+import { CreditCard, CheckCircle2, AlertTriangle, ShieldCheck, Activity, Key, Lock, Eye, EyeOff, Zap } from "lucide-react";
 
 type Env = "TEST" | "LIVE";
 type EnvStatus = "NOT_CONFIGURED" | "UNTESTED" | "VERIFIED" | "FAILED";
@@ -295,15 +295,6 @@ export function PaymentConfigTab({
         </>
       )}
 
-      <Container className="p-5 flex flex-col gap-3 bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800">
-        <Text className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
-          <Archive className="w-3.5 h-3.5 text-slate-400" /> Decommissioned Gateways
-        </Text>
-        <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs flex flex-col gap-2">
-          <div className="flex items-center justify-between"><span className="font-bold">Cashfree Payments</span><Badge color="grey" size="small">DECOMMISSIONED</Badge></div>
-          <p className="text-[11px] text-slate-500">Customer checkout disabled. Historical transactions are preserved for statutory audit.</p>
-        </div>
-      </Container>
     </div>
   );
 }

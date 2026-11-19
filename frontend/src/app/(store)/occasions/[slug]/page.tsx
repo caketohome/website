@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: OccasionPageProps) {
   if (!occasion) {
     return {
       title: "Occasion Cakes | CakeToHome",
-      description: "Browse artisanal designer cakes and celebration confections for every special occasion.",
+      description: "Browse designer cakes and celebration confections for every special occasion.",
     };
   }
 
@@ -59,7 +59,7 @@ export default async function OccasionStorefrontPage({ params }: OccasionPagePro
               {/* Badge & Mode Tag */}
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-brand-gold/40 text-brand-gold text-xs font-semibold uppercase tracking-wider backdrop-blur-md shadow-sm">
                 <span>{occasion.icon || "🎉"}</span>
-                <span>{isCoquette ? "Romantic Celebration Edition" : isScrapbook ? "Celebration Memory Album" : "Artisanal Collection"}</span>
+                <span>{isCoquette ? "Romantic Celebration Edition" : isScrapbook ? "Celebration Memory Album" : "Collection"}</span>
               </div>
 
               <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">

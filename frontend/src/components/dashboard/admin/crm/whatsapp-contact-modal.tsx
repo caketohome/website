@@ -27,7 +27,7 @@ const WHATSAPP_TEMPLATES = [
     name: "New Customer Welcome 15% Voucher",
     category: "MARKETING",
     text: (name: string) =>
-      `Welcome to Cakes2Home, ${name || "Valued Customer"}! 🎉 Enjoy 15% OFF your very first order of artisan handcrafted cakes. Use coupon code *FIRSTTREAT* at checkout: https://caketohome.com`,
+      `Welcome to Cakes2Home, ${name || "Valued Customer"}! 🎉 Enjoy 15% OFF your very first order of handcrafted cakes. Use coupon code *FIRSTTREAT* at checkout: https://caketohome.com`,
   },
   {
     id: "VIP_REORDER",

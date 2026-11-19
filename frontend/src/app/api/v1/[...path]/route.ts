@@ -101,7 +101,6 @@ import { ExcelExportService, setExportBusinessIdentity } from "@frontend/lib/exc
 import { GstReportingService } from "@frontend/lib/services/gst-reporting.service";
 import type { GstReportFilters, GstReportType } from "@frontend/lib/services/gst-reporting.service";
 import { PaymentVerificationService } from "@frontend/lib/services/payment-verification.service";
-import { CashfreePaymentService } from "@frontend/lib/services/cashfree-payment.service";
 import { CrossAppEventService } from "@frontend/lib/services/cross-app-event.service";
 import { RazorpayPaymentService } from "@frontend/lib/services/razorpay-payment.service";
 import { PaymentGatewayConfigService } from "@frontend/lib/services/payment-gateway-config.service";
@@ -169,6 +168,21 @@ function enforceAdminModuleAccess(req: NextRequest, path: string, method: string
   }
   const ok = isWrite ? perms.some((p) => !p.split(".")[1].startsWith("VIEW")) : perms.length > 0;
   return ok ? null : deny(`FORBIDDEN: Your access profile does not include ${entry[1]}${isWrite ? " changes" : ""}.`);
+}
+
+/** Rider for delivery-partner actions: the logged-in rider; staff may act for a rider they name. */
+function resolveActingRiderId(req: NextRequest, body: any): { id: string } | NextResponse {
+  const session = resolveServerSession(req);
+  if (!session) return NextResponse.json({ success: false, error: "UNAUTHORIZED" }, { status: 401 });
+  const role = String(session.role || "").toUpperCase();
+  if (role === "DELIVERY_PARTNER" || role === "DLP") {
+    const id = (session as any).partnerId || session.userId || "";
+    return id ? { id } : NextResponse.json({ success: false, error: "No delivery partner linked to this login." }, { status: 403 });
+  }
+  if (["SUPER_ADMIN", "ADMIN", "BRANCH_MANAGER", "SHOP_MANAGER", "OPERATIONS_MANAGER"].includes(role) && body?.partner_id) {
+    return { id: String(body.partner_id) };
+  }
+  return NextResponse.json({ success: false, error: "FORBIDDEN: Only the assigned delivery partner can do this." }, { status: 403 });
 }
 
 /** Partner-portal guard: a verified marketplace-partner session, scoped to its own partner. */
@@ -1859,7 +1873,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       suiteResults.push({ id: "12.1", name: "All 13 Required Brand & CMS Pages Exist", status: missingSlugs.length === 0 ? "PASS" : "FAIL" });
 
       const storyPage = ApiEngine.getCmsPage("our-story");
-      suiteResults.push({ id: "12.2", name: "Our Story Artisanal Heritage Page", status: (storyPage && storyPage.sections?.length > 0) ? "PASS" : "FAIL" });
+      suiteResults.push({ id: "12.2", name: "Our Story Heritage Page", status: (storyPage && storyPage.sections?.length > 0) ? "PASS" : "FAIL" });
 
       const locPage = ApiEngine.getCmsPage("locations");
       suiteResults.push({ id: "12.3", name: "Active Kitchen Hubs Directory Page", status: (locPage && locPage.sections?.length > 0) ? "PASS" : "FAIL" });
@@ -3169,29 +3183,6 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         limit,
       });
       return jsonWithDataSource({ success: true, events, count: events.length }, "postgres");
-    }
-
-    // ── Cashfree Settlements (GET) ──
-    if (path === "admin/accounting/cashfree-settlements" || path === "accounting/cashfree-settlements") {
-      try {
-        const res = await dbQuery(`
-          SELECT
-            csb.*,
-            csb.batch_ref AS settlement_id,
-            csb.gateway_fee AS fee_amount,
-            csb.gateway_tax AS tax_amount,
-            ba.account_name AS bank_name,
-            ba.account_number_masked,
-            '1113' AS clearing_gl_code,
-            'Payment Gateway Clearing' AS clearing_gl_name
-          FROM public.cashfree_settlement_batch csb
-          LEFT JOIN public.bank_account ba ON csb.bank_account_id = ba.id
-          ORDER BY csb.settlement_date DESC, csb.created_at DESC;
-        `);
-        return jsonWithDataSource({ success: true, data: res.rows, settlements: res.rows }, "postgres");
-      } catch (err: any) {
-        return jsonWithDataSource({ success: false, error: "SETTLEMENTS_FAILED", message: err.message }, "error", 500);
-      }
     }
 
     // ── Bank Reconciliations (GET) ──
@@ -5529,7 +5520,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
 
       // 3. Resolve Authenticated Partner Record strictly from session
-      const targetId = sessionUserId || "dlp_101";
+      const targetId = sessionUserId;
       const partnerObj = (ApiEngine.getAdminDeliveryPartners()?.partners || []).find(
         (p: any) => p.id === targetId || p.partner_number === targetId || p.phone === targetId
       );
@@ -8814,64 +8805,6 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource({ success: true, summary }, "postgres", 200);
     }
 
-    // ── Ingest Cashfree Settlement Batch (POST) ──
-    if (
-      path === "accounting/cashfree-settlements" ||
-      path === "admin/accounting/cashfree-settlements" ||
-      path === "accounting/cashfree-settlements/ingest"
-    ) {
-      const userCtx = resolveUserContext(req);
-      try {
-        const settlement = await BankAccountService.ingestCashfreeSettlement({
-          batch_ref: body.batch_ref || body.batchRef || body.settlement_id,
-          settlement_date: body.settlement_date || body.settlementDate,
-          bank_account_id: body.bank_account_id || body.bankAccountId || body.destination_bank_account_id,
-          gross_amount: Number(body.gross_amount ?? body.grossAmount ?? 0),
-          gateway_fee: Number(body.gateway_fee ?? body.fee_amount ?? body.gatewayFee ?? 0),
-          gateway_tax: Number(body.gateway_tax ?? body.tax_amount ?? body.gatewayTax ?? 0),
-          net_amount: body.net_amount !== undefined ? Number(body.net_amount) : undefined,
-          utr_number: body.utr_number || body.utrNumber,
-          order_ids: body.order_ids || body.orderIds,
-          actorContext: userCtx.userId ? userCtx : { id: "admin_01", role: "SUPER_ADMIN" },
-        });
-        return jsonWithDataSource({ success: true, data: settlement, settlement }, "postgres", 201);
-      } catch (err: any) {
-        return jsonWithDataSource(
-          { success: false, error: err.code || "SETTLEMENT_INGEST_FAILED", message: err.message },
-          "error",
-          400
-        );
-      }
-    }
-
-    // ── Match Bank Statement Line by UTR & Reconcile Settlement (POST) ──
-    if (
-      path === "accounting/reconciliations/match" ||
-      path === "admin/accounting/reconciliations/match" ||
-      path === "accounting/reconciliations/import" ||
-      path === "admin/accounting/reconciliations/import"
-    ) {
-      const userCtx = resolveUserContext(req);
-      try {
-        const reconResult = await BankAccountService.matchBankStatementAndReconcile({
-          bank_account_id: body.bank_account_id || body.bankAccountId,
-          statement_date: body.statement_date || body.statementDate || body.date,
-          utr_number: body.utr_number || body.utrNumber || body.reference_no,
-          credit_amount: Number(body.credit_amount ?? body.creditAmount ?? body.amount ?? 0),
-          description: body.description,
-          file_name: body.file_name || body.fileName,
-          actorContext: userCtx.userId ? userCtx : { id: "admin_01", role: "SUPER_ADMIN" },
-        });
-        return jsonWithDataSource({ success: true, data: reconResult, reconciliation: reconResult }, "postgres", 200);
-      } catch (err: any) {
-        return jsonWithDataSource(
-          { success: false, error: err.code || "RECONCILIATION_MATCH_FAILED", message: err.message },
-          "error",
-          400
-        );
-      }
-    }
-
     // ── Bank Fund Transfers ──
     if (path === "admin/accounting/bank-transfers" || path === "accounting/bank-transfers" || path === "admin/bank-transfers") {
       const userCtx = resolveUserContext(req);
@@ -11238,32 +11171,41 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource({ campaign: ApiEngine.createAdminCampaign(body), success: true }, "postgres");
     }
     if (path === "admin/delivery/partners" || path === "admin/delivery-partners") {
-      return jsonWithDataSource({ partner: ApiEngine.createAdminDeliveryPartner(body), success: true }, "postgres");
+      try {
+        return jsonWithDataSource({ partner: await ApiEngine.createAdminDeliveryPartner(body), success: true }, "postgres");
+      } catch (err: any) {
+        return jsonWithDataSource({ success: false, error: err.message || "Could not create delivery partner" }, "postgres", 400);
+      }
     }
     // ── Delivery Partner Workflow & OTP Endpoints ──
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/claim")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/claim", "");
-      const result = ApiEngine.claimDeliveryJob(orderId, body.partner_id || "dlp_101");
+      const rider = resolveActingRiderId(req, body); if (rider instanceof NextResponse) return rider;
+      const result = ApiEngine.claimDeliveryJob(orderId, rider.id);
       return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/pickup-otp/verify")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/pickup-otp/verify", "");
-      const result = await ApiEngine.verifyPickupOtpBackend(orderId, body.otp || body.pickup_otp, body.partner_id || "dlp_101");
+      const rider = resolveActingRiderId(req, body); if (rider instanceof NextResponse) return rider;
+      const result = await ApiEngine.verifyPickupOtpBackend(orderId, body.otp || body.pickup_otp, rider.id);
       return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/delivery-otp/verify")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/delivery-otp/verify", "");
-      const result = await ApiEngine.verifyCustomerOtpBackend(orderId, body.otp || body.delivery_otp, body.partner_id || "dlp_101");
+      const rider = resolveActingRiderId(req, body); if (rider instanceof NextResponse) return rider;
+      const result = await ApiEngine.verifyCustomerOtpBackend(orderId, body.otp || body.delivery_otp, rider.id);
       return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/exception")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/exception", "");
-      const result = ApiEngine.reportDeliveryExceptionBackend(orderId, body.partner_id || "dlp_101", body.type, body.description);
+      const rider = resolveActingRiderId(req, body); if (rider instanceof NextResponse) return rider;
+      const result = ApiEngine.reportDeliveryExceptionBackend(orderId, rider.id, body.type, body.description);
       return jsonWithDataSource(result, "postgres", result.statusCode || 200);
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/reject")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/reject", "");
-      const result = ApiEngine.rejectDeliveryJob(orderId, body.partner_id || "dlp_101", body.reason);
+      const rider = resolveActingRiderId(req, body); if (rider instanceof NextResponse) return rider;
+      const result = ApiEngine.rejectDeliveryJob(orderId, rider.id, body.reason);
       return jsonWithDataSource(result, "postgres", result.statusCode || 200);
     }
     if (path.startsWith("delivery-partner/exceptions/") && path.endsWith("/resolve")) {
@@ -11272,7 +11214,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource(result, "postgres", result.statusCode || 200);
     }
     if (path === "delivery-partner/availability") {
-      const result = ApiEngine.updatePartnerAvailabilityBackend(body.partner_id || "dlp_101", body.status, body.pause_minutes);
+      const rider = resolveActingRiderId(req, body); if (rider instanceof NextResponse) return rider;
+      const result = ApiEngine.updatePartnerAvailabilityBackend(rider.id, body.status, body.pause_minutes);
       return jsonWithDataSource(result, "postgres", result.statusCode || 200);
     }
 

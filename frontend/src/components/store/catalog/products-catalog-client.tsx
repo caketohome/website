@@ -302,7 +302,7 @@ export function ProductsCatalogClient({
             <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 font-medium">
               <span>
                 Showing <strong className="text-slate-900 dark:text-brand-gold font-bold">{results.length}</strong> of{" "}
-                <strong className="text-slate-900 dark:text-brand-gold font-bold">{count || results.length}</strong> artisan cakes & treats
+                <strong className="text-slate-900 dark:text-brand-gold font-bold">{count || results.length}</strong> cakes & treats
               </span>
               <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300">
                 <MapPin className="w-3.5 h-3.5 text-brand-gold" /> Serviceable in Kerala

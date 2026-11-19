@@ -302,7 +302,7 @@ export function HowToJsonLd({
     return <Script data={howToSchema} />;
 }
 
-/** Recipe structured data — for artisanal cake recipes & blog posts. */
+/** Recipe structured data — for cake recipes & blog posts. */
 export function RecipeJsonLd({
     name,
     description,

@@ -245,7 +245,7 @@ const DEFAULT_PRODUCTS: ProductItem[] = [
     category_ids: ["cat_red_velvet", "cat_cheesecakes", "cat_bestsellers"],
     categories: [
       { id: "cat_red_velvet", name: "Red Velvet Cakes", slug: "red-velvet-cakes", description: "Classic crimson velvet layers with rich cream cheese frosting." },
-      { id: "cat_cheesecakes", name: "Cheesecakes & Artisanal", slug: "cheesecakes", description: "Baked New York cheesecakes and chef-crafted artisanal creations." },
+      { id: "cat_cheesecakes", name: "Cheesecakes", slug: "cheesecakes", description: "Baked New York cheesecakes and chef-crafted creations." },
       { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", description: "Bangalore's most-ordered gourmet celebratory cakes." },
     ],
   },
@@ -565,8 +565,7 @@ export interface DeliveryDefaultsSettings {
 }
 
 export interface PaymentSettings {
-  supported_methods: Array<"cod" | "cashfree" | "wallet" | "test_mode">;
-  cashfree_app_id?: string;
+  supported_methods: Array<"cod" | "razorpay" | "wallet" | "test_mode">;
   cod_max_limit: number;
   cod_surcharge: number;
   default_currency: string;
@@ -769,7 +768,6 @@ const DEFAULT_DELIVERY_DEFAULTS: DeliveryDefaultsSettings = {
 
 const DEFAULT_PAYMENT_SETTINGS: PaymentSettings = {
   supported_methods: ["cod", "razorpay", "test_mode", "wallet"],
-  cashfree_app_id: "TEST_CF_APP_ID",
   cod_max_limit: 5000,
   cod_surcharge: 0,
   default_currency: "INR",
@@ -983,18 +981,7 @@ const DEFAULT_CUSTOMERS = [
   { id: "cus_03", customer_number: "CTH-CUST-000103", customer_type: "registered", name: "Priya Nair", email: "priya@example.com", phone: "+91 98765 43212", total_orders: 8, wallet_balance: 300, is_vip: true },
 ];
 
-const DEFAULT_DELIVERIES = [
-  { id: "del_01", order_number: "CTH-20260731-891234", driver_name: "Ramesh Rider (Gig)", status: "assigned", eta_minutes: 18, delivery_partner_id: "dlp_01" },
-  { id: "del_02", order_number: "CTH-20260731-992145", driver_name: "Mahesh Rider (Company)", status: "in_transit", eta_minutes: 12, delivery_partner_id: "dlp_02" },
-];
 
-const DEFAULT_DELIVERY_PARTNERS = [
-  { id: "dlp_01", first_name: "Ramesh", last_name: "Rider", name: "Ramesh Rider", phone: "+91 99000 11111", status: "active", rating: 4.9, completed_trips: 142, primary_branch_id: "br_indiranagar", associated_branches: ["br_indiranagar", "res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-  { id: "dlp_02", first_name: "Mahesh", last_name: "Rider", name: "Mahesh Rider", phone: "+91 99000 22222", status: "active", rating: 4.8, completed_trips: 98, primary_branch_id: "br_indiranagar", associated_branches: ["br_indiranagar", "res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-  { id: "dlp_03", first_name: "Suresh", last_name: "Rider", name: "Suresh Rider", phone: "+91 99000 33333", status: "active", rating: 4.7, completed_trips: 84, primary_branch_id: "br_indiranagar", associated_branches: ["br_indiranagar", "res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-  { id: "dlp_04", first_name: "Ganesh", last_name: "Rider", name: "Ganesh Rider", phone: "+91 99000 44444", status: "active", rating: 4.9, completed_trips: 110, primary_branch_id: "br_indiranagar", associated_branches: ["br_indiranagar", "res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-  { id: "dlp_101", first_name: "Ravi", last_name: "Kumar", name: "Ravi Kumar", phone: "+91 98765 00101", status: "active", rating: 4.9, completed_trips: 120, primary_branch_id: "br_indiranagar", associated_branches: ["br_indiranagar", "res_01KXYMAHGFPRY1G9TZKEVGAGAT"] },
-];
 
 const DEFAULT_SETTINGS = {
   store_name: "CakeToHome Bakery",
@@ -1008,7 +995,7 @@ const DEFAULT_SETTINGS = {
 
 const DEFAULT_SEO_CONFIG = {
   meta_title: "CakeToHome — Premium Gourmet Cakes Delivered in 2 Hours",
-  meta_description: "Order handcrafted artisanal cakes online in Bangalore. Express 2-hour delivery, customized birthday cakes, and same-day fresh delivery.",
+  meta_description: "Order handcrafted cakes online in Bangalore. Express 2-hour delivery, customized birthday cakes, and same-day fresh delivery.",
   keywords: "cakes online, birthday cake delivery, cake delivery bangalore, online bakery",
   ga_id: "G-CTH987654321",
   fb_pixel_id: "123456789012345",
@@ -1045,7 +1032,7 @@ const DEFAULT_CMS_PAGES = [
     url_path: "/",
     breadcrumb_title: "Home",
     meta_title: "Order Fresh Cakes Online in Bangalore — Delivered in 2 Hours | CakeToHome",
-    meta_description: "CakeToHome delivers handcrafted artisanal cakes across Bangalore in under 2 hours. Birthday, wedding, and custom photo cakes with express delivery slots.",
+    meta_description: "CakeToHome delivers handcrafted cakes across Bangalore in under 2 hours. Birthday, wedding, and custom photo cakes with express delivery slots.",
     robots_tag: "index, follow",
     canonical_url: "https://caketohome.com/",
     keywords: "cake delivery bangalore, birthday cake online, custom cakes bangalore, 2 hour cake delivery",
@@ -1073,8 +1060,8 @@ const DEFAULT_CMS_PAGES = [
         order: 1,
         config: {
           headline: "Handcrafted Gourmet Cakes Fresh from Our Kitchen",
-          subheadline: "Fresh, artisanal celebration cakes baked to order. Scheduled delivery based on branch serviceability.",
-          badge_text: "100% Fresh & Artisanal • Pure Vegetarian & Eggless Options",
+          subheadline: "Fresh, celebration cakes baked to order. Scheduled delivery based on branch serviceability.",
+          badge_text: "100% Fresh • Pure Vegetarian & Eggless Options",
           cta_primary_text: "Order a Cake",
           cta_primary_url: "/products",
           cta_secondary_text: "View Collections",
@@ -1124,8 +1111,8 @@ const DEFAULT_CMS_PAGES = [
           order: 1,
           config: {
             headline: "Handcrafted Gourmet Cakes Delivered in 2 Hours",
-            subheadline: "Fresh, artisanal birthday & wedding cakes across Bangalore. Express 2-hour delivery available!",
-            badge_text: "100% Fresh & Artisanal • Express 2-Hour Delivery",
+            subheadline: "Fresh, birthday & wedding cakes across Bangalore. Express 2-hour delivery available!",
+            badge_text: "100% Fresh • Express 2-Hour Delivery",
             cta_primary_text: "Order a Cake",
             cta_primary_url: "/products",
             cta_secondary_text: "View Collections",
@@ -1184,12 +1171,12 @@ const DEFAULT_CMS_PAGES = [
     url_path: "/products",
     breadcrumb_title: "All Cakes",
     meta_title: "Order Fresh Cakes Online — Birthday, Wedding & Custom Cakes | CakeToHome",
-    meta_description: "Browse 100+ fresh handcrafted cakes online. Birthday cakes, wedding cakes, photo cakes, and artisan specialties. Delivery across Bangalore in 2 hours.",
+    meta_description: "Browse 100+ fresh handcrafted cakes online. Birthday cakes, wedding cakes, photo cakes, and eggless specialties. Delivery across Bangalore in 2 hours.",
     robots_tag: "index, follow",
     canonical_url: "https://caketohome.com/products",
     keywords: "buy cakes online, birthday cake order, wedding cake bangalore, gourmet cakes photo cakes",
     og_title: "Order Fresh Cakes Online — CakeToHome",
-    og_description: "100+ artisanal cakes with same-day delivery across Bangalore.",
+    og_description: "100+ cakes with same-day delivery across Bangalore.",
     og_image: "/images/placeholder-cake.webp",
     og_type: "website",
     twitter_card: "summary_large_image",
@@ -1222,11 +1209,11 @@ const DEFAULT_CMS_PAGES = [
     url_path: "/about-us",
     breadcrumb_title: "About CakeToHome",
     meta_title: "About CakeToHome — Our Story, Our Bakers, Our Promise | CakeToHome",
-    meta_description: "CakeToHome is Bangalore's premium artisanal cake bakery. Founded in 2020, we deliver handcrafted cakes with love and same-day delivery across Bangalore.",
+    meta_description: "CakeToHome is Bangalore's premium cake bakery. Founded in 2020, we deliver handcrafted cakes with love and same-day delivery across Bangalore.",
     robots_tag: "index, follow",
     canonical_url: "https://caketohome.com/about-us",
     og_title: "About CakeToHome — Our Story",
-    og_description: "Bangalore's premier artisanal cake bakery with 2-hour delivery.",
+    og_description: "Bangalore's premier cake bakery with 2-hour delivery.",
     og_type: "website",
     twitter_card: "summary_large_image",
     structured_data_type: "Organization",
@@ -1298,7 +1285,7 @@ const DEFAULT_CMS_PAGES = [
     visibility_rules: { audience: "public", devices: "all", locations: "all" },
     announcement_bar: { enabled: false, text: "", cta_text: "", cta_url: "", bg_color: "#e11d48" },
     sections: [
-      { id: "sec_faq_main", type: "faq", name: "FAQ Content", enabled: true, order: 1, config: { heading: "Frequently Asked Questions", faqs: [ { q: "Do you offer same-day delivery?", a: "Yes! We offer same-day and 2-hour express delivery slots across Bangalore for fresh celebration cakes." }, { q: "Can I customize the cake flavor and message?", a: "Absolutely! Choose from Belgian Chocolate, Red Velvet, Alphonso Mango, Lotus Biscoff and more. Add a personalized message during checkout." }, { q: "Do you offer gourmet cakes?", a: "Yes, all our cakes are available in artisan versions at no extra cost." }, { q: "What is your cancellation policy?", a: "Orders can be cancelled within 2 hours of placement for a full refund. After that, a 15% cancellation fee applies." } ] } },
+      { id: "sec_faq_main", type: "faq", name: "FAQ Content", enabled: true, order: 1, config: { heading: "Frequently Asked Questions", faqs: [ { q: "Do you offer same-day delivery?", a: "Yes! We offer same-day and 2-hour express delivery slots across Bangalore for fresh celebration cakes." }, { q: "Can I customize the cake flavor and message?", a: "Absolutely! Choose from Belgian Chocolate, Red Velvet, Alphonso Mango, Lotus Biscoff and more. Add a personalized message during checkout." }, { q: "Do you offer gourmet cakes?", a: "Yes, all our cakes are available in eggless versions at no extra cost." }, { q: "What is your cancellation policy?", a: "Orders can be cancelled within 2 hours of placement for a full refund. After that, a 15% cancellation fee applies." } ] } },
     ],
     draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
     published_config: {},
@@ -1369,7 +1356,7 @@ const DEFAULT_CMS_PAGES = [
     url_path: "/birthday-cakes-bangalore",
     breadcrumb_title: "Birthday Cakes",
     meta_title: "Best Birthday Cakes in Bangalore — Same Day Delivery | CakeToHome",
-    meta_description: "Order the best birthday cakes in Bangalore with same-day & express delivery. Customizable, artisan, and photo cakes from ₹399.",
+    meta_description: "Order the best birthday cakes in Bangalore with same-day & express delivery. Customizable, eggless, and photo cakes from ₹399.",
     robots_tag: "index, follow",
     canonical_url: "https://caketohome.com/birthday-cakes-bangalore",
     keywords: "birthday cakes bangalore, birthday cake delivery, custom birthday cake, express birthday cake delivery",
@@ -1401,8 +1388,8 @@ const DEFAULT_CMS_PAGES = [
     status: "published",
     url_path: "/our-story",
     breadcrumb_title: "Our Story",
-    meta_title: "Our Story — The CakeToHome Artisanal Heritage | CakeToHome",
-    meta_description: "Discover how CakeToHome started as a small neighborhood kitchen in Bangalore and grew into a beloved artisanal bakery with 2-hour delivery.",
+    meta_title: "Our Story — The CakeToHome Heritage | CakeToHome",
+    meta_description: "Discover how CakeToHome started as a small neighborhood kitchen in Bangalore and grew into a beloved bakery with 2-hour delivery.",
     robots_tag: "index, follow",
     canonical_url: "https://caketohome.com/our-story",
     structured_data_type: "AboutPage",
@@ -1432,7 +1419,7 @@ const DEFAULT_CMS_PAGES = [
     url_path: "/mission-vision",
     breadcrumb_title: "Mission & Vision",
     meta_title: "Mission & Vision — Pure Ingredients, On-Time Celebrations | CakeToHome",
-    meta_description: "Our mission is to deliver Bangalore's freshest, most delightful cakes within 2 hours while championing sustainability and artisanal craft.",
+    meta_description: "Our mission is to deliver Bangalore's freshest, most delightful cakes within 2 hours while championing sustainability and craft.",
     robots_tag: "index, follow",
     canonical_url: "https://caketohome.com/mission-vision",
     structured_data_type: "AboutPage",
@@ -1472,7 +1459,7 @@ const DEFAULT_CMS_PAGES = [
     nav_location: "footer",
     visibility_rules: { audience: "public", devices: "all", locations: "all" },
     sections: [
-      { id: "sec_team_hero", type: "hero", name: "Team Hero", enabled: true, order: 1, config: { headline: "The Artisans Behind Your Cakes", subheadline: "Trained across premier culinary academies with a shared love for baking perfection.", height: "medium" } },
+      { id: "sec_team_hero", type: "hero", name: "Team Hero", enabled: true, order: 1, config: { headline: "The Bakers Behind Your Cakes", subheadline: "Trained across premier culinary academies with a shared love for baking perfection.", height: "medium" } },
       { id: "sec_team_body", type: "brand_story", name: "Our Kitchen Team", enabled: true, order: 2, config: { heading: "Passionate Bakers & Swift Couriers", body: "From Chef Rohan in Indiranagar to Chef Priya in Koramangala, our kitchen teams bake from 5 AM daily. Backed by our fleet of temperature-controlled riders, we bridge oven-fresh craft directly to your door." } },
     ],
     draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
@@ -1563,7 +1550,7 @@ const DEFAULT_CMS_PAGES = [
     visibility_rules: { audience: "public", devices: "all", locations: "all" },
     sections: [
       { id: "sec_test_hero", type: "hero", name: "Reviews Hero", enabled: true, order: 1, config: { headline: "Loved by Over 50,000 Celebrations", subheadline: "Rated 4.9/5 across Bangalore for taste, freshness, and punctual delivery.", height: "medium" } },
-      { id: "sec_test_body", type: "brand_story", name: "Featured Reviews", enabled: true, order: 2, config: { heading: "What Our Customers Say", body: "⭐ \"The Belgian Dark Truffle was a masterpiece! Express delivery arrived right on time for my husband's 30th birthday.\" — Ananya S., Indiranagar\n\n⭐ \"Super soft artisan Red Velvet. Everyone at the party was asking where we ordered it from.\" — Rahul V., Koramangala\n\n⭐ \"Ordered in the afternoon and received at 5 PM for our anniversary. Outstanding packaging and taste.\" — Deepa K., HSR Layout" } },
+      { id: "sec_test_body", type: "brand_story", name: "Featured Reviews", enabled: true, order: 2, config: { heading: "What Our Customers Say", body: "⭐ \"The Belgian Dark Truffle was a masterpiece! Express delivery arrived right on time for my husband's 30th birthday.\" — Ananya S., Indiranagar\n\n⭐ \"Super soft eggless Red Velvet. Everyone at the party was asking where we ordered it from.\" — Rahul V., Koramangala\n\n⭐ \"Ordered in the afternoon and received at 5 PM for our anniversary. Outstanding packaging and taste.\" — Deepa K., HSR Layout" } },
     ],
     draft_config: { sections: [], banners: [], product_ids: [], category_ids: [] },
     published_config: {},
@@ -1581,7 +1568,7 @@ const DEFAULT_CMS_PAGES = [
     status: "published",
     url_path: "/about-us",
     breadcrumb_title: "About Us",
-    meta_title: "About Us — The CakeToHome Artisanal Bakery | CakeToHome",
+    meta_title: "About Us — The CakeToHome Bakery | CakeToHome",
     meta_description: "Discover CakeToHome's commitment to 100% fresh, handcrafted gourmet cakes with pure Belgian chocolate and 2-hour express delivery.",
     robots_tag: "index, follow",
     canonical_url: "https://caketohome.com/about-us",
@@ -1592,7 +1579,7 @@ const DEFAULT_CMS_PAGES = [
     nav_location: "footer",
     visibility_rules: { audience: "public", devices: "all", locations: "all" },
     sections: [
-      { id: "sec_about_hero", type: "hero", name: "About Hero", enabled: true, order: 1, config: { headline: "Handcrafting Joy, One Cake at a Time", subheadline: "Artisanal bakery in Bengaluru baking fresh from 5 AM daily with zero artificial preservatives.", height: "medium" } },
+      { id: "sec_about_hero", type: "hero", name: "About Hero", enabled: true, order: 1, config: { headline: "Handcrafting Joy, One Cake at a Time", subheadline: "Bakery in Bengaluru baking fresh from 5 AM daily with zero artificial preservatives.", height: "medium" } },
       { id: "sec_about_story", type: "brand_story", name: "Our Baking Heritage", enabled: true, order: 2, config: { heading: "Our Heritage & Philosophy", body: "CakeToHome was born out of a simple belief: celebrations deserve real, freshly baked cakes made with pure butter, authentic Belgian cocoa, and farm-fresh cream — never premixes or frozen stock. Every single cake is baked to order and dispatched in temperature-controlled boxes for perfection." } },
       { id: "sec_about_values", type: "features", name: "Core Commitments", enabled: true, order: 3, config: { heading: "Our Quality Promises", items: [ { title: "100% Fresh Daily", description: "Oven fresh, never refrigerated beforehand.", icon: "Sparkles" }, { title: "Pure Belgian Chocolate", description: "Real cocoa butter, zero compound fat.", icon: "Heart" }, { title: "2-Hour Express Delivery", description: "Precision chilled delivery across Bangalore.", icon: "Clock" }, { title: "Express Deliveries", description: "Punctual chilled delivery within 2 hours.", icon: "Clock" } ] } },
     ],
@@ -1758,7 +1745,7 @@ const DEFAULT_CMS_PAGES = [
 export const DEFAULT_MEDIA = [
   {
     id: "med_hero_01",
-    name: "Belgian Chocolate Truffle Artisanal Cake",
+    name: "Belgian Chocolate Truffle Cake",
     filename: "belgian-chocolate-cake.jpg",
     url: "/images/placeholder-cake.webp",
     thumbnail_url: "/images/placeholder-cake.webp",
@@ -2978,7 +2965,7 @@ const DEFAULT_BRANCHES: BranchItem[] = [
   normalizeBranchOperations({
     id: "br_chennai_tnagar",
     code: "HUB-MAA-01",
-    name: "Chennai T. Nagar Artisanal Bakery",
+    name: "Chennai T. Nagar Bakery",
     max_delivery_radius_km: 15,
     city_id: "city_maa",
     hierarchy: { region_id: "reg_south", state_id: "state_tn", city_id: "city_maa", zone_id: "zone_central_tn", kitchen_id: "ktch_maa_01" },
@@ -4507,7 +4494,7 @@ export class ApiEngine {
           full_name: mgrName,
           first_name: mgrParts[0] || "Branch",
           last_name: mgrParts.slice(1).join(" ") || "Manager",
-          email: branch.email || branch.manager_account?.email || "manager@caketohome.com",
+          email: branch.manager_account?.email || branch.email || "",
           phone: branch.phone || branch.manager_account?.phone || phone || "",
           role: "BRANCH_MANAGER",
           branch_id: branch.id,
@@ -4527,57 +4514,16 @@ export class ApiEngine {
           full_name: "Super Admin",
           first_name: "Super",
           last_name: "Admin",
-          email: "admin@caketohome.com",
-          phone: phone || "+91 99999 00001",
+          email: "",
+          phone: phone || "",
           role: "SUPER_ADMIN",
           permissions: ["ALL"],
         };
       }
       return null;
     }
-    if (normRole === "BRANCH_MANAGER" || normRole === "SHOP_MANAGER" || normRole === "SHOP" || (userId && (userId.startsWith("shpmgr_") || userId.startsWith("mgr_")))) {
-      if (!phone || cleanPhone === "9876500001" || cleanPhone === "9876500002" || (userId && (userId.startsWith("shpmgr_") || userId.startsWith("mgr_")))) {
-        let derivedBranchId = "br_indiranagar";
-        if (userId) {
-          if (userId.includes("whitefield")) derivedBranchId = "br_whitefield";
-          else if (userId.includes("indiranagar")) derivedBranchId = "br_indiranagar";
-          else if (userId.includes("koramangala")) derivedBranchId = "br_koramangala";
-          else if (userId.includes("jayanagar")) derivedBranchId = "br_jayanagar";
-          else derivedBranchId = userId.replace(/^shpmgr_/, "br_");
-        }
-        return {
-          id: userId || "shpmgr_01",
-          name: "Branch Manager",
-          full_name: "Branch Manager",
-          first_name: "Branch",
-          last_name: "Manager",
-          email: "manager@caketohome.com",
-          phone: phone || "+91 99999 00002",
-          role: "BRANCH_MANAGER",
-          branch_id: derivedBranchId,
-          branch_name: derivedBranchId === "br_whitefield" ? "Whitefield Kitchen" : "Indiranagar Flagship Bakery",
-          permissions: ["orders:read", "orders:accept", "orders:fulfill", "orders:cancel", "inventory:read", "inventory:update"],
-        };
-      }
-      return null;
-    }
-    if (normRole === "DELIVERY_PARTNER" || normRole === "DLP" || (userId && (userId.startsWith("dlp_") || userId.startsWith("driver_")))) {
-      if (!phone || cleanPhone === "9876500001" || cleanPhone === "9876500003" || cleanPhone === "9900011111" || cleanPhone === "9900022222" || (userId && userId.startsWith("dlp_"))) {
-        return {
-          id: userId || "dlp_01",
-          name: "Delivery Partner",
-          full_name: "Delivery Partner",
-          first_name: "Delivery",
-          last_name: "Partner",
-          email: "rider@caketohome.com",
-          phone: phone || "+91 99999 00003",
-          role: "DELIVERY_PARTNER",
-          partner_number: "CTH-DP-000001",
-          primary_branch_id: "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
-          primary_branch_name: "Indiranagar Flagship Bakery",
-          availability_status: "ONLINE",
-        };
-      }
+    // Managers and riders must exist as real staff / branch / rider records (no demo accounts).
+    if (normRole === "BRANCH_MANAGER" || normRole === "SHOP_MANAGER" || normRole === "SHOP" || normRole === "DELIVERY_PARTNER" || normRole === "DLP") {
       return null;
     }
 
@@ -7275,9 +7221,9 @@ export class ApiEngine {
 
   // ── Delivery Partner & Fleet Engine ──────────────────────────────
   static ensureDeliveryPartnersStore() {
-    // Seed demo partners only on a brand-new store; an empty list means the admin deleted them.
+    // Riders come only from Supabase (no demo riders).
     if (!Array.isArray(memoryStore.delivery_partners)) {
-      memoryStore.delivery_partners = DEFAULT_DELIVERY_PARTNERS.map(p => ({ ...p }));
+      memoryStore.delivery_partners = [];
     }
 
 
@@ -7647,7 +7593,7 @@ export class ApiEngine {
     };
   }
 
-  static createAdminDeliveryPartner(data: any) {
+  static async createAdminDeliveryPartner(data: any) {
     ApiEngine.ensureDeliveryPartnersStore();
 
     const phoneClean = (data.phone || "").replace(/\D/g, "");
@@ -7664,20 +7610,19 @@ export class ApiEngine {
 
     const partnerNumber = data.partner_number || ApiEngine.generateNextPartnerNumber();
     const id = data.id || `dlp_${Date.now()}`;
-    const fName = data.first_name || data.name?.split(" ")[0] || "New";
-    const lName = data.last_name || data.name?.split(" ").slice(1).join(" ") || "Rider";
+    const fName = String(data.first_name || data.name?.split(" ")[0] || "").trim();
+    const lName = String(data.last_name || data.name?.split(" ").slice(1).join(" ") || "").trim();
     const fullName = `${fName} ${lName}`.trim();
+    if (!fullName) throw new Error("Delivery partner name is required.");
 
     const primaryBranchId = data.primary_branch_id || data.branch_id;
     if (!primaryBranchId) {
       throw new Error("Primary hub / branch is required.");
     }
-    const knownBranch = (memoryStore.branches || []).find((b: any) => b.id === primaryBranchId);
-    const branchObj = knownBranch || {
-      id: primaryBranchId,
-      name: data.primary_branch_name || primaryBranchId,
-      code: data.primary_branch_code || "",
-    };
+    const branchObj: any = (memoryStore.branches || []).find((b: any) => b.id === primaryBranchId);
+    if (!branchObj) {
+      throw new Error("The selected hub / branch does not exist. Create the branch first.");
+    }
 
     const formattedPhone = data.phone?.startsWith("+91") ? data.phone : `+91 ${phoneClean.slice(0, 5)} ${phoneClean.slice(5)}`;
 
@@ -7685,7 +7630,7 @@ export class ApiEngine {
     const staff = StaffAccessControl.resolveOrCreateStaff({
       name: fullName,
       phone: formattedPhone,
-      email: data.email || `${fName.toLowerCase()}.${lName.toLowerCase()}@cakes2home.com`,
+      email: data.email || "",
       role: "DELIVERY_PARTNER",
       profile_ids: ["prof_delivery_ops"],
       branch_id: branchObj.id,
@@ -7706,22 +7651,22 @@ export class ApiEngine {
       name: fullName,
       phone: formattedPhone,
       alternate_phone: data.alternate_phone || null,
-      email: data.email || `${fName.toLowerCase()}.${lName.toLowerCase()}@cakes2home.com`,
-      profile_photo: data.profile_photo || "/images/placeholder-cake.webp",
-      date_of_birth: data.date_of_birth || "1995-01-01",
-      address: data.address || "Flagship Hub Address",
+      email: data.email || null,
+      profile_photo: data.profile_photo || null,
+      date_of_birth: data.date_of_birth || null,
+      address: data.address || "",
       city: data.city || branchObj.city || "",
       state: data.state || branchObj.state || "",
       pincode: data.pincode || branchObj.pincode || "",
 
-      emergency_contact_name: data.emergency_contact_name || "Emergency Contact",
-      emergency_contact_relationship: data.emergency_contact_relationship || "Relative",
-      emergency_contact_phone: data.emergency_contact_phone || data.phone,
+      emergency_contact_name: data.emergency_contact_name || "",
+      emergency_contact_relationship: data.emergency_contact_relationship || "",
+      emergency_contact_phone: data.emergency_contact_phone || "",
 
       joining_date: data.joining_date || new Date().toISOString().slice(0, 10),
       status: data.status || "active",
-      availability_status: data.availability_status || "ONLINE",
-      rating: 5.0,
+      availability_status: data.availability_status || "OFFLINE",
+      rating: 0,
       total_deliveries: 0,
       successful_deliveries: 0,
       cancelled_deliveries: 0,
@@ -7767,12 +7712,11 @@ export class ApiEngine {
       areas: derivedCov.areas,
     };
 
+    // Saved to Supabase first; the rider only appears once it is really stored.
+    await persistDeliveryPartnerToDb(newPartner);
     memoryStore.delivery_partners.unshift(newPartner);
     ApiEngine.addAuditLog(`Registered Delivery Partner ${fullName} (${partnerNumber}) assigned to ${branchObj.name} (Staff ID: ${staff.id})`);
     ApiEngine.persist();
-    persistDeliveryPartnerToDb(newPartner).catch((err) => {
-      console.error("[ApiEngine] Failed to persist new delivery partner to PostgreSQL:", err);
-    });
 
     return newPartner;
   }
@@ -12413,7 +12357,7 @@ export class ApiEngine {
       flavors: ["Belgian Truffle", "Red Velvet", "Alphonso Mango Mousse", "Black Forest", "Butterscotch Crunch"],
       tiers: [1, 2, 3],
       sizes: ["0.5 kg", "1.0 kg", "1.5 kg", "2.0 kg"],
-      dietary: ["artisan", "Sugar-Free", "Gluten-Free", "Vegan"],
+      dietary: ["eggless", "Sugar-Free", "Gluten-Free", "Vegan"],
     };
   }
 
@@ -13313,7 +13257,7 @@ export class ApiEngine {
         if (cName.includes("birthday")) resolvedIds.push("occ_birthday", "occ_baby_birthday");
         if (cName.includes("anniversary") || cName.includes("wedding") || cName.includes("romantic")) resolvedIds.push("occ_anniversary", "occ_wedding", "occ_valentines_day");
         if (cName.includes("kids")) resolvedIds.push("occ_baby_birthday", "occ_birthday");
-        if (cName.includes("designer") || cName.includes("artisan") || cName.includes("celebrat")) resolvedIds.push("occ_birthday", "occ_anniversary", "occ_congratulations");
+        if (cName.includes("designer") || cName.includes("eggless") || cName.includes("celebrat")) resolvedIds.push("occ_birthday", "occ_anniversary", "occ_congratulations");
         if (resolvedIds.length === 0) resolvedIds.push("occ_birthday");
         cat.occasion_ids = resolvedIds;
       }
@@ -16628,7 +16572,7 @@ export class ApiEngine {
         return {
           exists: true,
           role: "DELIVERY_PARTNER",
-          partner_id: staffMember.delivery_partner_id || staffMember.id || "dlp_01",
+          partner_id: staffMember.delivery_partner_id || undefined,
           branch_id: staffMember.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
           user: staffMember,
         };
@@ -16909,7 +16853,7 @@ export class ApiEngine {
     for (const ord of completed) {
       if (Array.isArray(ord.items)) {
         for (const it of ord.items) {
-          const title = it.title || it.name || "Artisan Cake";
+          const title = it.title || it.name || "Item";
           cakeCounts[title] = (cakeCounts[title] || 0) + (Number(it.quantity) || 1);
         }
       }
@@ -17459,7 +17403,7 @@ export class ApiEngine {
         weight: itemWeight,
         shape: itemShape,
         flavour: itemFlavour,
-        artisan: item.artisan ?? false,
+        eggless: item.eggless ?? item.artisan ?? null,
         cake_message: normalizedCakeMessage,
         sugar_free: Boolean(item.sugar_free),
         gluten_free: Boolean(item.gluten_free),
@@ -20711,7 +20655,7 @@ export class ApiEngine {
     }
 
     order.is_delayed = true;
-    order.delay_reason = reason || "Custom artisanal decoration in progress";
+    order.delay_reason = reason || "Custom decoration in progress";
     order.original_eta = order.delivery_slot || "Original Slot";
     order.new_eta = newEta || "Delayed by 30 mins";
     order.delayed_at = new Date().toISOString();
@@ -22461,7 +22405,7 @@ export class ApiEngine {
     delivery_slot_id: string;
     delivery_type?: string;
     coupon_code?: string;
-    payment_method: "cod" | "cashfree" | "test_mode" | "wallet" | "razorpay";
+    payment_method: "cod" | "test_mode" | "wallet" | "razorpay";
     payment_details?: any;
     occasion?: string;
     ordered_for_self?: boolean;
@@ -22478,10 +22422,6 @@ export class ApiEngine {
     is_surprise_delivery?: boolean;
     special_instructions?: string;
   }) {
-    if ((payload.payment_method as string) === "cashfree") {
-      payload.payment_method = "razorpay";
-    }
-
     // 1. Revalidate everything authoritatively on server
     const addrObj = payload.address || (payload as any).shipping_address || {};
     const rawLatPayload = (payload as any).latitude ?? (payload as any).lat ?? (payload as any).delivery_latitude ?? addrObj.latitude ?? addrObj.lat ?? addrObj.delivery_latitude;
@@ -22683,7 +22623,7 @@ export class ApiEngine {
       status: "confirmed",
       delivery_status: "shop_accepted",
       payment_status: payload.payment_method === "cod" ? "pending" : "captured",
-      payment_method: payload.payment_method === "cod" ? "Cash on Delivery (COD)" : (payload.payment_method === "razorpay" ? "Razorpay Standard Checkout" : (payload.payment_method === "cashfree" ? "Cashfree PG (Cards/UPI)" : "Online Verified")),
+      payment_method: payload.payment_method === "cod" ? "Cash on Delivery (COD)" : (payload.payment_method === "razorpay" ? "Razorpay Standard Checkout" : "Online Verified"),
       transaction_id: payload.payment_details?.razorpay_payment_id || payload.payment_details?.cf_payment_id || payload.payment_details?.payment_id || `TXN_RZP_${Date.now()}`,
       delivery_type: payload.delivery_type || "delivery",
       delivery_date: validation.delivery.date,
@@ -23113,162 +23053,7 @@ export class ApiEngine {
     if (!Array.isArray((memoryStore as any).popup_campaigns)) {
       (memoryStore as any).popup_campaigns = [];
     }
-    if ((memoryStore as any).popup_campaigns.length === 0) {
-      (memoryStore as any).popup_campaigns = [
-        {
-          id: "pop_welcome_first_order",
-          name: "Welcome First Order Discount",
-          slug: "welcome-first-order",
-          popup_type: "WELCOME",
-          status: "published",
-          priority: 1000,
-          enabled: true,
-          timezone: "Asia/Kolkata",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          current_version: {
-            id: "ver_welcome_1",
-            popup_campaign_id: "pop_welcome_first_order",
-            version_number: 1,
-            created_at: new Date().toISOString(),
-            content: {
-              headline: "Get 15% OFF Your First Celebration Cake!",
-              description: "Enter your phone number to receive your instant welcome discount coupon.",
-              primaryButton: { label: "Claim 15% Discount", action: "OPEN_PHONE_AUTH" },
-              secondaryButton: { label: "No thanks, I will pay full price", action: "CLOSE" },
-            },
-            design: {
-              desktopLayout: "CENTER_MODAL",
-              tabletLayout: "CENTER_MODAL",
-              mobileLayout: "BOTTOM_SHEET",
-            },
-            trigger: {
-              enabled_triggers: ["time_on_page"],
-              timeOnPageSeconds: 3,
-              combinator: "ANY",
-            },
-            audience: {
-              customerStatus: ["guest", "all"],
-              devices: ["desktop", "mobile"],
-            },
-            frequency: {
-              scope: "session",
-              maxShows: 1,
-              snoozeDays: 7,
-            },
-            schedule: {},
-            offer: {
-              type: "COUPON",
-              code: "WELCOME15",
-              discount_type: "percentage",
-              discount_value: 15,
-            },
-            media: { source: "NO_IMAGE" },
-            rules: [],
-          },
-        },
-        {
-          id: "pop_spin_wheel_first",
-          name: "Spin & Win Celebration Wheel",
-          slug: "spin-wheel",
-          popup_type: "SPIN_WHEEL",
-          status: "published",
-          priority: 800,
-          enabled: true,
-          timezone: "Asia/Kolkata",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          current_version: {
-            id: "ver_spin_1",
-            popup_campaign_id: "pop_spin_wheel_first",
-            version_number: 1,
-            created_at: new Date().toISOString(),
-            content: {
-              headline: "Spin to Win Up to ₹250 OFF!",
-              description: "Try your luck on the celebration wheel for special rewards.",
-              primaryButton: { label: "Spin the Wheel", action: "SPIN_WHEEL" },
-            },
-            design: {
-              desktopLayout: "CENTER_MODAL",
-              tabletLayout: "CENTER_MODAL",
-              mobileLayout: "BOTTOM_SHEET",
-            },
-            trigger: {
-              enabled_triggers: ["scroll_depth"],
-              scrollDepthPercent: 50,
-              combinator: "ANY",
-            },
-            audience: {
-              customerStatus: ["guest", "all"],
-              devices: ["desktop", "mobile"],
-            },
-            frequency: {
-              scope: "session",
-              maxShows: 1,
-              snoozeDays: 3,
-            },
-            schedule: {},
-            offer: {
-              type: "SPIN_WHEEL",
-              code: "SPINWIN",
-            },
-            media: { source: "NO_IMAGE" },
-            rules: [],
-          },
-        },
-        {
-          id: "pop_cart_recovery_exit",
-          name: "Cart Abandonment Recovery",
-          slug: "cart-recovery",
-          popup_type: "CART_EXIT",
-          status: "published",
-          priority: 900,
-          enabled: true,
-          timezone: "Asia/Kolkata",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          current_version: {
-            id: "ver_cart_1",
-            popup_campaign_id: "pop_cart_recovery_exit",
-            version_number: 1,
-            created_at: new Date().toISOString(),
-            content: {
-              headline: "Don't Leave Your Cake Behind!",
-              description: "Complete your order now and enjoy an extra ₹100 instant discount.",
-              primaryButton: { label: "Complete Order with ₹100 OFF", action: "APPLY_COUPON" },
-            },
-            design: {
-              desktopLayout: "CENTER_MODAL",
-              tabletLayout: "CENTER_MODAL",
-              mobileLayout: "BOTTOM_SHEET",
-            },
-            trigger: {
-              enabled_triggers: ["exit_intent"],
-              exitIntent: true,
-              combinator: "ANY",
-            },
-            audience: {
-              customerStatus: ["all"],
-              devices: ["desktop"],
-            },
-            frequency: {
-              scope: "session",
-              maxShows: 1,
-              snoozeDays: 1,
-            },
-            schedule: {},
-            offer: {
-              type: "COUPON",
-              code: "SAVE100",
-              discount_type: "fixed",
-              discount_value: 100,
-            },
-            media: { source: "NO_IMAGE" },
-            rules: [],
-          },
-        },
-      ];
-    }
+    // Popups come only from Supabase (created in Admin → Popups); no built-in demo campaigns.
     if (!Array.isArray((memoryStore as any).popup_impressions)) {
       (memoryStore as any).popup_impressions = [];
     }
@@ -23340,7 +23125,7 @@ export class ApiEngine {
       created_at: new Date().toISOString(),
       content: payload.content || {
         headline: payload.name || "Special Celebration Offer",
-        description: "Fresh artisanal cakes crafted for your moments.",
+        description: "Fresh cakes crafted for your moments.",
         primaryButton: { label: "Claim Offer", action: "OPEN_CART" },
       },
       design: payload.design || {

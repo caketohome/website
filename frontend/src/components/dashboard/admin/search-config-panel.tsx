@@ -542,7 +542,7 @@ export function SearchConfigPanel() {
                     <Select.Item value="occasion">Occasion</Select.Item>
                     <Select.Item value="flavour">Flavour</Select.Item>
                     <Select.Item value="dietary">Dietary (Eggless, etc.)</Select.Item>
-                    <Select.Item value="style">Style / Artisan</Select.Item>
+                    <Select.Item value="style">Style</Select.Item>
                     <Select.Item value="marketing">Marketing (Bestseller)</Select.Item>
                     <Select.Item value="delivery">Delivery Slot</Select.Item>
                   </Select.Content>

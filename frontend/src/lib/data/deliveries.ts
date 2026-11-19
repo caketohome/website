@@ -72,7 +72,7 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
     allOrders = [];
   }
 
-  const partnerId = filter?.delivery_partner_id || filter?.partner_id || "dlp_101";
+  const partnerId = filter?.delivery_partner_id || filter?.partner_id || "";
 
   const mapped: DeliveryDTO[] = allOrders.map((o: any, idx: number) => {
     const isAssignedToThisPartner = Boolean(

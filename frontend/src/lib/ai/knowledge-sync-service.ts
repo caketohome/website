@@ -132,7 +132,7 @@ Price: ₹${prod.price} (MRP: ₹${prod.price})
 Rating: ${prod.rating ? `${prod.rating} / 5 (${prod.review_count || 0} reviews)` : "not rated yet"}
 Dietary Options: ${dietary.join(", ") || "Standard Recipe"}
 Description: ${prod.description || ""}
-Flavours: ${prod.title || "Artisanal Cake"}
+Flavours: ${prod.title || "Item"}
 Delivery: ${prod.is_deliverable !== false ? "Express same-day & 2-hour delivery available in serviceable zones." : "Pickup only."}
 Min Prep Time: ${prod.min_prep_time_hours || 2} hours.
 GST: Included in displayed price (5% confectionery GST).
@@ -142,7 +142,7 @@ GST: Included in displayed price (5% confectionery GST).
       id: `doc_prod_${prodId}`,
       source_type: "product",
       source_id: prodId,
-      title: prod.title || prod.name || "Artisanal Cake",
+      title: prod.title || prod.name || "Item",
       content,
       metadata: {
         product_id: prodId,

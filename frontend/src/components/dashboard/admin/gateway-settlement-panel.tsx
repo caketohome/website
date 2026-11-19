@@ -15,7 +15,7 @@
  *    - Prepared By != Approved By != Posted By.
  *    - The UI provides dynamic visual SoD feedback and disables self-approval/self-posting actions.
  * 4. PROVIDER-NEUTRAL SETTLEMENT:
- *    - Supports any payment aggregator (Razorpay, PayU, Cashfree, Stripe, etc.) without hardcoded provider conditionals.
+ *    - Supports any payment aggregator (Razorpay and others) without hardcoded provider conditionals.
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";

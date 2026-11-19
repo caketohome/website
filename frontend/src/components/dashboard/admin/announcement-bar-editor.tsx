@@ -135,7 +135,7 @@ const BRAND_PRESETS = [
   },
   {
     id: "artisan_ruby",
-    name: "Artisan Ruby & Honey",
+    name: "Ruby & Honey",
     desc: "Warm berry wine gradient with honey gold CTA",
     config: {
       bg_mode: "gradient" as const,

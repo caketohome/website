@@ -171,8 +171,8 @@ export function OrderInvoicePrintModal({ order, invoice, onClose }: OrderInvoice
                     <tr key={item.id || idx}>
                       <td className="p-2.5 text-center">{idx + 1}</td>
                       <td className="p-2.5">
-                        <p className="font-bold text-slate-900 dark:text-white">{item.title || item.product_name || "Artisan Cake"}</p>
-                        <p className="text-[10px] text-slate-500">{item.weight || "1.0 kg"} &bull; {item.flavour || "Artisan Flavor"} &bull; {item.artisan ? "artisan" : "Standard"}</p>
+                        <p className="font-bold text-slate-900 dark:text-white">{item.title || item.product_name || "Item"}</p>
+                        <p className="text-[10px] text-slate-500">{[item.weight, item.flavour || item.flavor, (item.eggless ?? item.artisan) === true ? "Eggless" : (item.eggless ?? item.artisan) === false ? "Contains egg" : ""].filter(Boolean).join(" • ")}</p>
                       </td>
                       <td className="p-2.5 text-center font-mono text-[11px]">{item.hsn_code || "UNCLASSIFIED"}</td>
                       <td className="p-2.5 text-center font-bold">{item.uqc || "NOS"}</td>

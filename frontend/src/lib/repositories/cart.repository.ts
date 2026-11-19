@@ -168,7 +168,7 @@ export class CartRepository {
         return {
           id: row.id,
           cart_id: row.cart_id,
-          title: row.title || row.product_title || "Artisan Cake",
+          title: row.title || row.product_title || "Item",
           product_title: row.product_title || row.title,
           thumbnail: row.thumbnail || meta.thumbnail || "",
           quantity: qty,
@@ -356,7 +356,7 @@ export class CartRepository {
     const itemId = item.id || `cli_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const prodId = item.product_id || item.productId || "prod_unknown";
     const varId = item.variant_id || item.variantId || (prodId ? `var_${prodId}` : null);
-    const title = item.title || item.name || item.product_title || "Artisan Cake";
+    const title = item.title || item.name || item.product_title || "Item";
     const thumb = item.thumbnail || item.image || item.image_url || "";
     const qty = Math.max(1, Number(item.quantity || 1));
     const unitPrice = Number(item.unit_price ?? item.price ?? 0);

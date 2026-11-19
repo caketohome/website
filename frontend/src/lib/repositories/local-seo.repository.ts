@@ -128,7 +128,7 @@ export class LocalSeoRepository {
           closes: "23:59",
         },
       ],
-      servesCuisine: "Bakery, Cakes, Desserts, Artisanal Confectionery",
+      servesCuisine: "Bakery, Cakes, Desserts, Confectionery",
       hasMenu: `${baseUrl}/products`,
       acceptsReservations: "False",
     };

@@ -1425,36 +1425,55 @@ export async function persistDeliveryPartnerToDb(partner: any): Promise<void> {
     return;
   }
   const id = partner.id || `dlp_${Date.now()}`;
-  const nameParts = (partner.name || `Driver ${partner.partner_number || "01"}`).trim().split(" ");
-  const firstName = partner.first_name || nameParts[0] || "Driver";
-  const lastName = partner.last_name || nameParts.slice(1).join(" ") || "Rider";
+  const nameParts = String(partner.full_name || partner.name || "").trim().split(/\s+/).filter(Boolean);
+  const firstName = partner.first_name || nameParts[0] || "";
+  const lastName = partner.last_name || nameParts.slice(1).join(" ") || "";
+  const statusRaw = String(partner.status || "active").toUpperCase();
+  const profileStatus = statusRaw === "SUSPENDED" ? "SUSPENDED" : statusRaw === "INACTIVE" ? "INACTIVE" : "ACTIVE";
+  const maxOrders = Math.min(50, Math.max(1, Number(partner.maximum_concurrent_orders || partner.max_concurrent_orders || 5)));
 
-  await dbQuery(
-    `
-    INSERT INTO "delivery_partner" ("id", "first_name", "last_name", "email", "phone", "avatar_url", "is_active", "metadata", "created_at", "updated_at")
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, NOW(), NOW())
-    ON CONFLICT ("id") DO UPDATE SET
-      "first_name" = EXCLUDED.first_name,
-      "last_name" = EXCLUDED.last_name,
-      "email" = EXCLUDED.email,
-      "phone" = EXCLUDED.phone,
-      "avatar_url" = EXCLUDED.avatar_url,
-      "is_active" = EXCLUDED.is_active,
-      "metadata" = EXCLUDED.metadata,
-      "deleted_at" = NULL,
-      "updated_at" = NOW()
-  `,
-    [
-      id,
-      firstName,
-      lastName,
-      partner.email || null,
-      partner.phone || null,
-      partner.avatar_url || partner.profile_photo || null,
-      partner.is_active !== false && !["inactive", "suspended"].includes(String(partner.status || "").toLowerCase()),
-      JSON.stringify(partner),
-    ]
-  );
+  // Rider + profile (branch, status, order limit) are saved together, or not at all.
+  await dbTransaction(async (client) => {
+    await client.query(
+      `
+      INSERT INTO "delivery_partner" ("id", "first_name", "last_name", "email", "phone", "avatar_url", "is_active", "metadata", "created_at", "updated_at")
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, NOW(), NOW())
+      ON CONFLICT ("id") DO UPDATE SET
+        "first_name" = EXCLUDED.first_name,
+        "last_name" = EXCLUDED.last_name,
+        "email" = EXCLUDED.email,
+        "phone" = EXCLUDED.phone,
+        "avatar_url" = EXCLUDED.avatar_url,
+        "is_active" = EXCLUDED.is_active,
+        "metadata" = EXCLUDED.metadata,
+        "deleted_at" = NULL,
+        "updated_at" = NOW()
+    `,
+      [
+        id,
+        firstName,
+        lastName,
+        partner.email || null,
+        partner.phone || null,
+        partner.avatar_url || partner.profile_photo || null,
+        profileStatus === "ACTIVE",
+        JSON.stringify(partner),
+      ]
+    );
+    const existing = await client.query(`SELECT id FROM public.delivery_partner_profile WHERE partner_id = $1 ORDER BY created_at ASC LIMIT 1`, [id]);
+    await client.query(
+      `
+      INSERT INTO public.delivery_partner_profile (id, partner_id, status, primary_branch_id, max_concurrent_orders, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+      ON CONFLICT (id) DO UPDATE SET
+        status = EXCLUDED.status,
+        primary_branch_id = EXCLUDED.primary_branch_id,
+        max_concurrent_orders = EXCLUDED.max_concurrent_orders,
+        updated_at = NOW()
+    `,
+      [existing.rows[0]?.id || `dpp_${id}`, id, profileStatus, partner.primary_branch_id || null, maxOrders]
+    );
+  });
 }
 
 /** Soft-deletes a delivery partner row in PostgreSQL. */

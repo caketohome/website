@@ -5,7 +5,7 @@ import type { CustomerProfileDTO } from "@frontend/lib/crm/types";
 
 export const metadata = {
   title: "My Account | CakeToHome",
-  description: "Manage your CakeToHome account, delivery addresses, and artisanal cake orders.",
+  description: "Manage your CakeToHome account, delivery addresses, and cake orders.",
 };
 
 export const dynamic = "force-dynamic";

@@ -100,13 +100,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const fetchedMeta = fetched?.metadata || {};
   const meta = {
     product_id: productId,
-    artisan: fetched?.artisan === true || fetchedMeta.artisan === true,
+    eggless: fetched?.eggless === true || fetchedMeta.eggless === true || fetched?.artisan === true || fetchedMeta.artisan === true,
     sugar_free: fetched?.sugar_free === true || fetchedMeta.sugar_free === true,
     gluten_free: fetched?.gluten_free === true || fetchedMeta.gluten_free === true,
     vegan: fetched?.vegan === true || fetchedMeta.vegan === true,
     is_bestseller: Boolean(fetched?.is_bestseller ?? fetchedMeta.is_bestseller),
     is_featured: Boolean(fetched?.is_featured ?? fetchedMeta.is_featured),
-    ingredients: fetched?.ingredients || fetchedMeta.ingredients || "Prepared in an artisanal bakery with premium ingredients.",
+    ingredients: fetched?.ingredients || fetchedMeta.ingredients || "Prepared in an bakery with premium ingredients.",
     allergens: fetched?.allergens || fetchedMeta.allergens || "Prepared in a bakery that handles dairy and tree nuts.",
     shelf_life: fetched?.shelf_life || fetchedMeta.shelf_life || "3 days under refrigeration (2°C - 5°C)",
     storage_instructions: fetched?.storage_instructions || fetchedMeta.storage_instructions || "Keep refrigerated. Serve at room temperature for maximum flavor.",

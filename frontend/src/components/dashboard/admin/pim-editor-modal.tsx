@@ -102,7 +102,7 @@ export function PimEditorModal({ product, categories, onClose, onSuccess }: PimE
 
   // Categories & Collections State
   const [primaryCategoryId, setPrimaryCategoryId] = useState(product?.primary_category_id || categories[0]?.id || "");
-  const [primaryCategoryName, setPrimaryCategoryName] = useState(product?.category || categories[0]?.name || "Artisanal Cakes");
+  const [primaryCategoryName, setPrimaryCategoryName] = useState(product?.category || categories[0]?.name || "");
   const [secondaryCategoryIds, setSecondaryCategoryIds] = useState<string[]>(product?.secondary_category_ids || []);
   const [season, setSeason] = useState("All-Season");
   const [festival, setFestival] = useState("Diwali & Festive Special");

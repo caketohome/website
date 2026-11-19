@@ -21,13 +21,6 @@ export async function getCheckoutAvailabilityAction(payload: {
   coupon_code?: string;
 }) {
   const cookieStore = cookies();
-  if ((payload.payment_method as string) === "cashfree") {
-    return {
-      success: false,
-      error: "Cashfree payment gateway has been decommissioned. Please select Razorpay for online payments.",
-    };
-  }
-
   const cartId = payload.cart_id || cookieStore.get("_cth_cart_id")?.value || cookieStore.get("_medusa_cart_id")?.value || "cart_guest";
   const pincode = payload.pincode || cookieStore.get("delivery_pincode")?.value;
 
@@ -105,7 +98,7 @@ export async function confirmCheckoutAction(payload: {
   delivery_type?: string;
   branch_id?: string;
   coupon_code?: string;
-  payment_method: "cod" | "razorpay" | "cashfree" | "test_mode" | "wallet";
+  payment_method: "cod" | "razorpay" | "test_mode" | "wallet";
   payment_details?: any;
   occasion?: string;
   ordered_for_self?: boolean;
@@ -175,8 +168,7 @@ export async function placeOrder(prevState: any, data: FormData) {
 
   const deliveryDate = data.get("delivery-date")?.toString() || data.get("delivery_date")?.toString() || new Date().toISOString().slice(0, 10);
   const deliverySlotId = data.get("delivery-slot")?.toString() || data.get("delivery_slot_id")?.toString() || "slot_morning";
-  let paymentMethod = (data.get("payment-method")?.toString() || "razorpay") as "cod" | "razorpay" | "cashfree" | "test_mode";
-  if (paymentMethod === "cashfree") paymentMethod = "razorpay";
+  const paymentMethod = (data.get("payment-method")?.toString() || "razorpay") as "cod" | "razorpay" | "test_mode";
 
   const occasion = data.get("occasion")?.toString() || "Celebration";
   const orderedForSelf = data.get("ordered-for-self")?.toString() !== "false" && data.get("ordered_for_self")?.toString() !== "false";
@@ -261,12 +253,6 @@ export async function placeOrder(prevState: any, data: FormData) {
       return { message: "Invalid order total calculated. Cannot proceed to payment." };
     }
     redirect(`/checkout/razorpay?order_id=${encodeURIComponent(orderId)}&amount=${amount}`);
-  }
-
-  if (paymentMethod === "cashfree") {
-    const orderId = result.order_id || "";
-    const amount = Number(result.pricing?.grand_total || result.total || 525);
-    redirect(`/checkout/cashfree?order_id=${encodeURIComponent(orderId)}&amount=${amount}`);
   }
 
   redirect(`/your-order?order_id=${encodeURIComponent(result.order_id || "")}`);

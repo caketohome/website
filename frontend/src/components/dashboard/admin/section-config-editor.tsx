@@ -281,7 +281,7 @@ export function SectionConfigEditor({
                   data-testid="hero-subheadline-input"
                   value={config.subheadline || ""}
                   onChange={(e) => updateSectionConfig(section.id, "subheadline", e.target.value)}
-                  placeholder="Fresh, artisanal birthday & wedding cakes across Kerala..."
+                  placeholder="Fresh, birthday & wedding cakes across Kerala..."
                   rows={2}
                 />
               </Field>
@@ -290,7 +290,7 @@ export function SectionConfigEditor({
                   data-testid="hero-badge-input"
                   value={config.badge_text || config.badge || ""}
                   onChange={(e) => updateSectionConfig(section.id, "badge_text", e.target.value)}
-                  placeholder="100% Fresh & Artisanal • Express 2-Hour Delivery"
+                  placeholder="100% Fresh • Express 2-Hour Delivery"
                 />
               </Field>
 
@@ -883,7 +883,7 @@ export function SectionConfigEditor({
           {/* 16. TEXT / SEO / RICH TEXT */}
           {(editorType === "text_content" || editorType === "seo_content" || editorType === "rich_text" || section.type === "text_content" || section.type === "seo_content" || section.type === "rich_text" || section.type === "location_content" || section.type === "internal_links") && (
             <>
-              <Field label="Heading"><Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="Artisanal Cake Delivery" /></Field>
+              <Field label="Heading"><Input value={config.heading || ""} onChange={(e) => updateSectionConfig(section.id, "heading", e.target.value)} placeholder="Cake Delivery" /></Field>
               <Field label="Content Body"><Textarea value={config.content || ""} onChange={(e) => updateSectionConfig(section.id, "content", e.target.value)} rows={4} /></Field>
             </>
           )}

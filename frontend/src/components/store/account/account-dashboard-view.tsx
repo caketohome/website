@@ -508,7 +508,7 @@ export function AccountDashboardView({ initialCustomer }: AccountDashboardViewPr
                               )}
                             </div>
                             <div>
-                              <p className="font-semibold text-brand-text line-clamp-1">{item.title || item.product_name || "Artisanal Cake"}</p>
+                              <p className="font-semibold text-brand-text line-clamp-1">{item.title || item.product_name || "Item"}</p>
                               <p className="text-[10px] text-brand-text-muted">Qty: {item.quantity} × ₹{item.unit_price}</p>
                             </div>
                           </div>

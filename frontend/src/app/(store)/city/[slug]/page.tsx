@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: CityPageProps) {
 
     return {
       title: `Online Cake Delivery in ${city.name} | Express & Same Day Delivery | CakeToHome`,
-      description: `Order delicious artisanal birthday cakes, anniversary confections, and gourmet treats online in ${city.name}, ${city.state}. Hand-delivered in 45-60 minutes from local fulfillment hubs.`,
+      description: `Order delicious birthday cakes, anniversary confections, and gourmet treats online in ${city.name}, ${city.state}. Hand-delivered in 45-60 minutes from local fulfillment hubs.`,
       openGraph: {
         title: `Online Cake Delivery in ${city.name} — CakeToHome`,
         description: `Premium chef-baked cakes delivered fresh across ${city.name}. Same-day and scheduled slots available.`,
@@ -132,7 +132,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
                 </span>
               </h1>
               <p className="text-sm sm:text-base text-brand-light/80 leading-relaxed">
-                {localPage.hero_subtitle || `Experience gourmet perfection. Artisanal cakes hand-crafted by master pâtissiers, delivered fresh in 45-60 minutes across ${localPage.city_name}.`}
+                {localPage.hero_subtitle || `Experience gourmet perfection. Cakes hand-crafted by master pâtissiers, delivered fresh in 45-60 minutes across ${localPage.city_name}.`}
               </p>
 
               {/* Quick stats pills */}
@@ -168,7 +168,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
                 <div className="flex items-start gap-2.5">
                   <ShieldCheck className="w-4 h-4 text-[#16834A] shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-semibold text-white block">Artisan Recipe Guarantee</span>
+                    <span className="font-semibold text-white block">Recipe Guarantee</span>
                     <span className="text-[11px] text-brand-primary/70">Certified hygiene & food safety</span>
                   </div>
                 </div>

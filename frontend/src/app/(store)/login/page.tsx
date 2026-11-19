@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata(): Promise<Metadata> {
   return SeoMetadataBuilder.buildMetadata({
     fallbackTitle: "Customer Login & Account Access | CakeToHome",
-    fallbackDescription: "Login to your CakeToHome account with seamless mobile verification. Order fresh handcrafted artisan cakes delivered fast.",
+    fallbackDescription: "Login to your CakeToHome account with seamless mobile verification. Order fresh handcrafted cakes delivered fast.",
     isPrivate: true,
   });
 }

@@ -53,7 +53,7 @@ export function CakeToHomeLogo({
   href = null,
   className = "",
   priority = false,
-  alt = "CakeToHome — Artisanal Cakes & Online Delivery",
+  alt = "CakeToHome — Cakes & Online Delivery",
 }: CakeToHomeLogoProps) {
   // Resolve canonical asset path from centralized brand structure
   let src = "/assets/brand/caketo-home-logo-navy.png";

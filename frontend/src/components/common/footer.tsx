@@ -53,7 +53,7 @@ export default async function Footer() {
               className="py-1"
             />
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-sm">
-              Artisanal bakery crafted with passion in Kerala. We bake happiness fresh to order, delivering gourmet cakes, desserts, and savory treats with unmatched quality and punctuality.
+              Bakery crafted with passion in Kerala. We bake happiness fresh to order, delivering gourmet cakes, desserts, and savory treats with unmatched quality and punctuality.
             </p>
             <div className="flex items-center gap-2 pt-2 text-xs text-white/85">
               <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -63,7 +63,7 @@ export default async function Footer() {
 
           {/* Categories */}
           <div className="flex flex-col gap-2.5">
-            <h4 className="text-xs uppercase tracking-wider font-bold text-white/70 font-sans">Artisanal Range</h4>
+            <h4 className="text-xs uppercase tracking-wider font-bold text-white/70 font-sans">Our Range</h4>
             <ul className="flex flex-col gap-1.5 text-xs text-slate-300">
               <li><Link href="/category/birthday-cakes" className="hover:text-white transition-colors">Birthday Cakes</Link></li>
               <li><Link href="/category/anniversary-cakes" className="hover:text-white transition-colors">Anniversary Cakes</Link></li>

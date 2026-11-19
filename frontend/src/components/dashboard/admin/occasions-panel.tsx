@@ -1051,115 +1051,84 @@ export function OccasionsPanel() {
         {loading ? (
           <div className="text-center py-12 text-ui-fg-subtle flex flex-col items-center gap-2">
             <RefreshCw className="w-6 h-6 animate-spin text-brand-primary" />
-            <Text className="text-xs">Loading occasion taxonomy...</Text>
+            <Text className="text-xs">Loading occasions…</Text>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 text-ui-fg-subtle">
             <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-40 text-brand-primary" />
-            <Text className="text-sm">No occasions match search criteria.</Text>
+            <Text className="text-sm">No occasions found.</Text>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          <div className="divide-y divide-ui-border-base rounded-xl border border-ui-border-base overflow-hidden">
             {filtered.map((occ) => {
               const prodCount = getProductCountForOccasion(occ);
               const catCount = getCategoryCountForOccasion(occ);
               const isArchived = occ.status === "archived";
-              const cover = occ.cover_image || occ.image_url || occ.thumbnail_image || "/images/placeholder-cake.webp";
+              const cover = occ.thumbnail_image || occ.cover_image || occ.image_url || "";
+              const description = occ.short_description || occ.description || "";
 
               return (
                 <div
                   key={occ.id}
-                  className={`rounded-2xl border transition-all overflow-hidden flex flex-col justify-between ${
-                    isArchived
-                      ? "border-ui-border-base bg-ui-bg-subtle/40 opacity-70"
-                      : "border-ui-border-base bg-white dark:bg-slate-900 hover:border-brand-primary/30 hover:shadow-md"
-                  }`}
+                  className={`flex items-center gap-4 px-4 py-3 bg-white dark:bg-slate-900 ${isArchived ? "opacity-60" : ""}`}
                 >
-                  {/* Card Cover Header with distinct Image */}
-                  <div className="relative h-28 w-full overflow-hidden bg-ui-bg-subtle">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={cover}
-                      alt={occ.alt_text || occ.name}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                    
-                    <div className="absolute top-2 left-2 flex items-center gap-1.5">
-                      <span className="text-xl p-1 bg-black/50 backdrop-blur-sm rounded-lg border border-white/20">
-                        {occ.icon || "🎉"}
-                      </span>
-                      {occ.featured && (
-                        <span className="bg-brand-gold text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                          <Star className="w-2.5 h-2.5 fill-white" /> Featured
-                        </span>
-                      )}
+                  {cover ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={cover} alt={occ.alt_text || occ.name} className="w-12 h-12 rounded-lg object-cover shrink-0 border border-ui-border-base" loading="lazy" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-lg shrink-0 border border-ui-border-base bg-ui-bg-subtle flex items-center justify-center text-sm font-semibold text-ui-fg-subtle">
+                      {(occ.name || "?").charAt(0).toUpperCase()}
                     </div>
+                  )}
 
-                    <div className="absolute top-2 right-2">
-                      <Badge color={isArchived ? "red" : "green"} className="text-[10px] uppercase font-bold shadow-sm">
-                        {occ.status}
-                      </Badge>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-semibold text-ui-fg-base truncate">{occ.name}</span>
+                      {occ.featured && <span className="text-[11px] font-medium text-amber-700 dark:text-amber-400">Featured</span>}
+                      {isArchived && <span className="text-[11px] font-medium text-rose-600">Archived</span>}
                     </div>
-
-                    <div className="absolute bottom-2 left-3 right-3 text-white">
-                      <Text className="font-extrabold text-sm leading-tight drop-shadow truncate">
-                        {occ.name}
-                      </Text>
-                      <Text className="text-[10px] text-brand-primary font-mono">/occasions/{occ.slug}</Text>
-                    </div>
+                    <div className="text-[11px] text-ui-fg-muted font-mono truncate">/occasions/{occ.slug}</div>
+                    {description && <div className="text-xs text-ui-fg-subtle truncate mt-0.5">{description}</div>}
                   </div>
 
-                  {/* Card Body */}
-                  <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
-                    <Text className="text-xs text-ui-fg-subtle line-clamp-2">
-                      {occ.description || occ.short_description || "Handcrafted celebration cakes."}
-                    </Text>
+                  <div className="hidden sm:block text-xs text-ui-fg-subtle whitespace-nowrap text-right">
+                    {prodCount} {prodCount === 1 ? "product" : "products"} · {catCount} {catCount === 1 ? "category" : "categories"}
+                  </div>
 
-                    <div className="pt-2 border-t border-ui-border-base flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-1.5">
-                        <Badge color="purple" className="text-[10px]">
-                          🎂 {prodCount} Products
-                        </Badge>
-                        <Badge color="grey" className="text-[10px]">
-                          📁 {catCount} Cats
-                        </Badge>
-                      </div>
-
-                      <div className="flex items-center gap-1">
-                        <Button
-                          size="small"
-                          variant="transparent"
-                          onClick={() => handleOpenEdit(occ)}
-                          className="text-brand-primary hover:bg-brand-light dark:hover:bg-brand-navy p-1.5 h-7"
-                          title="Edit Occasion"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </Button>
-                        {isArchived ? (
-                          <Button
-                            size="small"
-                            variant="transparent"
-                            onClick={() => handleRestore(occ.id, occ.name)}
-                            className="text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950 p-1.5 h-7"
-                            title="Restore Occasion"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" />
-                          </Button>
-                        ) : (
-                          <Button
-                            size="small"
-                            variant="transparent"
-                            onClick={() => handleArchive(occ.id, occ.name)}
-                            className="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950 p-1.5 h-7"
-                            title="Archive Occasion"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      size="small"
+                      variant="transparent"
+                      onClick={() => handleOpenEdit(occ)}
+                      className="text-ui-fg-subtle hover:text-brand-primary p-1.5 h-8"
+                      title="Edit occasion"
+                      aria-label={`Edit ${occ.name}`}
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </Button>
+                    {isArchived ? (
+                      <Button
+                        size="small"
+                        variant="transparent"
+                        onClick={() => handleRestore(occ.id, occ.name)}
+                        className="text-ui-fg-subtle hover:text-emerald-600 p-1.5 h-8"
+                        title="Restore occasion"
+                        aria-label={`Restore ${occ.name}`}
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        size="small"
+                        variant="transparent"
+                        onClick={() => handleArchive(occ.id, occ.name)}
+                        className="text-ui-fg-subtle hover:text-rose-600 p-1.5 h-8"
+                        title="Archive occasion"
+                        aria-label={`Archive ${occ.name}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               );

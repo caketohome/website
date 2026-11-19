@@ -74,7 +74,7 @@ export class InternalLinkGraphAnalyzer {
       if (p.entity_type === "product") {
         suggestions.push({
           targetUrl: "/categories/artisanal-cakes",
-          anchorText: "Explore Artisanal Cakes",
+          anchorText: "Explore Cakes",
           reason: "Link product to parent category hub",
         });
       } else if (p.entity_type === "branch") {

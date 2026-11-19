@@ -34,7 +34,7 @@ export default async function MenuPage() {
     products: (branchProds.products || []).map((p: any) => ({
       id: p.id,
       title: p.title || p.name,
-      description: p.description || "Artisanal gourmet cake made fresh daily",
+      description: p.description || "Gourmet cake made fresh daily",
       thumbnail: p.thumbnail,
       categories: [{ id: p.category_id || "cat_bestseller", name: p.category || "Gourmet Cakes" }],
       variants: [

@@ -37,7 +37,7 @@ export default async function CheckoutPage() {
               Your cart is waiting.
             </h1>
             <p className="text-sm md:text-base text-slate-600 leading-relaxed font-sans">
-              No artisanal cakes selected yet. Browse our handcrafted gourmet creations baked fresh daily for your special moments.
+              No cakes selected yet. Browse our handcrafted gourmet creations baked fresh daily for your special moments.
             </p>
           </div>
 

@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
 
     const title = searchParams.get("title") || "CakeToHome — Handcrafted Cakes";
-    const description = searchParams.get("description") || "Kerala's Premium Artisanal Cake Bakery. Delivered Fresh in 2 Hours.";
+    const description = searchParams.get("description") || "Kerala's Premium Cake Bakery. Delivered Fresh in 2 Hours.";
     const price = searchParams.get("price");
     const badge = searchParams.get("badge") || "Same Day Delivery";
     const rating = searchParams.get("rating") || "4.9";
@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
                   Cake<span style={{ color: "#C28A2C" }}>To</span>Home
                 </span>
                 <span style={{ color: "#94A3B8", fontSize: "12px", letterSpacing: "1px", textTransform: "uppercase" }}>
-                  Fresh Artisanal Bakery
+                  Fresh Bakery
                 </span>
               </div>
             </div>

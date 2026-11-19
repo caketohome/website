@@ -111,7 +111,7 @@ export function BranchProductAvailabilityModal({ branch, onClose }: BranchProduc
                         </Badge>
                       </div>
                       <div className="text-[11px] text-slate-500">
-                        Category: {prod.category || "Artisanal Cakes"} • Global Price: ₹{prod.price}
+                        Category: {prod.category || ""} • Global Price: ₹{prod.price}
                       </div>
                       {!fulfil.can_fulfil && fulfil.reason && (
                         <div className="text-[10px] text-rose-600 font-medium">

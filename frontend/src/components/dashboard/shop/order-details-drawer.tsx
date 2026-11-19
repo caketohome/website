@@ -463,7 +463,7 @@ export default function OrderDetailsDrawer({
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="text"
-                placeholder="Reason (e.g. Artisanal frosting in progress)"
+                placeholder="Reason (e.g. Frosting in progress)"
                 value={delayReason}
                 onChange={(e) => setDelayReason(e.target.value)}
                 className="text-xs p-2 rounded-lg border border-brand-gold/40 dark:border-brand-gold-dark bg-white dark:bg-zinc-900 text-brand-navy dark:text-white"

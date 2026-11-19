@@ -88,7 +88,7 @@ export function ProductFilters({
     { id: "cat_fruit_mousse", name: "Fruit & Mousse Cakes", slug: "fruit-mousse-cakes", count: 1 },
     { id: "cat_black_forest", name: "Black Forest Cakes", slug: "black-forest-cakes", count: 1 },
     { id: "cat_butterscotch", name: "Butterscotch & Caramel Cakes", slug: "butterscotch-caramel-cakes", count: 1 },
-    { id: "cat_cheesecakes", name: "Cheesecakes & Artisanal", slug: "cheesecakes", count: 1 },
+    { id: "cat_cheesecakes", name: "Cheesecakes", slug: "cheesecakes", count: 1 },
     { id: "cat_bestsellers", name: "Best Sellers", slug: "bestsellers", count: 3 },
   ];
 

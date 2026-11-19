@@ -14,7 +14,7 @@ interface FeaturesSectionEditorProps {
 }
 
 const AVAILABLE_ICONS = [
-  { name: "Sparkles", label: "Sparkles / Artisan", icon: Sparkles },
+  { name: "Sparkles", label: "Sparkles", icon: Sparkles },
   { name: "Clock", label: "Clock / Fast Delivery", icon: Clock },
   { name: "Truck", label: "Truck / Express Shipping", icon: Truck },
   { name: "ShieldCheck", label: "Shield / Safe & Hygienic", icon: ShieldCheck },

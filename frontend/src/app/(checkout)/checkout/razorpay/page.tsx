@@ -101,7 +101,7 @@ export default function RazorpayCheckoutPage() {
         amount: Math.round(amount * 100),
         currency: "INR",
         name: "CakeToHome",
-        description: `Order #${orderId} - Fresh Artisan Bakery`,
+        description: `Order #${orderId} - Fresh Bakery`,
         order_id: razorpayOrderId,
         image: "/images/logo.png",
         prefill: {
