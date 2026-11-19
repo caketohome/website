@@ -148,6 +148,25 @@ export default function DeliveryPartnerDeliveryButtons({
   const hasPickupLocation = Boolean(pickup && ((pickup.latitude && pickup.longitude) || pickup.address));
   const isCod = Boolean(d.is_cod);
   const codAmount = Number(d.cod_amount || 0);
+  const [qr, setQr] = useState<{ svg: string; expires_at: string } | null>(null);
+  const [qrLoading, setQrLoading] = useState(false);
+  const showHandoffQr = async () => {
+    setActionError("");
+    setQrLoading(true);
+    try {
+      const r = await fetch(`/api/v1/rider/jobs/${encodeURIComponent(String(delivery.order_id || delivery.id))}/handoff-qr`, {
+        method: "POST",
+        credentials: "same-origin",
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.success) throw new Error(j.error || `HTTP ${r.status}`);
+      setQr({ svg: j.qr_svg, expires_at: j.expires_at });
+    } catch (e: any) {
+      setActionError(e.message);
+    } finally {
+      setQrLoading(false);
+    }
+  };
   const [codCollected, setCodCollected] = useState<boolean>(Boolean(d.cod_collected));
   const [codLoading, setCodLoading] = useState(false);
   const confirmCashCollected = async () => {
@@ -251,6 +270,9 @@ export default function DeliveryPartnerDeliveryButtons({
           <Button variant="transparent" size="small" onClick={() => setShowExceptionModal(true)} className="text-xs text-rose-600 hover:bg-rose-50">
             <AlertTriangle className="w-3.5 h-3.5 mr-1" /> Issue
           </Button>
+          <Button variant="secondary" size="small" onClick={showHandoffQr} isLoading={qrLoading} className="text-xs">
+            Show QR to receiver
+          </Button>
           <Button
             variant="primary"
             size="small"
@@ -262,6 +284,24 @@ export default function DeliveryPartnerDeliveryButtons({
         </>
       )}
       </div>
+
+      {/* ── HANDOFF QR (receiver scans, signs in, confirms safe receipt, reads code) ── */}
+      {qr && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={() => setQr(null)}>
+          <div className="bg-white rounded-2xl p-5 w-full max-w-sm flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
+            <div className="text-base font-semibold text-slate-900">Ask the receiver to scan</div>
+            {/* QR is an SVG generated on our server by the qrcode library */}
+            <div className="w-64 h-64 [&_svg]:w-full [&_svg]:h-full" dangerouslySetInnerHTML={{ __html: qr.svg }} />
+            <p className="text-xs text-slate-600 text-center">
+              They sign in with their phone, confirm the cake arrived safely, then read you the delivery code. Valid until {new Date(qr.expires_at).toLocaleTimeString()}.
+            </p>
+            <div className="flex gap-2 w-full">
+              <button type="button" onClick={() => setQr(null)} className="flex-1 min-h-[44px] rounded-lg border border-slate-300 text-sm">Close</button>
+              <button type="button" onClick={() => { setQr(null); setShowCustomerOtpModal(true); }} className="flex-1 min-h-[44px] rounded-lg bg-emerald-600 text-white text-sm font-semibold">Enter code</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── PICKUP OTP MODAL ────────────────────────────────────────── */}
       {showPickupModal && (
