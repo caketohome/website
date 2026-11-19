@@ -11644,7 +11644,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource({ recorded: ApiEngine.recordEngagementConversion(body), success: true }, "postgres");
     }
     if (path === "admin/popups" || path === "popups") {
-      return jsonWithDataSource({ campaign: ApiEngine.createPopupCampaign(body), success: true }, "postgres", 201);
+      return jsonWithDataSource({ campaign: await ApiEngine.createPopupCampaign(body), success: true }, "postgres", 201);
     }
     if (path.startsWith("admin/popups/") && path.endsWith("/publish")) {
       const id = path.replace("admin/popups/", "").replace("/publish", "");

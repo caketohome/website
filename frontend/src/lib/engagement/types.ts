@@ -163,6 +163,8 @@ export interface PopupFrequencyConfig {
   loginStateChangeRequired?: boolean;
   showToGuests?: boolean;
   showToAuthenticated?: boolean;
+  /** When set, closing the popup only hides it for this many seconds (it can show again, within the session limit). */
+  reshowAfterCloseSeconds?: number;
 }
 
 export interface PopupContentConfig {

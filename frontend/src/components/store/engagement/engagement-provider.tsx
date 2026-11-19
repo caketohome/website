@@ -316,11 +316,17 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
           page_url: typeof window !== "undefined" ? window.location.pathname : "/",
         });
 
-        setDismissedCampaignIds((prev) => {
-          const next = new Set(prev);
-          next.add(campId);
-          return next;
-        });
+        const reshowSecs = Number((activeCampaign.current_version || activeCampaign.draft_version)?.frequency?.reshowAfterCloseSeconds || 0);
+        if (reshowSecs > 0) {
+          // Hidden only for the gap; it may show again (still limited by the session limit).
+          try { sessionStorage.setItem(`cth_popup_closed_${campId}`, String(Date.now())); } catch { /* ignore */ }
+        } else {
+          setDismissedCampaignIds((prev) => {
+            const next = new Set(prev);
+            next.add(campId);
+            return next;
+          });
+        }
 
         setActiveCampaign(null);
       }
@@ -386,6 +392,16 @@ export function EngagementProvider({ children }: { children: React.ReactNode }) 
           // Check if dismissed in this immediate view
           if (isSuppressed(c.id)) {
             return false;
+          }
+
+          // Re-show gap after the visitor closed it
+          const reshowSecs = Number(version.frequency?.reshowAfterCloseSeconds || 0);
+          if (reshowSecs > 0) {
+            let closedAt = 0;
+            try { closedAt = Number(sessionStorage.getItem(`cth_popup_closed_${c.id}`) || 0); } catch { /* ignore */ }
+            if (closedAt && Date.now() - closedAt < reshowSecs * 1000) {
+              return false;
+            }
           }
 
           // Frequency check
