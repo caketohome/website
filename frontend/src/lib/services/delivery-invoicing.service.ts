@@ -13,8 +13,9 @@
  *   4. Invoice is persisted to both memory store and PostgreSQL.
  */
 
+import { resolveHeadOfficeBranchId } from "../org-defaults";
 import { dbQuery } from "../db";
-import { resolveIndianFiscalYear } from "../fiscal-period";
+import { resolveIndianFiscalYear, voucherFiscalYear } from "../fiscal-period";
 
 // ── Fiscal Year Helpers ──────────────────────────────────────────────────────
 
@@ -782,7 +783,7 @@ export class DeliveryInvoicingService {
           const jeId = `je_sal_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
           const jeNo = `JE-SV-${Date.now().toString().slice(-6)}`;
           const vDate = now.slice(0, 10);
-          const brId = branch_id || "br_indiranagar_01";
+          const brId = branch_id || (await resolveHeadOfficeBranchId(client));
 
           const debitAccountId = isPrepaid
             ? glByCode.get("2141") || glByCode.get("1210")
@@ -799,7 +800,7 @@ export class DeliveryInvoicingService {
                 status, total_amount, currency, reference_type, reference_id, reference_event,
                 narration, created_by, posted_by, posted_at, created_at, updated_at
               ) VALUES (
-                $1, $2, 'SALES', $3, $4, '26-27',
+                $1, $2, 'SALES', $3, $4, $8,
                 'POSTED', $5, 'INR', 'INVOICE', $6, 'INVOICE_ISSUED',
                 $7, 'system:delivery_invoicing', 'system:delivery_invoicing', NOW(), NOW(), NOW()
               )
@@ -815,6 +816,7 @@ export class DeliveryInvoicingService {
                 grand_total,
                 invId,
                 `Statutory Tax Invoice ${allocatedNum} for Order ${order.order_number || order.id}`,
+                voucherFiscalYear(vDate),
               ]
             );
 
@@ -823,7 +825,7 @@ export class DeliveryInvoicingService {
                 id, entry_no, voucher_id, entry_date, branch_id, fiscal_year,
                 total_debit, total_credit, is_reversed, narration, created_by, created_at
               ) VALUES (
-                $1, $2, $3, $4, $5, '26-27',
+                $1, $2, $3, $4, $5, $8,
                 $6, $6, false, $7, 'system:delivery_invoicing', NOW()
               )`,
               [
@@ -834,6 +836,7 @@ export class DeliveryInvoicingService {
                 brId,
                 grand_total,
                 `Sales & GST recognition for Invoice ${allocatedNum} (Order ${order.order_number || order.id})`,
+                voucherFiscalYear(vDate),
               ]
             );
 
@@ -963,12 +966,12 @@ export class DeliveryInvoicingService {
           aggregate_type: "DELIVERY",
           aggregate_id: `del_${order.id}`,
           correlation_id: corrId,
-          branch_id: branch_id || "br_indiranagar_01",
+          branch_id: branch_id || null,
           payload: {
             order_id: order.id,
             order_number: order.order_number || order.id,
             customer_id: customer_uid,
-            branch_id: branch_id || "br_indiranagar_01",
+            branch_id: branch_id || null,
             delivery_status: "delivered",
             delivered_at: order.delivered_at || now,
           },
@@ -979,14 +982,14 @@ export class DeliveryInvoicingService {
           aggregate_type: "INVOICE",
           aggregate_id: invId,
           correlation_id: corrId,
-          branch_id: branch_id || "br_indiranagar_01",
+          branch_id: branch_id || null,
           payload: {
             invoice_id: invId,
             invoice_number: allocatedNum,
             order_id: order.id,
             order_number: order.order_number || order.id,
             customer_id: customer_uid,
-            branch_id: branch_id || "br_indiranagar_01",
+            branch_id: branch_id || null,
             subtotal,
             tax_total,
             grand_total,

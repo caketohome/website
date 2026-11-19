@@ -1,4 +1,5 @@
 import { CrossAppEventService } from "./cross-app-event.service";
+import { resolveCompanyId } from "../org-defaults";
 import { notifyOrderCreated } from "./push-notification.service";
 import { dbQuery, dbTransaction } from "../db";
 import { OrderRepository } from "../repositories/order.repository";
@@ -53,7 +54,7 @@ export class OrderService {
     const customer_name = params.customer_name || (params as any).name || "Valued Customer";
     const customer_phone = params.customer_phone || (params as any).phone || "";
     const customer_email = params.customer_email || (params as any).email;
-    const branch_id = params.branch_id || (params as any).branchId || "br_indiranagar";
+    const branch_id = params.branch_id || (params as any).branchId || "";
     const items = params.items || [];
     const coupon_code = params.coupon_code || (params as any).promo_code || (params as any).coupon;
     const delivery_type = (params.delivery_type || (params as any).deliveryType || "standard") as any;
@@ -863,7 +864,7 @@ export class OrderService {
            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())`,
           [
             paymentTxnId,
-            "comp_cth_india",
+            await resolveCompanyId(client),
             branch.id,
             orderId,
             custUid,

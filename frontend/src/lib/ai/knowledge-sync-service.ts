@@ -129,7 +129,7 @@ export class KnowledgeSyncService {
     const content = `
 Product: ${prod.title || prod.name}
 Price: ₹${prod.price} (MRP: ₹${prod.price})
-Rating: ${prod.rating || 4.8} / 5 (${prod.review_count || 50}+ reviews)
+Rating: ${prod.rating ? `${prod.rating} / 5 (${prod.review_count || 0} reviews)` : "not rated yet"}
 Dietary Options: ${dietary.join(", ") || "Standard Recipe"}
 Description: ${prod.description || ""}
 Flavours: ${prod.title || "Artisanal Cake"}
@@ -239,15 +239,22 @@ Parent Category: ${cat.parent_category_id || "Root Cakes"}
 
     const pincodes = (branch.delivery_zones || []).flatMap((z: any) => z.pincodes || []);
 
-    const content = `
-Kitchen Hub: ${branch.name}
-City: ${branch.city || "—"}
-Address: ${branch.address || branch.name}
-Phone: ${branch.phone || "+91 80 4567 8900"}
-FSSAI License: ${branch.fssai_number || "11223344556677"}
-Operating Hours: 08:00 AM - 11:00 PM (Express delivery dispatch available until 10:30 PM)
-Serviceable Pincodes: ${pincodes.slice(0, 20).join(", ")}
-    `.trim();
+    // Only real branch details (from Supabase) are given to the assistant; missing ones are left out.
+    const hours = branch.operating_hours
+      ? Object.entries(branch.operating_hours as Record<string, any>)
+          .map(([day, h]) => (h?.is_open === false ? `${day}: closed` : h?.open && h?.close ? `${day}: ${h.open}–${h.close}` : ""))
+          .filter(Boolean)
+          .join("; ")
+      : "";
+    const content = [
+      `Kitchen Hub: ${branch.name}`,
+      branch.city ? `City: ${branch.city}` : "",
+      branch.address ? `Address: ${branch.address}` : "",
+      branch.phone ? `Phone: ${branch.phone}` : "",
+      branch.fssai_number ? `FSSAI License: ${branch.fssai_number}` : "",
+      hours ? `Operating Hours: ${hours}` : "",
+      pincodes.length ? `Serviceable Pincodes: ${pincodes.slice(0, 20).join(", ")}` : "",
+    ].filter(Boolean).join("\n");
 
     const doc: KnowledgeDocument = {
       id: `doc_branch_${branchId}`,

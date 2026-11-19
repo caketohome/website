@@ -26,7 +26,7 @@ export function FssaiComplianceTab({
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // Form State
-  const [formBranchId, setFormBranchId] = useState(branches[0]?.id || "br_indiranagar");
+  const [formBranchId, setFormBranchId] = useState(branches[0]?.id || "");
   const [formFssaiNumber, setFormFssaiNumber] = useState("");
   const [formLicenseType, setFormLicenseType] = useState<"STATE_LICENSE" | "CENTRAL_LICENSE" | "REGISTRATION">("STATE_LICENSE");
   const [formFboName, setFormFboName] = useState("");

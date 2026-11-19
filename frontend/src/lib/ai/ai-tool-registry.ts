@@ -124,8 +124,8 @@ export class AiToolRegistry {
         slug: p.handle || p.id,
         price: p.price,
         mrp: p.price,
-        rating: p.rating || 4.8,
-        reviews: p.review_count || 50,
+        rating: p.rating || 0,
+        reviews: p.review_count || 0,
         thumbnail: p.thumbnail,
         vegan: Boolean(p.vegan),
         sugarFree: Boolean(p.sugar_free),
@@ -161,7 +161,7 @@ export class AiToolRegistry {
         description: prod.description,
         price: prod.price,
         mrp: prod.price,
-        rating: prod.rating || 4.8,
+        rating: prod.rating || 0,
         thumbnail: prod.thumbnail,
         vegan: Boolean(prod.vegan),
         sugarFree: Boolean(prod.sugar_free),
@@ -546,7 +546,7 @@ export class AiToolRegistry {
         price: u.price,
         priceDifference: u.price - currentPrice,
         thumbnail: u.thumbnail,
-        rating: u.rating || 4.9,
+        rating: u.rating || 0,
       })),
     };
   }

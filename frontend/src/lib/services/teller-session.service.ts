@@ -13,6 +13,7 @@
  * 5. Settlement preparation boundary verifies all prerequisites without posting vouchers in C3.
  */
 
+import { voucherFiscalYear } from "../fiscal-period";
 import { dbTransaction } from "../db";
 import type { PoolClient } from "pg";
 import { TellerRepository } from "../repositories/teller.repository";
@@ -645,7 +646,7 @@ export class TellerSessionService {
 
       // Resolve Fiscal Year
       const periodStatus = await AccountingFiscalPeriodRepository.getPeriodStatusForDate(settlementDate, txClient);
-      const fiscalYear = periodStatus.status === "PERIOD_OPEN" ? periodStatus.period.fiscal_year : "FY2026-27";
+      const fiscalYear = periodStatus.status === "PERIOD_OPEN" ? periodStatus.period.fiscal_year : voucherFiscalYear();
 
       // Build balanced journal lines preserving the branch dimension
       const lines: JournalLineInput[] = variance < 0

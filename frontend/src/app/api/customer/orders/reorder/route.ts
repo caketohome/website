@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
 
     // 4. Create or Resolve Customer Cart
     const cartId = `cart_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-    const branchId = order.branch_id || "br_indiranagar_01";
+    const branchId = order.branch_id || null;
     let addedItems: any[] = [];
     let unavailableItems: any[] = [];
 

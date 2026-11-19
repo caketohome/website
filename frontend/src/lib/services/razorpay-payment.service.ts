@@ -12,10 +12,12 @@
  * 7. Controlled Refund Reason-Code Model with statutory GST Credit Note reference
  */
 
+import { resolveHeadOfficeBranchId, resolveCompanyId } from "../org-defaults";
 import crypto from "crypto";
 import type { PoolClient } from "pg";
 import { dbQuery, dbTransaction } from "../db";
 import { PaymentGatewayConfigService } from "./payment-gateway-config.service";
+import { voucherFiscalYear } from "../fiscal-period";
 
 export type RazorpayRefundReasonCode = 
   | "DAMAGED_DELIVERY"
@@ -388,7 +390,7 @@ export class RazorpayPaymentService {
           created_at, updated_at
         ) VALUES ($1, $2, $3, $4, $5, 'INR', 'initiated', 'pending', 'razorpay', $6, NOW(), NOW())
         ON CONFLICT (id) DO NOTHING;`,
-        [ptxId, order.id, order.branch_id || "br_indiranagar_01", order.customer_id || "cust_guest_default", grandTotal, razorpayOrderId]
+        [ptxId, order.id, order.branch_id || (await resolveHeadOfficeBranchId()), order.customer_id || "cust_guest_default", grandTotal, razorpayOrderId]
       );
     }
 
@@ -746,7 +748,7 @@ export class RazorpayPaymentService {
         [order.id, integrity.subtotal, integrity.taxTotal, integrity.grandTotal, JSON.stringify(syncedMeta)]
       );
 
-      const branchId = order.branch_id || "br_indiranagar_01";
+      const branchId = order.branch_id || (await resolveHeadOfficeBranchId(txClient));
 
       // 6. Deduct Inventory Movements & update branch_inventory (protected by SAVEPOINT)
       try {
@@ -835,7 +837,7 @@ export class RazorpayPaymentService {
             status, total_amount, currency, reference_type, reference_id, reference_event,
             narration, created_by, posted_by, posted_at, created_at, updated_at
           ) VALUES (
-            $1, $2, 'RECEIPT', $3, $4, '26-27',
+            $1, $2, 'RECEIPT', $3, $4, $8,
             'POSTED', $5, 'INR', 'ORDER_PAYMENT', $6, 'PAYMENT_CAPTURED',
             $7, 'razorpay_system', 'razorpay_system', NOW(), NOW(), NOW()
           )`,
@@ -846,7 +848,8 @@ export class RazorpayPaymentService {
             branchId,
             grandTotal,
             order.id,
-            `Razorpay payment captured (${razorpay_payment_id}) for order ${order.id}`
+            `Razorpay payment captured (${razorpay_payment_id}) for order ${order.id}`,
+            voucherFiscalYear(today)
           ]
         );
 
@@ -855,7 +858,7 @@ export class RazorpayPaymentService {
             id, entry_no, voucher_id, entry_date, branch_id, fiscal_year,
             total_debit, total_credit, is_reversed, narration, created_by, created_at
           ) VALUES (
-            $1, $2, $3, $4, $5, '26-27',
+            $1, $2, $3, $4, $5, $8,
             $6, $6, false, $7, 'razorpay_system', NOW()
           )`,
           [
@@ -865,7 +868,8 @@ export class RazorpayPaymentService {
             today,
             branchId,
             grandTotal,
-            `Customer payment receipt in Razorpay Clearing (1020) for order ${order.id}`
+            `Customer payment receipt in Razorpay Clearing (1020) for order ${order.id}`,
+            voucherFiscalYear(today)
           ]
         );
 
@@ -1124,8 +1128,8 @@ export class RazorpayPaymentService {
 
     // Find payment transaction
     const txnRes = await dbQuery(
-      `SELECT id, gateway_payment_id, amount, status FROM public.payment_transaction 
-       WHERE order_id = $1 AND provider = 'razorpay' AND status = 'paid' LIMIT 1`,
+      `SELECT id, gateway_payment_id, amount, status, branch_id FROM public.payment_transaction
+       WHERE order_id = $1 AND provider = 'razorpay' AND status IN ('paid', 'partially_refunded') LIMIT 1`,
       [order_id]
     );
 
@@ -1151,16 +1155,41 @@ export class RazorpayPaymentService {
       };
     }
 
+    // Amount must be positive and within what is still refundable on this payment
+    const paidAmount = Number(txn.amount) || 0;
+    const refundedRes = await dbQuery(
+      `SELECT COALESCE(SUM(amount), 0) AS refunded FROM public.payment_refund
+       WHERE payment_transaction_id = $1 AND status = 'processed'`,
+      [txn.id]
+    );
+    const alreadyRefunded = Number(refundedRes.rows[0]?.refunded) || 0;
+    const refundable = Math.round((paidAmount - alreadyRefunded) * 100) / 100;
+    if (!(Number(amount) > 0) || Math.round(Number(amount) * 100) > Math.round(refundable * 100)) {
+      throw new Error(`INVALID_REFUND_AMOUNT: Refund must be more than ₹0 and at most ₹${refundable.toFixed(2)} (paid ₹${paidAmount.toFixed(2)}, already refunded ₹${alreadyRefunded.toFixed(2)}).`);
+    }
+    if (!txn.gateway_payment_id) {
+      throw new Error("REFUND_NOT_POSSIBLE: This payment has no Razorpay payment ID, so it cannot be refunded through Razorpay.");
+    }
+    if (!txn.branch_id) {
+      throw new Error("REFUND_NOT_POSSIBLE: The payment is not linked to a branch.");
+    }
+
     const refundId = `ref_${Date.now()}_${crypto.randomBytes(3).toString("hex")}`;
     const credentials = await PaymentGatewayConfigService.getActiveCredentials("razorpay");
+    const isTestRun = process.env.NODE_ENV === "test";
+    if (!isTestRun && (!credentials.key_id || credentials.key_id.includes("placeholder"))) {
+      throw new Error("RAZORPAY_NOT_CONFIGURED: Add the Razorpay keys in payment settings before refunding.");
+    }
 
-    let providerRefundId = `rzp_ref_mock_${Date.now()}`;
-
-    // Call Razorpay Refund API if not mock
-    if (!credentials.key_id.includes("placeholder") && txn.gateway_payment_id) {
+    // The refund is only booked after Razorpay confirms it. No confirmation = nothing recorded.
+    let providerRefundId: string;
+    if (isTestRun && credentials.key_id.includes("placeholder")) {
+      providerRefundId = `rzp_ref_test_${Date.now()}`;
+    } else {
+      const authHeader = "Basic " + Buffer.from(`${credentials.key_id}:${credentials.key_secret}`).toString("base64");
+      let refRes: Response;
       try {
-        const authHeader = "Basic " + Buffer.from(`${credentials.key_id}:${credentials.key_secret}`).toString("base64");
-        const refRes = await fetch(`https://api.razorpay.com/v1/payments/${txn.gateway_payment_id}/refund`, {
+        refRes = await fetch(`https://api.razorpay.com/v1/payments/${txn.gateway_payment_id}/refund`, {
           method: "POST",
           headers: {
             "Authorization": authHeader,
@@ -1171,15 +1200,19 @@ export class RazorpayPaymentService {
             notes: { reason_code, reason_explanation: reason_explanation || "" }
           })
         });
-
-        if (refRes.ok) {
-          const refData = await refRes.json();
-          providerRefundId = refData.id;
-        }
       } catch (err: any) {
-        console.warn("[Razorpay] Refund API call notice:", err.message);
+        throw new Error(`REFUND_GATEWAY_UNREACHABLE: Could not reach Razorpay (${err.message}). Nothing was refunded or recorded; try again.`);
       }
+      if (!refRes.ok) {
+        const errText = await refRes.text().catch(() => "");
+        throw new Error(`REFUND_GATEWAY_REJECTED: Razorpay refused the refund (HTTP ${refRes.status}) ${errText}`.trim());
+      }
+      const refData = await refRes.json();
+      if (!refData?.id) throw new Error("REFUND_GATEWAY_REJECTED: Razorpay did not return a refund ID.");
+      providerRefundId = refData.id;
     }
+    const fullyRefunded = Math.round((alreadyRefunded + Number(amount)) * 100) >= Math.round(paidAmount * 100);
+    const newPaymentStatus = fullyRefunded ? "refunded" : "partially_refunded";
 
     // Insert refund and generate double-entry reversal
     await dbTransaction(async (txClient: PoolClient) => {
@@ -1189,7 +1222,8 @@ export class RazorpayPaymentService {
       const refundJournalId = `je_ref_${Date.now()}_${crypto.randomBytes(3).toString("hex")}`;
       const entryNo = `JE-REF-${Date.now().toString().slice(-6)}`;
       const today = new Date().toISOString().split("T")[0];
-      const branchId = txn.branch_id || "br_indiranagar_01";
+      const branchId = txn.branch_id;
+      const fiscalYear = voucherFiscalYear(new Date());
 
       await txClient.query(
         `INSERT INTO public.accounting_voucher (
@@ -1197,7 +1231,7 @@ export class RazorpayPaymentService {
           status, total_amount, currency, reference_type, reference_id, reference_event,
           narration, created_by, posted_by, posted_at, created_at, updated_at
         ) VALUES (
-          $1, $2, 'CREDIT_NOTE', $3, $4, '26-27',
+          $1, $2, 'CREDIT_NOTE', $3, $4, $10,
           'POSTED', $5, 'INR', 'ORDER_REFUND', $6, 'PAYMENT_REFUNDED',
           $7, $8, $9, NOW(), NOW(), NOW()
         )`,
@@ -1210,7 +1244,8 @@ export class RazorpayPaymentService {
           order_id,
           `Razorpay refund for order ${order_id}: ${reason_code} - ${reason_explanation || ""}`,
           requested_by,
-          approved_by
+          approved_by,
+          fiscalYear
         ]
       );
 
@@ -1219,7 +1254,7 @@ export class RazorpayPaymentService {
           id, entry_no, voucher_id, entry_date, branch_id, fiscal_year,
           total_debit, total_credit, is_reversed, narration, created_by, created_at
         ) VALUES (
-          $1, $2, $3, $4, $5, '26-27',
+          $1, $2, $3, $4, $5, $9,
           $6, $6, false, $7, $8, NOW()
         )`,
         [
@@ -1230,7 +1265,8 @@ export class RazorpayPaymentService {
           branchId,
           amount,
           `Reversal journal entry for refund on order ${order_id}`,
-          requested_by
+          requested_by,
+          fiscalYear
         ]
       );
 
@@ -1273,12 +1309,12 @@ export class RazorpayPaymentService {
 
       // Update Order & Transaction status
       await txClient.query(
-        `UPDATE public."order" SET payment_status = 'refunded', updated_at = NOW() WHERE id = $1`,
-        [order_id]
+        `UPDATE public."order" SET payment_status = $2, updated_at = NOW() WHERE id = $1`,
+        [order_id, newPaymentStatus]
       );
       await txClient.query(
-        `UPDATE public.payment_transaction SET status = 'refunded', updated_at = NOW() WHERE id = $1`,
-        [txn.id]
+        `UPDATE public.payment_transaction SET status = $2, updated_at = NOW() WHERE id = $1`,
+        [txn.id, newPaymentStatus]
       );
     });
 
@@ -1286,7 +1322,9 @@ export class RazorpayPaymentService {
       success: true,
       refund_id: refundId,
       status: "processed",
-      message: "Refund processed successfully with statutory double-entry reversal."
+      message: fullyRefunded
+        ? "Refund confirmed by Razorpay and recorded in the books."
+        : "Partial refund confirmed by Razorpay and recorded in the books."
     };
   }
 }

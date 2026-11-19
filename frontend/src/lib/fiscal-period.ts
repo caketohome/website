@@ -62,3 +62,12 @@ export function resolveIndianFiscalYear(issueDate: Date | string | number = new 
   };
 }
 
+
+/**
+ * Fiscal year label used on vouchers and journal entries, in the same format as
+ * public.accounting_fiscal_period.fiscal_year (e.g. "FY2026-27"), so year-end close matches them.
+ */
+export function voucherFiscalYear(date: Date | string | number = new Date()): string {
+  const fy = resolveIndianFiscalYear(date);
+  return `FY${fy.startYear}-${String(fy.endYear % 100).padStart(2, "0")}`;
+}

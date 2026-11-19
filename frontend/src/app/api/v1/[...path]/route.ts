@@ -1262,10 +1262,14 @@ function resolveManagerSession(req: NextRequest) {
   }
 
   if (!targetBranchId) {
-    targetBranchId = "br_indiranagar";
+    // Only a super admin may work without an assigned branch (defaults to the first live branch).
+    if (!isSuperAdmin) {
+      return { error: "Forbidden: No branch is assigned to this account.", status: 403 };
+    }
+    targetBranchId = (ApiEngine.listBranches() as any[])[0]?.id || "";
   }
 
-  const branch = ApiEngine.resolveBranchRecord(targetBranchId);
+  const branch = ApiEngine.resolveBranchRecord(targetBranchId || "");
   if (!branch) {
     return { error: "Forbidden: Assigned operational branch not found.", status: 403 };
   }
@@ -1273,7 +1277,7 @@ function resolveManagerSession(req: NextRequest) {
   // Non-super-admin manager cannot manage another branch
   if (!isSuperAdmin && sessionUserId && sessionUserId.startsWith("shpmgr_")) {
     const assignedBranchId = sessionUserId.replace("shpmgr_", "br_");
-    if (assignedBranchId !== branch.id && branch.manager_id !== sessionUserId && (sessionUserId !== "shpmgr_01" || branch.id !== "br_indiranagar")) {
+    if (assignedBranchId !== branch.id && branch.manager_id !== sessionUserId) {
       return { error: `Forbidden: Manager ${sessionUserId} is not authorized for branch ${branch.name}.`, status: 403 };
     }
   }
@@ -1282,7 +1286,7 @@ function resolveManagerSession(req: NextRequest) {
     success: true,
     branchId: branch.id,
     branch,
-    userId: sessionUserId || branch.manager_id || "shpmgr_01",
+    userId: sessionUserId || branch.manager_id || "",
     role: session.role || "BRANCH_MANAGER",
     isSuperAdmin,
   };
@@ -2710,7 +2714,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
           if (!riderId) {
             return jsonWithDataSource({ success: false, error: "delivery_partner_id is required." }, "postgres", 400);
           }
-          const targetBranch = enforcedBranchId || "br_indiranagar";
+          const targetBranch = enforcedBranchId || "";
           const collections = await DeliveryHandoverService.getEligibleCollections(riderId, targetBranch);
           return jsonWithDataSource({ success: true, data: collections }, "postgres");
         }
@@ -5216,7 +5220,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
 
     if (path === "delivery/slots" || path === "store/delivery/slots" || path === "fulfillment/delivery-slots" || path === "admin/fulfillment/delivery-slots") {
-      const branchId = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || "br_default";
+      const branchId = url.searchParams.get("branch_id") || url.searchParams.get("branchId") || "";
       const date = url.searchParams.get("date") || new Date().toISOString().slice(0, 10);
       const mode = (url.searchParams.get("mode") as any) || "delivery";
       const slots = ApiEngine.getDeliverySlots(branchId, date, mode);
@@ -5324,7 +5328,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     }
 
     if (path === "fulfillment/preview-slots" || path === "admin/fulfillment/preview-slots") {
-      const branchId = url.searchParams.get("branch_id") || "br_default";
+      const branchId = url.searchParams.get("branch_id") || "";
       const date = url.searchParams.get("date") || new Date().toISOString().slice(0, 10);
       const mode = (url.searchParams.get("mode") || "delivery") as "delivery" | "pickup";
       const zoneId = url.searchParams.get("zone_id") || undefined;
@@ -5585,20 +5589,21 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
         const kotPayload = {
           kot_number: kotRes.rows[0]?.kot_number || (dbOrder as any).metadata?.kot_number || dbOrder.kitchen?.kot_number || `KOT-${dbOrder.order_number || dbOrder.id}`,
           order_number: dbOrder.order_number || dbOrder.id,
-          brand_name: "CakeToHome Gourmet Bakery",
-          branch_name: dbOrder.branch?.name || "Indiranagar Flagship Kitchen",
-          branch_code: dbOrder.branch?.code || "HUB-BLR-01",
+          // Ticket shows only what the order really has; blanks stay blank (never guessed).
+          brand_name: (await getCompanyProfile()).trade_name || (await getCompanyProfile()).legal_name || "",
+          branch_name: dbOrder.branch?.name || "",
+          branch_code: dbOrder.branch?.code || "",
           created_at: dbOrder.created_at,
           printed_at: new Date().toISOString(),
-          customer_name: dbOrder.customer?.name || "Valued Customer",
-          delivery_slot: dbOrder.delivery?.slot || "18:00 - 20:00",
-          delivery_date: dbOrder.delivery?.date || new Date().toISOString().split("T")[0],
+          customer_name: dbOrder.customer?.name || "",
+          delivery_slot: dbOrder.delivery?.slot || "",
+          delivery_date: dbOrder.delivery?.date || "",
           priority: "STANDARD",
           items: (dbOrder.items || []).map((i: any) => ({
             title: i.title || i.product_name || i.name,
             quantity: i.quantity || 1,
-            weight: i.weight || i.variant_name || "1.0 kg",
-            flavor: i.customization?.flavor || "Artisan",
+            weight: i.weight || i.variant_name || "",
+            flavor: i.customization?.flavor || "",
             notes: i.customization?.special_instructions || null,
           })),
           customization: dbOrder.customization || {},

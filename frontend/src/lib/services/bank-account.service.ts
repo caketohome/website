@@ -26,6 +26,8 @@
  *    - Every mutation emits canonical events to public.outbox_events inside the same DB transaction.
  */
 
+import { resolveHeadOfficeBranchId } from "../org-defaults";
+import { voucherFiscalYear } from "../fiscal-period";
 import { dbTransaction, dbQuery } from "../db";
 import type { PoolClient } from "pg";
 import { BankAccountRepository, BankAccountError } from "../repositories/bank-account.repository";
@@ -294,8 +296,8 @@ export class BankAccountService {
         if (openingBalance > 0 && offsetGlId) {
           const voucherId = `vch_ob_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
           const voucherNo = `JV-OB-${Date.now().toString().slice(-6)}`;
-          const branchId = params.branch_id || "br_indiranagar_01";
-          const fiscalYear = "26-27";
+          const branchId = params.branch_id || (await resolveHeadOfficeBranchId(c));
+          const fiscalYear = voucherFiscalYear(openingDate);
           openingVoucherId = voucherId;
 
           await c.query(
@@ -784,8 +786,8 @@ export class BankAccountService {
 
       const voucherId = `vch_trf_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
       const voucherNo = `JV-TRF-${Date.now().toString().slice(-6)}`;
-      const branchId = "br_indiranagar_01";
-      const fiscalYear = "26-27";
+      const branchId = source.branch_id || (await resolveHeadOfficeBranchId(c));
+      const fiscalYear = voucherFiscalYear(transferDate);
       const correlationId = `corr_trf_${refNo}_${Date.now()}`;
 
       await c.query(

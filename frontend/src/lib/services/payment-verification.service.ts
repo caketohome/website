@@ -9,6 +9,7 @@
  * 5. Downstream operational triggers: inventory movement deduction, KOT ticket generation, and notification queueing.
  */
 
+import { resolveHeadOfficeBranchId } from "../org-defaults";
 import crypto from "crypto";
 import { dbQuery, dbTransaction, getDbPool } from "../db";
 
@@ -423,11 +424,11 @@ export class PaymentVerificationService {
             id, company_id, branch_id, order_id, customer_id, amount, currency,
             status, settlement_status, provider, provider_ref, gateway_order_id,
             gateway_payment_id, gateway_signature, failure_reason, created_at, updated_at
-          ) VALUES ($1, 'comp_cth_india', $2, $3, $4, $5, $6, 'captured', 'flagged_refund', 'razorpay', $7, $8, $7, $9, $10, NOW(), NOW())
+          ) VALUES ($1, (SELECT id FROM public.company WHERE is_active = true ORDER BY created_at ASC LIMIT 1), $2, $3, $4, $5, $6, 'captured', 'flagged_refund', 'razorpay', $7, $8, $7, $9, $10, NOW(), NOW())
           ON CONFLICT (id) DO NOTHING`,
           [
             ptxnId,
-            order.branch_id || "br_indiranagar_01",
+            order.branch_id || (await resolveHeadOfficeBranchId(txClient)),
             order.id,
             order.customer_id || "cus_guest",
             paidAmount,
@@ -498,11 +499,11 @@ export class PaymentVerificationService {
             id, company_id, branch_id, order_id, customer_id, amount, currency,
             status, settlement_status, provider, provider_ref, gateway_order_id,
             gateway_payment_id, gateway_signature, failure_reason, created_at, updated_at
-          ) VALUES ($1, 'comp_cth_india', $2, $3, $4, $5, $6, 'captured', 'amount_mismatch', 'razorpay', $7, $8, $7, $9, $10, NOW(), NOW())
+          ) VALUES ($1, (SELECT id FROM public.company WHERE is_active = true ORDER BY created_at ASC LIMIT 1), $2, $3, $4, $5, $6, 'captured', 'amount_mismatch', 'razorpay', $7, $8, $7, $9, $10, NOW(), NOW())
           ON CONFLICT (id) DO NOTHING`,
           [
             ptxnId,
-            order.branch_id || "br_indiranagar",
+            order.branch_id || (await resolveHeadOfficeBranchId(txClient)),
             order.id,
             order.customer_id || "cus_guest",
             paidAmount,
@@ -573,12 +574,12 @@ export class PaymentVerificationService {
           id, company_id, branch_id, order_id, customer_id, amount, currency,
           idempotency_key, status, settlement_status, provider, provider_ref,
           gateway_order_id, gateway_payment_id, gateway_signature, metadata, created_at, updated_at
-        ) VALUES ($1, 'comp_cth_india', $2, $3, $4, $5, $6, $7, 'captured', 'settled', 'razorpay', $8, $9, $8, $10, $11, NOW(), NOW())
+        ) VALUES ($1, (SELECT id FROM public.company WHERE is_active = true ORDER BY created_at ASC LIMIT 1), $2, $3, $4, $5, $6, $7, 'captured', 'settled', 'razorpay', $8, $9, $8, $10, $11, NOW(), NOW())
         ON CONFLICT (id) DO UPDATE 
         SET status = 'captured', settlement_status = 'settled', updated_at = NOW()`,
         [
           paymentTxnId,
-          order.branch_id || "br_indiranagar",
+          order.branch_id || (await resolveHeadOfficeBranchId(txClient)),
           order.id,
           order.customer_id || "cus_guest",
           paidAmount,
@@ -637,7 +638,7 @@ export class PaymentVerificationService {
                 ) VALUES ($1, $2, $3, $4, 'SALE', $5, 'OUT', $6, $7, $8, 'system_payment_engine', NOW())`,
                 [
                   movementId,
-                  order.branch_id || "br_indiranagar_01",
+                  order.branch_id || (await resolveHeadOfficeBranchId(txClient)),
                   item.product_id,
                   item.metadata?.variant_id || null,
                   Math.abs(Number(item.quantity) || 1),
@@ -654,7 +655,7 @@ export class PaymentVerificationService {
                  WHERE branch_id = $2 AND product_id = $3`,
                 [
                   Math.abs(Number(item.quantity) || 1),
-                  order.branch_id || "br_indiranagar_01",
+                  order.branch_id || (await resolveHeadOfficeBranchId(txClient)),
                   item.product_id,
                 ]
               );
@@ -669,8 +670,10 @@ export class PaymentVerificationService {
 
       // c) Queue Automated Customer Notifications (SMS, WhatsApp, Email)
       const notificationsQueued: string[] = [];
-      const customerPhone = order.customer_phone || order.metadata?.phone || "9876543210";
-      const customerEmail = order.email || order.metadata?.email || "customer@cakes2home.com";
+      // Real contact details only: nothing is queued to a made-up number or address.
+      const customerPhone = String(order.customer_phone || order.metadata?.phone || "").trim();
+      const customerEmail = String(order.email || order.metadata?.email || "").trim();
+      const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/$/, "");
       const customerName = order.customer_name || "Valued Customer";
 
       const existingNotifications = await txClient.query(
@@ -678,7 +681,8 @@ export class PaymentVerificationService {
         [order.id]
       );
 
-      if (existingNotifications.rows.length === 0) {
+      if (existingNotifications.rows.length === 0 && (customerPhone || customerEmail)) {
+        if (customerPhone) {
         // SMS Notification
         const smsId = `cnq_sms_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
         await txClient.query(
@@ -695,7 +699,7 @@ export class PaymentVerificationService {
               customer_name: customerName,
               amount: paidAmount,
               delivery_date: order.metadata?.delivery_date || "Today",
-              tracking_url: `https://caketohome.com/your-order?order_id=${order.id}`,
+              tracking_url: `${siteUrl}/your-order?order_id=${order.id}`,
             }),
           ]
         );
@@ -717,11 +721,12 @@ export class PaymentVerificationService {
               customer_name: customerName,
               amount: paidAmount,
               kot_number: kotNumber,
-              tracking_url: `https://caketohome.com/your-order?order_id=${order.id}`,
+              tracking_url: `${siteUrl}/your-order?order_id=${order.id}`,
             }),
           ]
         );
         notificationsQueued.push("whatsapp");
+        }
 
         // Email Notification
         if (customerEmail) {
@@ -819,11 +824,11 @@ export class PaymentVerificationService {
           id, company_id, branch_id, order_id, customer_id, amount, currency,
           status, settlement_status, provider, provider_ref, gateway_order_id,
           gateway_payment_id, error_code, failure_reason, created_at, updated_at
-        ) VALUES ($1, 'comp_cth_india', $2, $3, 'cus_guest', 0, 'INR', 'failed', 'failed', 'razorpay', $4, $5, $4, $6, $7, NOW(), NOW())
+        ) VALUES ($1, (SELECT id FROM public.company WHERE is_active = true ORDER BY created_at ASC LIMIT 1), $2, $3, 'cus_guest', 0, 'INR', 'failed', 'failed', 'razorpay', $4, $5, $4, $6, $7, NOW(), NOW())
         ON CONFLICT (id) DO NOTHING`,
         [
           ptxnId,
-          order?.branch_id || "br_indiranagar",
+          order?.branch_id || (await resolveHeadOfficeBranchId(txClient)),
           orderId,
           paymentId,
           gatewayOrderId || null,
@@ -871,7 +876,7 @@ export class PaymentVerificationService {
               JSON.stringify({
                 order_number: order.order_number || order.id,
                 reason: errorDescription || "Payment failed",
-                retry_url: `https://caketohome.com/checkout?order_id=${order.id}`,
+                retry_url: `${(process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/$/, "")}/checkout?order_id=${order.id}`,
               }),
             ]
           );

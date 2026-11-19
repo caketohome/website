@@ -12,7 +12,7 @@ interface PdpDeliveryCheckerProps {
 
 export function PdpDeliveryChecker({
   productId,
-  shopId = "br_koramangala",
+  shopId,
   showDeliveryChecker = true,
 }: PdpDeliveryCheckerProps) {
   if (!showDeliveryChecker) return null;

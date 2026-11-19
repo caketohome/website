@@ -172,7 +172,7 @@ export function BranchPincodePanel() {
 
   const handleOpenMoveModal = (pin: string) => {
     setMovingPincode(pin);
-    setTargetBranchId(selectedBranchId || "br_indiranagar");
+    setTargetBranchId(selectedBranchId || "");
     setTargetZoneId("zone_1");
     setShowMoveModal(true);
   };
@@ -197,7 +197,7 @@ export function BranchPincodePanel() {
     const lines = bulkCsvText.split("\n").map((l) => l.trim()).filter(Boolean);
     const list = lines.map((l) => {
       const parts = l.split(",").map((p) => p.trim());
-      return { pincode: parts[0], branch_id: parts[1] || "br_indiranagar", zone_id: parts[2] || "zone_1" };
+      return { pincode: parts[0], branch_id: parts[1] || selectedBranchId || "", zone_id: parts[2] || "zone_1" };
     });
     try {
       await apiClient.bulkImportPincodes(list);

@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { ApiEngine } from "@frontend/lib/api-engine";
 import ProductDetailClient from "../../../../components/store/shop/product-detail-client";
 import { ProductJsonLd } from "../../../../components/store/seo/json-ld";
 import { getProductById, getProductBySlug, listProductReviews } from "../../../../lib/data/catalog";
@@ -118,7 +119,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const averageRating = reviewsData?.aggregate?.average_rating ?? (fetched as any)?.rating ?? 0;
   const ratingDistribution = reviewsData?.aggregate?.rating_distribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   const isWishlistedInitial = false;
-  const shopId = "br_koramangala";
+  // Branch that serves the customer's saved delivery pincode (none until they pick a location)
+  const shopId = (pincodeCookie ? ApiEngine.resolveSmartBranch({ pincode: pincodeCookie, productId })?.branch?.id : "") || "";
   const variantId = (product.variants && product.variants[0]?.id) ? product.variants[0].id : `var_${productId}`;
 
   // Fetch dynamic PIM configuration from database engine

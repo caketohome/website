@@ -16,7 +16,7 @@ export default async function MenuPage() {
     redirect("/login");
   }
 
-  const shopId = user?.shop_id || user?.branch_id || "br_indiranagar";
+  const shopId = user?.shop_id || user?.branch_id || "";
   const branch = await BranchRepository.findById(shopId);
   const categories = ApiEngine.getCategories();
   const branchProds = ApiEngine.getBranchProducts(branch?.id || shopId);

@@ -20823,7 +20823,7 @@ export class ApiEngine {
     const kotPayload = {
       kot_number: kotNumber,
       order_number: ord.order_number,
-      brand_name: "CakeToHome Gourmet Bakery",
+      brand_name: ApiEngine.getBusinessProfile()?.trade_name || ApiEngine.getBusinessProfile()?.legal_name || "",
       branch_name: ord.branch_name,
       branch_code: ord.branch_code,
       created_at: ord.created_at,
@@ -20835,10 +20835,10 @@ export class ApiEngine {
       items: ord.items.map((i: any) => ({
         title: i.title || i.name,
         quantity: i.quantity || 1,
-        weight: i.weight || "1.0 kg",
-        flavor: i.flavor || "Dutch Truffle",
-        filling: i.filling || "Ganache",
-        shape: i.shape || "Round",
+        weight: i.weight || "",
+        flavor: i.flavor || "",
+        filling: i.filling || "",
+        shape: i.shape || "",
         notes: i.notes || null,
       })),
       customization: ord.customization,
@@ -20887,10 +20887,10 @@ export class ApiEngine {
       seller_state_code: snap.seller_state_code || (ord.branch?.state ? ApiEngine.resolveStateCode(ord.branch.state).gst_code : ""),
       place_of_supply: snap.customer_state || ord.state || ord.shipping_address?.state || "",
       supply_type: snap.supply_type || (snap.is_intra_state !== false ? "INTRA-STATE (CGST + SGST)" : "INTER-STATE (IGST)"),
-      branch_name: snap.branch_name || ord.branch_name || "Indiranagar Flagship Kitchen",
-      branch_code: snap.branch_code || ord.branch_code || "HUB-BLR-01",
-      branch_address: snap.seller_address || ord.branch?.address || "100 Feet Rd, Indiranagar, Bengaluru - 560038",
-      seller_address: snap.seller_address || ord.branch?.address || "100 Feet Rd, Indiranagar, Bengaluru - 560038",
+      branch_name: snap.branch_name || ord.branch_name || "",
+      branch_code: snap.branch_code || ord.branch_code || "",
+      branch_address: snap.seller_address || ord.branch?.address || "",
+      seller_address: snap.seller_address || ord.branch?.address || "",
       branch_gstin: snap.seller_gstin || null,
       seller_gstin: snap.seller_gstin || null,
       branch_fssai: snap.seller_fssai_number || "11223344556677",
@@ -22543,23 +22543,19 @@ export class ApiEngine {
     // This enforces the Order ≠ Bill invariant.
     const invoiceNumber: string | null = null;
 
-    const branch = validation.branch || {
-      id: "br_indiranagar",
-      name: "Indiranagar Flagship Kitchen",
-      code: "HUB-BLR-01",
-      city: "Bengaluru",
-      city_id: "city_bbr",
-      state: "Karnataka",
-      hierarchy: { state_id: "state_ka" },
-      gst_number: "29AABCC1234F1Z5",
-      fssai_number: "11223344556677",
-    };
+    const branch: any = validation.branch;
+    if (!branch) {
+      return { success: false, statusCode: 400, error: "No kitchen delivers to this address yet. Please choose another location." };
+    }
 
     const customerName = payload.ordered_for_self === false && payload.recipient_name
       ? `${payload.address?.first_name || "Customer"} (For: ${payload.recipient_name})`
-      : `${payload.address?.first_name || "Gourmet"} ${payload.address?.last_name || "Customer"}`;
+      : (`${payload.address?.first_name || ""} ${payload.address?.last_name || ""}`.trim() || "Customer");
 
-    const customerPhone = payload.address?.phone || payload.recipient_phone || "+91 98765 43210";
+    const customerPhone = payload.address?.phone || payload.recipient_phone || "";
+    if (!String(customerPhone).replace(/\D/g, "")) {
+      return { success: false, statusCode: 400, error: "A phone number is required to place the order." };
+    }
     const cleanCustomerPhone = normalizePhone(customerPhone);
     const pickupOtp = String(Math.floor(1000 + Math.random() * 9000));
     const deliveryOtp = String(Math.floor(1000 + Math.random() * 9000));
@@ -22659,9 +22655,9 @@ export class ApiEngine {
         variant_id: item.variant_id,
         title: item.title || item.name,
         name: item.title || item.name,
-        weight: item.weight || "1.0 kg",
-        shape: item.shape || "Round",
-        flavour: item.flavour || "Dutch Chocolate",
+        weight: item.weight || "",
+        shape: item.shape || "",
+        flavour: item.flavour || "",
         quantity: item.quantity,
         unit_price: item.unit_price,
         subtotal: item.subtotal,

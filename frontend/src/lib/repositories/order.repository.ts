@@ -234,7 +234,7 @@ export class OrderRepository {
     const delivery = {
       type: meta.delivery?.type || "standard",
       date: meta.delivery?.date || meta.delivery_date || (o.created_at ? String(o.created_at).split("T")[0] : new Date().toISOString().split("T")[0]),
-      slot: meta.delivery?.slot || meta.delivery_slot_time || "18:00 - 20:00",
+      slot: meta.delivery?.slot || meta.delivery_slot_time || "",
       fee: deliveryFee,
       assignment_mode: meta.delivery?.assignment_mode || (meta.delivery_partner_id ? "manual" : "auto"),
       partner_id: meta.delivery?.partner_id || meta.delivery_partner_id || null,
@@ -290,7 +290,7 @@ export class OrderRepository {
       kot_number: meta.kitchen?.kot_number || (meta.kot_number ? meta.kot_number : `KOT-${orderNumber}`),
       chef_assigned: meta.kitchen?.chef_assigned || null,
       prep_time_minutes: meta.kitchen?.prep_time_minutes || 45,
-      dispatch_time: meta.kitchen?.dispatch_time || (delivery.slot || "18:00 - 20:00"),
+      dispatch_time: meta.kitchen?.dispatch_time || delivery.slot || "",
       production_status: meta.kitchen?.production_status || (status === "delivered" ? "Completed" : status === "out_for_delivery" ? "Dispatched" : status === "preparing" ? "In Production" : "Queued"),
       kitchen_notes: meta.kitchen?.kitchen_notes || (firstItemCakeMsg ? `Piping message: "${firstItemCakeMsg}"` : null),
     };
@@ -987,13 +987,16 @@ export class OrderRepository {
     const existing = await OrderRepository.findById(orderId);
     if (!existing) throw new Error(`Order ${orderId} not found`);
 
-    const bName = branchName || (branchId === "br_koramangala" ? "Koramangala Gourmet Hub" : "Indiranagar Flagship Bakery");
+    const br = await dbQuery(`SELECT name FROM public.branch WHERE id = $1 AND deleted_at IS NULL LIMIT 1`, [branchId]);
+    if (br.rows.length === 0) throw new Error(`Branch ${branchId} not found`);
+    const bName = br.rows[0].name || branchName || branchId;
     const historyId = `osh_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 
     await dbTransaction(async (client) => {
       await client.query(
         `UPDATE "order"
-         SET metadata = jsonb_set(
+         SET branch_id = $1,
+             metadata = jsonb_set(
                jsonb_set(COALESCE(metadata, '{}'::jsonb), '{branch_id}', to_jsonb($1::text)),
                '{branch_name}', to_jsonb($2::text)
              ),
@@ -1037,8 +1040,18 @@ export class OrderRepository {
     const existing = await OrderRepository.findById(orderId);
     if (!existing) throw new Error(`Order ${orderId} not found`);
 
-    const pName = driverName || "Assigned Fleet Partner";
-    const pPhone = driverPhone || "+91 98123 45678";
+    // Name/phone come from the rider's own record when the caller did not send them.
+    let pName = driverName || "";
+    let pPhone = driverPhone || "";
+    if (!pName || !pPhone) {
+      const r = await dbQuery(
+        `SELECT first_name, last_name, phone FROM public.delivery_partner WHERE id = $1 AND deleted_at IS NULL LIMIT 1`,
+        [partnerId]
+      );
+      if (r.rows.length === 0) throw new Error(`Delivery partner ${partnerId} not found`);
+      pName = pName || `${r.rows[0].first_name || ""} ${r.rows[0].last_name || ""}`.trim() || partnerId;
+      pPhone = pPhone || r.rows[0].phone || "";
+    }
     const pickupOtp = existing.delivery?.pickup_otp || String(Math.floor(1000 + Math.random() * 9000));
     const deliveryOtp = existing.delivery?.delivery_otp || String(Math.floor(5000 + Math.random() * 5000));
     const historyId = `osh_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
@@ -1130,11 +1143,38 @@ export class OrderRepository {
     const existing = await OrderRepository.findById(orderId);
     if (!existing) throw new Error(`Order ${orderId} not found`);
 
-    const partnerId = "dlv_part_01";
-    const partnerName = "Rajesh Kumar (Indiranagar Fast Fleet)";
-    const partnerNumber = "DLV-0101";
-    const partnerPhone = "+91 98450 12345";
-    const reason = "Proximity algorithm: closest active fleet rider with lowest queue load (1/5 capacity).";
+    // Pick a real active rider of the order's branch with the fewest open deliveries (under their limit).
+    const riderRes = await dbQuery(
+      `SELECT dp.id, dp.first_name, dp.last_name, dp.phone,
+              COALESCE(p.max_concurrent_orders, 5) AS max_orders,
+              COALESCE(p.rating, 0) AS rating,
+              (SELECT COUNT(*) FROM public."order" o
+                WHERE o.deleted_at IS NULL
+                  AND o.metadata->>'delivery_partner_id' = dp.id
+                  AND LOWER(COALESCE(o.status::text, '')) NOT IN ('delivered', 'completed', 'cancelled', 'canceled', 'refunded', 'failed')
+              )::int AS open_orders
+         FROM public.delivery_partner dp
+         JOIN public.delivery_partner_profile p ON p.partner_id = dp.id
+        WHERE dp.deleted_at IS NULL
+          AND COALESCE(dp.is_active, true) = true
+          AND UPPER(COALESCE(p.status, '')) = 'ACTIVE'
+          AND p.primary_branch_id = $1
+        ORDER BY open_orders ASC, rating DESC, dp.first_name ASC`,
+      [existing.branch_id || ""]
+    );
+    const rider = riderRes.rows.find((r: any) => Number(r.open_orders) < Number(r.max_orders));
+    if (!rider) {
+      throw new Error(
+        riderRes.rows.length === 0
+          ? "NO_RIDER_AVAILABLE: No active delivery partner is set up for this order's branch."
+          : "NO_RIDER_AVAILABLE: Every active delivery partner of this branch is at their order limit."
+      );
+    }
+    const partnerId: string = rider.id;
+    const partnerName = `${rider.first_name || ""} ${rider.last_name || ""}`.trim() || rider.id;
+    const partnerNumber = `DLV-${String(rider.id).slice(-4).toUpperCase()}`;
+    const partnerPhone: string = rider.phone || "";
+    const reason = `Auto-assigned: active rider of this branch with the fewest open deliveries (${rider.open_orders}/${rider.max_orders}).`;
 
     const pickupOtp = existing.delivery?.pickup_otp || String(Math.floor(1000 + Math.random() * 9000));
     const deliveryOtp = existing.delivery?.delivery_otp || String(Math.floor(5000 + Math.random() * 5000));
@@ -1441,68 +1481,48 @@ export class OrderRepository {
     const existing = await OrderRepository.findById(orderId);
     if (!existing) throw new Error(`Order ${orderId} not found`);
 
-    const refundAmt = amount !== undefined && amount > 0 ? amount : existing.total;
+    const refundAmt = amount !== undefined && amount > 0 ? amount : Number(existing.total);
     const refundReason = reason || "Refund processed by admin";
-    const historyId = `osh_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 
-    await dbTransaction(async (client) => {
-      // Step A: Update order metadata
-      await client.query(
-        `UPDATE "order"
-         SET metadata = jsonb_set(
-               jsonb_set(
-                 jsonb_set(COALESCE(metadata, '{}'::jsonb), '{payment_status}', '"refunded"'::jsonb),
-                 '{refund_amount}', to_jsonb($1::numeric)
-               ),
-               '{refund_reason}', to_jsonb($2::text)
-             ),
-             updated_at = NOW()
-         WHERE (id = $3 OR display_id::text = $3 OR metadata->>'order_number' = $3)
-           AND deleted_at IS NULL`,
-        [refundAmt, refundReason, orderId]
-      );
-
-      // Step B: Record refund in PostgreSQL payment_transaction table
-      const refundTxnId = `ptxn_ref_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-      await client.query(
-        `INSERT INTO "payment_transaction" (
-           id, company_id, branch_id, order_id, customer_id, amount, currency,
-           idempotency_key, status, settlement_status, provider, provider_ref, created_at, updated_at
-         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'refunded', 'refunded', $9, $10, NOW(), NOW())`,
-        [
-          refundTxnId,
-          "comp_cth_india",
-          existing.branch_id || null,
-          existing.id,
-          existing.customer_id || "guest",
-          Math.round(refundAmt || 0),
-          "INR",
-          `idem_ref_${existing.id}_${Date.now()}`,
-          existing.payment_method || "card",
-          `ref_refund_${Date.now()}`,
-        ]
-      );
-
-      // Step C: Insert status history
-      await client.query(
-        `INSERT INTO "order_status_history" (
-           id, order_id, to_status, from_status, actor_type, actor_id, reason, metadata, created_at, updated_at
-         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
-        [
-          historyId,
-          existing.id,
-          existing.status,
-          existing.status,
-          "admin",
-          "system",
-          `Refund issued: ₹${refundAmt} (${refundReason})`,
-          JSON.stringify({ refund_amount: refundAmt, reason: refundReason, source: "postgres_authoritative" }),
-        ]
-      );
+    // Money only goes back through the payment gateway; the refund is booked after Razorpay confirms it.
+    const paid = await dbQuery(
+      `SELECT id FROM public.payment_transaction
+        WHERE order_id = $1 AND provider = 'razorpay' AND status IN ('paid', 'partially_refunded') LIMIT 1`,
+      [existing.id]
+    );
+    if (paid.rows.length === 0) {
+      throw new Error("NO_ONLINE_PAYMENT: This order has no paid online (Razorpay) payment to refund. Cash-on-delivery money is returned in cash from the branch, not through this button.");
+    }
+    const { RazorpayPaymentService } = await import("../services/razorpay-payment.service");
+    await RazorpayPaymentService.processRefund({
+      order_id: existing.id,
+      amount: refundAmt,
+      reason_code: "OTHER",
+      reason_explanation: refundReason,
+      requested_by: "admin",
+      approved_by: "admin",
+      idempotency_key: `admin_${existing.id}_${Math.round(refundAmt * 100)}_${Date.now()}`,
     });
 
+    await dbQuery(
+      `INSERT INTO "order_status_history" (
+         id, order_id, to_status, from_status, actor_type, actor_id, reason, metadata, created_at, updated_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
+      [
+        `osh_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        existing.id,
+        existing.status,
+        existing.status,
+        "admin",
+        "system",
+        `Refund issued: ₹${refundAmt} (${refundReason})`,
+        JSON.stringify({ refund_amount: refundAmt, reason: refundReason, source: "razorpay_confirmed" }),
+      ]
+    );
+
     const updated = await OrderRepository.findById(existing.id);
-    return updated || { ...existing, payment_status: "refunded" as any };
+    if (!updated) throw new Error(`Order ${orderId} not found after refund`);
+    return updated;
   }
 
   /**

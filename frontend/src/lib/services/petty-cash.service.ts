@@ -25,6 +25,7 @@
  * - Maker != Checker != Disburser (Super Admin cannot bypass).
  */
 
+import { voucherFiscalYear } from "../fiscal-period";
 import { dbQuery, dbTransaction } from "../db";
 import type { PoolClient } from "pg";
 import { PettyCashRepository } from "../repositories/petty-cash.repository";
@@ -361,7 +362,7 @@ export class PettyCashService {
       await PostingService.validateFiscalPeriod(vDate, txClient);
 
       const periodStatus = await AccountingFiscalPeriodRepository.getPeriodStatusForDate(vDate, txClient);
-      const fiscalYear = periodStatus.status === "PERIOD_OPEN" ? periodStatus.period.fiscal_year : "FY2026-27";
+      const fiscalYear = periodStatus.status === "PERIOD_OPEN" ? periodStatus.period.fiscal_year : voucherFiscalYear();
 
       // Lines: Dr 1114 / Cr 1112
       const lines: JournalLineInput[] = [
@@ -549,7 +550,7 @@ export class PettyCashService {
     await PostingService.validateFiscalPeriod(vDate, client);
 
     const periodStatus = await AccountingFiscalPeriodRepository.getPeriodStatusForDate(vDate, client);
-    const fiscalYear = periodStatus.status === "PERIOD_OPEN" ? periodStatus.period.fiscal_year : "FY2026-27";
+    const fiscalYear = periodStatus.status === "PERIOD_OPEN" ? periodStatus.period.fiscal_year : voucherFiscalYear();
 
     const lines: JournalLineInput[] = [];
 
@@ -731,7 +732,7 @@ export class PettyCashService {
       await PostingService.validateFiscalPeriod(vDate, txClient);
 
       const periodStatus = await AccountingFiscalPeriodRepository.getPeriodStatusForDate(vDate, txClient);
-      const fiscalYear = periodStatus.status === "PERIOD_OPEN" ? periodStatus.period.fiscal_year : "FY2026-27";
+      const fiscalYear = periodStatus.status === "PERIOD_OPEN" ? periodStatus.period.fiscal_year : voucherFiscalYear();
 
       // Lines: Dr 1114 / Cr 1112
       const lines: JournalLineInput[] = [

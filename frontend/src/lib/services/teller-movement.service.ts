@@ -9,6 +9,7 @@
  * 4. Pre-settlement only: movements cannot be added once a session is settled or cancelled.
  */
 
+import { voucherFiscalYear } from "../fiscal-period";
 import { dbTransaction } from "../db";
 import type { PoolClient } from "pg";
 import { TellerMovementRepository } from "../repositories/teller-movement.repository";
@@ -168,7 +169,7 @@ export class TellerMovementService {
       }
 
       const periodStatus = await AccountingFiscalPeriodRepository.getPeriodStatusForDate(todayStr, txClient);
-      const fiscalYear = periodStatus.status === "PERIOD_OPEN" ? periodStatus.period.fiscal_year : "FY2026-27";
+      const fiscalYear = periodStatus.status === "PERIOD_OPEN" ? periodStatus.period.fiscal_year : voucherFiscalYear();
 
       // 6. Build Balanced Double-Entry Journal Lines
       const lines: JournalLineInput[] = params.direction === "IN"

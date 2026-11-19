@@ -4,6 +4,7 @@
  * and Bills Payable accounting linkage.
  */
 
+import { voucherFiscalYear } from "../fiscal-period";
 import { dbQuery, dbTransaction } from "../db";
 import { MarketplacePartnerRepository, MarketplacePartnerRow, MarketplaceOrderSnapshotRow } from "../repositories/marketplace-partner.repository";
 import { MarketplaceInvoiceRepository, MarketplacePartnerInvoiceRow } from "../repositories/marketplace-invoice.repository";
@@ -275,7 +276,7 @@ export class MarketplaceReconciliationService {
 
     // Create authentic Bills Payable voucher draft in PostgreSQL accounting_voucher
     const voucherId = `vch_${Date.now().toString(36).toUpperCase()}_${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-    const voucherNo = `VCH-BILL-${fiscalPeriod.fiscal_year || "FY2026-27"}-${Date.now().toString().slice(-6)}`;
+    const voucherNo = `VCH-BILL-${fiscalPeriod.fiscal_year || voucherFiscalYear()}-${Date.now().toString().slice(-6)}`;
 
     // Maker-checker segregation of duties (chk_voucher_segregation)
     const makerId = (inv.reconciled_by && inv.reconciled_by !== actor.userId)
@@ -298,7 +299,7 @@ export class MarketplaceReconciliationService {
           voucherId,
           voucherNo,
           invoiceDate,
-          fiscalPeriod.fiscal_year || "FY2026-27",
+          fiscalPeriod.fiscal_year || voucherFiscalYear(),
           inv.calculated_amount,
           inv.id,
           `Bills Payable for Partner Invoice ${inv.partner_invoice_number} (${partner?.trade_name || inv.partner_id})`,

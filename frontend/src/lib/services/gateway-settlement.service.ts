@@ -38,6 +38,7 @@
  *    - Fails closed if accounting_start_date is unconfigured or fiscal period is missing/locked.
  */
 
+import { voucherFiscalYear } from "../fiscal-period";
 import { dbQuery, dbTransaction } from "../db";
 import type { PoolClient } from "pg";
 import {
@@ -867,7 +868,7 @@ export class GatewaySettlementService {
             },
           },
           branchId,
-          fiscalYear: fiscalPeriod.fiscal_year || "FY2026-27",
+          fiscalYear: fiscalPeriod.fiscal_year || voucherFiscalYear(),
           createdBy: batch.prepared_by,
           client: c,
         });

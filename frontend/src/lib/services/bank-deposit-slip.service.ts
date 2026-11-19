@@ -28,6 +28,7 @@
  *    - Once posted to GL, a deposit slip cannot be cancelled, rejected, or modified.
  */
 
+import { voucherFiscalYear } from "../fiscal-period";
 import { dbQuery, dbTransaction } from "../db";
 import type { PoolClient } from "pg";
 import {
@@ -585,7 +586,7 @@ export class BankDepositSlipService {
           },
         },
         branchId: slip.branch_id,
-        fiscalYear: fiscalPeriod.fiscal_year || "FY2026-27",
+        fiscalYear: fiscalPeriod.fiscal_year || voucherFiscalYear(),
         createdBy: slip.prepared_by,
         client: c,
       });
