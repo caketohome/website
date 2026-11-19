@@ -11350,6 +11350,19 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         const orderId = path.replace("manager/orders/", "").replace("/ready", "");
         try {
           const updated = await OrderRepository.updateStatus(orderId, "packed", "Order packed and ready for dispatch");
+          // Rider needs a pickup code at the kitchen and a delivery code at the door.
+          const nodeCrypto = await import("crypto");
+          const code = () => String(nodeCrypto.randomInt(1000, 10000));
+          await dbQuery(
+            `UPDATE public."order"
+                SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{delivery}',
+                      COALESCE(metadata->'delivery', '{}'::jsonb)
+                      || CASE WHEN COALESCE(metadata->'delivery'->>'pickup_otp', '') = '' THEN jsonb_build_object('pickup_otp', $2::text) ELSE '{}'::jsonb END
+                      || CASE WHEN COALESCE(metadata->'delivery'->>'delivery_otp', '') = '' THEN jsonb_build_object('delivery_otp', $3::text) ELSE '{}'::jsonb END),
+                    updated_at = NOW()
+              WHERE id = $1`,
+            [(updated as any)?.id || orderId, code(), code()]
+          );
           return jsonWithDataSource({ success: true, order: updated }, "postgres", 200);
         } catch (err: any) {
           return jsonWithDataSource({ success: false, error: err.message }, "postgres", 400);

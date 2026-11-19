@@ -5033,6 +5033,9 @@ export class ApiEngine {
         const coords = typeof zone.polygon_coordinates === "string"
           ? JSON.parse(zone.polygon_coordinates)
           : zone.polygon_coordinates;
+        if (Array.isArray(coords) && coords.length >= 3 && !ApiEngine.isPointInPolygon(lat, lng, coords)) {
+          return { matched: false, reason: "Outside the zone's map fence" };
+        }
         if (Array.isArray(coords) && ApiEngine.isPointInPolygon(lat, lng, coords)) {
           // Check zone-level exclusion polygons
           if (zone.exclusion_polygons) {
@@ -8493,13 +8496,6 @@ export class ApiEngine {
     //    branch mapping sees no pool orders; previously they saw every branch's orders).
     const authorizedBranches = ApiEngine.getDeliveryPartnerAuthorizedBranches(partner);
     if (authorizedBranches.length === 0 || !authorizedBranches.includes(orderBranchId)) {
-      return false;
-    }
-
-    // 7. Coverage pincodes: if the rider has pincodes mapped, only show pool orders inside them.
-    const coveragePins: string[] = (partner.coverage?.pincodes || []).map((p: any) => String(p).trim()).filter(Boolean);
-    const orderPin = String(order.delivery_pincode || order.pincode || order.delivery_address?.postal_code || order.delivery_address?.pincode || "").trim();
-    if (coveragePins.length > 0 && orderPin && !coveragePins.includes(orderPin)) {
       return false;
     }
 
@@ -14350,24 +14346,7 @@ export class ApiEngine {
 
     // 6. Delivery Zones Initialization & Authoritative Radius Enforcement
     let deliveryZones = Array.isArray(data.delivery_zones) ? data.delivery_zones : (existing?.delivery_zones || []);
-    if (deliveryZones.length === 0) {
-      deliveryZones = [
-        {
-          id: `zone_${branchId}_primary`,
-          branch_id: branchId,
-          name: `${branchName} Primary Zone`,
-          min_km: 0,
-          max_km: Math.min(15, storeMaxRadius),
-          radius_km: Math.min(15, storeMaxRadius),
-          // no fee here: the fee comes from Supabase delivery settings until the shop draws its own zones
-          pincodes: [cleanPin],
-          areas: [resolvedCityName],
-          enabled: true,
-          express_allowed: true,
-          midnight_allowed: false,
-        },
-      ];
-    }
+    // No automatic zone: a new shop delivers only inside the map fence drawn for it.
 
     // Authoritative Zone Validation & Radius Constraint Enforcement (3-tier hierarchy: Global -> Store -> Zone)
     for (const z of deliveryZones) {
@@ -15003,35 +14982,17 @@ export class ApiEngine {
     });
 
     if (operational.length === 0 || areaStatusBlocker) {
-      const fb = (query.branchId ? branches.find((b: any) => b.id === query.branchId) : null) || branches[0] || null;
-      if (!fb) {
-        return {
-          branch: null,
-          resolvedBy: "unserviceable_coords",
-          blockedReason: areaStatusBlocker || "No bakery branches are currently operational.",
-          etaminutes: 0,
-          deliveryFee: 0,
-          feeBreakdown: {},
-          partnerSequence: [],
-          candidatesEvaluated: 0,
-        };
-      }
-      const feeRes = ApiEngine.calculateDeliveryFee(fb, {
-        is_express: query.isExpress,
-        is_midnight: query.isMidnight,
-        order_total: query.orderTotal,
-        area_fee_override: areaFeeOverride,
-      });
+      // No open shop with a map location (or the area is blocked): nobody delivers. No guessing.
       return {
-        branch: fb,
-        resolvedBy: areaStatusBlocker ? "blocked_area" : "fallback_default",
-        etaminutes: 45,
-        deliveryFee: feeRes.total_fee,
-        feeBreakdown: feeRes.breakdown,
-        partnerSequence: fb.partner_failover?.priority || fb.delivery_partner_priority || ["porter", "rapido", "shadowfax", "own_fleet"],
+        branch: null as any,
+        resolvedBy: areaStatusBlocker ? "blocked_area" : "unserviceable_coords",
+        reasonCode: areaStatusBlocker ? "AREA_BLOCKED" : "NO_OPEN_STORE",
+        blockedReason: areaStatusBlocker || "No shop is open for delivery right now.",
+        etaminutes: 0,
+        deliveryFee: 0,
+        feeBreakdown: {},
+        partnerSequence: [],
         candidatesEvaluated: 0,
-        blockedReason: areaStatusBlocker || undefined,
-        zoneName: feeRes.zone_name,
       };
     }
 
@@ -15183,56 +15144,12 @@ export class ApiEngine {
         bracketLabel: feeRes.bracket_label,
       };
     } else {
-      // ── PATH B: No coordinates provided — Resolve by branchId, city, pincode, or flagship hub ──
+      // ── PATH B: No customer location. Delivery limits are the shops' map fences, so without a
+      //    location only an explicitly chosen shop is used (store pickup, or admin choosing the shop).
       let fallbackBranch: any = null;
       if (query.branchId) {
         fallbackBranch = operational.find((b: any) => b.id === query.branchId || b.code === query.branchId);
       }
-      if (!fallbackBranch && (query as any).city) {
-        const cLower = String((query as any).city).toLowerCase();
-        fallbackBranch = operational.find((b: any) =>
-          b.city?.toLowerCase() === cLower ||
-          b.name?.toLowerCase().includes(cLower) ||
-          b.address?.toLowerCase().includes(cLower)
-        );
-      }
-      if (!fallbackBranch && query.pincode) {
-        fallbackBranch = operational.find((b: any) =>
-          b.pincode === query.pincode ||
-          (b.delivery_zones || []).some((z: any) =>
-            (z.postal_codes || []).includes(query.pincode) ||
-            (z.pincodes || []).includes(query.pincode)
-          ) ||
-          (b.deliverable_areas || []).some((area: string) => area.toLowerCase().includes(query.pincode!.toLowerCase()))
-        );
-
-        if (!fallbackBranch) {
-          const area = ApiEngine.getCityAreaByPincode(query.pincode);
-          const branchId = (area as any)?.branch_id || (area?.branch_ids && area.branch_ids[0]);
-          if (branchId) {
-            fallbackBranch = operational.find((b: any) => b.id === branchId);
-          }
-        }
-
-        if (!fallbackBranch) {
-          return {
-            branch: null as any,
-            resolvedBy: "unserviceable_pincode",
-            reasonCode: "UNSERVICEABLE_PINCODE",
-            etaminutes: 0,
-            deliveryFee: 0,
-            feeBreakdown: {},
-            partnerSequence: [],
-            candidatesEvaluated: operational.length,
-            blockedReason: `Pincode ${query.pincode} is outside our current delivery service area.`,
-            zoneName: "Unserviceable Pincode",
-          };
-        }
-      }
-      if (!fallbackBranch && operational.length > 0) {
-        fallbackBranch = operational.find((b: any) => b.code?.toLowerCase().includes("indiranagar")) || operational[0];
-      }
-
       if (fallbackBranch) {
         const zone = (fallbackBranch.delivery_zones || []).find((z: any) => z.enabled) || fallbackBranch.delivery_zones?.[0];
         // No customer location → distance unknown; zone flat fee / Supabase default applies (no invented distance)
@@ -21480,8 +21397,10 @@ export class ApiEngine {
       const hasCoords = parsedLat !== undefined && parsedLng !== undefined;
       const hasPincode = Boolean(pincode && pincode.length >= 6);
 
-      if (!hasCoords && !hasPincode && (!hasAddress || !hasCity)) {
-        errors.push({ code: "LOCATION_REQUIRED", message: "Please provide your delivery street address and city.", field: "address" });
+      if (!hasCoords) {
+        // Delivery areas are the shops' map fences, so the exact delivery point is required.
+        errors.push({ code: "LOCATION_REQUIRED", message: "Please set your delivery location on the map so we can find the shop that delivers there.", field: "address" });
+        void hasPincode; void hasAddress; void hasCity;
       } else {
         branchRes = ApiEngine.resolveSmartBranch({
           pincode: pincode || undefined,

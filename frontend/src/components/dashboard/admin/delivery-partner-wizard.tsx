@@ -162,7 +162,7 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
   const stepsList = [
     { num: 1, title: "Profile", icon: User },
     { num: 2, title: "Branches", icon: Store },
-    { num: 3, title: "Coverage", icon: MapPin },
+    { num: 3, title: "Delivery area", icon: MapPin },
     { num: 4, title: "Hours", icon: Clock },
     { num: 5, title: "Capacity", icon: ShieldCheck },
     { num: 6, title: "Documents", icon: ShieldCheck },
@@ -354,8 +354,8 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
             return (
               <div className="space-y-4">
                 <div className="border-b pb-2">
-                  <span className="text-xs font-extrabold text-blue-600 uppercase tracking-wider block">STEP 3 &bull; INHERITED DELIVERY COVERAGE</span>
-                  <Text className="text-xs text-slate-500 mt-0.5">Delivery coverage is automatically inherited from the stores assigned to this partner.</Text>
+                  <span className="text-xs font-extrabold text-blue-600 uppercase tracking-wider block">STEP 3 &bull; DELIVERY AREA</span>
+                  <Text className="text-xs text-slate-500 mt-0.5">A rider&apos;s delivery area is their shop&apos;s map zone.</Text>
                 </div>
 
                 {/* ASSIGNED STORES */}
@@ -378,46 +378,9 @@ export function DeliveryPartnerWizard({ isOpen, onClose, onSuccess, branches }: 
                   </div>
                 </div>
 
-                {/* EFFECTIVE INHERITED COVERAGE */}
-                <div className="p-4 bg-emerald-50/60 dark:bg-emerald-950/20 rounded-xl border border-emerald-200 dark:border-emerald-900 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300 uppercase tracking-wider">EFFECTIVE DELIVERY COVERAGE</span>
-                    <Badge color="green" className="text-[10px] uppercase font-extrabold">
-                      ✓ Automatically inherited from stores
-                    </Badge>
-                  </div>
-
-                  <div className="space-y-3 text-xs">
-                    <div>
-                      <span className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                        Pincodes ({pList.length} covered):
-                      </span>
-                      <div className="flex flex-wrap gap-1.5 p-2.5 bg-white dark:bg-slate-800 rounded-lg border max-h-24 overflow-y-auto">
-                        {pList.map((p) => (
-                          <span key={p} className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 rounded font-mono font-extrabold text-[11px]">
-                            {p}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                        Locality Areas ({aList.length} covered):
-                      </span>
-                      <div className="flex flex-wrap gap-1.5 p-2.5 bg-white dark:bg-slate-800 rounded-lg border max-h-24 overflow-y-auto">
-                        {aList.map((a) => (
-                          <span key={a} className="px-2 py-0.5 bg-brand-light dark:bg-brand-navy/40 text-brand-navy dark:text-brand-primary rounded font-semibold text-[11px]">
-                            {a}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="text-[11px] text-emerald-800 dark:text-emerald-300 italic pt-1">
-                    ℹ️ The delivery partner does not define custom pincodes. Coverage updates automatically whenever store delivery territories are modified in Store Settings.
-                  </p>
+                {/* DELIVERY LIMIT = SHOP MAP ZONE */}
+                <div className="p-4 bg-emerald-50/60 dark:bg-emerald-950/20 rounded-xl border border-emerald-200 dark:border-emerald-900 text-xs text-emerald-900 dark:text-emerald-200">
+                  This rider gets orders only from the shop{selectedBranchList.length > 1 ? "s" : ""} above, and delivers inside {selectedBranchList.length > 1 ? "their" : "its"} map zone. To change where they deliver, edit the shop&apos;s map fence (Branches → Zone Rules).
                 </div>
               </div>
             );

@@ -290,7 +290,7 @@ export const DeliveryPanel = memo(function DeliveryPanel() {
                     <th className="p-3.5 whitespace-nowrap">Primary Hub / Branch</th>
                     <th className="p-3.5 whitespace-nowrap text-center">Account Status</th>
                     <th className="p-3.5 whitespace-nowrap text-center">Live Availability</th>
-                    <th className="p-3.5 whitespace-nowrap">Coverage Pincodes</th>
+                    <th className="p-3.5 whitespace-nowrap">Delivery area</th>
                     <th className="p-3.5 whitespace-nowrap text-center">Active Load</th>
                     <th className="p-3.5 whitespace-nowrap text-center">Deliveries</th>
                     <th className="p-3.5 whitespace-nowrap text-center">Rating</th>
@@ -371,10 +371,9 @@ export const DeliveryPanel = memo(function DeliveryPanel() {
                             </button>
                           </td>
 
-                          {/* Coverage Pincodes */}
+                          {/* Delivery area = shop map zone */}
                           <td className="p-3.5 whitespace-nowrap font-mono text-[10px]">
-                            {(p.coverage?.pincodes || (p.pincode ? [p.pincode] : [])).slice(0, 3).join(", ")}
-                            {(p.coverage?.pincodes?.length > 3) && ` (+${p.coverage.pincodes.length - 3})`}
+                            {p.primary_branch_name ? `${p.primary_branch_name} map zone` : "No shop assigned"}
                           </td>
 
                           {/* Active Load */}
