@@ -170,6 +170,50 @@ function enforceAdminModuleAccess(req: NextRequest, path: string, method: string
   return ok ? null : deny(`FORBIDDEN: Your access profile does not include ${entry[1]}${isWrite ? " changes" : ""}.`);
 }
 
+/**
+ * Before a rider action: make the live engine's copy of the order match Supabase
+ * (orders created or assigned by admin are saved to Supabase first).
+ */
+async function refreshEngineOrderFromDb(orderId: string): Promise<void> {
+  try {
+    const { OrderRepository } = await import("@frontend/lib/repositories/order.repository");
+    const db: any = await OrderRepository.findById(orderId);
+    if (!db) return;
+    const store = (globalThis as any).__CTH_MEMORY_STORE__;
+    if (!store) return;
+    if (!Array.isArray(store.orders)) store.orders = [];
+    const fromDb = {
+      delivery_partner_id: db.delivery?.partner_id || db.delivery_partner_id || undefined,
+      pickup_otp: db.delivery?.pickup_otp || db.pickup_otp,
+      delivery_otp: db.delivery?.delivery_otp || db.delivery_otp,
+      driver_name: db.delivery?.partner_name,
+      driver_phone: db.delivery?.partner_phone,
+    };
+    const mem = store.orders.find((o: any) => o.id === db.id || (db.order_number && o.order_number === db.order_number));
+    if (!mem) {
+      store.orders.push({ ...db, ...fromDb, delivery_status: db.delivery_status || db.delivery?.status });
+      return;
+    }
+    // Admin assignment / OTPs made in Supabase win over a stale engine copy.
+    for (const [k, v] of Object.entries(fromDb)) if (v && !mem[k]) mem[k] = v;
+    if (fromDb.delivery_partner_id && mem.delivery_partner_id !== fromDb.delivery_partner_id) {
+      mem.delivery_partner_id = fromDb.delivery_partner_id;
+      mem.assigned_partner_id = fromDb.delivery_partner_id;
+    }
+    mem.delivery = { ...(db.delivery || {}), ...(mem.delivery || {}) };
+  } catch (err: any) {
+    console.error("[Rider] could not load order from Supabase:", err?.message);
+  }
+}
+
+/** Save the rider's progress on an order (from the live engine) to Supabase. */
+async function saveRiderProgress(orderId: string): Promise<void> {
+  const order = ((globalThis as any).__CTH_MEMORY_STORE__?.orders || []).find((o: any) => o.id === orderId || o.order_number === orderId);
+  if (!order) return;
+  const { syncRiderOrderToDb } = await import("@frontend/lib/services/rider-order-sync.service");
+  await syncRiderOrderToDb(order).catch((err: any) => console.error("[Rider] could not save progress:", err?.message));
+}
+
 /** Rider for delivery-partner actions: the logged-in rider; staff may act for a rider they name. */
 function resolveActingRiderId(req: NextRequest, body: any): { id: string } | NextResponse {
   const session = resolveServerSession(req);
@@ -11181,20 +11225,26 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/claim")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/claim", "");
       const rider = resolveActingRiderId(req, body); if (rider instanceof NextResponse) return rider;
+      await refreshEngineOrderFromDb(orderId);
       const result = ApiEngine.claimDeliveryJob(orderId, rider.id);
+      if (result.success) await saveRiderProgress(orderId);
       return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/pickup-otp/verify")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/pickup-otp/verify", "");
       const rider = resolveActingRiderId(req, body); if (rider instanceof NextResponse) return rider;
+      await refreshEngineOrderFromDb(orderId);
       const result = await ApiEngine.verifyPickupOtpBackend(orderId, body.otp || body.pickup_otp, rider.id);
-      return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
+      if ((result as any).success) await saveRiderProgress(orderId);
+      return jsonWithDataSource(result, "postgres", (result as any).statusCode || ((result as any).success ? 200 : 400));
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/delivery-otp/verify")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/delivery-otp/verify", "");
       const rider = resolveActingRiderId(req, body); if (rider instanceof NextResponse) return rider;
+      await refreshEngineOrderFromDb(orderId);
       const result = await ApiEngine.verifyCustomerOtpBackend(orderId, body.otp || body.delivery_otp, rider.id);
-      return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
+      if ((result as any).success) await saveRiderProgress(orderId);
+      return jsonWithDataSource(result, "postgres", (result as any).statusCode || ((result as any).success ? 200 : 400));
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/exception")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/exception", "");
@@ -11205,7 +11255,9 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/reject")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/reject", "");
       const rider = resolveActingRiderId(req, body); if (rider instanceof NextResponse) return rider;
+      await refreshEngineOrderFromDb(orderId);
       const result = ApiEngine.rejectDeliveryJob(orderId, rider.id, body.reason);
+      if ((result as any).success) await saveRiderProgress(orderId);
       return jsonWithDataSource(result, "postgres", result.statusCode || 200);
     }
     if (path.startsWith("delivery-partner/exceptions/") && path.endsWith("/resolve")) {

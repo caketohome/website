@@ -8687,7 +8687,7 @@ export class ApiEngine {
     order.delivery_partner_id = partner.id;
     order.assigned_partner_id = partner.id;
     order.driver_name = partner.full_name || partner.name;
-    order.driver_phone = partner.phone || "+91 98123 45678";
+    order.driver_phone = partner.phone || "";
     order.delivery_status = targetDeliveryStatus;
     if (order.status !== "packed" && order.status !== "ready_for_pickup") {
       order.status = "preparing";
@@ -16564,7 +16564,7 @@ export class ApiEngine {
         return {
           exists: true,
           role: "BRANCH_MANAGER",
-          branch_id: staffMember.branch_id || "br_indiranagar",
+          branch_id: staffMember.branch_id || undefined,
           user: staffMember,
         };
       }
@@ -16573,7 +16573,7 @@ export class ApiEngine {
           exists: true,
           role: "DELIVERY_PARTNER",
           partner_id: staffMember.delivery_partner_id || undefined,
-          branch_id: staffMember.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT",
+          branch_id: staffMember.branch_id || undefined,
           user: staffMember,
         };
       }

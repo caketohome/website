@@ -55,7 +55,16 @@ export function RiderDutyTracker() {
     try { wakeRef.current = await (navigator as any).wakeLock?.request("screen"); } catch { /* not supported */ }
   };
 
+  const setAvailability = (status: "ONLINE" | "OFFLINE") =>
+    fetch("/api/v1/delivery-partner/availability", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ status }),
+    }).catch(() => {});
+
   const start = useCallback(() => {
+    setAvailability("ONLINE"); // must be ONLINE to claim jobs and verify OTPs
     if (!("geolocation" in navigator)) { setError("This phone/browser cannot share location."); return; }
     setStatus("Getting your location…");
     watchRef.current = navigator.geolocation.watchPosition(send, (err) => {
@@ -73,6 +82,7 @@ export function RiderDutyTracker() {
     try { await wakeRef.current?.release?.(); } catch { /* ignore */ }
     wakeRef.current = null;
     await fetch("/api/v1/rider/location", { method: "DELETE", credentials: "same-origin" }).catch(() => {});
+    await setAvailability("OFFLINE");
     setStatus("Off duty");
   }, []);
 
