@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import { OrderLiveStatusWatcher } from "@frontend/components/store/order/order-live-status-watcher";
+import { RiderLiveLocation } from "@frontend/components/store/order/rider-live-location";
 
 export const dynamic = "force-dynamic";
 
@@ -165,6 +166,8 @@ export default async function YourOrderPage({
         initialPaymentStatus={order.payment_status || order.payment?.status || "pending"}
         orderNumber={order.order_number || order.id}
       />
+      {/* Live rider position (only while out for delivery, only for the customer's own order) */}
+      <RiderLiveLocation orderId={order.id} />
       {/* Header Status Banner */}
       <div
         className={`rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden ${

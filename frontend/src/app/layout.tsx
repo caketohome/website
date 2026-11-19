@@ -31,6 +31,8 @@ const serif = Playfair_Display({
 export const metadata: Metadata = {
   title: "CakeToHome",
   description: "Order premium cakes and bakery products online",
+  // Section layouts (e.g. the rider app) override this with their own installable manifest.
+  manifest: "/manifest.json",
   icons: {
     icon: [
       { url: "/favicon.ico" },
@@ -52,7 +54,6 @@ export default function RootLayout({
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#172033" />
         <OrganizationJsonLd />
       </head>

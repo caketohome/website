@@ -37,7 +37,8 @@ export default function RealtimeClient({
     source.onmessage = (message: Record<string, any>) => {
       const data = JSON.parse(message.data);
 
-      data.new && audio.play();
+      // Sound for new work (new order / new assignment); every event refreshes the board.
+      if (data?.new || /created|assigned|ready/i.test(String(data?.event_type || ""))) audio.play().catch(() => {});
 
       startTransition(() => {
         router.refresh();

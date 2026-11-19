@@ -1,7 +1,7 @@
 {
   "name": "CakeToHome",
   "short_name": "CakeToHome",
-  "description": "Artisanal cake delivery app with express delivery across Kerala.",
+  "description": "Order cakes online for delivery across Kerala.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FFFFFF",

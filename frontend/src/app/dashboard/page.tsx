@@ -145,6 +145,10 @@ const ExpensePanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/expense-panel"),
   "ExpensePanel"
 );
+const RiderLiveMapPanel = createDynamicPanel(
+  () => import("@frontend/components/dashboard/admin/rider-live-map-panel").then((mod) => ({ default: mod.RiderLiveMapPanel })),
+  "RiderLiveMapPanel"
+);
 const FleetPanel = createDynamicPanel(
   () => import("@frontend/components/dashboard/admin/fleet-panel"),
   "FleetPanel"
@@ -259,7 +263,7 @@ const OperationalClosuresPanel = createDynamicPanel(
  * ────────────────────────────────────────────────────────────────────────── */
 
 type AdminTabId =
-  | "orders" | "catalog" | "gift_services" | "search_engine" | "branches" | "delivery" | "delivery_coverage"
+  | "orders" | "catalog" | "gift_services" | "search_engine" | "branches" | "delivery" | "rider_map" | "delivery_coverage"
   | "fulfillment" | "suppliers" | "purchases" | "bills_payable" | "bills_receivable" | "expenses" | "accounting_work_queue" | "teller_custody" | "manual_journals" | "cost_allocations" | "corporate_accounts" | "corporate_gifting" | "corporate_routing_review" | "gateway_settlements" | "bank_management" | "bank_accounts" | "bank_reconciliation" | "general_ledger" | "profit_loss" | "balance_sheet" | "cash_flow" | "tds_register" | "gst_b2b_register" | "intercompany" | "chart_of_accounts" | "accounting_setup" | "fleet" | "tax_master" | "abandoned_carts" | "telemarketing"
   | "crm" | "login_activity" | "marketing" | "popups" | "seo"
   | "automation" | "webhooks" | "cms" | "media" | "analytics" | "ai_concierge"
@@ -273,6 +277,7 @@ const PANEL_MAP: Record<AdminTabId, React.ComponentType> = {
   search_engine: SearchConfigPanel,
   branches: BranchesPanel,
   delivery: DeliveryPanel,
+  rider_map: RiderLiveMapPanel,
   delivery_coverage: DeliveryCoveragePanel,
   fulfillment: FulfillmentConfigPanel,
   suppliers: SupplierPanel,

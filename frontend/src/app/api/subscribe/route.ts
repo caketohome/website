@@ -8,34 +8,19 @@ export const maxDuration = 300;
 
 export async function GET(req: NextRequest) {
   const session = resolveServerSession(req);
+  if (!session) {
+    return new Response(JSON.stringify({ success: false, error: "UNAUTHORIZED" }), { status: 401, headers: { "Content-Type": "application/json" } });
+  }
   const searchParams = req.nextUrl.searchParams;
 
-  const role = (
-    searchParams.get("role") ||
-    session?.role ||
-    (searchParams.get("shop_id") ? "BRANCH_MANAGER" : "") ||
-    (searchParams.get("delivery_partner_id") ? "DELIVERY_PARTNER" : "") ||
-    (searchParams.get("customer_id") ? "CUSTOMER" : "ADMIN")
-  ).toUpperCase();
-
-  const branchId =
-    searchParams.get("branch_id") ||
-    searchParams.get("branchId") ||
-    searchParams.get("shop_id") ||
-    session?.branchId ||
-    null;
-
-  const customerId =
-    searchParams.get("customer_id") ||
-    searchParams.get("customerId") ||
-    (session as any)?.customerId ||
-    null;
-
-  const orderId =
-    searchParams.get("order_id") ||
-    searchParams.get("orderId") ||
-    searchParams.get("delivery_id") ||
-    null;
+  // Who is listening comes from the login session only — never from the URL.
+  const role = String(session.role || "CUSTOMER").toUpperCase();
+  const isAdmin = role === "SUPER_ADMIN" || role === "ADMIN";
+  const branchId = isAdmin
+    ? (searchParams.get("branch_id") || searchParams.get("branchId") || searchParams.get("shop_id") || null)
+    : (session.branchId || null);
+  const customerId = role === "CUSTOMER" ? ((session as any).customerUid || (session as any).customerId || null) : null;
+  const orderId = searchParams.get("order_id") || searchParams.get("orderId") || searchParams.get("delivery_id") || null;
 
   let sinceId = Number(searchParams.get("since_id") || searchParams.get("sinceId") || 0);
   const once = searchParams.get("once") === "true" || searchParams.get("mode") === "snapshot";
@@ -49,6 +34,14 @@ export async function GET(req: NextRequest) {
       await writer.write(
         encoder.encode(`event: ${eventName}\ndata: ${JSON.stringify(data)}\n\n`)
       );
+    } catch {}
+  };
+
+  const writeData = async (data: any) => {
+    try {
+      await writer.write(encoder.encode(`data: ${JSON.stringify(data)}
+
+`));
     } catch {}
   };
 
@@ -74,7 +67,7 @@ export async function GET(req: NextRequest) {
 
       for (const evt of [...initialEvents].reverse()) {
         if (evt.id > sinceId) sinceId = evt.id;
-        await writeSse(evt.event_type || "message", evt);
+        await writeData(evt);
       }
     } catch (err: any) {
       await writeSse("error", { message: err?.message || "Initial stream query failed" });
@@ -101,7 +94,7 @@ export async function GET(req: NextRequest) {
 
         for (const evt of [...newEvents].reverse()) {
           if (evt.id > sinceId) sinceId = evt.id;
-          await writeSse(evt.event_type || "message", evt);
+          await writeData(evt);
         }
       } catch {}
     }, 2000);

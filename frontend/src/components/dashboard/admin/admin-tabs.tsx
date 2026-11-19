@@ -18,6 +18,7 @@ const TABS = [
   { id: "operational_closures", label: "📅 Holiday Scheduling", icon: Clock },
   { id: "marketplace", label: "🤝 Partner Management", icon: Building },
   { id: "delivery", label: "Delivery", icon: Truck },
+  { id: "rider_map", label: "Rider Live Map", icon: Truck },
   { id: "delivery_coverage", label: "🗺️ Coverage & Routing", icon: MapPin },
   { id: "fulfillment", label: "🕒 Operations & Cutoff", icon: Clock },
   { id: "suppliers", label: "Suppliers", icon: Building },

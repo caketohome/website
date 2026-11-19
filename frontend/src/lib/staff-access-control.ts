@@ -508,6 +508,7 @@ export const ADMIN_TAB_PERMISSIONS: Record<string, { module: string; action: str
   operational_closures: { module: "BRANCHES", action: "VIEW" },
   fulfillment: { module: "BRANCHES", action: "VIEW" },
   delivery: { module: "DELIVERY", action: "VIEW" },
+  rider_map: { module: "DELIVERY", action: "VIEW" },
   delivery_coverage: { module: "DELIVERY", action: "VIEW_COVERAGE" },
   fleet: { module: "FLEET", action: "VIEW" },
   suppliers: { module: "PURCHASE", action: "VIEW" },

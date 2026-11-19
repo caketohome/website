@@ -68,6 +68,7 @@ const NAV_GROUPS: NavGroup[] = [
       { id: "branches", label: "Branches", icon: Building2, tabId: "branches" },
       { id: "operational_closures", label: "📅 Holiday Scheduling", icon: Clock, tabId: "operational_closures" },
       { id: "delivery", label: "Delivery", icon: Truck, tabId: "delivery" },
+      { id: "rider_map", label: "Rider Live Map", icon: Truck, tabId: "rider_map" },
       { id: "fulfillment", label: "Operations & Cutoff", icon: Clock, tabId: "fulfillment" },
       { id: "suppliers", label: "Suppliers", icon: Building2, tabId: "suppliers" },
       { id: "purchases", label: "Purchases", icon: ShoppingBag, tabId: "purchases" },
