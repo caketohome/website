@@ -84,6 +84,21 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
   const [manualDiscountReason, setManualDiscountReason] = useState("");
 
   const [paymentMethod, setPaymentMethod] = useState("UPI");
+  // Cash on delivery is offered only while the COD switch is on (Settings → Fulfillment).
+  const [codEnabled, setCodEnabled] = useState(false);
+  useEffect(() => {
+    fetch("/api/v1/fulfillment/config", { credentials: "same-origin", cache: "no-store" })
+      .then((r) => r.json())
+      .then((j) => setCodEnabled(j?.config?.cod_enabled !== false))
+      .catch(() => setCodEnabled(false));
+  }, []);
+  useEffect(() => {
+    if (!codEnabled) {
+      if (paymentMethod === "Cash") setPaymentMethod("UPI");
+      if (paymentStatus === "cod") setPaymentStatus("pending");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [codEnabled]);
   const [paymentStatus, setPaymentStatus] = useState("paid");
   const [generatedPaymentLink, setGeneratedPaymentLink] = useState<string | null>(null);
 
@@ -1099,7 +1114,7 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
                       >
                         <option value="UPI">UPI (Google Pay / PhonePe / Paytm)</option>
                         <option value="Card">Credit / Debit Card</option>
-                        <option value="Cash">Cash on Delivery (COD)</option>
+                        {codEnabled && <option value="Cash">Cash on Delivery (COD)</option>}
                         <option value="Payment Link">Payment Link (SMS / WhatsApp)</option>
                       </select>
 
@@ -1129,7 +1144,7 @@ export function CreateOrderDrawer({ isOpen, onClose, onOrderCreated }: CreateOrd
                       >
                         <option value="paid">Paid (Confirmed)</option>
                         <option value="pending">Pending Payment</option>
-                        <option value="cod">Cash on Delivery (COD)</option>
+                        {codEnabled && <option value="cod">Cash on Delivery (COD)</option>}
                       </select>
                     </div>
                   </div>

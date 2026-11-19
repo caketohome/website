@@ -335,7 +335,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  .then((data) => {
  if (data && Array.isArray(data.branches) && data.branches.length > 0) {
  const eligible = data.branches
- .filter((b: any) => b.status === "active" && b.is_open !== false && b.pickup_enabled !== false && b.allow_pickup !== false)
+ .filter((b: any) => b.status === "active" && b.is_open !== false && b.pickup_enabled !== false && b.allow_pickup !== false && b.fulfillment_rules?.allow_pickup !== false)
  .map((b: any) => ({
  id: b.id,
  name: b.name,
@@ -1010,7 +1010,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  <span className="text-xs text-slate-500">Step 2 of 3</span>
  </div>
 
- <div className={`grid ${storePickupEnabled ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} gap-3`}>
+ <div className={`grid ${storePickupEnabled && pickupBranches.length > 0 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"} gap-3`}>
  <button
  type="button"
  onClick={() => handleModeChange("delivery")}
@@ -1029,7 +1029,7 @@ export default function CheckoutForm({ cart }: { cart: HttpTypes.StoreCart }) {
  </span>
  </button>
 
- {storePickupEnabled && (
+ {storePickupEnabled && pickupBranches.length > 0 && (
  <button
  type="button"
  onClick={() => handleModeChange("pickup")}

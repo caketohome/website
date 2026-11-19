@@ -23,8 +23,9 @@ export function checkoutPolicyError(params: {
   deliveryType?: string | null;
   config: { cod_enabled?: boolean; store_pickup_enabled?: boolean } | null | undefined;
 }): { code: string; message: string } | null {
-  const method = String(params.paymentMethod || "").toLowerCase();
-  if (method === "cod" && !isCodEnabled(params.config)) {
+  const method = String(params.paymentMethod || "").toLowerCase().trim();
+  const isCod = method === "cod" || method === "cash" || method.includes("cash on delivery");
+  if (isCod && !isCodEnabled(params.config)) {
     return { code: "COD_DISABLED", message: "Cash on Delivery is currently unavailable. Please pay online." };
   }
   if (method === "test_mode" && !testPaymentsAllowed()) {

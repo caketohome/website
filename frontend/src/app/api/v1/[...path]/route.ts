@@ -10997,6 +10997,20 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource({ received: true, success: true }, "postgres");
     }
     if (path === "orders" || path === "admin/orders") {
+      // COD / store pickup switches apply to every order route.
+      {
+        const { checkoutPolicyError } = await import("@frontend/lib/fulfillment/checkout-policy");
+        const policyStore = ApiEngine.getStore();
+        ensureFulfillmentStore(policyStore);
+        const policyErr = checkoutPolicyError({
+          paymentMethod: body.payment_method,
+          deliveryType: body.delivery_type || body.fulfillment_type,
+          config: policyStore.fulfillment_config,
+        });
+        if (policyErr) {
+          return jsonWithDataSource({ success: false, error: policyErr.message, code: policyErr.code }, "postgres", 400);
+        }
+      }
       const idempotencyKey = req.headers.get("idempotency-key") || body.idempotency_key || undefined;
       const orderRes = await OrderService.createOrder({
         ...body,
@@ -11018,7 +11032,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
 
       if (body.promo_offer_id || body.applied_promo_code) {
         try {
-          ApiEngine.recordCouponRedemption(body.promo_offer_id || "off_50", {
+          ApiEngine.recordCouponRedemption(body.promo_offer_id || body.applied_promo_code, {
             customer_id: body.customer_id,
             customer_phone: body.customer_phone || body.phone,
             customer_email: body.customer_email || body.email,

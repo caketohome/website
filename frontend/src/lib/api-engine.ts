@@ -15753,7 +15753,7 @@ export class ApiEngine {
         isServiceable = false;
         statusMessage = "Store pickup is currently disabled by bakery administration.";
       } else {
-        const eligiblePickupBranches = branches.filter((b) => (b as any).status !== "inactive" && b.is_open !== false && (b as any).pickup_enabled !== false && (b as any).allow_pickup !== false);
+        const eligiblePickupBranches = branches.filter((b) => (b as any).status !== "inactive" && b.is_open !== false && (b as any).pickup_enabled !== false && (b as any).allow_pickup !== false && (b as any).fulfillment_rules?.allow_pickup !== false);
         servicingBranch = query.branch_id
           ? (branches.find(b => b.id === query.branch_id) || eligiblePickupBranches[0] || branches[0] || null)
           : (eligiblePickupBranches[0] || branches[0] || null);
@@ -15762,7 +15762,7 @@ export class ApiEngine {
           isServiceable = false;
           statusMessage = "No pickup branches are currently available.";
         } else {
-          const branchAllowsPickup = servicingBranch && (servicingBranch as any).pickup_enabled !== false && (servicingBranch as any).allow_pickup !== false;
+          const branchAllowsPickup = servicingBranch && (servicingBranch as any).pickup_enabled !== false && (servicingBranch as any).allow_pickup !== false && (servicingBranch as any).fulfillment_rules?.allow_pickup !== false;
           const branchIsOpen = Boolean(servicingBranch && servicingBranch.is_open !== false && servicingBranch.operational_status !== "temporarily_closed" && servicingBranch.operational_status !== "permanently_closed");
 
           if (!branchAllowsPickup) {
@@ -21440,6 +21440,12 @@ export class ApiEngine {
     const fulfillmentProvider = createApiEngineProvider(store);
     const globalConfig = fulfillmentProvider.getGlobalConfig();
 
+    {
+      const pm = String((data as any).payment_method || "").toLowerCase().trim();
+      if ((pm === "cod" || pm === "cash" || pm.includes("cash on delivery")) && !isCodEnabled(globalConfig)) {
+        errors.push({ code: "COD_DISABLED", message: "Cash on Delivery is currently unavailable. Please pay online.", field: "payment_method" });
+      }
+    }
     if (data.delivery_type === "pickup") {
       if (globalConfig?.store_pickup_enabled === false) {
         errors.push({
@@ -21447,7 +21453,7 @@ export class ApiEngine {
           message: "Store pickup is currently disabled by bakery administration.",
           field: "delivery_type",
         });
-      } else if (branch && (branch.pickup_enabled === false || (branch as any).allow_pickup === false)) {
+      } else if (branch && (branch.pickup_enabled === false || (branch as any).allow_pickup === false || (branch as any).fulfillment_rules?.allow_pickup === false)) {
         errors.push({
           code: "BRANCH_PICKUP_DISABLED",
           message: `Store pickup is not available at ${branch.name}.`,
