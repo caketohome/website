@@ -210,6 +210,13 @@ export default function DeliveryPartnerDeliveryButtons({
           </>
         )}
 
+      {/* ── REPLACEMENT: receiver reported a problem, shop is making a new cake ── */}
+      {(delivery.delivery_status === DeliveryStatus.PICKUP_CLAIMED || delivery.delivery_status === DeliveryStatus.SHOP_PREPARING || delivery.delivery_status === DeliveryStatus.READY_FOR_PICKUP) && d.delivery?.replacement_pending && (
+        <span className="w-full text-right text-xs font-semibold text-rose-700">
+          Bring the damaged cake back to the kitchen. A new cake is being made for you to deliver (new pickup code).
+        </span>
+      )}
+
       {/* ── CLAIMED (kitchen preparing) ────────────────────────────── */}
       {(delivery.delivery_status === DeliveryStatus.PICKUP_CLAIMED || delivery.delivery_status === DeliveryStatus.SHOP_PREPARING) && hasPickupLocation && (
         <Button variant="secondary" size="small" onClick={openKitchenDirections} className="flex items-center gap-1 text-xs">

@@ -9,6 +9,7 @@ import {
   markBranchOrderReady,
 } from "@frontend/lib/data/manager";
 import { buildGoogleMapsDirectionsUrl, extractDeliveryCoordinates } from "@frontend/lib/location/directions";
+import { HandoffProblemPanel } from "@frontend/components/dashboard/handoff-problem-panel";
 
 interface OrderDetailsDrawerProps {
   order: any;
@@ -63,6 +64,9 @@ export default function OrderDetailsDrawer({
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-sm flex justify-end animate-in fade-in duration-200">
       <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 h-full shadow-2xl flex flex-col border-l border-brand-border dark:border-zinc-800">
+        <div className="px-6 pt-4 empty:hidden">
+          <HandoffProblemPanel orderId={order.id} />
+        </div>
         {/* Header */}
         <div className="p-6 border-b border-brand-border dark:border-zinc-800 flex items-center justify-between bg-brand-surface-muted dark:bg-zinc-950">
           <div>

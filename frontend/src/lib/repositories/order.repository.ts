@@ -905,6 +905,15 @@ export class OrderRepository {
       return existing;
     }
 
+    // A receiver-reported problem locks completion until the shop resolves it.
+    if (targetStatus === "delivered" || targetStatus === "completed") {
+      const { getOpenProblem } = await import("../services/delivery-handoff.service");
+      const pb = await getOpenProblem(existing.id);
+      if (pb.open) {
+        throw new Error(`PROBLEM_REPORTED: The receiver reported a problem (${pb.problem || "no details"}). Resolve it (send a new cake or mark it checked) before completing.`);
+      }
+    }
+
     // State machine transition validation
     const allowed = OrderRepository.VALID_TRANSITIONS[fromStatus] || [];
     if (!allowed.includes(targetStatus) && targetStatus !== "cancelled" && targetStatus !== "canceled") {

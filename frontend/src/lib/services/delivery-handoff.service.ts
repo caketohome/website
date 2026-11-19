@@ -103,6 +103,11 @@ export async function confirmHandoff(token: string, receiverPhone: string, recei
     return { status: 200 as const, data: { received_safely: false } };
   }
 
+  // A reported problem locks the delivery until the shop resolves it.
+  if (o.metadata?.handoff?.problem_reported_at && !o.metadata?.handoff?.problem_resolved_at) {
+    return { status: 409 as const, error: "A problem was reported for this cake. The shop is checking it — no code until then." };
+  }
+
   // Delivery OTP: Supabase order first, then the live engine copy.
   let otp = String(o.metadata?.delivery?.delivery_otp || o.metadata?.delivery_otp || "");
   if (!otp) {
@@ -117,4 +122,94 @@ export async function confirmHandoff(token: string, receiverPhone: string, recei
     status: 200 as const,
     data: { received_safely: true, delivery_otp: otp, gift_message: typeof gift === "string" ? gift : "", care_note: CARE_NOTE },
   };
+}
+
+/** True while the receiver's reported problem is waiting for the shop. Delivery cannot be completed. */
+export async function getOpenProblem(orderId: string): Promise<{ open: boolean; problem?: string; reported_at?: string; by_phone?: string } > {
+  const o = await loadOrder(orderId);
+  const h = o?.metadata?.handoff || {};
+  const open = Boolean(h.problem_reported_at && !h.problem_resolved_at);
+  return open ? { open, problem: h.problem || "", reported_at: h.problem_reported_at, by_phone: h.problem_by_phone } : { open: false };
+}
+
+function newCode() {
+  return String(crypto.randomInt(1000, 10000));
+}
+
+/**
+ * Shop decision on a reported problem.
+ *  - "replace": same rider brings the damaged cake back; kitchen makes a new one; fresh pickup and
+ *    delivery codes; the order goes back to the kitchen with the rider still assigned.
+ *  - "accept":  shop checked it (e.g. customer accepts as is); delivery is unlocked.
+ */
+export async function resolveProblem(orderId: string, action: "replace" | "accept", actor: { id: string; role: string; branchId?: string | null }, note?: string) {
+  const o = await loadOrder(orderId);
+  if (!o) throw Object.assign(new Error("Order not found."), { status: 404 });
+  const role = String(actor.role || "").toUpperCase();
+  const isAdmin = role === "SUPER_ADMIN" || role === "ADMIN";
+  if (!isAdmin && (!actor.branchId || actor.branchId !== o.branch_id)) {
+    throw Object.assign(new Error("Only this order's shop can resolve the problem."), { status: 403 });
+  }
+  const h = o.metadata?.handoff || {};
+  if (!h.problem_reported_at || h.problem_resolved_at) throw Object.assign(new Error("There is no open problem on this order."), { status: 400 });
+
+  const now = new Date().toISOString();
+  const label = `#${o.metadata?.order_number || o.display_id || o.id}`;
+  const riderId = o.metadata?.delivery_partner_id || o.metadata?.delivery?.partner_id || null;
+  const { notifyBranch } = await import("./push-notification.service");
+
+  if (action === "accept") {
+    await patchHandoff(o.id, { problem_resolved_at: now, problem_resolution: "accepted", problem_resolved_by: actor.id, resolution_note: note || "" });
+    notifyBranch({ id: o.id, branch_id: o.branch_id }, `Problem on order ${label} checked — delivery can be completed.`);
+    return { action, order_id: o.id };
+  }
+
+  // Replacement: back to the kitchen, same rider, fresh codes, old QR no longer valid.
+  const pickupOtp = newCode();
+  const deliveryOtp = newCode();
+  const history = Array.isArray(h.replacements) ? h.replacements : [];
+  const handoff = {
+    ...h,
+    token_hash: null,
+    expires_at: null,
+    confirmed_at: null,
+    problem_resolved_at: now,
+    problem_resolution: "replacement",
+    problem_resolved_by: actor.id,
+    replacements: [...history, { at: now, by: actor.id, problem: h.problem || "", note: note || "" }],
+  };
+  const delivery = {
+    ...(o.metadata?.delivery || {}),
+    pickup_otp: pickupOtp,
+    delivery_otp: deliveryOtp,
+    status: "pickup_claimed",
+    picked_up_at: null,
+    replacement_pending: true,
+  };
+  await dbQuery(
+    `UPDATE public."order"
+        SET status = 'preparing',
+            metadata = COALESCE(metadata, '{}'::jsonb) || $2::jsonb,
+            updated_at = NOW()
+      WHERE id = $1`,
+    [o.id, JSON.stringify({ handoff, delivery, delivery_status: "pickup_claimed", bakery_status: "preparing", pickup_otp: pickupOtp, delivery_otp: deliveryOtp })]
+  );
+
+  // Keep the live engine's copy in step (rider app actions run on it).
+  const mem = ((globalThis as any).__CTH_MEMORY_STORE__?.orders || []).find((x: any) => x.id === o.id);
+  if (mem) {
+    mem.status = "preparing";
+    mem.delivery_status = "pickup_claimed";
+    mem.pickup_otp = pickupOtp;
+    mem.delivery_otp = deliveryOtp;
+    mem.pickup_verified_at = null;
+    mem.delivery = { ...(mem.delivery || {}), ...delivery };
+  }
+
+  notifyBranch({ id: o.id, branch_id: o.branch_id }, `Replacement cake needed for order ${label}. Rider will return the damaged cake.`);
+  if (riderId) {
+    const { notifyRiders } = await import("./push-notification.service");
+    notifyRiders([riderId], { id: o.id, branch_id: o.branch_id }, `Bring order ${label} back to the kitchen — a new cake is being made for you to deliver.`);
+  }
+  return { action, order_id: o.id };
 }

@@ -418,7 +418,7 @@ export class OrderLifecycleService {
       }
     } else if (targetOrderState === "OUT_FOR_DELIVERY") {
       // Pickup OTP Verification Guard
-      const expectedOtp = order.pickup_otp || order.delivery?.pickup_otp || "1294";
+      const expectedOtp = order.pickup_otp || order.delivery?.pickup_otp || ""; // no default code: a missing code never matches
       const inputOtp = (options.otpInput || "").trim();
 
       // Check idempotency if already verified
@@ -816,7 +816,7 @@ export class OrderLifecycleService {
 
     // 7. OTP Validation
     const rawExpectedOtp = order.delivery?.pickup_otp || order.pickup_otp;
-    const expectedOtp = typeof rawExpectedOtp === "string" && rawExpectedOtp.trim() ? rawExpectedOtp.trim() : "1294";
+    const expectedOtp = typeof rawExpectedOtp === "string" && rawExpectedOtp.trim() ? rawExpectedOtp.trim() : ""; // no default code
     const cleanedInput = typeof otpInput === "string" ? otpInput.trim() : String(otpInput || "").trim();
     const validOtps = [order.delivery?.pickup_otp, order.pickup_otp, expectedOtp].filter(Boolean);
 

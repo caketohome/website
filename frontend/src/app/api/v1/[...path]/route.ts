@@ -7522,6 +7522,12 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const rider = resolveActingRiderId(req, body);
       if (rider instanceof NextResponse) return rider;
       const targetOrderId = body.order_id || body.orderId || path.split("/")[2];
+      {
+        const { getOpenProblem } = await import("@frontend/lib/services/delivery-handoff.service");
+        if (targetOrderId && (await getOpenProblem(String(targetOrderId))).open) {
+          return jsonWithDataSource({ success: false, error: "PROBLEM_REPORTED", message: "The receiver reported a problem. The shop must check it before this delivery can be completed." }, "postgres", 409);
+        }
+      }
       const inputOtp = String(body.otp || body.delivery_otp || "").trim();
       const partnerId = rider.id;
 
@@ -11253,6 +11259,13 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/delivery-otp/verify")) {
       const orderId = path.replace("delivery-partner/jobs/", "").replace("/delivery-otp/verify", "");
       const rider = resolveActingRiderId(req, body); if (rider instanceof NextResponse) return rider;
+      {
+        const { getOpenProblem } = await import("@frontend/lib/services/delivery-handoff.service");
+        const pb = await getOpenProblem(orderId);
+        if (pb.open) {
+          return jsonWithDataSource({ success: false, error: "PROBLEM_REPORTED", message: `The receiver reported a problem (${pb.problem || "no details"}). The shop must check it before this delivery can be completed.` }, "postgres", 409);
+        }
+      }
       await refreshEngineOrderFromDb(orderId);
       const result = await ApiEngine.verifyCustomerOtpBackend(orderId, body.otp || body.delivery_otp, rider.id);
       if ((result as any).success) await saveRiderProgress(orderId);

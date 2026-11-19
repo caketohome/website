@@ -9,6 +9,7 @@ import {
   ChevronRight, Calendar, ArrowRight, CornerDownRight, Send, Plus, Search, Zap
 } from "lucide-react";
 import { OrderKotPrintModal } from "./order-kot-print-modal";
+import { HandoffProblemPanel } from "@frontend/components/dashboard/handoff-problem-panel";
 import { OrderInvoicePrintModal } from "./order-invoice-print-modal";
 import { buildGoogleMapsDirectionsUrl, extractDeliveryCoordinates } from "@frontend/lib/location/directions";
 
@@ -335,6 +336,10 @@ export function OrderDetailsDrawer({ orderId, onClose, onRefresh }: OrderDetails
               <X className="w-5 h-5" />
             </button>
           </div>
+        </div>
+
+        <div className="px-4 pt-3 empty:hidden">
+          <HandoffProblemPanel orderId={orderId} onResolved={() => { fetchOrderDetails(); onRefresh?.(); }} />
         </div>
 
         {actionSuccess && (

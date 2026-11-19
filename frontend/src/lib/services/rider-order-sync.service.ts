@@ -16,6 +16,8 @@ export async function syncRiderOrderToDb(order: any): Promise<void> {
     claimed_at: order.claimed_at || order.delivery?.claimed_at || null,
     picked_up_at: order.pickup_verified_at || order.picked_up_at || order.delivery?.picked_up_at || null,
     delivered_at: order.delivered_at || order.delivery?.delivered_at || null,
+    // a replacement cake is no longer pending once the rider has picked it up again
+    replacement_pending: ["in_transit", "delivered"].includes(String(order.delivery_status || "")) ? false : Boolean(order.delivery?.replacement_pending),
   };
   const patch = {
     delivery_partner_id: riderId,
