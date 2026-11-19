@@ -11231,7 +11231,15 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       const rider = resolveActingRiderId(req, body); if (rider instanceof NextResponse) return rider;
       await refreshEngineOrderFromDb(orderId);
       const result = ApiEngine.claimDeliveryJob(orderId, rider.id);
-      if (result.success) await saveRiderProgress(orderId);
+      if (result.success) {
+        await saveRiderProgress(orderId);
+        const { notifyBranch } = await import("@frontend/lib/services/push-notification.service");
+        const ord: any = (result as any).order || {};
+        notifyBranch(
+          { id: ord.id || orderId, order_number: ord.order_number, branch_id: ord.branch_id || ord.branch?.id || null },
+          `${(result as any).partner?.full_name || (result as any).partner?.name || "A rider"} claimed order #${ord.order_number || orderId}.`
+        );
+      }
       return jsonWithDataSource(result, "postgres", result.statusCode || (result.success ? 200 : 400));
     }
     if (path.startsWith("delivery-partner/jobs/") && path.endsWith("/pickup-otp/verify")) {

@@ -1040,6 +1040,16 @@ export class OrderRepository {
     const existing = await OrderRepository.findById(orderId);
     if (!existing) throw new Error(`Order ${orderId} not found`);
 
+    // A rider can only be given orders from their own branch.
+    const riderBranch = await dbQuery(
+      `SELECT primary_branch_id FROM public.delivery_partner_profile WHERE partner_id = $1 ORDER BY created_at ASC LIMIT 1`,
+      [partnerId]
+    );
+    const riderBranchId = riderBranch.rows[0]?.primary_branch_id || null;
+    if (!riderBranchId || !existing.branch_id || riderBranchId !== existing.branch_id) {
+      throw new Error("RIDER_BRANCH_MISMATCH: This rider does not belong to the order's branch.");
+    }
+
     // Name/phone come from the rider's own record when the caller did not send them.
     let pName = driverName || "";
     let pPhone = driverPhone || "";

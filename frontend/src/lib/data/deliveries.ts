@@ -74,6 +74,23 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
 
   const partnerId = filter?.delivery_partner_id || filter?.partner_id || "";
 
+  // Kitchen (pickup) location per branch, from the branch records (server only).
+  const branchCoords = new Map<string, { latitude: number | null; longitude: number | null; name: string; address: string }>();
+  if (typeof window === "undefined") {
+    try {
+      const { ApiEngine: Engine } = await import("../api-engine");
+      for (const b of (Engine.listBranches() as any[]) || []) {
+        const lat = Number(b.latitude ?? b.lat), lng = Number(b.longitude ?? b.lng);
+        branchCoords.set(b.id, {
+          latitude: Number.isFinite(lat) && lat !== 0 ? lat : null,
+          longitude: Number.isFinite(lng) && lng !== 0 ? lng : null,
+          name: b.name || "",
+          address: typeof b.address === "string" ? b.address : b.address?.line1 || "",
+        });
+      }
+    } catch { /* branch list unavailable */ }
+  }
+
   const mapped: DeliveryDTO[] = allOrders.map((o: any, idx: number) => {
     const isAssignedToThisPartner = Boolean(
       (targetPartnerId && (o.delivery_partner_id === targetPartnerId || o.delivery_partner_id === partnerObj?.partner_number)) ||
@@ -196,6 +213,15 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
         delivery_otp: driverSafeDeliveryOtp,
         status: status,
       },
+      // Payment / cash-on-delivery facts (never assumed)
+      payment_method: String(o.payment_method || o.metadata?.payment_method || o.payment?.method || ""),
+      is_cod: /cod|cash/i.test(String(o.payment_method || o.metadata?.payment_method || o.payment?.method || "")) || (o.metadata?.payment_classification === "COD"),
+      cod_amount: Number(o.grand_total || o.total || o.metadata?.grand_total || 0),
+      cod_collected: Boolean(o.metadata?.cod_custody_event?.custody_id || o.cod_custody_event?.custody_id),
+      pickup: (() => {
+        const b = branchCoords.get(o.branch_id || o.metadata?.branch_id || "");
+        return b ? { name: b.name, address: b.address, latitude: b.latitude, longitude: b.longitude } : null;
+      })(),
       order: {
         id: o.id || canonicalOrderNumber,
         order_id: o.id || canonicalOrderNumber,
@@ -207,7 +233,7 @@ export async function listDeliveries(filter?: Record<string, string>): Promise<D
         customer_email: o.customer_email || o.email || null,
         branch_id: o.branch_id || null,
         branch_name: o.branch_name || null,
-        payment_status: o.payment_status || "paid",
+        payment_status: o.payment_status || "",
         status: o.status || "confirmed",
         delivery_status: status,
         total_amount: Number(o.total || o.grand_total || o.subtotal || 0),

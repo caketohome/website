@@ -166,3 +166,27 @@ export function notifyDeliveryAssigned(order: OrderLike, partnerId: string) {
     });
   });
 }
+
+/** Branch staff alert about delivery dispatch (waiting for rider, claimed, auto-assigned, no rider). */
+export function notifyBranch(order: OrderLike, message: string) {
+  safe(async () => {
+    if (!order.branch_id) return;
+    await pushToBranch(order.branch_id, {
+      title: "Delivery update",
+      body: message,
+      url: "/dashboard/shop",
+      tag: `dispatch-${order.id}`,
+    });
+  });
+}
+
+/** Tell on-duty riders that a job is ready to claim. */
+export function notifyRiders(partnerIds: string[], order: OrderLike, message: string) {
+  safe(async () => {
+    await Promise.all(
+      partnerIds.map((pid) =>
+        pushToPartner(pid, { title: "Job ready to claim", body: message, url: "/dashboard/delivery-partner", tag: `job-${order.id}` })
+      )
+    );
+  });
+}

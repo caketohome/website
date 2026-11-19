@@ -3,6 +3,7 @@ import { LogoutButton } from "@frontend/components/common/logout-button";
 import DeliveryColumn from "@frontend/components/dashboard/delivery-column";
 import RealtimeClient from "@frontend/components/dashboard/realtime-client";
 import { RiderDutyTracker } from "@frontend/components/dashboard/delivery-partner/rider-duty-tracker";
+import { RiderCashPanel } from "@frontend/components/dashboard/delivery-partner/rider-cash-panel";
 import {
   listDeliveries,
   retrieveDeliveryPartner,
@@ -19,7 +20,7 @@ export default async function DeliveryPartnerDashboardPage() {
   const user = await retrieveUser();
 
   if (!user || (user.role !== "DELIVERY_PARTNER" && user.role !== "SUPER_ADMIN" && !user.id?.includes("dlp_") && !user.id?.includes("driver_"))) {
-    redirect("/login");
+    redirect("/rider/login");
   }
 
   const dlpId = user.id;
@@ -76,13 +77,16 @@ export default async function DeliveryPartnerDashboardPage() {
         <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 w-full md:w-auto justify-end flex-wrap">
           <AccountBadge data={delivery_partner} type="delivery_partner" />
           <LogoutButton
-            redirectUrl="/login"
+            redirectUrl="/rider/login"
             className="bg-brand-gold-soft hover:bg-brand-gold-soft text-brand-deep dark:bg-brand-deep/40 dark:text-rose-300 border border-brand-gold/30 dark:border-rose-900/50 shadow-sm"
           />
         </div>
       </div>
 
-      <RiderDutyTracker />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <RiderDutyTracker />
+        <RiderCashPanel />
+      </div>
 
       {/* ── TODAY AT A GLANCE ─────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">

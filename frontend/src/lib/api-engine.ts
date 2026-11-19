@@ -3548,6 +3548,10 @@ if (typeof window === "undefined") {
         loadSearchSettings()
           .then((found) => found && console.log("[ApiEngine] Search settings loaded from PostgreSQL"))
           .catch((err) => console.error("[ApiEngine] Search settings load failed:", err.message));
+        // Rider dispatch: offer ready orders to riders, then auto-assign after the claim window.
+        import("./services/rider-dispatch.service")
+          .then((m) => m.startRiderDispatcher())
+          .catch((err) => console.error("[ApiEngine] Rider dispatcher failed to start:", err.message));
         return summary;
       })
       .catch((err) => {
@@ -8406,71 +8410,18 @@ export class ApiEngine {
   }
 
   static getDeliveryPartnerAuthorizedBranches(partner: any): string[] {
+    // Only branches the rider is explicitly assigned to (primary + active associated branches).
+    // No guessing by city or branch name: a rider never sees another branch's orders.
     if (!partner) return [];
     const branchSet = new Set<string>();
-
     if (Array.isArray(partner.associated_branches)) {
       for (const b of partner.associated_branches) {
-        const id = typeof b === "string" ? b : (b.branch_id || b.id || b.branch_code);
-        if (typeof id === "string" && id.trim().length > 0) {
-          branchSet.add(id.trim());
-        }
+        if (b && typeof b === "object" && b.active === false) continue;
+        const id = typeof b === "string" ? b : (b.branch_id || b.id);
+        if (typeof id === "string" && id.trim()) branchSet.add(id.trim());
       }
     }
-    if (partner.primary_branch_id) {
-      branchSet.add(partner.primary_branch_id.trim());
-    }
-    if (partner.branch_id) {
-      branchSet.add(partner.branch_id.trim());
-    }
-    if (partner.assigned_hub_id) {
-      branchSet.add(partner.assigned_hub_id.trim());
-    }
-    if (partner.store_id) {
-      branchSet.add(partner.store_id.trim());
-    }
-
-    // Dynamically match known branches in the system by partner city or primary branch name
-    const partnerCity = (partner.city || "").toLowerCase();
-    const primaryName = (partner.primary_branch_name || "").toLowerCase();
-    const storeBranches = Array.isArray(memoryStore.branches) ? memoryStore.branches : [];
-
-    for (const b of storeBranches) {
-      const bCity = (b.city || "").toLowerCase();
-      const bName = (b.name || "").toLowerCase();
-      if ((partnerCity && bCity && bCity === partnerCity) || (primaryName && bName && (primaryName.includes(bName) || bName.includes(primaryName)))) {
-        branchSet.add(b.id);
-        if (b.code) branchSet.add(b.code);
-      }
-    }
-
-    // Canonical cross-system branch aliases
-    if (branchSet.has("res_01KXYMAHGFPRY1G9TZKEVGAGAT") || branchSet.has("br_indiranagar") || branchSet.has("HUB-BLR-01")) {
-      branchSet.add("res_01KXYMAHGFPRY1G9TZKEVGAGAT");
-      branchSet.add("br_indiranagar");
-      branchSet.add("HUB-BLR-01");
-    }
-    if (branchSet.has("res_02KXYMAHGFPRY1G9TZKEVGAGAT") || branchSet.has("br_koramangala") || branchSet.has("HUB-BLR-02")) {
-      branchSet.add("res_02KXYMAHGFPRY1G9TZKEVGAGAT");
-      branchSet.add("br_koramangala");
-      branchSet.add("HUB-BLR-02");
-    }
-    if (branchSet.has("res_03KXYMAHGFPRY1G9TZKEVGAGAT") || branchSet.has("br_whitefield") || branchSet.has("HUB-BLR-03")) {
-      branchSet.add("res_03KXYMAHGFPRY1G9TZKEVGAGAT");
-      branchSet.add("br_whitefield");
-      branchSet.add("HUB-BLR-03");
-    }
-    if (branchSet.has("br_kollam_central") || branchSet.has("br_kollam_01") || branchSet.has("HUB-KLM-01") || primaryName.includes("kollam") || partnerCity === "kollam") {
-      branchSet.add("br_kollam_central");
-      branchSet.add("br_kollam_01");
-      branchSet.add("HUB-KLM-01");
-    }
-    if (branchSet.has("br_kochi_ernakulam") || branchSet.has("br_kochi_01") || branchSet.has("HUB-KOC-01") || primaryName.includes("kochi") || partnerCity === "kochi") {
-      branchSet.add("br_kochi_ernakulam");
-      branchSet.add("br_kochi_01");
-      branchSet.add("HUB-KOC-01");
-    }
-
+    if (typeof partner.primary_branch_id === "string" && partner.primary_branch_id.trim()) branchSet.add(partner.primary_branch_id.trim());
     return Array.from(branchSet);
   }
 
@@ -8496,11 +8447,17 @@ export class ApiEngine {
       (order.delivery?.partner_id && (order.delivery.partner_id === partnerId || order.delivery.partner_id === partnerNumber)) ||
       (order.delivery?.partner_number && partnerNumber && order.delivery.partner_number === partnerNumber) ||
       (order.assigned_rider_id && (order.assigned_rider_id === partnerId || order.assigned_rider_id === partnerNumber)) ||
-      (order.rider_id && (order.rider_id === partnerId || order.rider_id === partnerNumber)) ||
-      (order.driver_name && partner.full_name && order.driver_name === partner.full_name)
+      (order.rider_id && (order.rider_id === partnerId || order.rider_id === partnerNumber))
     );
 
-    // 1. Direct Assignment Rule: If an order was assigned to this rider, they are ALWAYS authorized unless cancelled/failed
+    // Branch gate for every order (assigned or not): the rider sees only their own branch's orders.
+    const orderBranchForGate = ApiEngine.resolveOrderBranchId(order);
+    const riderBranches = ApiEngine.getDeliveryPartnerAuthorizedBranches(partner);
+    if (!orderBranchForGate || !riderBranches.includes(orderBranchForGate)) {
+      return false;
+    }
+
+    // 1. Assigned to this rider (and in their branch): visible unless cancelled/failed
     if (isAssignedToThisPartner) {
       if (order.status === "cancelled" || order.status === "failed" || order.delivery_status === "cancelled") {
         return false;

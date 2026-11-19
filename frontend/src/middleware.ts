@@ -139,7 +139,7 @@ export async function middleware(request: NextRequest) {
     // 2. /dashboard/delivery-partner protection
     if (pathname.startsWith("/dashboard/delivery-partner")) {
       if (!hasAuthSession) {
-        return NextResponse.redirect(new URL("/login", base));
+        return NextResponse.redirect(new URL("/rider/login", base));
       }
       if (
         !DELIVERY_ROLES.has(rawRole) &&

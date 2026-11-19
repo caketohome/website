@@ -19,6 +19,51 @@ interface RiderRow {
 
 const STALE_MS = 3 * 60_000;
 
+function DispatchSettingsCard() {
+  const [autoAssign, setAutoAssign] = useState(true);
+  const [minutes, setMinutes] = useState("3");
+  const [msg, setMsg] = useState<string | null>(null);
+  const [canEdit, setCanEdit] = useState(true);
+  useEffect(() => {
+    fetch("/api/v1/admin/rider-dispatch", { cache: "no-store", credentials: "same-origin" })
+      .then((r) => r.json())
+      .then((j) => { if (j.success) { setAutoAssign(j.settings.auto_assign); setMinutes(String(j.settings.claim_window_minutes)); } })
+      .catch(() => {});
+  }, []);
+  const save = async () => {
+    setMsg(null);
+    const r = await fetch("/api/v1/admin/rider-dispatch", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ auto_assign: autoAssign, claim_window_minutes: Number(minutes) }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 403) setCanEdit(false);
+    setMsg(r.ok && j.success ? "Saved." : j.error || "Could not save.");
+  };
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-4 flex flex-wrap items-end gap-4 text-sm">
+      <div className="flex-1 min-w-[220px]">
+        <div className="font-semibold text-slate-900 dark:text-white">How ready orders get a rider</div>
+        <div className="text-xs text-slate-500">On-duty riders of the branch can claim a ready order. If nobody claims it in time, the nearest available rider is assigned. The branch is alerted either way.</div>
+      </div>
+      <label className="flex items-center gap-2 text-xs">
+        <input type="checkbox" checked={autoAssign} onChange={(e) => setAutoAssign(e.target.checked)} disabled={!canEdit} />
+        Auto-assign if not claimed
+      </label>
+      <label className="text-xs flex items-center gap-2">
+        Claim window
+        <input type="number" min={0} max={60} value={minutes} onChange={(e) => setMinutes(e.target.value)} disabled={!canEdit}
+          className="w-16 rounded border border-slate-300 dark:border-slate-700 bg-transparent px-2 py-1" />
+        min
+      </label>
+      {canEdit && <button type="button" onClick={save} className="rounded-lg bg-brand-navy text-white px-3 py-1.5 text-xs font-semibold">Save</button>}
+      {msg && <span className="text-xs text-slate-500">{msg}</span>}
+    </div>
+  );
+}
+
 export function RiderLiveMapPanel() {
   const [riders, setRiders] = useState<RiderRow[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -63,6 +108,7 @@ export function RiderLiveMapPanel() {
         <h2 className="text-lg font-bold text-slate-900 dark:text-white">Rider live map</h2>
         <p className="text-xs text-slate-500">Riders who are on duty in the rider app. Grey = no update in the last 3 minutes.</p>
       </div>
+      <DispatchSettingsCard />
       {error && <div className="text-xs text-rose-600">{error}</div>}
       {loaded && riders.length === 0 && !error ? (
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-6 text-sm text-slate-500">

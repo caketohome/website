@@ -134,8 +134,41 @@ export default function DeliveryPartnerDeliveryButtons({
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  const customerPhone = String(delivery.recipient_phone || delivery.order?.shipping_address?.phone || "").trim();
   const callCustomer = () => {
-    window.location.href = `tel:${delivery.recipient_phone || delivery.order?.shipping_address?.phone || "+919876543210"}`;
+    if (customerPhone) window.location.href = `tel:${customerPhone.replace(/\s+/g, "")}`;
+  };
+
+  const d: any = delivery;
+  const pickup = d.pickup as { name?: string; address?: string; latitude?: number | null; longitude?: number | null } | null;
+  const openKitchenDirections = () => {
+    const url = buildGoogleMapsDirectionsUrl({ latitude: pickup?.latitude, longitude: pickup?.longitude, address: pickup?.address || pickup?.name });
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+  const hasPickupLocation = Boolean(pickup && ((pickup.latitude && pickup.longitude) || pickup.address));
+  const isCod = Boolean(d.is_cod);
+  const codAmount = Number(d.cod_amount || 0);
+  const [codCollected, setCodCollected] = useState<boolean>(Boolean(d.cod_collected));
+  const [codLoading, setCodLoading] = useState(false);
+  const confirmCashCollected = async () => {
+    if (!window.confirm(`Confirm you collected ₹${codAmount.toFixed(2)} in cash for this order?`)) return;
+    setActionError("");
+    setCodLoading(true);
+    try {
+      const r = await fetch("/api/v1/rider/cod/collect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ order_id: delivery.order_id || delivery.id, amount: codAmount }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.success) throw new Error(j.message || j.error || `HTTP ${r.status}`);
+      setCodCollected(true);
+    } catch (e: any) {
+      setActionError(e.message);
+    } finally {
+      setCodLoading(false);
+    }
   };
 
   return (
@@ -158,12 +191,21 @@ export default function DeliveryPartnerDeliveryButtons({
           </>
         )}
 
+      {/* ── CLAIMED (kitchen preparing) ────────────────────────────── */}
+      {(delivery.delivery_status === DeliveryStatus.PICKUP_CLAIMED || delivery.delivery_status === DeliveryStatus.SHOP_PREPARING) && hasPickupLocation && (
+        <Button variant="secondary" size="small" onClick={openKitchenDirections} className="flex items-center gap-1 text-xs">
+          <Navigation className="w-3.5 h-3.5" /> Directions to kitchen
+        </Button>
+      )}
+
       {/* ── READY FOR PICKUP ───────────────────────────────────────── */}
       {delivery.delivery_status === DeliveryStatus.READY_FOR_PICKUP && (
         <>
-          <Button variant="secondary" size="small" onClick={openGoogleMaps} className="flex items-center gap-1 text-xs text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100 font-bold">
-            <Navigation className="w-3.5 h-3.5 text-blue-600" /> Preview Route
-          </Button>
+          {hasPickupLocation && (
+            <Button variant="secondary" size="small" onClick={openKitchenDirections} className="flex items-center gap-1 text-xs">
+              <Navigation className="w-3.5 h-3.5" /> Directions to kitchen
+            </Button>
+          )}
           <Button
             variant="primary"
             size="small"
@@ -173,6 +215,20 @@ export default function DeliveryPartnerDeliveryButtons({
             <Key className="w-3.5 h-3.5" /> Verify Pickup OTP
           </Button>
         </>
+      )}
+
+      {/* ── CASH ON DELIVERY ───────────────────────────────────────── */}
+      {isCod && codAmount > 0 && delivery.delivery_status === DeliveryStatus.IN_TRANSIT && (
+        <span className="w-full text-right text-sm font-bold text-amber-700 dark:text-amber-400">Collect ₹{codAmount.toFixed(2)} cash</span>
+      )}
+      {isCod && codAmount > 0 && delivery.delivery_status === DeliveryStatus.DELIVERED && (
+        codCollected ? (
+          <span className="text-xs font-semibold text-emerald-700">Cash ₹{codAmount.toFixed(2)} recorded</span>
+        ) : (
+          <Button variant="primary" size="small" onClick={confirmCashCollected} isLoading={codLoading} className="bg-amber-600 hover:bg-amber-700 text-white">
+            Confirm ₹{codAmount.toFixed(2)} cash collected
+          </Button>
+        )
       )}
 
       {/* ── IN TRANSIT / OUT FOR DELIVERY ──────────────────────────── */}
@@ -185,11 +241,13 @@ export default function DeliveryPartnerDeliveryButtons({
             className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold flex items-center gap-1 text-xs shadow-sm"
             data-testid="rider-get-directions-btn"
           >
-            <Navigation className="w-3.5 h-3.5" /> 📍 GET DIRECTIONS
+            <Navigation className="w-3.5 h-3.5" /> Directions to customer
           </Button>
-          <Button variant="secondary" size="small" onClick={callCustomer} className="flex items-center gap-1 text-xs">
-            <Phone className="w-3.5 h-3.5 text-emerald-600" /> Call
-          </Button>
+          {customerPhone && (
+            <Button variant="secondary" size="small" onClick={callCustomer} className="flex items-center gap-1 text-xs">
+              <Phone className="w-3.5 h-3.5 text-emerald-600" /> Call
+            </Button>
+          )}
           <Button variant="transparent" size="small" onClick={() => setShowExceptionModal(true)} className="text-xs text-rose-600 hover:bg-rose-50">
             <AlertTriangle className="w-3.5 h-3.5 mr-1" /> Issue
           </Button>
