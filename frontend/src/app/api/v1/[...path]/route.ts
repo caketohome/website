@@ -7516,10 +7516,14 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     // ── Milestone M5: Delivery OTP Verification Subsystem POST Endpoints ───────
-    if (path === "delivery/verify-otp" || (path.startsWith("delivery-partner/jobs/") && path.endsWith("/delivery-otp/verify"))) {
+    // Legacy endpoint only; the rider app's /delivery-partner/jobs/:id/delivery-otp/verify goes to the
+    // rider-authenticated lifecycle handler further below.
+    if (path === "delivery/verify-otp") {
+      const rider = resolveActingRiderId(req, body);
+      if (rider instanceof NextResponse) return rider;
       const targetOrderId = body.order_id || body.orderId || path.split("/")[2];
       const inputOtp = String(body.otp || body.delivery_otp || "").trim();
-      const partnerId = body.partner_id || body.partnerId || "dlp_auto";
+      const partnerId = rider.id;
 
       if (!targetOrderId || !inputOtp) {
         return jsonWithDataSource(
@@ -7555,7 +7559,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       }
 
       const meta = dbOrder?.metadata || memOrder?.metadata || {};
-      const expectedOtp = String(meta.delivery_otp || memOrder?.delivery_otp || memOrder?.delivery?.delivery_otp || "").trim();
+      const expectedOtp = String(meta.delivery?.delivery_otp || meta.delivery_otp || memOrder?.delivery_otp || memOrder?.delivery?.delivery_otp || "").trim();
 
       if (!expectedOtp) {
         return jsonWithDataSource(
@@ -11261,8 +11265,13 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource(result, "postgres", result.statusCode || 200);
     }
     if (path.startsWith("delivery-partner/exceptions/") && path.endsWith("/resolve")) {
+      const staffSession = resolveServerSession(req);
+      const staffRole = String(staffSession?.role || "").toUpperCase();
+      if (!staffSession || !["SUPER_ADMIN", "ADMIN", "BRANCH_MANAGER", "SHOP_MANAGER", "OPERATIONS_MANAGER"].includes(staffRole)) {
+        return jsonWithDataSource({ success: false, error: "FORBIDDEN: Only staff can resolve delivery exceptions." }, "postgres", staffSession ? 403 : 401);
+      }
       const excId = path.replace("delivery-partner/exceptions/", "").replace("/resolve", "");
-      const result = ApiEngine.resolveDeliveryExceptionBackend(excId, body.action, body.notes, body.resolved_by);
+      const result = ApiEngine.resolveDeliveryExceptionBackend(excId, body.action, body.notes, staffSession.userId || staffRole);
       return jsonWithDataSource(result, "postgres", result.statusCode || 200);
     }
     if (path === "delivery-partner/availability") {
