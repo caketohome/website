@@ -331,56 +331,7 @@ export default async function CityLandingPage({ params }: CityPageProps) {
         </div>
       </section>
 
-      {/* ─── Customer Testimonials in this City ──────────────────────── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14">
-        <div className="text-center space-y-1 mb-8">
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-            Loved by 50,000+ Customers in {localPage.city_name}
-          </h2>
-          <p className="text-xs text-slate-500">Read what fellow cake lovers have to say</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            {
-              name: "Priya S.",
-              area: localPage.city_name,
-              comment: "Ordered a birthday cake for my sister. It arrived right on schedule in pristine condition and tasted divine!",
-              rating: 5,
-            },
-            {
-              name: "Arun K.",
-              area: localPage.city_name,
-              comment: "Best Red Velvet cake in the city. Delivery was super fast (under 45 minutes) and the packaging was top notch.",
-              rating: 5,
-            },
-            {
-              name: "Sneha M.",
-              area: localPage.city_name,
-              comment: "The photo cake customization was so easy and the final result exceeded our expectations. Everyone loved the taste.",
-              rating: 5,
-            },
-          ].map((t, i) => (
-            <div
-              key={i}
-              className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm"
-            >
-              <div className="flex items-center gap-1 text-brand-gold">
-                {Array.from({ length: t.rating }).map((_, j) => (
-                  <Star key={j} className="w-3.5 h-3.5 fill-brand-gold" />
-                ))}
-              </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic">
-                &ldquo;{t.comment}&rdquo;
-              </p>
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] font-bold text-slate-900 dark:text-white">
-                {t.name} <span className="font-normal text-slate-400">• {t.area}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
+      {/* Real customer reviews appear on product pages; no invented testimonials here. */}
       {/* ─── Frequently Asked Questions (AEO & Answer Engine Optimization) ─── */}
       {localPage?.faqs && localPage.faqs.length > 0 && (
         <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-16">

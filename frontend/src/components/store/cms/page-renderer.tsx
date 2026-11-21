@@ -1207,7 +1207,7 @@ export function PageRenderer({
               const contentAlign = config.content_alignment || "left";
               const vertAlign = config.vertical_alignment || "center";
               const trustText = config.trust_text || config.delivery_text || "Baked Fresh on Order";
-              const ratingText = config.rating_text || "★ 4.9 (1.2k+ reviews)";
+              const ratingText = config.rating_text || ""; // real rating only, set in the page editor
               const showFloatingBadge = config.show_floating_badge !== false;
               const embeddedFeatures: any[] = Array.isArray(config.features) && config.features.length > 0
                 ? config.features.filter((f: any) => f.visible !== false)
@@ -1404,7 +1404,7 @@ export function PageRenderer({
                               <Clock className={`w-4 h-4 ${isLuxuryTheme ? "text-brand-gold" : "text-brand-gold"}`} />
                               <span className={isLuxuryTheme ? "text-[#C5CEE0] font-light text-xs" : ""}>{trustText}</span>
                             </span>
-                            <span className={`flex items-center gap-1 ${isLuxuryTheme ? "text-brand-gold font-semibold" : "text-emerald-600"}`}>{ratingText}</span>
+                            {ratingText && <span className={`flex items-center gap-1 ${isLuxuryTheme ? "text-brand-gold font-semibold" : "text-emerald-600"}`}>{ratingText}</span>}
                           </div>
                         )}
                       </div>
@@ -2704,15 +2704,12 @@ export function PageRenderer({
                 ...(company?.address_text ? [{ icon: "Award", title: "Registered Office", desc: company.address_text }] : []),
                 ...(company?.support_email ? [{ icon: "Heart", title: "Email", desc: company.support_email }] : []),
               ] : section.type === "certifications" ? [
-                { icon: "ShieldCheck", title: "FSSAI Registered", desc: "100% compliant food safety and hygiene audited commercial kitchens" },
-                { icon: "Award", title: "ISO 22000 Standards", desc: "International food manufacturing safety and sanitation protocols" },
-                { icon: "Sparkles", title: "Pure Belgian Cocoa", desc: "Directly imported single-origin Callebaut chocolate" },
-                { icon: "Heart", title: "Organic Farm Dairy", desc: "Fresh hormone-free pasteurized dairy butter and heavy cream" },
+                // Only certifications we can back up: FSSAI licence on file. Add others in the page editor.
+                ...(company?.fssai ? [{ icon: "ShieldCheck", title: "FSSAI Registered", desc: `Licence No. ${company.fssai}` }] : []),
               ] : section.type === "trust_badges" ? [
                 { icon: "ShieldCheck", title: "100% Safe Payments", desc: "256-bit encrypted checkout via UPI, Cards, NetBanking" },
                 { icon: "Truck", title: "Contactless Handover", desc: "Tamper-evident food grade sealed delivery boxes" },
                 { icon: "Clock", title: "Real-Time GPS Tracking", desc: "Live rider updates from kitchen oven to your doorstep" },
-                { icon: "Award", title: "Taste Guarantee", desc: "Loved by over 50,000+ happy celebrators across India" },
               ] : [
                 { icon: "Truck", title: "2-Hour Express Delivery", desc: "Fastest doorstep cake delivery across Kerala" },
                 { icon: "Sparkles", title: "Quality", desc: "Premium gourmet cakes crafted with Belgian chocolate and fresh fruits" },
@@ -2722,6 +2719,7 @@ export function PageRenderer({
 
               const rawFeaturesList = (config.features && config.features.length > 0) ? config.features : defaultFeatures;
               const featuresList = rawFeaturesList.filter((feat: any) => feat.visible !== false && feat.enabled !== false);
+              if (featuresList.length === 0) return null;
               const columns = parseInt(String(config.columns)) || 4;
               const alignment = config.alignment || "center";
               const subtitle = config.subtitle || config.subheading || "";
@@ -3772,12 +3770,9 @@ export function PageRenderer({
             case "bakery_timeline":
             case "quality_process": {
               const heading = config.heading || "Our Journey of Baking";
-              const defaultEvents = [
-                { year: "2020", title: "The First Micro-Bakery", desc: "Started baking handcrafted Belgian chocolate cakes in a boutique kitchen in Indiranagar." },
-                { year: "2022", title: "Express 2-Hour Delivery", desc: "Engineered shock-proof cake domes and cold-chain temperature control for pristine doorstep delivery." },
-                { year: "2024", title: "50,000+ Celebrations", desc: "Expanded across all Kerala clusters with zero preservatives and 100% fresh baking policy." },
-              ];
-              const events = (config.events && config.events.length > 0) ? config.events : defaultEvents;
+              // Your real history only (entered in the page editor); otherwise the section is hidden.
+              const events = Array.isArray(config.events) ? config.events : [];
+              if (events.length === 0) return null;
 
               return (
                 <section key={sectionKey} className="w-full flex flex-col gap-8 max-w-4xl mx-auto">
