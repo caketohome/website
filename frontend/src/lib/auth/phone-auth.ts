@@ -43,6 +43,13 @@ function supabase() {
 
 function mapAuthError(err: AuthError): PhoneAuthError {
   const code = err.code || "";
+  if (code === "captcha_failed" || /captcha/i.test(err.message)) {
+    return new PhoneAuthError("captcha_failed", "The security check didn't go through. Please tick it again and retry.", 400);
+  }
+  if (/too many codes requested/i.test(err.message)) {
+    // Per-number limit inside the SMS hook.
+    return new PhoneAuthError("rate_limited", "Too many codes requested for this number. Please try again later.", 429, 600);
+  }
   if (code === "phone_provider_disabled" || code === "sms_send_failed" || /provider|twilio|sms/i.test(err.message)) {
     // Log the provider reason server-side only; never the phone or OTP.
     console.error("[PhoneAuth] SMS provider error:", code || err.status, err.message);
@@ -68,9 +75,13 @@ function requirePhone(raw: unknown): string {
 }
 
 /** Same response whether or not the number has an account (no enumeration). */
-export async function requestPhoneOtp(rawPhone: unknown): Promise<{ phone: string }> {
+export async function requestPhoneOtp(rawPhone: unknown, captchaToken?: string): Promise<{ phone: string }> {
   const phone = requirePhone(rawPhone);
-  const { error } = await supabase().auth.signInWithOtp({ phone, options: { channel: "sms" } });
+  // captchaToken: Cloudflare Turnstile proof, checked by Supabase when bot protection is on.
+  const { error } = await supabase().auth.signInWithOtp({
+    phone,
+    options: { channel: "sms", ...(captchaToken ? { captchaToken } : {}) },
+  });
   if (error) throw mapAuthError(error);
   return { phone };
 }

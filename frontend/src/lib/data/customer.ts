@@ -82,8 +82,8 @@ async function postAuth<T>(path: string, body: object): Promise<T> {
   return data as T;
 }
 
-export async function requestOtp(phone: string): Promise<OtpRequestResponse> {
-  const data = await postAuth<any>("/api/v1/auth/request-otp", { phone });
+export async function requestOtp(phone: string, captchaToken?: string): Promise<OtpRequestResponse> {
+  const data = await postAuth<any>("/api/v1/auth/request-otp", { phone, captcha_token: captchaToken });
   return { sent: true, message: data.message, resend_after: data.resend_after };
 }
 

@@ -47,7 +47,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await requestPhoneOtp(phone);
+    const captcha = typeof body?.captcha_token === "string" ? body.captcha_token.slice(0, 4096) : undefined;
+    await requestPhoneOtp(phone, captcha);
     return NextResponse.json({ success: true, message: "If this number can receive SMS, a code has been sent.", resend_after: 60 });
   } catch (e) {
     return err(e instanceof PhoneAuthError ? e : new PhoneAuthError("auth_failed", "Could not send OTP.", 500));

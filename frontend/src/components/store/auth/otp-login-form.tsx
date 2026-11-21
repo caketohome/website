@@ -13,6 +13,7 @@ import {
   Cake,
 } from "lucide-react";
 import { OtpError, requestOtp, verifyOtp } from "@frontend/lib/data/customer";
+import { useTurnstile } from "./turnstile";
 import { useCustomer } from "@frontend/providers/customer-provider";
 import { CountryPhoneInput } from "./country-phone-input";
 import { normalizePhone } from "@frontend/lib/auth/phone";
@@ -39,6 +40,7 @@ export function OtpLoginForm({
   const { refetchCustomer } = useCustomer();
 
   const [step, setStep] = useState<"phone" | "otp" | "profile">("phone");
+  const botCheck = useTurnstile();
   const [destination, setDestination] = useState("/account");
   const [verifiedRole, setVerifiedRole] = useState("CUSTOMER");
 
@@ -132,10 +134,14 @@ export function OtpLoginForm({
       return;
     }
     if (step === "otp" && !canResend) return;
+    if (!botCheck.ready) {
+      setError("Please complete the quick security check below, then try again.");
+      return;
+    }
 
     setLoading(true);
     try {
-      await requestOtp(e164);
+      await requestOtp(e164, botCheck.token || undefined);
       setSubmittedE164(e164);
       setCountdown(RESEND_SECONDS);
       setCanResend(false);
@@ -146,6 +152,7 @@ export function OtpLoginForm({
       setError(describe(err));
     } finally {
       setLoading(false);
+      botCheck.reset(); // each check works once; resends get a fresh one
     }
   };
 
@@ -243,6 +250,9 @@ export function OtpLoginForm({
           <span>{error}</span>
         </div>
       )}
+
+      {/* Bot check (only visible if Cloudflare needs the visitor to tick a box) */}
+      {botCheck.enabled && step !== "profile" && <div ref={botCheck.boxRef} className="flex justify-center" />}
 
       {/* STEP 1: PHONE INPUT */}
       {step === "phone" && (
