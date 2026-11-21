@@ -151,7 +151,7 @@ export class MetaCapiService {
             event_name: params.eventName,
             event_time: params.eventTime || Math.floor(Date.now() / 1000),
             event_id: params.eventId,
-            event_source_url: params.eventSourceUrl || "https://cakestohome.com/",
+            event_source_url: params.eventSourceUrl || "https://caketohome.com/",
             action_source: params.actionSource || "website",
             user_data: hashedUserData,
             custom_data: params.customData || {},
@@ -217,7 +217,7 @@ export class MetaCapiService {
     return this.sendEvent({
       eventName: "Purchase",
       eventId,
-      eventSourceUrl: `https://cakestohome.com/checkout/order-success?order_id=${params.order_id}`,
+      eventSourceUrl: `https://caketohome.com/your-order?order_id=${params.order_id}`,
       actionSource: "website",
       userData: {
         email: params.email,

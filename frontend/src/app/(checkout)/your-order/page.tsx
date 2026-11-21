@@ -54,6 +54,25 @@ export default async function YourOrderPage({
     }
   }
 
+  // Private details (delivery OTP, address, phone) only for the buyer: the browser that checked out,
+  // the signed-in customer, or staff. Anyone else with the link just sees the order status.
+  if (order?.id) {
+    const { resolveServerSession } = await import("@frontend/lib/security/auth-session");
+    const session = resolveServerSession({ cookies: cookieStore, headers: { get: () => "" } } as any);
+    const role = String(session?.role || "").toUpperCase();
+    const digits = (p: any) => String(p || "").replace(/\D/g, "").slice(-10);
+    const isStaff = Boolean(role) && role !== "CUSTOMER" && !role.startsWith("PARTNER_") && role !== "DELIVERY_PARTNER" && role !== "DLP";
+    const isBuyer =
+      [cookieStore.get("_cth_order_id")?.value, cookieStore.get("_medusa_order_id")?.value].includes(order.id) ||
+      (session && [session.userId, (session as any).customerId, (session as any).customerUid].filter(Boolean).includes(order.customer_id)) ||
+      (session?.phone && digits(session.phone) === digits(order.customer_phone));
+    if (!isStaff && !isBuyer) {
+      order = { ...order, delivery_otp: null, delivery_address: null, customer_phone: null, customer_email: null,
+        customer_name: "", customer: { ...(order.customer || {}), address: null, phone: null, email: null },
+        delivery: order.delivery ? { ...order.delivery, delivery_otp: null, pickup_otp: null } : order.delivery };
+    }
+  }
+
   if (!order || !order.id) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center flex flex-col items-center gap-4">

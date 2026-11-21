@@ -5265,14 +5265,16 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       const urlCartId = rawUrlCartId && rawUrlCartId !== "items" && !rawUrlCartId.startsWith("items/") && rawUrlCartId !== "clear" ? rawUrlCartId : null;
       const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
       const validCookieCartId = cookieCartId && cookieCartId !== "items" ? cookieCartId : null;
-      const cartId = url.searchParams.get("cartId") || url.searchParams.get("cart_id") || urlCartId || validCookieCartId || "cart_guest_100";
+      const cartId = url.searchParams.get("cartId") || url.searchParams.get("cart_id") || urlCartId || validCookieCartId || "";
+      // No cart yet: an empty cart of their own (never a shared guest cart).
+      if (!cartId) return jsonWithDataSource({ cart: { id: null, items: [], subtotal: 0, total: 0, currency_code: "inr" }, success: true }, "postgres");
       try {
         const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
         const dbCart = await CartRepository.findCartById(cartId);
         if (dbCart) {
           const syncedCart = ApiEngine.syncCartFromDb(dbCart) || dbCart;
           const res = jsonWithDataSource({ cart: syncedCart, success: true }, "postgres");
-          if (cartId && cartId !== "cart_guest_100" && cartId !== "cart_default") {
+          if (cartId && cartId !== "cart_default") {
             res.cookies.set("_cth_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
             res.cookies.set("_medusa_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
           }
@@ -5283,7 +5285,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
       }
       const cart = ApiEngine.getCart(cartId);
       const res = jsonWithDataSource({ cart, success: true }, "postgres");
-      if (cartId && cartId !== "cart_guest_100" && cartId !== "cart_default") {
+      if (cartId && cartId !== "cart_default") {
         res.cookies.set("_cth_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
         res.cookies.set("_medusa_cart_id", cartId, { path: "/", maxAge: 60 * 60 * 24 * 30 });
       }
@@ -5501,7 +5503,12 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     // Order & Payment Status Polling for Real-Time Client Feedback
     if ((path.startsWith("orders/") || path.startsWith("store/orders/")) && path.endsWith("/status")) {
       const orderId = path.replace("store/orders/", "").replace("orders/", "").replace("/status", "");
-      const statusRes = await PaymentVerificationService.getOrderPaymentStatus(orderId);
+      const statusRes: any = await PaymentVerificationService.getOrderPaymentStatus(orderId);
+      // Delivery OTP only for the buyer's browser, the signed-in owner or staff.
+      if (statusRes?.delivery_otp) {
+        const boughtHere = [req.cookies.get("_cth_order_id")?.value, req.cookies.get("_medusa_order_id")?.value].includes(statusRes.order_id || orderId);
+        if (!boughtHere && !canViewOrder(req, await OrderRepository.findById(orderId))) statusRes.delivery_otp = null;
+      }
       return jsonWithDataSource(statusRes, "postgres", statusRes.found ? 200 : 404);
     }
 
@@ -10443,6 +10450,9 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
       return jsonWithDataSource({ success: false, error: "FORBIDDEN", message: "Forbidden: Delivery partners do not have access to customer CRM records." }, "postgres", 403);
     }
     if (path === "admin/crm/customers" || path === "admin/customers") {
+      if (!String(body?.phone || "").replace(/\D/g, "")) {
+        return jsonWithDataSource({ success: false, error: "PHONE_REQUIRED", message: "Enter the customer's phone number." }, "postgres", 400);
+      }
       const customer = ApiEngine.createAdminCustomer(body);
       return jsonWithDataSource({ customer, success: true }, "postgres", 201);
     }
@@ -10997,7 +11007,8 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     if (path === "cart/promo") {
-      const cartId = body.cartId || body.cart_id || req.cookies.get("_cth_cart_id")?.value || "cart_guest_100";
+      const cartId = body.cartId || body.cart_id || req.cookies.get("_cth_cart_id")?.value || "";
+      if (!cartId) return jsonWithDataSource({ success: false, error: "NO_CART", message: "Your cart is empty." }, "postgres", 400);
       try {
         const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
         const pgCart = await CartRepository.findCartById(cartId);
@@ -13214,7 +13225,8 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
           : null;
       const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
       const validCookieCartId = cookieCartId && cookieCartId !== "items" ? cookieCartId : null;
-      const cartId = body.cartId || body.cart_id || validCookieCartId || "cart_guest_100";
+      const cartId = body.cartId || body.cart_id || validCookieCartId || "";
+      if (!cartId) return jsonWithDataSource({ success: false, error: "NO_CART", message: "Your cart is empty." }, "postgres", 400);
       const lineItemId = lineItemIdFromPath || body.lineItemId || body.line_item_id || body.itemId || body.item_id;
       try {
         const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
@@ -14294,7 +14306,8 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       const url = new URL(req.url);
       const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
       const validCookieCartId = cookieCartId && cookieCartId !== "items" ? cookieCartId : null;
-      const cartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId") || body?.cart_id || body?.cartId || validCookieCartId || "cart_guest_100";
+      const cartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId") || body?.cart_id || body?.cartId || validCookieCartId || "";
+      if (!cartId) return jsonWithDataSource({ success: false, error: "NO_CART", message: "Your cart is empty." }, "postgres", 400);
       const cart = ApiEngine.clearCart(cartId);
       try {
         const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
@@ -14308,7 +14321,8 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
       const itemId = path.replace("store/cart/items/", "").replace("cart/items/", "").replace("store/cart/items", "").replace("cart/items", "") || url.searchParams.get("item_id") || url.searchParams.get("itemId") || body.lineItemId || body.itemId;
       const cookieCartId = req.cookies.get("_cth_cart_id")?.value || req.cookies.get("_medusa_cart_id")?.value;
       const validCookieCartId = cookieCartId && cookieCartId !== "items" ? cookieCartId : null;
-      const cartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId") || body?.cart_id || body?.cartId || validCookieCartId || "cart_guest_100";
+      const cartId = url.searchParams.get("cart_id") || url.searchParams.get("cartId") || body?.cart_id || body?.cartId || validCookieCartId || "";
+      if (!cartId) return jsonWithDataSource({ success: false, error: "NO_CART", message: "Your cart is empty." }, "postgres", 400);
       const { CartRepository } = await import("@frontend/lib/repositories/cart.repository");
       const existingDbCart = await CartRepository.findCartById(cartId);
       const existingCoupon = existingDbCart?.coupon_code || existingDbCart?.promo_code || existingDbCart?.metadata?.promo_code || existingDbCart?.metadata?.coupon_code || ApiEngine.getCart(cartId)?.promo_code;

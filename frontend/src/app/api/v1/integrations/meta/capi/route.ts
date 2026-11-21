@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     const result = await MetaCapiService.sendEvent({
       eventName: event_name,
       eventId: event_id,
-      eventSourceUrl: event_source_url || "https://cakestohome.com/",
+      eventSourceUrl: event_source_url || "https://caketohome.com/",
       userData: {
         ...user_data,
         clientIp: user_data?.clientIp || clientIp,

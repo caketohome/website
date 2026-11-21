@@ -7261,10 +7261,9 @@ export class ApiEngine {
       }
       if (!p.full_name) p.full_name = p.name || `${p.first_name || "Driver"} ${p.last_name || ""}`.trim();
       if (!p.name) p.name = p.full_name;
-      if (!p.phone) p.phone = "+91 98123 45678";
       if (!p.status) p.status = "active";
-      if (!p.primary_branch_id) p.primary_branch_id = p.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT";
-      if (!p.primary_branch_name) p.primary_branch_name = p.branch_name || "Indiranagar Flagship Kitchen";
+      if (!p.primary_branch_id) p.primary_branch_id = p.branch_id || "";
+      if (!p.primary_branch_name) p.primary_branch_name = p.branch_name || "";
       if (!p.maximum_concurrent_orders) p.maximum_concurrent_orders = p.max_capacity || 5;
 
       // Dynamically derive coverage from associated store/branch delivery territory
@@ -7297,9 +7296,6 @@ export class ApiEngine {
       const targetId = branchIdOrObj;
       branch = (memoryStore.branches || []).find(
         (b: any) => b.id === targetId || b.code === targetId ||
-                    (b.id === "br_indiranagar" && targetId === "res_01KXYMAHGFPRY1G9TZKEVGAGAT") ||
-                    (b.id === "br_koramangala" && targetId === "res_02KXYMAHGFPRY1G9TZKEVGAGAT") ||
-                    (b.id === "br_hsr" && targetId === "res_03KXYMAHGFPRY1G9TZKEVGAGAT") ||
                     (b.name || "").toLowerCase() === targetId.toLowerCase()
       ) || null;
     } else {
@@ -7307,30 +7303,10 @@ export class ApiEngine {
     }
 
     if (!branch) {
-      const fallbackPincodes = branchIdOrObj === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" || branchIdOrObj === "br_indiranagar"
-        ? ["560038", "560008", "560071", "560047"]
-        : branchIdOrObj === "res_02KXYMAHGFPRY1G9TZKEVGAGAT" || branchIdOrObj === "br_koramangala"
-        ? ["560034", "560095", "560047"]
-        : branchIdOrObj === "br_whitefield"
-        ? ["560066", "560048", "560037"]
-        : ["560038"];
-
-      const fallbackAreas = branchIdOrObj === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" || branchIdOrObj === "br_indiranagar"
-        ? ["Indiranagar", "Domlur", "HAL"]
-        : branchIdOrObj === "res_02KXYMAHGFPRY1G9TZKEVGAGAT" || branchIdOrObj === "br_koramangala"
-        ? ["Koramangala", "BTM Layout"]
-        : branchIdOrObj === "br_whitefield"
-        ? ["Whitefield ITPL", "Brookefield"]
-        : ["Local Hub Area"];
-
+      // Unknown shop: no coverage (never made-up areas).
       return {
         branch_id: typeof branchIdOrObj === "string" ? branchIdOrObj : "unknown",
-        branch_name: branchIdOrObj === "res_01KXYMAHGFPRY1G9TZKEVGAGAT" ? "Indiranagar Flagship Kitchen" : "Store/Hub",
-        branch_code: "HUB-BLR",
-        city: "Bengaluru",
-        pincodes: fallbackPincodes,
-        areas: fallbackAreas,
-        cities: ["Bengaluru"],
+        branch_name: "", branch_code: "", city: "", pincodes: [], areas: [], cities: [],
       };
     }
 
@@ -7365,26 +7341,6 @@ export class ApiEngine {
       });
     }
 
-    // Mapping fallback for known standard hubs
-    const sampleMappings = [
-      { pincode: "560038", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT", "br_indiranagar", "HUB-BLR-01"], area_name: "Indiranagar", city_name: "Bengaluru" },
-      { pincode: "560008", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT", "br_indiranagar", "HUB-BLR-01"], area_name: "Domlur", city_name: "Bengaluru" },
-      { pincode: "560071", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT", "br_indiranagar", "HUB-BLR-01"], area_name: "HAL", city_name: "Bengaluru" },
-      { pincode: "560034", branch_ids: ["res_02KXYMAHGFPRY1G9TZKEVGAGAT", "br_koramangala", "HUB-BLR-02"], area_name: "Koramangala", city_name: "Bengaluru" },
-      { pincode: "560095", branch_ids: ["res_02KXYMAHGFPRY1G9TZKEVGAGAT", "br_koramangala", "HUB-BLR-02"], area_name: "Koramangala 1st Block", city_name: "Bengaluru" },
-      { pincode: "560047", branch_ids: ["res_01KXYMAHGFPRY1G9TZKEVGAGAT", "res_02KXYMAHGFPRY1G9TZKEVGAGAT", "br_indiranagar", "br_koramangala"], area_name: "Austin Town / Victoria Layout", city_name: "Bengaluru" },
-      { pincode: "560102", branch_ids: ["res_03KXYMAHGFPRY1G9TZKEVGAGAT", "br_hsr", "HUB-BLR-03"], area_name: "HSR Sector 1", city_name: "Bengaluru" },
-      { pincode: "560068", branch_ids: ["res_03KXYMAHGFPRY1G9TZKEVGAGAT", "br_hsr", "HUB-BLR-03"], area_name: "HSR Layout 27th Main", city_name: "Bengaluru" },
-      { pincode: "560066", branch_ids: ["br_whitefield", "HUB-BLR-04"], area_name: "Whitefield ITPL", city_name: "Bengaluru" },
-      { pincode: "560048", branch_ids: ["br_whitefield", "HUB-BLR-04"], area_name: "Brookefield", city_name: "Bengaluru" },
-    ];
-    sampleMappings.forEach((m) => {
-      if (m.branch_ids.includes(branch.id) || m.branch_ids.includes(branch.code)) {
-        pincodesSet.add(m.pincode);
-        if (m.area_name) areasSet.add(m.area_name);
-        if (m.city_name) citiesSet.add(m.city_name);
-      }
-    });
 
     if (pincodesSet.size === 0 && branch.pincode) {
       pincodesSet.add(branch.pincode);
@@ -7769,8 +7725,8 @@ export class ApiEngine {
     const lName = partnerData.last_name || partnerData.full_name?.split(" ").slice(1).join(" ") || "Partner";
     const fullName = partnerData.full_name || `${fName} ${lName}`.trim();
     const partnerNumber = partnerData.partner_number || `CTH-DP-${String(Date.now()).slice(-6)}`;
-    const primaryBranchId = partnerData.primary_branch_id || partnerData.branch_id || "res_01KXYMAHGFPRY1G9TZKEVGAGAT";
-    const primaryBranchName = partnerData.primary_branch_name || partnerData.branch_name || "Indiranagar Flagship Kitchen";
+    const primaryBranchId = partnerData.primary_branch_id || partnerData.branch_id || "";
+    const primaryBranchName = partnerData.primary_branch_name || partnerData.branch_name || "";
 
     const partner = {
       id: partnerData.id || `dlp_${Date.now()}`,
@@ -7779,7 +7735,7 @@ export class ApiEngine {
       first_name: fName,
       last_name: lName,
       name: fullName,
-      phone: partnerData.phone || "+91 98123 45678",
+      phone: partnerData.phone || "",
       email: partnerData.email || `${fName.toLowerCase()}.${lName.toLowerCase()}@caketohome.com`,
       status: partnerData.status || "active",
       is_active: partnerData.is_active !== false,
@@ -8090,7 +8046,7 @@ export class ApiEngine {
 
       order.delivery_partner_id = candidate.id;
       order.driver_name = pName;
-      order.driver_phone = candidate.phone || "+91 98123 45678";
+      order.driver_phone = candidate.phone || "";
       order.pickup_otp = pickupOtp;
       order.delivery_otp = deliveryOtp;
       order.delivery_status = "ready_for_pickup";
@@ -8101,7 +8057,7 @@ export class ApiEngine {
         partner_id: candidate.id,
         partner_number: pNum,
         partner_name: pName,
-        partner_phone: candidate.phone || "+91 98123 45678",
+        partner_phone: candidate.phone || "",
         branch_name: candidate.primary_branch_name || order.branch_name || "Kitchen Hub",
         status: "Dispatched",
         delivery_status: "ready_for_pickup",
@@ -8198,9 +8154,6 @@ export class ApiEngine {
 
       const isMatch = (b1: string, b2: string) => {
         if (b1 === b2) return true;
-        if ((b1 === "br_indiranagar" && b2 === "res_01KXYMAHGFPRY1G9TZKEVGAGAT") || (b2 === "br_indiranagar" && b1 === "res_01KXYMAHGFPRY1G9TZKEVGAGAT")) return true;
-        if ((b1 === "br_koramangala" && b2 === "res_02KXYMAHGFPRY1G9TZKEVGAGAT") || (b2 === "br_koramangala" && b1 === "res_02KXYMAHGFPRY1G9TZKEVGAGAT")) return true;
-        if ((b1 === "br_hsr" && b2 === "res_03KXYMAHGFPRY1G9TZKEVGAGAT") || (b2 === "br_hsr" && b1 === "res_03KXYMAHGFPRY1G9TZKEVGAGAT")) return true;
         return false;
       };
 
@@ -8234,7 +8187,7 @@ export class ApiEngine {
 
     order.delivery_partner_id = newPartner.id;
     order.driver_name = pName;
-    order.driver_phone = newPartner.phone || "+91 98123 45678";
+    order.driver_phone = newPartner.phone || "";
     order.pickup_otp = pickupOtp;
     order.delivery_otp = deliveryOtp;
     order.delivery_status = "ready_for_pickup";
@@ -8246,7 +8199,7 @@ export class ApiEngine {
       partner_id: newPartner.id,
       partner_number: pNum,
       partner_name: pName,
-      partner_phone: newPartner.phone || "+91 98123 45678",
+      partner_phone: newPartner.phone || "",
       vehicle: `${newPartner.vehicle?.type || "Scooter"} (${newPartner.vehicle?.number || "KL-02-AB-1234"})`,
       branch_name: newPartner.primary_branch_name || order.branch_name || "Kitchen Hub",
       status: "Dispatched",
@@ -10498,7 +10451,7 @@ export class ApiEngine {
     ApiEngine.ensureCustomersStore();
     return ApiEngine.findOrCreateCustomerByPhone({
       name: data.name || `${data.first_name || "Customer"} ${data.last_name || ""}`.trim(),
-      phone: data.phone || "+91 98765 00000",
+      phone: data.phone || "",
       email: data.email,
       branch_id: data.branch_id,
     });
@@ -12052,8 +12005,8 @@ export class ApiEngine {
       seller_fssai_number: compliance?.fssai_number || branch?.fssai_number || (ApiEngine.getBusinessProfile() as any).fssai || "",
       sellerFssaiType: compliance?.fssai_license_type || "STATE_LICENSE",
       seller_fssai_type: compliance?.fssai_license_type || "STATE_LICENSE",
-      sellerAddress: branch?.address || bizProfile?.registered_address?.line1 || "100 Feet Rd, Indiranagar, Bengaluru - 560038",
-      seller_address: branch?.address || bizProfile?.registered_address?.line1 || "100 Feet Rd, Indiranagar, Bengaluru - 560038",
+      sellerAddress: branch?.address || bizProfile?.registered_address?.line1 || "",
+      seller_address: branch?.address || bizProfile?.registered_address?.line1 || "",
     };
   }
 
@@ -12435,10 +12388,12 @@ export class ApiEngine {
   // ── CMS Pages & Form Submissions ──────────────────────────────
   static listCmsPages() {
     if (!memoryStore || !Array.isArray(memoryStore.cms_pages)) {
-      if (memoryStore) memoryStore.cms_pages = [...DEFAULT_CMS_PAGES];
-      return [...DEFAULT_CMS_PAGES];
+      const seed = process.env.DATABASE_URL ? [] : [...DEFAULT_CMS_PAGES];
+      if (memoryStore) memoryStore.cms_pages = seed;
+      return [...seed];
     }
-    // Ensure all default CMS pages (like policies, about, contact) are accessible if not yet in DB
+    // Built-in sample pages only without a database; with Supabase, the CMS tables are the only source.
+    if (process.env.DATABASE_URL) return memoryStore.cms_pages;
     const existingSlugs = new Set(memoryStore.cms_pages.map((p: any) => p.slug));
     const missingDefaults = DEFAULT_CMS_PAGES.filter((p: any) => !existingSlugs.has(p.slug));
     if (missingDefaults.length > 0) {
@@ -12924,7 +12879,7 @@ export class ApiEngine {
       seo_title: data.seo_title || data.name,
       seo_description: data.seo_description || data.description || "",
       og_image: data.og_image || data.image_url || "",
-      branch_ids: Array.isArray(data.branch_ids) ? data.branch_ids : ["res_01KXYMAHGFPRY1G9TZKEVGAGAT"],
+      branch_ids: Array.isArray(data.branch_ids) ? data.branch_ids : [],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -18711,14 +18666,8 @@ export class ApiEngine {
 
   // ── Dynamic Pincode-to-Zone Matrix Methods ──
   static listPincodeMappings(search?: string): PincodeZoneMapping[] {
-    const defaults: PincodeZoneMapping[] = [
-      { pincode: "560038", branch_id: "br_indiranagar", branch_code: "HUB-BLR-01", zone_id: "zone_1", zone_name: "Zone 1 (0-5 KM)", city_name: "Bengaluru", area_name: "Indiranagar", status: "active" },
-      { pincode: "560008", branch_id: "br_indiranagar", branch_code: "HUB-BLR-01", zone_id: "zone_1", zone_name: "Zone 1 (0-5 KM)", city_name: "Bengaluru", area_name: "Domlur", status: "active" },
-      { pincode: "560071", branch_id: "br_indiranagar", branch_code: "HUB-BLR-01", zone_id: "zone_2", zone_name: "Zone 2 (5-10 KM)", city_name: "Bengaluru", area_name: "HAL", status: "active" },
-      { pincode: "560034", branch_id: "br_koramangala", branch_code: "HUB-BLR-02", zone_id: "zone_1", zone_name: "Zone 1 (0-5 KM)", city_name: "Bengaluru", area_name: "Koramangala", status: "active" },
-      { pincode: "560095", branch_id: "br_koramangala", branch_code: "HUB-BLR-02", zone_id: "zone_2", zone_name: "Zone 2 (5-10 KM)", city_name: "Bengaluru", area_name: "Koramangala 1st Block", status: "active" },
-      { pincode: "560102", branch_id: "br_hsr", branch_code: "HUB-BLR-03", zone_id: "zone_1", zone_name: "Zone 1 (0-5 KM)", city_name: "Bengaluru", area_name: "HSR Sector 1", status: "active" },
-    ];
+    // Shops use map fences now; there is no built-in pincode list.
+    const defaults: PincodeZoneMapping[] = [];
     if (!search || !search.trim()) return defaults;
     const s = search.toLowerCase().trim();
     return defaults.filter(
@@ -19124,7 +19073,7 @@ export class ApiEngine {
 
   // ── Service Areas API ──
   static listServiceAreas(): ServiceArea[] {
-    return DEFAULT_SERVICE_AREAS;
+    return [];
   }
 
   // ── Customer Pre-Checkout Serviceability UX ──
@@ -20951,7 +20900,7 @@ export class ApiEngine {
         rider_phone: o.driver_phone || o.delivery?.partner_phone || null,
         delivery_status: o.delivery_status,
         eta: o.new_eta || o.delivery_slot || "30 mins",
-        pincode: o.pincode || o.shipping_address?.postal_code || "560038",
+        pincode: o.pincode || o.shipping_address?.postal_code || "",
       })),
     };
   }
