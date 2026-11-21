@@ -1,5 +1,35 @@
 import { createHash } from "crypto";
-import { dbQuery } from "../db";
+import { dbQuery as rawDbQuery } from "../db";
+
+/**
+ * CMS read cache. Storefront pages read CMS content on every view; without a cache that re-downloads
+ * all CMS pages from Supabase each time (tens of GB of egress). Reads are cached for 60 s per process;
+ * any CMS write clears the cache immediately, so admin edits show at once.
+ */
+const CMS_CACHE_TTL_MS = 60_000;
+const cmsCache: Map<string, { at: number; value: any }> =
+  (globalThis as any).__cthCmsReadCache || ((globalThis as any).__cthCmsReadCache = new Map());
+
+export function invalidateCmsCache(): void {
+  cmsCache.clear();
+}
+
+const dbQuery = (async (text: string, params?: any[]) => {
+  const isRead = /^\s*(select|with)\b/i.test(text);
+  if (!isRead) {
+    const res = await rawDbQuery(text, params);
+    cmsCache.clear();
+    return res;
+  }
+  const key = text + "\u0000" + JSON.stringify(params || []);
+  const hit = cmsCache.get(key);
+  // Copies, so callers can never change the cached rows.
+  if (hit && Date.now() - hit.at < CMS_CACHE_TTL_MS) return { ...hit.value, rows: structuredClone(hit.value.rows) };
+  const res = await rawDbQuery(text, params);
+  cmsCache.set(key, { at: Date.now(), value: { ...res, rows: structuredClone(res.rows) } });
+  if (cmsCache.size > 500) cmsCache.delete(cmsCache.keys().next().value as string);
+  return res;
+}) as typeof rawDbQuery;
 import { CmsPageDomain } from "../types/domain";
 import { putMediaObject } from "../media/media-storage";
 

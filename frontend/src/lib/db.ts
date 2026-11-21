@@ -92,12 +92,21 @@ export function getDbPool(): Pool {
   return globalThis.__cth_pg_pool__;
 }
 
+/** Any write to a CMS table clears the CMS read cache (see cms.repository). */
+function clearCmsCacheIfCmsWrite(text: unknown) {
+  if (typeof text === "string" && /^\s*(insert|update|delete)\b/i.test(text) && /\bcms_/i.test(text)) {
+    (globalThis as any).__cthCmsReadCache?.clear?.();
+  }
+}
+
 export async function dbQuery<T extends QueryResultRow = any>(
   text: string,
   params?: any[]
 ): Promise<QueryResult<T>> {
   const pool = getDbPool();
-  return pool.query<T>(text, params);
+  const res = await pool.query<T>(text, params);
+  clearCmsCacheIfCmsWrite(text);
+  return res;
 }
 
 export async function dbTransaction<T>(
@@ -110,6 +119,7 @@ export async function dbTransaction<T>(
 
   // Serialize queries on the same PoolClient within a transaction to prevent overlapping client.query() calls
   (client as any).query = (...args: any[]) => {
+    clearCmsCacheIfCmsWrite(args[0]);
     const next = queryQueue.then(() => (rawQuery as any)(...args));
     queryQueue = next.catch(() => {});
     return next;
