@@ -251,9 +251,11 @@ export default async function CityLandingPage({ params }: CityPageProps) {
                 <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-brand-navy/90 text-brand-gold font-bold text-[10px] shadow border border-brand-gold/30 backdrop-blur-md">
                   ✨ Handcrafted
                 </span>
-                <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white font-semibold text-[10px] flex items-center gap-1">
-                  <Star className="w-3 h-3 text-brand-gold fill-brand-gold" /> {p.rating ? Number(p.rating).toFixed(1) : "4.9"}
-                </span>
+                {Number(p.rating) > 0 && (
+                  <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white font-semibold text-[10px] flex items-center gap-1">
+                    <Star className="w-3 h-3 text-brand-gold fill-brand-gold" /> {Number(p.rating).toFixed(1)}
+                  </span>
+                )}
               </div>
 
               <div className="p-4 space-y-2.5 flex-1 flex flex-col justify-between">

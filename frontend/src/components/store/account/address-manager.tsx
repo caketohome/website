@@ -159,7 +159,7 @@ export function AddressManager({ initialAddresses = [] }: AddressManagerProps) {
               {/* Name & Phone */}
               <div>
                 <p className="text-sm font-bold text-brand-text">{addr.name || "Alex R Ashok"}</p>
-                <p className="text-xs text-brand-text-muted font-mono mt-0.5">{addr.phone || "+91 98765 43210"}</p>
+                {addr.phone && <p className="text-xs text-brand-text-muted font-mono mt-0.5">{addr.phone}</p>}
               </div>
 
               {/* Full Address */}

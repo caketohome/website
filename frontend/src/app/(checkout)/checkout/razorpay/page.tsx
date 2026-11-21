@@ -26,6 +26,23 @@ export default function RazorpayCheckoutPage() {
   const [isInitializing, setIsInitializing] = useState(true);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [prefill, setPrefill] = useState<{ name?: string; email?: string; contact?: string }>({});
+  useEffect(() => {
+    if (!orderId) return;
+    fetch(`/api/v1/orders/${encodeURIComponent(orderId)}`, { credentials: "same-origin", cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const o = d?.order;
+        if (!o) return;
+        const email = String(o.customer_email || "");
+        setPrefill({
+          name: o.customer_name && o.customer_name !== "Customer" ? o.customer_name : undefined,
+          email: email && !email.endsWith("@caketohome.internal") ? email : undefined,
+          contact: String(o.customer_phone || "").replace(/\D/g, "").slice(-10) || undefined,
+        });
+      })
+      .catch(() => {});
+  }, [orderId]);
   const [paymentStatus, setPaymentStatus] = useState<"initializing" | "ready" | "processing" | "success" | "failed" | "dismissed">("initializing");
 
   const hasLaunchedRef = useRef(false);
@@ -104,11 +121,8 @@ export default function RazorpayCheckoutPage() {
         description: `Order #${orderId} - Fresh Bakery`,
         order_id: razorpayOrderId,
         image: "/images/logo.png",
-        prefill: {
-          name: "Valued Customer",
-          email: "customer@cakestohome.com",
-          contact: "9876543210"
-        },
+        // The customer's own details (never made-up ones); Razorpay asks for anything missing.
+        prefill: Object.fromEntries(Object.entries(prefill).filter(([, v]) => Boolean(v))),
         theme: {
           color: "#245A96" // Approved CakeToHome Brand Blue
         },
@@ -166,7 +180,7 @@ export default function RazorpayCheckoutPage() {
       setPaymentStatus("failed");
       setErrorMessage("Could not launch Razorpay modal: " + err.message);
     }
-  }, [sdkReady, razorpayOrderId, razorpayKeyId, amount, orderId, router]);
+  }, [sdkReady, razorpayOrderId, razorpayKeyId, amount, orderId, router, prefill]);
 
   // Auto-launch once ready
   useEffect(() => {

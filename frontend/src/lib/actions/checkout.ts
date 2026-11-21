@@ -150,8 +150,8 @@ export async function placeOrder(prevState: any, data: FormData) {
   const firstName = data.get("first-name")?.toString() || data.get("name")?.toString() || "Customer";
   const lastName = data.get("last-name")?.toString() || "";
   const phone = data.get("phone")?.toString();
-  const email = data.get("email")?.toString() || "customer@cakes2home.com";
-  const addressLine1 = data.get("address-line1")?.toString() || data.get("address")?.toString() || "Address on File";
+  const email = data.get("email")?.toString() || undefined;
+  const addressLine1 = data.get("address-line1")?.toString() || data.get("address")?.toString() || "";
   const addressLine2 = data.get("address-line2")?.toString() || "";
   const city = data.get("city")?.toString() || cookieStore.get("delivery_city")?.value || "";
   const state = data.get("state")?.toString() || "";

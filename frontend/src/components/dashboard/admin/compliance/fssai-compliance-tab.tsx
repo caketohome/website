@@ -52,7 +52,7 @@ export function FssaiComplianceTab({
     setFormIssueDate(new Date().toISOString().slice(0, 10));
     setFormExpiryDate(new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().slice(0, 10));
     setFormResponsiblePerson(firstBranch.manager_name || "Branch Manager");
-    setFormContactNumber(firstBranch.phone || "+91 98765 00000");
+    setFormContactNumber(firstBranch.phone || "");
     setFormCertNumber("");
     setErrorMsg(null);
     setModalOpen(true);

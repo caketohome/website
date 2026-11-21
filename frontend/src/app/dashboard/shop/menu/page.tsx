@@ -28,8 +28,8 @@ export default async function MenuPage() {
     handle: branch?.code?.toLowerCase() || "caketohome",
     is_open: branch?.is_open !== false,
     address: branch?.address || "Bakery Hub",
-    phone: branch?.phone || "+91 98765 43210",
-    email: branch?.email || "branch@cakes2home.com",
+    phone: branch?.phone || "",
+    email: branch?.email || "",
     deliveries: [],
     products: (branchProds.products || []).map((p: any) => ({
       id: p.id,

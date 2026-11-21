@@ -51,7 +51,18 @@ export function RecoveryJourneyDrawer({ cart, isOpen, onClose, onRefresh }: Reco
   const [convertedOrderId, setConvertedOrderId] = useState("");
   const [convertedRevenue, setConvertedRevenue] = useState("");
   const [showTelecallerModal, setShowTelecallerModal] = useState(false);
-  const [telecallerName, setTelecallerName] = useState("Priya Sharma");
+  const [telecallerName, setTelecallerName] = useState("");
+  // Real staff names (suggestions); falls back to typing a name if the list isn't viewable.
+  const [staffNames, setStaffNames] = useState<string[]>([]);
+  useEffect(() => {
+    fetch("/api/v1/admin/staff/members", { credentials: "same-origin", cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const list: any[] = Array.isArray(d?.staff) ? d.staff : [];
+        setStaffNames(Array.from(new Set(list.map((m: any) => String(m.full_name || m.name || "").trim()).filter(Boolean))));
+      })
+      .catch(() => {});
+  }, []);
   const [telecallerNotes, setTelecallerNotes] = useState("");
 
   useEffect(() => {
@@ -121,16 +132,20 @@ export function RecoveryJourneyDrawer({ cart, isOpen, onClose, onRefresh }: Reco
   };
 
   const handleAssignTelecaller = async () => {
-    setSubmitting(true);
     setActionSuccess(null);
     setActionError(null);
+    if (!telecallerName.trim()) {
+      setActionError("Enter the staff member's name.");
+      return;
+    }
+    setSubmitting(true);
     try {
       const res = await fetch(`/api/v1/admin/abandoned-carts/${currentCart.id}/assign-telecaller`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          staff_id: "staff_priya_01",
-          staff_name: telecallerName,
+          staff_id: `staff_${telecallerName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_")}`,
+          staff_name: telecallerName.trim(),
           notes: telecallerNotes,
         }),
       });
@@ -453,15 +468,16 @@ export function RecoveryJourneyDrawer({ cart, isOpen, onClose, onRefresh }: Reco
               <div className="space-y-3">
                 <div>
                   <Label className="text-xs">Telecaller Staff</Label>
-                  <select
+                  <input
                     value={telecallerName}
                     onChange={(e) => setTelecallerName(e.target.value)}
+                    list="recovery-telecaller-staff"
+                    placeholder="Staff member's name"
                     className="w-full p-2 text-xs border border-neutral-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800"
-                  >
-                    <option value="Priya Sharma">Priya Sharma (Top Converter - Bengaluru)</option>
-                    <option value="Karan Patel">Karan Patel (VIP Specialist)</option>
-                    <option value="Sneha Rao">Sneha Rao (Evening Shift)</option>
-                  </select>
+                  />
+                  <datalist id="recovery-telecaller-staff">
+                    {staffNames.map((n) => <option key={n} value={n} />)}
+                  </datalist>
                 </div>
                 <div>
                   <Label className="text-xs">Notes / Talking Points</Label>

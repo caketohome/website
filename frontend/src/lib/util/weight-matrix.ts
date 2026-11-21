@@ -186,7 +186,7 @@ export function createDefaultWeightMatrix(productId: string, basePrice: number =
       normalized_grams: t.grams,
       selling_price: sellPrice,
       mrp: Math.round(sellPrice * 1.25),
-      cost_price: Math.round(sellPrice * 0.45),
+      cost_price: 0, // unknown until the shop enters it
       prep_time_minutes: t.grams > 1000 ? 120 : 60,
       is_enabled: true,
       sort_order: idx + 1,

@@ -121,7 +121,7 @@ export default function OrderDetailsDrawer({
               <div>
                 <p className="text-xs text-brand-text-muted">Contact Phone</p>
                 <a href={`tel:${order.customer_phone || order.customer?.phone}`} className="font-semibold text-brand-primary dark:text-rose-400 hover:underline">
-                  {order.customer_phone || order.customer?.phone || "+91 98765 00000"}
+                  {order.customer_phone || order.customer?.phone || "No phone on order"}
                 </a>
               </div>
               <div className="col-span-2">
@@ -355,7 +355,7 @@ export default function OrderDetailsDrawer({
               <div className="flex items-center justify-between text-sm">
                 <div>
                   <p className="font-semibold text-brand-navy dark:text-white">{order.driver_name}</p>
-                  <p className="text-xs text-brand-text-muted">{order.driver_phone || "+91 98123 45678"}</p>
+                  <p className="text-xs text-brand-text-muted">{order.driver_phone || "No phone on file"}</p>
                 </div>
                 <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-semibold">
                   {order.delivery_status || "Assigned"}

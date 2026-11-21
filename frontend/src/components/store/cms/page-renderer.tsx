@@ -736,82 +736,6 @@ function StoreBranchLocator({
   );
 }
 
-/**
- * Interactive Side-by-Side Product Comparison Matrix
- */
-function ProductComparisonTable({
-  heading = "Compare Our Cake Recipes",
-  subheading = "Choose the perfect cake crafted for your celebration and guest count",
-}: {
-  heading?: string;
-  subheading?: string;
-}) {
-  const items = [
-    { title: "Belgian Dark Truffle", price: "₹699", servings: "4 - 6 guests", prep: "2 Hours Express", rating: "4.9 ★" },
-    { title: "Royal Red Velvet Heart", price: "₹749", servings: "4 - 6 guests", prep: "2 Hours Express", rating: "4.8 ★" },
-    { title: "Classic Black Forest", price: "₹599", servings: "4 - 6 guests", prep: "2 Hours Express", rating: "4.7 ★" },
-    { title: "Berry Bliss Gateau", price: "₹799", servings: "6 - 8 guests", prep: "3 Hours Express", rating: "4.9 ★" },
-  ];
-
-  return (
-    <div className="w-full max-w-5xl mx-auto p-6 rounded-3xl bg-ui-bg-base border border-ui-border-base shadow-md flex flex-col gap-6 overflow-x-auto">
-      <div className="text-center flex flex-col gap-1">
-        <span className="text-xs font-bold text-brand-gold uppercase tracking-wider">Comparison</span>
-        <h3 className="text-2xl font-bold text-ui-fg-base">{heading}</h3>
-        <p className="text-xs text-ui-fg-muted">{subheading}</p>
-      </div>
-      <table className="w-full text-xs text-left border-collapse min-w-[600px]">
-        <thead>
-          <tr className="border-b border-ui-border-base bg-ui-bg-subtle/50">
-            <th className="p-3 font-bold text-ui-fg-muted">Cake Feature</th>
-            {items.map((it, i) => (
-              <th key={i} className="p-3 font-extrabold text-ui-fg-base">{it.title}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-ui-border-base/50">
-          <tr>
-            <td className="p-3 font-semibold text-ui-fg-muted">Starting Price</td>
-            {items.map((it, i) => (
-              <td key={i} className="p-3 font-black text-brand-navy dark:text-brand-gold text-sm">{it.price}</td>
-            ))}
-          </tr>
-          <tr>
-            <td className="p-3 font-semibold text-ui-fg-muted">Servings / Portions</td>
-            {items.map((it, i) => (
-              <td key={i} className="p-3 text-ui-fg-base">{it.servings}</td>
-            ))}
-          </tr>
-
-          <tr>
-            <td className="p-3 font-semibold text-ui-fg-muted">Preparation & Delivery</td>
-            {items.map((it, i) => (
-              <td key={i} className="p-3 text-brand-gold font-semibold">⚡ {it.prep}</td>
-            ))}
-          </tr>
-          <tr>
-            <td className="p-3 font-semibold text-ui-fg-muted">Customer Rating</td>
-            {items.map((it, i) => (
-              <td key={i} className="p-3 font-bold text-ui-fg-base">{it.rating}</td>
-            ))}
-          </tr>
-          <tr>
-            <td className="p-3 font-semibold text-ui-fg-muted">Action</td>
-            {items.map((_, i) => (
-              <td key={i} className="p-3">
-                <Link href="/products">
-                  <Button size="small" variant="primary" className="bg-brand-navy hover:bg-brand-deep text-white rounded-lg text-xs font-bold border border-brand-gold/30 shadow-xs">
-                    View Product
-                  </Button>
-                </Link>
-              </td>
-            ))}
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  );
-}
 
 export function PageRenderer({
   sections = [],
@@ -3617,9 +3541,8 @@ export function PageRenderer({
                 ? config.product_ids.map((id: string) => allProducts.find((p: any) => (p.id || p.product_id) === id)).filter(Boolean)
                 : allProducts.slice(0, 3);
 
-              if (compareProducts.length < 2) {
-                return <ProductComparisonTable heading={heading} subheading="Find the perfect cake for your guest count and budget" />;
-              }
+              // Not enough real products to compare: hide the section (no sample cakes).
+              if (compareProducts.length < 2) return null;
 
               return (
                 <section key={sectionKey} className="w-full flex flex-col gap-6">
@@ -3654,7 +3577,7 @@ export function PageRenderer({
                           <td className="p-4 font-semibold text-ui-fg-muted">Customer Rating</td>
                           {compareProducts.map((p: any) => (
                             <td key={p.id} className="p-4 text-center font-bold text-brand-gold">
-                              ★ {p.rating || "4.9"}
+                              {p.rating ? `★ ${Number(p.rating).toFixed(1)}` : "—"}
                             </td>
                           ))}
                         </tr>
@@ -3741,12 +3664,9 @@ export function PageRenderer({
             case "reviews":
             case "review_carousel": {
               const heading = config.heading || "Sweet Celebrations • Customer Reviews";
-              const defaultReviews = [
-                { name: "Priya Sharma", occasion: "1st Birthday • Koramangala", rating: 5, quote: "The Belgian chocolate truffle cake arrived right on time in pristine condition. All 25 guests were raving about how moist and rich it tasted!" },
-                { name: "Rohan & Sneha", occasion: "5th Anniversary • Indiranagar", rating: 5, quote: "Ordered the Red Velvet Heart cake with scheduled delivery. It was delivered right on time with candles and knife included. Amazing service!" },
-                { name: "Vikram Mehta", occasion: "Corporate Milestone • Whitefield", rating: 5, quote: "CakeToHome handled our office delivery of 10 customized cakes seamlessly. Flawless presentation and fresh taste." },
-              ];
-              const reviewsList = (config.testimonials && config.testimonials.length > 0) ? config.testimonials : defaultReviews;
+              // Real testimonials only (added in the page editor); otherwise the section is hidden.
+              const reviewsList = Array.isArray(config.testimonials) ? config.testimonials : [];
+              if (reviewsList.length === 0) return null;
 
               return (
                 <section key={sectionKey} className="w-full flex flex-col gap-8 py-6">
@@ -3760,7 +3680,9 @@ export function PageRenderer({
                       {Array.from({ length: 5 }).map((_, si) => (
                         <Star key={si} className={`w-4 h-4 ${isLuxuryTheme ? "fill-brand-gold text-brand-gold" : "fill-brand-gold text-brand-gold"}`} />
                       ))}
-                      <span className={`ml-1 text-xs font-medium ${isLuxuryTheme ? "text-[#C5CEE0]" : "text-ui-fg-base"}`}>4.9 / 5.0 Rating (1,200+ Reviews)</span>
+                      {config.rating_summary && (
+                        <span className={`ml-1 text-xs font-medium ${isLuxuryTheme ? "text-[#C5CEE0]" : "text-ui-fg-base"}`}>{config.rating_summary}</span>
+                      )}
                     </div>
                     <Heading
                       level="h2"
@@ -3823,13 +3745,9 @@ export function PageRenderer({
             // ── 17. Statistics Counter Strip ────────────────────────────
             case "statistics":
             case "rating_summary": {
-              const defaultStats = [
-                { value: "50,000+", label: "Cakes Delivered" },
-                { value: "99.8%", label: "On-Time Delivery" },
-                { value: "4.9 ★", label: "Average Rating" },
-                { value: "2 Hours", label: "Express Doorstep Speed" },
-              ];
-              const statsList = (config.stats && config.stats.length > 0) ? config.stats : defaultStats;
+              // Real numbers only (entered in the page editor); otherwise the section is hidden.
+              const statsList = Array.isArray(config.stats) ? config.stats : [];
+              if (statsList.length === 0) return null;
 
               return (
                 <section key={sectionKey} className="w-full py-8 px-6 bg-gradient-to-r from-brand-warm-white via-[#FFF8E7] to-brand-gold-light dark:from-brand-deep dark:via-brand-navy dark:to-brand-navy/20 rounded-3xl border border-ui-border-base">

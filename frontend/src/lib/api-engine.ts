@@ -67,7 +67,7 @@ import {
 import { testPaymentsAllowed, isCodEnabled } from "./fulfillment/checkout-policy";
 import { SearchEngine, CanonicalProduct, ProductTag, SearchSynonym, MerchandisingRule } from "./search/search-engine";
 import { loadSearchSettings, saveSearchSettings } from "./search/search-settings-store";
-import { parseAndNormalizeWeight, sortWeightOptions, createDefaultWeightMatrix, ProductWeightOption } from "./util/weight-matrix";
+import { parseAndNormalizeWeight, sortWeightOptions, ProductWeightOption } from "./util/weight-matrix";
 import {
   normalizePhone,
   formatDisplayPhone,
@@ -6660,13 +6660,8 @@ export class ApiEngine {
             return validMetaWp;
           }
         }
-        const basePrice = Number(prod.price || prod.selling_price || prod.sale_price || prod.metadata?.price || 0);
-        const defaultMatrix = basePrice > 0 ? createDefaultWeightMatrix(productId, basePrice) : [];
-        if (defaultMatrix.length > 0) {
-          memoryStore.product_weight_prices.push(...defaultMatrix);
-          ApiEngine.persist();
-        }
-        return defaultMatrix;
+        // No weight options set by the shop: none are invented (the product sells at its own price).
+        return [];
       }
       return [];
     }
