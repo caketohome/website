@@ -5,7 +5,7 @@ import { Pool, PoolClient, QueryResult, QueryResultRow } from "pg";
  * The project's own Supabase DB host is always permitted; TEST_DATABASE_URL
  * is still locked to localhost to prevent accidental test runs against production.
  */
-const SUPABASE_PROJECT_REF = 'xfvgumatwucammmbwdwv';
+const SUPABASE_PROJECT_REF = 'tunskohzwjaerdxvbwmg';
 const ALLOWED_SUPABASE_HOSTS = [`db.${SUPABASE_PROJECT_REF}.supabase.co`];
 
 /** Supabase connection pooler (Supavisor) for THIS project only: user must be postgres.<project-ref>. */
