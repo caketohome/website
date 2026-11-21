@@ -40,7 +40,8 @@ export async function POST(req: NextRequest) {
   if (!phone) return err(new PhoneAuthError("invalid_phone", "Enter a valid phone number."));
 
   const ip = requestContext(req).ip || "unknown";
-  for (const [key, limit] of [[`otp-req:ip:${ip}`, 10], [`otp-req:ph:${phone}`, 4]] as const) {
+  // Per visitor, per number, and a site-wide ceiling so SMS costs can never run away.
+  for (const [key, limit] of [[`otp-req:ip:${ip}`, 10], [`otp-req:ph:${phone}`, 4], ["otp-req:all", 300]] as const) {
     const t = takeToken(key, limit, TEN_MIN);
     if (!t.ok) return err(new PhoneAuthError("rate_limited", "Too many OTP requests. Please wait and try again.", 429, t.retryAfter));
   }

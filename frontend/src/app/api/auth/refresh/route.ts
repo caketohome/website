@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   PhoneAuthError, REFRESH_COOKIE, clearSessionCookies, refreshAppSession, requestContext, setSessionCookies,
 } from "@frontend/lib/auth/phone-auth";
+import { safeInternalPath } from "@frontend/lib/security/safe-redirect";
 
 export const dynamic = "force-dynamic";
 
 /** Only same-site relative paths, so this can't be used as an open redirect. */
 function safeNext(raw: string | null): string {
-  return raw && raw.startsWith("/") && !raw.startsWith("//") && !raw.startsWith("/api/") ? raw : "/";
+  const safe = safeInternalPath(raw);
+  return safe && !safe.startsWith("/api/") ? safe : "/";
 }
 
 /**

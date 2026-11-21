@@ -15,8 +15,9 @@ export async function GET(req: NextRequest) {
     const description = searchParams.get("description") || "Kerala's Premium Cake Bakery. Delivered Fresh in 2 Hours.";
     const price = searchParams.get("price");
     const badge = searchParams.get("badge") || "Same Day Delivery";
-    const rating = searchParams.get("rating") || "4.9";
-    const reviews = searchParams.get("reviews") || "1,200+";
+    // Real numbers only: no rating badge unless one is passed in.
+    const rating = searchParams.get("rating") || "";
+    const reviews = searchParams.get("reviews") || "";
 
     return new ImageResponse(
       (
@@ -155,11 +156,13 @@ export async function GET(req: NextRequest) {
                 </div>
               )}
 
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "#F3C623", fontSize: "18px" }}>★</span>
-                <span style={{ color: "#FFFFFF", fontSize: "18px", fontWeight: "700" }}>{rating}</span>
-                <span style={{ color: "#6B7280", fontSize: "14px" }}>({reviews} reviews)</span>
-              </div>
+              {rating && (
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ color: "#F3C623", fontSize: "18px" }}>★</span>
+                  <span style={{ color: "#FFFFFF", fontSize: "18px", fontWeight: "700" }}>{rating}</span>
+                  {reviews && <span style={{ color: "#6B7280", fontSize: "14px" }}>({reviews} reviews)</span>}
+                </div>
+              )}
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#6B7280", fontSize: "14px" }}>

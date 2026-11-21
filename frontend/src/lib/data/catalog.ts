@@ -8,6 +8,7 @@ import { ProductRepository } from "../repositories/product.repository";
 import { BranchRepository } from "../repositories/branch.repository";
 import { OfferRepository } from "../repositories/offer.repository";
 import { InventoryService } from "../services/inventory.service";
+import { stripPrivateProductFields } from "../security/public-product";
 
 let _cachedApiEngine: any = null;
 async function getServerApiEngine(): Promise<any> {
@@ -187,7 +188,7 @@ export interface Subscription {
   quantity?: number;
 }
 
-export async function searchProducts(filters: SearchFilters = {}): Promise<SearchResponse> {
+async function _searchProducts(filters: SearchFilters = {}): Promise<SearchResponse> {
   const limit = filters.limit || 48;
   const offset = filters.offset || 0;
 
@@ -682,7 +683,7 @@ export async function listPublicOffers(): Promise<any[]> {
   return [];
 }
 
-export async function listProducts(options?: { branchId?: string; pincode?: string }): Promise<any[]> {
+async function _listProducts(options?: { branchId?: string; pincode?: string }): Promise<any[]> {
   // Authoritative PostgreSQL Data Layer (Server Component path)
   if (typeof window === "undefined") {
     try {
@@ -727,17 +728,16 @@ export async function listProducts(options?: { branchId?: string; pincode?: stri
           image: p.thumbnail || (Array.isArray(p.gallery) && p.gallery[0]) || "/images/placeholder-cake.jpg",
           images: p.gallery && p.gallery.length > 0 ? p.gallery : [p.thumbnail || "/images/placeholder-cake.jpg"],
           gallery: p.gallery || [],
-          price: Math.max(0, Number(p.selling_price || p.price) || 599),
-          selling_price: Math.max(0, Number(p.selling_price || p.price) || 599),
-          mrp: Math.max(0, Number(p.mrp) || 799),
-          cost_price: Math.max(0, Number(p.cost_price) || 350),
+          price: Math.max(0, Number(p.selling_price || p.price) || 0),
+          selling_price: Math.max(0, Number(p.selling_price || p.price) || 0),
+          mrp: Math.max(0, Number(p.mrp) || Number(p.selling_price || p.price) || 0),
           rating: Number(p.rating) || 0,
           review_count: Number(p.review_count) || 0,
           category: p.category || "Cakes",
           category_slug: p.category_slug || "cakes",
-          primary_category_id: p.primary_category_id || "cat_chocolate",
+          primary_category_id: p.primary_category_id || "",
           category_ids: p.category_ids || [],
-          flavour: p.flavour || "Chocolate",
+          flavour: p.flavour || "",
           weight: p.weight || "1 kg",
           weight_prices: p.weight_prices || [],
           variants: p.weight_prices || [],
@@ -772,7 +772,7 @@ export async function listProducts(options?: { branchId?: string; pincode?: stri
   }
 }
 
-export async function getProductById(id: string, pincode?: string): Promise<any | null> {
+async function _getProductById(id: string, pincode?: string): Promise<any | null> {
   // Authoritative PostgreSQL Data Layer
   if (typeof window === "undefined") {
     try {
@@ -812,7 +812,7 @@ export async function getProductById(id: string, pincode?: string): Promise<any 
   }
 }
 
-export async function getProductBySlug(slug: string, pincode?: string): Promise<any | null> {
+async function _getProductBySlug(slug: string, pincode?: string): Promise<any | null> {
   // Authoritative PostgreSQL Data Layer
   if (typeof window === "undefined") {
     try {
@@ -1036,3 +1036,10 @@ export async function listOccasions(): Promise<any[]> {
     return [];
   }
 }
+
+
+// Storefront product data never carries cost/margin fields.
+export async function listProducts(...args: Parameters<typeof _listProducts>) { return stripPrivateProductFields(await _listProducts(...args)); }
+export async function getProductById(...args: Parameters<typeof _getProductById>) { return stripPrivateProductFields(await _getProductById(...args)); }
+export async function getProductBySlug(...args: Parameters<typeof _getProductBySlug>) { return stripPrivateProductFields(await _getProductBySlug(...args)); }
+export async function searchProducts(...args: Parameters<typeof _searchProducts>) { return stripPrivateProductFields(await _searchProducts(...args)); }

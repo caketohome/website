@@ -116,10 +116,11 @@ export async function confirmCheckoutAction(payload: {
   const customerId = payload.customer_id || cookieStore.get("_cth_user_id")?.value || "cus_guest";
 
   try {
-    const result = await apiClient.confirmCheckout({
-      ...payload,
-      cart_id: cartId,
-      customer_id: customerId,
+    // Forward the shopper's own login so the server records the order against their verified account.
+    const result: any = await apiClient.request("/checkout/confirm", {
+      method: "POST",
+      body: JSON.stringify({ ...payload, cart_id: cartId, customer_id: customerId }),
+      headers: { cookie: cookieStore.toString() },
     });
 
     if (result.success && result.order_id) {

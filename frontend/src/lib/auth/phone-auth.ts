@@ -344,7 +344,8 @@ async function auditWith(
 
 export function requestContext(req: Request): AuthContext {
   return {
-    ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || undefined,
+    // Cloudflare's verified client IP; the first X-Forwarded-For entry is whatever the visitor sends.
+    ip: req.headers.get("cf-connecting-ip")?.trim() || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || undefined,
     userAgent: req.headers.get("user-agent") || undefined,
   };
 }

@@ -11252,8 +11252,20 @@ export class ApiEngine {
   // ── Live Crawler Execution ──────────────────────────────────
   static async runLiveCrawler(urls?: string[]) {
     const pages = memoryStore.seo_pages || [];
-    const defaultUrls = urls && urls.length > 0 ? urls : pages.map((p: any) => `http://localhost:3000${p.url || `/${p.slug}`}`).slice(0, 10);
-    return LiveHttpCrawler.crawlSite(defaultUrls.length > 0 ? defaultUrls : ["http://localhost:3000/"]);
+    // Only our own site's pages can be crawled (never internal or third-party addresses).
+    const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://caketohome.com").replace(/\/$/, "");
+    const siteHost = (() => { try { return new URL(site).hostname.replace(/^www\./, ""); } catch { return "caketohome.com"; } })();
+    const ownPage = (u: string) => {
+      try {
+        const parsed = new URL(u, site);
+        const host = parsed.hostname.replace(/^www\./, "");
+        return (parsed.protocol === "https:" || parsed.protocol === "http:") && (host === siteHost || (host === "localhost" && process.env.NODE_ENV !== "production"))
+          ? parsed.toString() : null;
+      } catch { return null; }
+    };
+    const requested = (urls || []).map((u) => ownPage(String(u))).filter((u): u is string => Boolean(u));
+    const defaultUrls = requested.length > 0 ? requested : pages.map((p: any) => `${site}${p.url || `/${p.slug}`}`).slice(0, 10);
+    return LiveHttpCrawler.crawlSite(defaultUrls.length > 0 ? defaultUrls : [`${site}/`]);
   }
 
   // ── Audit Engine & Auto-Fix ─────────────────────────────────

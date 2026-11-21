@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CakeToHomeLogo } from "@frontend/components/common/logo";
 import { Check } from "lucide-react";
 import { CmsRepository } from "@frontend/lib/repositories/cms.repository";
+import { safeInternalPath } from "@frontend/lib/security/safe-redirect";
 
 export const dynamic = "force-dynamic";
 
@@ -43,8 +44,9 @@ async function getLoginContent() {
 /** Only same-site paths ("/cart", "/checkout?x=1"), never "//evil.com" or absolute URLs. */
 function safeNext(raw: unknown): string | undefined {
   const v = typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : "";
-  if (!v || !v.startsWith("/") || v.startsWith("//") || v.startsWith("/\\") || v.startsWith("/login")) return undefined;
-  return v;
+  const safe = safeInternalPath(v);
+  if (!safe || safe.startsWith("/login")) return undefined;
+  return safe;
 }
 
 export default async function LoginPage({ searchParams }: { searchParams?: Record<string, string | string[] | undefined> }) {

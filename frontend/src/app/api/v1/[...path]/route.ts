@@ -104,6 +104,7 @@ import { PaymentVerificationService } from "@frontend/lib/services/payment-verif
 import { CrossAppEventService } from "@frontend/lib/services/cross-app-event.service";
 import { RazorpayPaymentService } from "@frontend/lib/services/razorpay-payment.service";
 import { PaymentGatewayConfigService } from "@frontend/lib/services/payment-gateway-config.service";
+import { mayContainPrivateFields } from "@frontend/lib/security/public-product";
 
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
@@ -1596,6 +1597,23 @@ async function safeParseJsonBody(req: NextRequest, path?: string): Promise<any> 
 }
 
 export async function GET(req: NextRequest, context: { params: { path: string[] } }) {
+  const res = await handleGet(req, context);
+  // Customers never receive cost/margin fields (staff screens still do).
+  if (!denyUnlessStaff(req)) return res;
+  try {
+    if (!(res.headers.get("content-type") || "").includes("application/json")) return res;
+    const text = await res.clone().text();
+    if (!mayContainPrivateFields(text)) return res;
+    const { stripPrivateProductFields } = await import("@frontend/lib/security/public-product");
+    const headers = new Headers(res.headers);
+    headers.delete("content-length");
+    return new NextResponse(JSON.stringify(stripPrivateProductFields(JSON.parse(text))), { status: res.status, headers });
+  } catch {
+    return res;
+  }
+}
+
+async function handleGet(req: NextRequest, context: { params: { path: string[] } }): Promise<Response> {
   try {
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
@@ -10814,7 +10832,9 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
         }
         let items = body.items;
         let branchId = body.branch_id;
-        const custUid = body.customer_id || body.customer_uid || req.cookies.get("_cth_user_id")?.value || "guest";
+        // Whose account the order belongs to comes from the verified login; only staff may choose a customer.
+        const custUid = (!denyUnlessStaff(req) && (body.customer_id || body.customer_uid))
+          || resolveVerifiedCustomer(req)?.customerUid || "guest";
         const customerName = body.customer_name || (body.address ? `${body.address.first_name || ""} ${body.address.last_name || ""}`.trim() : "Customer");
         const customerEmail = body.customer_email || body.address?.email;
         const customerPhone = body.customer_phone || body.address?.phone;
@@ -11099,8 +11119,12 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           return jsonWithDataSource({ success: false, error: policyErr.message, code: policyErr.code }, "postgres", 400);
         }
       }
-      // Only staff may record an order as already paid; customers pay through Razorpay.
-      if (denyUnlessStaff(req)) { delete body.payment_status; delete body.paymentStatus; }
+      // Only staff may record an order as already paid or choose the customer; customers pay through Razorpay.
+      if (denyUnlessStaff(req)) {
+        delete body.payment_status; delete body.paymentStatus;
+        const me = resolveVerifiedCustomer(req)?.customerUid;
+        body.customer_uid = me || "guest"; body.customer_id = me || "guest";
+      }
       const idempotencyKey = req.headers.get("idempotency-key") || body.idempotency_key || undefined;
       const orderRes = await OrderService.createOrder({
         ...body,
