@@ -1,3 +1,4 @@
+import { resolveServerSession } from "@frontend/lib/security/auth-session";
 import { NextRequest, NextResponse } from "next/server";
 import { ApiEngine } from "@frontend/lib/api-engine";
 import { BranchRepository } from "@frontend/lib/repositories";
@@ -86,6 +87,11 @@ export async function POST(req: NextRequest) {
     }
 
     if (type === "update_area_status") {
+      // Changing which areas are served is a staff action.
+      const role = String(resolveServerSession(req)?.role || "").toUpperCase();
+      if (!role || role === "CUSTOMER" || role.startsWith("PARTNER_")) {
+        return NextResponse.json({ success: false, error: "UNAUTHORIZED" }, { status: 401 });
+      }
       const updatedArea = ApiEngine.updateCityAreaStatus(body.areaId, body.status, body.reason, body.blockedUntil);
       if (!updatedArea) {
         return NextResponse.json({ error: "Area not found" }, { status: 404 });

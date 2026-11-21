@@ -118,7 +118,7 @@ function denyUnlessStaff(req: NextRequest): NextResponse | null {
   const session = resolveServerSession(req);
   const role = (session?.role || "").toUpperCase();
   if (!session) return NextResponse.json({ success: false, error: "UNAUTHORIZED" }, { status: 401 });
-  if (!role || role === "CUSTOMER" || role.startsWith("PARTNER_")) return NextResponse.json({ success: false, error: "FORBIDDEN" }, { status: 403 });
+  if (!role || role === "CUSTOMER" || role.startsWith("PARTNER_") || role === "DELIVERY_PARTNER" || role === "DLP") return NextResponse.json({ success: false, error: "FORBIDDEN" }, { status: 403 });
   return null;
 }
 
@@ -168,6 +168,48 @@ function enforceAdminModuleAccess(req: NextRequest, path: string, method: string
   }
   const ok = isWrite ? perms.some((p) => !p.split(".")[1].startsWith("VIEW")) : perms.length > 0;
   return ok ? null : deny(`FORBIDDEN: Your access profile does not include ${entry[1]}${isWrite ? " changes" : ""}.`);
+}
+
+/**
+ * Staff-only gate for back-office endpoints that also answer without the admin/ prefix
+ * (middleware only protects /api/v1/admin/*). Public storefront paths are not listed.
+ */
+const STAFF_ONLY_ALIASES: RegExp[] = [
+  /^accounting\//, /^analytics\//, /^events\//, /^notifications(\/|$)/, /^marketing-automation/,
+  /^cms\/(analytics|jobs)\//, /^cms\/forms$/, /^cms\/pages(\/|$)/, /^pages$/,
+  /^search\/(analytics|config|weights|rules|merchandising-rules|synonyms|tags|canonical-products)/,
+  /^popups\/(options|analytics)/, /^popup-options/, /^customers$/, /^customers\/lookup/,
+  /^offers(\/|$)/, /^marketing\/offers/, /^tax\//, /^tax-master/, /^orders\/attribute-recovery/,
+  /^inventory\/shared/, /^fulfillment\/otp\//,
+];
+const STAFF_WRITE_ALIASES: RegExp[] = [
+  /^popups(\/|$)/, /^categories(\/|$)/, /^occasions(\/|$)/, /^catalog\/(flavors|shapes|variant-options)/,
+  /^states(\/|$)/, /^cities(\/|$)/, /^weights(\/|$)/, /weight-prices/,
+];
+const PUBLIC_POPUP_WRITES = /^popups\/(impression|conversion)$/;
+
+function enforceStaffAliases(req: NextRequest, path: string, method: string): NextResponse | null {
+  if (path.startsWith("admin/")) return null;
+  const isWrite = method !== "GET";
+  const hit = STAFF_ONLY_ALIASES.some((r) => r.test(path))
+    || (isWrite && !PUBLIC_POPUP_WRITES.test(path) && STAFF_WRITE_ALIASES.some((r) => r.test(path)))
+    || (method === "PATCH" && /^orders(\/|$)/.test(path))
+    || (method === "GET" && path === "popups");
+  return hit ? denyUnlessStaff(req) : null;
+}
+
+/** Staff, or the signed-in customer the order belongs to (matched by account id or phone). */
+function canViewOrder(req: NextRequest, order: any): boolean {
+  const session = resolveServerSession(req);
+  if (!session) return false;
+  const role = (session.role || "").toUpperCase();
+  if (role && role !== "CUSTOMER" && !role.startsWith("PARTNER_") && role !== "DELIVERY_PARTNER" && role !== "DLP") return true;
+  const me = resolveVerifiedCustomer(req);
+  if (!me) return false;
+  const mine = new Set([me.customerId, me.customerUid, me.userId].filter(Boolean).map(String));
+  if ([order?.customer_id, order?.customer_uid, order?.customer?.id].some((id) => id && mine.has(String(id)))) return true;
+  const digits = (p: any) => String(p || "").replace(/\D/g, "").slice(-10);
+  return Boolean(me.phone) && [order?.customer_phone, order?.customer?.phone, order?.phone].some((p) => digits(p) === me.phone);
 }
 
 /**
@@ -1558,6 +1600,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
     { const denied = enforceAdminModuleAccess(req, path, "GET"); if (denied) return denied; }
+    { const denied = enforceStaffAliases(req, path, "GET"); if (denied) return denied; }
     if (path.startsWith("admin/abandoned-carts") || path.startsWith("admin/cart-recovery") || path === "admin/abandoned-cart") {
       // Cart Recovery works on real carts and saved recovery state from Supabase.
       try {
@@ -5256,7 +5299,8 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
 
     if (path.startsWith("customers/addresses/")) {
       const addressId = path.replace("customers/addresses/", "").replace("store/customers/addresses/", "");
-      const customerId = url.searchParams.get("customer_id") || req.cookies.get("_cth_user_id")?.value || "cus_guest";
+      const customerId = resolveVerifiedCustomer(req)?.customerUid;
+      if (!customerId) return jsonWithDataSource({ success: false, error: "UNAUTHORIZED" }, "postgres", 401);
       const addresses = ApiEngine.getCustomerAddresses(customerId);
       const address = addresses.find((a: any) => a.id === addressId);
       if (!address) return jsonWithDataSource({ error: "Address not found" }, "postgres", 404);
@@ -5464,7 +5508,7 @@ export async function GET(req: NextRequest, context: { params: { path: string[] 
     if (path.startsWith("orders/")) {
       const orderId = path.replace("orders/", "");
       const order = await OrderRepository.findById(orderId);
-      if (!order) return jsonWithDataSource({ error: "Order not found", success: false }, "postgres", 404);
+      if (!order || !canViewOrder(req, order)) return jsonWithDataSource({ error: "Order not found", success: false }, "postgres", 404);
       return jsonWithDataSource({ order, success: true }, "postgres");
     }
 
@@ -7487,6 +7531,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
     { const denied = enforceAdminModuleAccess(req, path, "POST"); if (denied) return denied; }
+    { const denied = enforceStaffAliases(req, path, "POST"); if (denied) return denied; }
     if (path.startsWith("admin/abandoned-carts") || path.startsWith("admin/cart-recovery") || path === "admin/abandoned-cart") {
       // Cart Recovery works on real carts and saved recovery state from Supabase.
       try {
@@ -10804,6 +10849,7 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
             paymentMethod: body.payment_method,
             deliveryType: body.delivery_type,
             config: policyStore.fulfillment_config,
+            staff: !denyUnlessStaff(req),
           });
           if (policyErr) {
             return jsonWithDataSource({ success: false, error: policyErr.message, code: policyErr.code }, "postgres", 400);
@@ -10944,7 +10990,9 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
     }
 
     if (path === "customers/addresses" || path === "store/customers/addresses") {
-      const address = ApiEngine.createCustomerAddress(body);
+      const owner = resolveVerifiedCustomer(req)?.customerUid;
+      if (!owner) return jsonWithDataSource({ success: false, error: "UNAUTHORIZED" }, "postgres", 401);
+      const address = ApiEngine.createCustomerAddress({ ...body, customer_id: owner });
       return jsonWithDataSource({ address, success: true }, "postgres", 201);
     }
 
@@ -11034,11 +11082,14 @@ export async function POST(req: NextRequest, context: { params: { path: string[]
           paymentMethod: body.payment_method,
           deliveryType: body.delivery_type || body.fulfillment_type,
           config: policyStore.fulfillment_config,
+          staff: !denyUnlessStaff(req),
         });
         if (policyErr) {
           return jsonWithDataSource({ success: false, error: policyErr.message, code: policyErr.code }, "postgres", 400);
         }
       }
+      // Only staff may record an order as already paid; customers pay through Razorpay.
+      if (denyUnlessStaff(req)) { delete body.payment_status; delete body.paymentStatus; }
       const idempotencyKey = req.headers.get("idempotency-key") || body.idempotency_key || undefined;
       const orderRes = await OrderService.createOrder({
         ...body,
@@ -12893,6 +12944,7 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
     { const denied = enforceAdminModuleAccess(req, path, "PUT"); if (denied) return denied; }
+    { const denied = enforceStaffAliases(req, path, "PUT"); if (denied) return denied; }
     if (path.startsWith("admin/abandoned-carts") || path.startsWith("admin/cart-recovery") || path === "admin/abandoned-cart") {
       // Cart Recovery works on real carts and saved recovery state from Supabase.
       try {
@@ -13211,7 +13263,9 @@ export async function PUT(req: NextRequest, context: { params: { path: string[] 
 
     if (path.startsWith("customers/addresses/")) {
       const addressId = path.replace("customers/addresses/", "").replace("store/customers/addresses/", "");
-      const address = ApiEngine.updateCustomerAddress(addressId, body);
+      const owner = resolveVerifiedCustomer(req)?.customerUid;
+      if (!owner) return jsonWithDataSource({ success: false, error: "UNAUTHORIZED" }, "postgres", 401);
+      const address = ApiEngine.updateCustomerAddress(addressId, { ...body, customer_id: owner });
       if (!address) return jsonWithDataSource({ error: "Address not found" }, "postgres", 404);
       return jsonWithDataSource({ address, success: true }, "postgres");
     }
@@ -13884,6 +13938,7 @@ export async function DELETE(req: NextRequest, context: { params: { path: string
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
     { const denied = enforceAdminModuleAccess(req, path, "DELETE"); if (denied) return denied; }
+    { const denied = enforceStaffAliases(req, path, "DELETE"); if (denied) return denied; }
     const body = await safeParseJsonBody(req);
 
     // Surprise / gift services: DELETE admin/gift-services/:id
@@ -14461,6 +14516,7 @@ export async function PATCH(req: NextRequest, context: { params: { path: string[
     await ApiEngine.ensureHydrated();
     const path = getPath(req, context);
     { const denied = enforceAdminModuleAccess(req, path, "PATCH"); if (denied) return denied; }
+    { const denied = enforceStaffAliases(req, path, "PATCH"); if (denied) return denied; }
     const body = await safeParseJsonBody(req, path);
     console.log(`[API PATCH] path="${path}"`);
 

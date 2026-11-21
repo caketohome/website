@@ -6,7 +6,8 @@ import { dbQuery as rawDbQuery } from "../db";
  * all CMS pages from Supabase each time (tens of GB of egress). Reads are cached for 60 s per process;
  * any CMS write clears the cache immediately, so admin edits show at once.
  */
-const CMS_CACHE_TTL_MS = 60_000;
+// Every CMS save clears this cache, so a long life only saves database egress.
+const CMS_CACHE_TTL_MS = 10 * 60_000;
 const cmsCache: Map<string, { at: number; value: any }> =
   (globalThis as any).__cthCmsReadCache || ((globalThis as any).__cthCmsReadCache = new Map());
 

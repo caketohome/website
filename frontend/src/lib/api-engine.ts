@@ -21139,9 +21139,9 @@ export class ApiEngine {
   static createCustomerAddress(payload: any) {
     const cId = payload.customer_id || "cus_guest";
     const list = this.getCustomerAddresses(cId);
-    const line1 = payload.line1 || payload.address_1 || payload.address || "12th Main Road";
+    const line1 = payload.line1 || payload.address_1 || payload.address || "";
     const line2 = payload.line2 || payload.address_2 || "";
-    const pincode = payload.pincode || payload.postal_code || "560038";
+    const pincode = payload.pincode || payload.postal_code || "";
 
     const newAddress = {
       id: `addr_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
@@ -21151,7 +21151,7 @@ export class ApiEngine {
       first_name: payload.first_name || payload.name?.split(" ")[0] || "Customer",
       last_name: payload.last_name || payload.name?.split(" ").slice(1).join(" ") || "",
       name: payload.name || `${payload.first_name || "Customer"} ${payload.last_name || ""}`.trim(),
-      phone: payload.phone || "+91 98765 43210",
+      phone: payload.phone || "",
       line1,
       line2,
       address_1: line1,

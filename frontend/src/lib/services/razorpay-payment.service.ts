@@ -603,7 +603,8 @@ export class RazorpayPaymentService {
       let captureErrorCode: string = "PAYMENT_CAPTURE_VERIFICATION_FAILED";
       let verifiedGatewayAmountPaise = expectedPaise;
 
-      const isMock = credentials.key_id.includes("placeholder") || credentials.key_id.startsWith("rzp_test_mock");
+      // Never skip the Razorpay amount check on the live site.
+      const isMock = process.env.NODE_ENV !== "production" && (credentials.key_id.includes("placeholder") || credentials.key_id.startsWith("rzp_test_mock"));
 
       if (!isMock) {
         try {

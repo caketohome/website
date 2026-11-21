@@ -161,13 +161,8 @@ export class OrderService {
         return { success: false, error: `Product '${product?.title || reqItem.product_id}' is inactive or not found in catalog.` };
       }
 
+      // Price always comes from the catalogue (base, variant or weight price), never from the browser.
       let unitPrice = Number(product.price || product.selling_price || 0);
-      if (unitPrice <= 0 && ((reqItem as any).unit_price || (reqItem as any).price)) {
-        unitPrice = Number((reqItem as any).unit_price || (reqItem as any).price);
-      }
-      if (unitPrice <= 0) {
-        return { success: false, error: `Product ${reqItem.product_id} has invalid or missing pricing in database.` };
-      }
 
       let itemSku = (product as any).sku || (product.metadata as any)?.sku || `${product.handle?.toUpperCase() || product.id}`;
       let itemBarcode = (product as any).barcode || (product.metadata as any)?.barcode || null;
@@ -209,6 +204,9 @@ export class OrderService {
         }
       }
 
+      if (!(unitPrice > 0)) {
+        return { success: false, error: `Product ${reqItem.product_id} has invalid or missing pricing in database.` };
+      }
       if ((reqItem as any).expected_unit_price !== undefined && (reqItem as any).expected_unit_price !== null) {
         const expectedPrice = Number((reqItem as any).expected_unit_price);
         if (!Number.isFinite(expectedPrice) || Math.abs(expectedPrice - unitPrice) > 0.01) {

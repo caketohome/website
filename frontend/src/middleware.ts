@@ -77,6 +77,8 @@ export async function middleware(request: NextRequest) {
       if (!rawRole || rawRole === "CUSTOMER") return deny(403, "FORBIDDEN");
       // Marketplace partner logins only use their own portal APIs, never admin APIs.
       if (rawRole.startsWith("PARTNER_")) return deny(403, "FORBIDDEN");
+      // Riders only use their own /api/v1/rider APIs; admin data (customers, accounts) is off limits.
+      if (rawRole === "DELIVERY_PARTNER" || rawRole === "DLP") return deny(403, "FORBIDDEN");
       return NextResponse.next();
     }
 

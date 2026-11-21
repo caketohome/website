@@ -22,8 +22,14 @@ export function checkoutPolicyError(params: {
   paymentMethod?: string | null;
   deliveryType?: string | null;
   config: { cod_enabled?: boolean; store_pickup_enabled?: boolean } | null | undefined;
+  /** Staff taking an order at the counter may record cash/card/UPI; customers may not. */
+  staff?: boolean;
 }): { code: string; message: string } | null {
   const method = String(params.paymentMethod || "").toLowerCase().trim();
+  // Customers only get the choices checkout offers; any other name would create a confirmed, unpaid order.
+  if (!params.staff && !["cod", "razorpay", "online", "test_mode"].includes(method)) {
+    return { code: "PAYMENT_METHOD_NOT_ALLOWED", message: "Please choose Pay Online or Cash on Delivery." };
+  }
   const isCod = method === "cod" || method === "cash" || method.includes("cash on delivery");
   if (isCod && !isCodEnabled(params.config)) {
     return { code: "COD_DISABLED", message: "Cash on Delivery is currently unavailable. Please pay online." };
