@@ -45,6 +45,12 @@ export function getConnectionString(): string | undefined {
       if (!isLocalhost && !isAllowedSupabase) {
         throw new Error(`SECURITY ABORT: Database target (${parsed.hostname}) is not localhost or an allowed Supabase host.`);
       }
+      // Supabase's session pooler (5432) allows only 15 clients; deploys briefly run two copies of the
+      // app (10 each). The transaction pooler (6543) has no such cap, so always use it.
+      if (isAllowedSupabasePooler(parsed) && parsed.port === '5432') {
+        parsed.port = '6543';
+        rawUrl = parsed.toString();
+      }
     } catch (e: any) {
       if (e.message.startsWith('SECURITY')) throw e;
       throw new Error(`Security validation failed: ${e.message}`);
